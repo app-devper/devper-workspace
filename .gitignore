@@ -55,7 +55,6 @@ keystore.properties
 gradlew
 gradlew.bat
 gradle-wrapper.jar
-*.iml
 
 **/.android
 **/.ios
@@ -64,6 +63,7 @@ gradle-wrapper.jar
 **/.flutter-plugins-dependencies
 **/pubspec.lock
 **/build
+**/.firebase
 
 
 # Symbolication related
