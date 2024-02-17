@@ -46,7 +46,7 @@ class UserInfoPage extends HookWidget {
                 update(param.userParam);
               });
             } else {
-              return Center(
+              return const Center(
                 child: CircularProgressIndicator(
                   strokeWidth: 6,
                   color: CustomColor.primary,

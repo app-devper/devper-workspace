@@ -52,7 +52,7 @@ class UserEditPage extends HookWidget {
                 update(param);
               });
             } else {
-              return Center(
+              return const Center(
                 child: CircularProgressIndicator(
                   strokeWidth: 6,
                   color: CustomColor.primary,

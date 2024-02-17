@@ -32,7 +32,7 @@ class SplashPage extends HookWidget {
     }
 
     buildBody() {
-      return Center(
+      return const Center(
         child: CircularProgressIndicator(
           strokeWidth: 6,
           color: CustomColor.primary,
