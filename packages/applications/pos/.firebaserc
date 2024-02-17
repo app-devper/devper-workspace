@@ -1,0 +1,17 @@
+{
+  "projects": {
+    "default": "devperpos"
+  },
+  "targets": {
+    "devperpos": {
+      "hosting": {
+        "devper": [
+          "devperpos"
+        ],
+        "pos": [
+          "devper-pos"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,48 @@
+name: um
+description: User management module project.
+
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.0.6 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+
+  shared_preferences: ^2.0.5
+  flutter_hooks: ^0.20.0
+  intl:
+  logging:
+  http:
+  common:
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.1
+  import_sorter: ^4.6.0
+
+publish_to: none
+
+flutter:
+
+  uses-material-design: true
+
+  assets:
+    - config/
+    - packages/um/images/logo.png
+
+  fonts:
+    - family: Roboto
+      fonts:
+        - asset: packages/common/assets/font/roboto_regular.ttf
+        - asset: packages/common/assets/font/roboto_bold.ttf
+          weight: 700
+
+  module:
+    androidX: true
+    androidPackage: com.devper.module.um
+    iosBundleIdentifier: com.devper.module.um

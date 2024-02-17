@@ -1,0 +1,56 @@
+name: pos
+description: POS Application.
+
+version: 1.0.9
+
+environment:
+  sdk: ">=3.0.6 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+
+  qr_code_scanner: ^1.0.1
+  pdf: ^3.10.7
+  path_provider: ^2.0.1
+  open_file: ^3.1.0
+  universal_html: ^2.0.8
+  csv: ^5.0.0
+  shared_preferences:
+  intl:
+  http:
+  common:
+  um:
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.1
+  import_sorter: ^4.6.0
+
+publish_to: none
+
+flutter:
+
+  uses-material-design: true
+
+  assets:
+    - config/
+    - assets/images/logo.png
+
+  fonts:
+    - family: Roboto
+      fonts:
+        - asset: packages/common/assets/font/roboto_regular.ttf
+        - asset: packages/common/assets/font/roboto_bold.ttf
+          weight: 700
+    - family: Sarabun
+      fonts:
+        - asset: assets/font/Sarabun-Regular.ttf
+          weight: 400
+        - asset: assets/font/Sarabun-Medium.ttf
+          weight: 500
+        - asset: assets/font/Sarabun-Bold.ttf
+          weight: 700
