@@ -15,6 +15,8 @@ import 'package:pos/presentation/product/expired/products_expired_state.dart';
 import 'package:pos/presentation/product/expired/products_expired_view_model.dart';
 import 'package:pos/presentation/theme.dart';
 
+import 'products_expire_ui_model.dart';
+
 class ProductsExpiredPage extends StatefulWidget {
   const ProductsExpiredPage({super.key});
 
@@ -30,6 +32,8 @@ class _ProductsExpiredPageState extends State<ProductsExpiredPage> {
   late ProductsExpiredViewModel _viewModel;
 
   double _totalCost = 0;
+
+  Range _value = Range.before180Days;
 
   @override
   void initState() {
@@ -51,7 +55,8 @@ class _ProductsExpiredPageState extends State<ProductsExpiredPage> {
     });
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _viewModel.getProductLotsExpired();
+      _viewModel.initData();
+      _viewModel.selectRange(_value);
     });
   }
 
@@ -86,10 +91,72 @@ class _ProductsExpiredPageState extends State<ProductsExpiredPage> {
       width: size.width,
       child: Column(
         children: <Widget>[
+          _buildMenu(),
           _buildReceiveList(),
           _buildTotalCost(),
         ],
       ),
+    );
+  }
+
+  _buildMenu() {
+    return Container(
+      padding: const EdgeInsets.only(right: DEFAULT_PAGE_PADDING, left: DEFAULT_PAGE_PADDING),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: <Widget>[
+          _buildDropdown(),
+        ],
+      ),
+    );
+  }
+
+  _buildDropdown() {
+    return StreamBuilder(
+      stream: _viewModel.dropdownItem.stream,
+      builder: (BuildContext context, AsyncSnapshot<List<ListItem>> snapshot) {
+        if (snapshot.hasData) {
+          var data = snapshot.data ?? [];
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: <Widget>[
+              SizedBox(
+                height: 40,
+                child: DropdownButton(
+                  value: _value,
+                  alignment: AlignmentDirectional.center,
+                  style: const TextStyle(
+                    fontSize: 14.0,
+                    color: CustomColor.fontBlack,
+                  ),
+                  items: data.map((ListItem item) {
+                    return DropdownMenuItem<Range>(
+                      value: item.value,
+                      child: Text(
+                        item.name,
+                        style: const TextStyle(
+                          fontSize: 14.0,
+                          color: CustomColor.fontBlack,
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      _value = value!;
+                    });
+                    _viewModel.selectRange(value as Range);
+                  },
+                ),
+              ),
+            ],
+          );
+        } else {
+          return Container(
+            height: 50,
+          );
+        }
+      },
     );
   }
 
@@ -156,6 +223,6 @@ class _ProductsExpiredPageState extends State<ProductsExpiredPage> {
 
   _nextToProductLotEdit(BuildContext context, ProductLot content) async {
     var _ = await Navigator.pushNamed(context, PRODUCT_LOT_EDIT_ROUTE, arguments: ProductLotArgument(content));
-    _viewModel.getProductLotsExpired();
+    _viewModel.selectRange(_value);
   }
 }

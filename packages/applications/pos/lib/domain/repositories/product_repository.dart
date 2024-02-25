@@ -24,6 +24,8 @@ abstract class ProductRepository {
 
   Future<List<ProductLot>> getProductLotsExpired();
 
+  Future<List<ProductLot>> getProductLots(GetLotsRangeParam param);
+
   Future<ProductLot> getProductLotByLotId(String lotId);
 
   Future<ProductLot> updateProductLotQuantityByLotId(String lotId, UpdateProductLotQuantityParam param);

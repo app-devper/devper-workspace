@@ -47,7 +47,6 @@ class PosService {
     return client.delete(url, headers: networkConfig.getHeaders(url));
   }
 
-
   Future<http.Response> getProductLotsByProductId(String productId) {
     var url = Uri.parse('${networkConfig.getHostApp()}/api/pos/v1/products/$productId/lots');
     return client.get(url, headers: networkConfig.getHeaders(url));
@@ -61,6 +60,11 @@ class PosService {
   Future<http.Response> updateProductLotById(String lotId, String jsonBody) {
     var url = Uri.parse('${networkConfig.getHostApp()}/api/pos/v1/products/lots/$lotId');
     return client.put(url, body: jsonBody, headers: networkConfig.getHeaders(url));
+  }
+
+  Future<http.Response> getProductLots(String startDate, String endDate) {
+    var url = Uri.parse('${networkConfig.getHostApp()}/api/pos/v1/products/lots?startDate=$startDate&endDate=$endDate');
+    return client.get(url, headers: networkConfig.getHeaders(url));
   }
 
   Future<http.Response> getProductLotsExpired() {

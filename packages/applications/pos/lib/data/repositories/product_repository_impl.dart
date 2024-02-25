@@ -158,4 +158,15 @@ class ProductRepositoryImpl implements ProductRepository {
       throw HttpException(response);
     }
   }
+
+  @override
+  Future<List<ProductLot>> getProductLots(GetLotsRangeParam param) async {
+    final mapper = ProductMapper();
+    final response = await posService.getProductLots(param.startDate, param.endDate);
+    if (response.isSuccessful) {
+      return mapper.toProductLotsDomain(jsonDecode(response.body));
+    } else {
+      throw HttpException(response);
+    }
+  }
 }

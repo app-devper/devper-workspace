@@ -35,3 +35,13 @@ class UpdateProductLotQuantityParam {
     required this.quantity,
   });
 }
+
+class GetLotsRangeParam {
+  final String startDate;
+  final String endDate;
+
+  GetLotsRangeParam({
+    required this.startDate,
+    required this.endDate,
+  });
+}
