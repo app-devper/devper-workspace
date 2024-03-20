@@ -1,4 +1,5 @@
 // Flutter imports:
+import 'package:common/core/widgets/appbar_widget.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -126,14 +127,8 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
     _snackBar = CustomSnackBar(key: const Key("snackbar"), context: context);
     return Scaffold(
       key: _scaffoldKey,
-      appBar: AppBar(
-        iconTheme: CustomTheme.mainTheme.iconTheme,
-        backgroundColor: CustomColor.white,
-        centerTitle: true,
-        title: Text(
-          Languages.of(context).orderDetailTitle,
-          style: CustomTheme.mainTheme.textTheme.headlineSmall,
-        ),
+      appBar: buildAppBar(
+        Languages.of(context).orderDetailTitle,
         actions: _buildAction(context),
       ),
       body: AnnotatedRegion<SystemUiOverlayStyle>(
@@ -203,7 +198,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
     final Size size = MediaQuery.of(context).size;
     return Container(
       width: size.width,
-      padding: const EdgeInsets.all(DEFAULT_PAGE_PADDING),
+      padding: const EdgeInsets.all(defaultPagePadding),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.start,
         children: <Widget>[
@@ -221,7 +216,6 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
       alignment: Alignment.centerLeft,
       child: Text(
         "${order?.code ?? ""} ${(order?.getCreatedDate() ?? "-")}",
-        style: CustomTheme.mainTheme.textTheme.titleLarge,
       ),
     );
   }
@@ -282,7 +276,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
 
   Widget _buildSummaryTotal() {
     return Container(
-      padding: const EdgeInsets.all(DEFAULT_PAGE_PADDING),
+      padding: const EdgeInsets.all(defaultPagePadding),
       child: Column(
         children: <Widget>[
           _buildPrice(),
@@ -297,13 +291,11 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: <Widget>[
-        Text(
+        const Text(
           'Total',
-          style: CustomTheme.mainTheme.textTheme.headlineSmall,
         ),
         Text(
           '฿ ${format.format(getTotalPrice())}',
-          style: CustomTheme.mainTheme.textTheme.headlineSmall,
         ),
       ],
     );
@@ -314,13 +306,11 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
       return Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[
-          Text(
+          const Text(
             'Total Cost',
-            style: CustomTheme.mainTheme.textTheme.headlineSmall,
           ),
           Text(
             '฿ ${format.format(getTotalCostPrice())}',
-            style: CustomTheme.mainTheme.textTheme.headlineSmall,
           ),
         ],
       );
@@ -334,13 +324,11 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
       return Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[
-          Text(
+          const Text(
             'Total Profit',
-            style: CustomTheme.mainTheme.textTheme.headlineSmall,
           ),
           Text(
             '฿ ${format.format(getTotalPrice() - getTotalCostPrice())}',
-            style: CustomTheme.mainTheme.textTheme.headlineSmall,
           ),
         ],
       );

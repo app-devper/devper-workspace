@@ -43,7 +43,7 @@ class _MyAppState extends State<DevperSm> {
       title: 'DevperSM',
       theme: CustomTheme.mainTheme,
       onGenerateRoute: RouterApp.generateRoute,
-      initialRoute: ROOT_ROUTE,
+      initialRoute: rootRoute,
       locale: _locale,
       supportedLocales: const [
         Locale('th', ''),

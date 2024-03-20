@@ -1,4 +1,5 @@
 // Flutter imports:
+import 'package:common/core/widgets/appbar_widget.dart';
 import 'package:flutter/material.dart';
 
 // Package imports:
@@ -14,7 +15,6 @@ import 'package:pos/localizations/language/languages.dart';
 import 'package:pos/presentation/constants.dart';
 import 'package:pos/presentation/customer/edit/customer_edit_state.dart';
 import 'package:pos/presentation/customer/edit/customer_edit_view_model.dart';
-import 'package:pos/presentation/theme.dart';
 
 class CustomerEditPage extends StatefulWidget {
   final Customer customer;
@@ -98,14 +98,8 @@ class _CustomerEditPageState extends State<CustomerEditPage> {
     _snackBar = CustomSnackBar(key: const Key("snackbar"), context: context);
     return Scaffold(
       key: _scaffoldKey,
-      appBar: AppBar(
-        iconTheme: CustomTheme.mainTheme.iconTheme,
-        backgroundColor: CustomColor.white,
-        centerTitle: true,
-        title: Text(
-          Languages.of(context).customerEditTitle,
-          style: CustomTheme.mainTheme.textTheme.headlineSmall,
-        ),
+      appBar: buildAppBar(
+        Languages.of(context).customerEditTitle,
         actions: _buildAction(context),
       ),
       body: _buildBody(context),
@@ -134,12 +128,12 @@ class _CustomerEditPageState extends State<CustomerEditPage> {
 
   _buildBody(BuildContext context) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(DEFAULT_PAGE_PADDING),
+      padding: const EdgeInsets.all(defaultPagePadding),
       child: Column(
         children: <Widget>[
           _buildForm(context),
           const Padding(
-            padding: EdgeInsets.only(top: DEFAULT_PAGE_PADDING),
+            padding: EdgeInsets.only(top: defaultPagePadding),
           ),
           _buildUpdateButton(),
         ],

@@ -23,10 +23,22 @@ scripts:
     run: |
       melos exec -c 1 --scope pos -- \
       flutter build web --release && \
+    description: |
+      Build.
+    
+  deploy:web:devper:
+    run: |
+      melos exec -c 1 --scope pos -- \
+      firebase deploy --only hosting:devper
+    description: |
+      Deploy.   
+
+  deploy:web:pos:
+    run: |
       melos exec -c 1 --scope pos -- \
       firebase deploy --only hosting:pos
     description: |
-      Build and Deploy.
+      Build and Deploy.          
 
   import_sorter:
     run: |

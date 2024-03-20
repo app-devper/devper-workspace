@@ -1,4 +1,5 @@
 // Flutter imports:
+import 'package:common/core/widgets/appbar_widget.dart';
 import 'package:flutter/material.dart';
 
 // Package imports:
@@ -13,7 +14,6 @@ import 'package:pos/localizations/language/languages.dart';
 import 'package:pos/presentation/constants.dart';
 import 'package:pos/presentation/customer/add/customer_add_state.dart';
 import 'package:pos/presentation/customer/add/customer_add_view_model.dart';
-import 'package:pos/presentation/theme.dart';
 
 class CustomerAddPage extends StatefulWidget {
   const CustomerAddPage({super.key});
@@ -87,14 +87,8 @@ class _CustomerAddPageState extends State<CustomerAddPage> {
     _snackBar = CustomSnackBar(key: const Key("snackbar"), context: context);
     return Scaffold(
       key: _scaffoldKey,
-      appBar: AppBar(
-        iconTheme: CustomTheme.mainTheme.iconTheme,
-        backgroundColor: CustomColor.white,
-        centerTitle: true,
-        title: Text(
+      appBar: buildAppBar(
           Languages.of(context).customerAddTitle,
-          style: CustomTheme.mainTheme.textTheme.headlineSmall,
-        ),
       ),
       body: _buildBody(context),
     );
@@ -102,17 +96,15 @@ class _CustomerAddPageState extends State<CustomerAddPage> {
 
   _buildBody(BuildContext context) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(DEFAULT_PAGE_PADDING),
-      child: Container(
-        child: Column(
-          children: <Widget>[
-            _buildForm(context),
-            const Padding(
-              padding: EdgeInsets.only(top: DEFAULT_PAGE_PADDING),
-            ),
-            _buildAddButton(),
-          ],
-        ),
+      padding: const EdgeInsets.all(defaultPagePadding),
+      child: Column(
+        children: <Widget>[
+          _buildForm(context),
+          const Padding(
+            padding: EdgeInsets.only(top: defaultPagePadding),
+          ),
+          _buildAddButton(),
+        ],
       ),
     );
   }

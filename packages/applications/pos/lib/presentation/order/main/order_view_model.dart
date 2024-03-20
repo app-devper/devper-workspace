@@ -53,12 +53,12 @@ class OrderViewModel {
 
   void initData() {
     List<ListItem> dropdownItems = [
-      ListItem(Range.Today, "Today"),
-      ListItem(Range.Yesterday, "Yesterday"),
-      ListItem(Range.Date, "Date"),
-      ListItem(Range.DateRange, "Date Range"),
-      ListItem(Range.CurrentMonth, "Current Month"),
-      ListItem(Range.LastMonth, "Last Month"),
+      ListItem(Range.today, "Today"),
+      ListItem(Range.yesterday, "Yesterday"),
+      ListItem(Range.date, "Date"),
+      ListItem(Range.dateRange, "Date Range"),
+      ListItem(Range.currentMonth, "Current Month"),
+      ListItem(Range.lastMonth, "Last Month"),
     ];
     _dropdownItems.sink.add(dropdownItems);
     _states.sink.add((InitState()));
@@ -67,61 +67,61 @@ class OrderViewModel {
   void selectRange(Range range) {
     final now = DateTime.now();
     switch (range) {
-      case Range.Today:
+      case Range.today:
         if (!_states.isClosed) {
           DateTime startDate = DateTime(now.year, now.month, now.day);
           DateTime endDate = DateTime(now.year, now.month, now.day + 1);
           _states.sink.add((OrderRangeState(range, startDate, endDate)));
         }
         break;
-      case Range.Yesterday:
+      case Range.yesterday:
         if (!_states.isClosed) {
           DateTime startDate = DateTime(now.year, now.month, now.day).subtract(const Duration(days: 1));
           DateTime endDate = DateTime(now.year, now.month, now.day);
           _states.sink.add((OrderRangeState(range, startDate, endDate)));
         }
         break;
-      case Range.Last7Days:
+      case Range.last7Days:
         if (!_states.isClosed) {
           DateTime startDate = DateTime(now.year, now.month, now.day).subtract(const Duration(days: 8));
           DateTime endDate = DateTime(now.year, now.month, now.day).subtract(const Duration(days: 1));
           _states.sink.add((OrderRangeState(range, startDate, endDate)));
         }
         break;
-      case Range.Last30Days:
+      case Range.last30Days:
         if (!_states.isClosed) {
           DateTime startDate = DateTime(now.year, now.month, now.day).subtract(const Duration(days: 31));
           DateTime endDate = DateTime(now.year, now.month, now.day).subtract(const Duration(days: 1));
           _states.sink.add((OrderRangeState(range, startDate, endDate)));
         }
         break;
-      case Range.CurrentMonth:
+      case Range.currentMonth:
         if (!_states.isClosed) {
           DateTime startDate = DateTime(now.year, now.month, 1);
           DateTime endDate = DateTime(now.year, now.month + 1, 1);
           _states.sink.add((OrderRangeState(range, startDate, endDate)));
         }
         break;
-      case Range.LastMonth:
+      case Range.lastMonth:
         if (!_states.isClosed) {
           DateTime startDate = DateTime(now.year, now.month - 1, 1);
           DateTime endDate = DateTime(now.year, now.month, 1);
           _states.sink.add((OrderRangeState(range, startDate, endDate)));
         }
         break;
-      case Range.DateRange:
+      case Range.dateRange:
         if (!_states.isClosed) {
           _states.sink.add((OrderRangeState(range, now, now)));
         }
         break;
-      case Range.Date:
+      case Range.date:
         if (!_states.isClosed) {
           DateTime startDate = DateTime(now.year, now.month, now.day);
           DateTime endDate = DateTime(now.year, now.month, now.day + 1);
           _states.sink.add((OrderRangeState(range, startDate, endDate)));
         }
         break;
-      case Range.Month:
+      case Range.month:
         break;
     }
   }

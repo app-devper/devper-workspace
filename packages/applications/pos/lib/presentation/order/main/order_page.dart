@@ -1,4 +1,5 @@
 // Flutter imports:
+import 'package:common/core/widgets/appbar_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -47,7 +48,7 @@ class _OrderPageState extends State<OrderPage> {
 
   bool _isAdmin = false;
 
-  Range _value = Range.Today;
+  Range _value = Range.today;
   double _totalCost = 0;
   double _total = 0;
 
@@ -75,9 +76,9 @@ class _OrderPageState extends State<OrderPage> {
         });
         _viewModel.initData();
       } else if (state is OrderRangeState) {
-        if (state.range == Range.DateRange) {
+        if (state.range == Range.dateRange) {
           _selectRangeDate(state.startDate, state.range);
-        } else if (state.range == Range.Date) {
+        } else if (state.range == Range.date) {
           _selectDate(_startDate, state.range);
         } else {
           setState(() {
@@ -108,14 +109,8 @@ class _OrderPageState extends State<OrderPage> {
       onTap: () => FocusScope.of(context).requestFocus(_viewNode),
       child: Scaffold(
         key: _scaffoldKey,
-        appBar: AppBar(
-          iconTheme: CustomTheme.mainTheme.iconTheme,
-          backgroundColor: CustomColor.white,
-          centerTitle: true,
-          title: Text(
+        appBar: buildAppBar(
             Languages.of(context).ordersTitle,
-            style: CustomTheme.mainTheme.textTheme.headlineSmall,
-          ),
         ),
         body: AnnotatedRegion<SystemUiOverlayStyle>(
           value: SystemUiOverlayStyle.dark.copyWith(
@@ -148,39 +143,37 @@ class _OrderPageState extends State<OrderPage> {
       builder: (BuildContext context, AsyncSnapshot<List<ListItem>> snapshot) {
         if (snapshot.hasData && _isAdmin) {
           var data = snapshot.data ?? [];
-          return Container(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: <Widget>[
-                SizedBox(
-                  height: 40,
-                  child: DropdownButton(
-                    value: _value,
-                    alignment: AlignmentDirectional.center,
-                    style: const TextStyle(
-                      fontSize: 14.0,
-                      color: CustomColor.fontBlack,
-                    ),
-                    items: data.map((ListItem item) {
-                      return DropdownMenuItem<Range>(
-                        value: item.value,
-                        child: Text(
-                          item.name,
-                          style: const TextStyle(
-                            fontSize: 14.0,
-                            color: CustomColor.fontBlack,
-                          ),
-                        ),
-                      );
-                    }).toList(),
-                    onChanged: (value) {
-                      _viewModel.selectRange(value as Range);
-                    },
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: <Widget>[
+              SizedBox(
+                height: 40,
+                child: DropdownButton(
+                  value: _value,
+                  alignment: AlignmentDirectional.center,
+                  style: const TextStyle(
+                    fontSize: 14.0,
+                    color: CustomColor.fontBlack,
                   ),
+                  items: data.map((ListItem item) {
+                    return DropdownMenuItem<Range>(
+                      value: item.value,
+                      child: Text(
+                        item.name,
+                        style: const TextStyle(
+                          fontSize: 14.0,
+                          color: CustomColor.fontBlack,
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    _viewModel.selectRange(value as Range);
+                  },
                 ),
-                _buildDate(),
-              ],
-            ),
+              ),
+              _buildDate(),
+            ],
           );
         } else {
           return Container(
@@ -194,7 +187,7 @@ class _OrderPageState extends State<OrderPage> {
   _buildMenu(BuildContext context) {
     if (_isAdmin) {
       return Container(
-        padding: const EdgeInsets.only(right: DEFAULT_PAGE_PADDING, left: DEFAULT_PAGE_PADDING),
+        padding: const EdgeInsets.only(right: defaultPagePadding, left: defaultPagePadding),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
@@ -209,7 +202,7 @@ class _OrderPageState extends State<OrderPage> {
   }
 
   _buildDate() {
-    if (_value == Range.Today || _value == Range.Yesterday || _value == Range.Date) {
+    if (_value == Range.today || _value == Range.yesterday || _value == Range.date) {
       return Row(
         children: <Widget>[
           Text(
@@ -218,7 +211,7 @@ class _OrderPageState extends State<OrderPage> {
           ),
         ],
       );
-    } else if (_value == Range.CurrentMonth || _value == Range.Month || _value == Range.LastMonth) {
+    } else if (_value == Range.currentMonth || _value == Range.month || _value == Range.lastMonth) {
       return Row(
         children: <Widget>[
           Text(
@@ -310,7 +303,7 @@ class _OrderPageState extends State<OrderPage> {
 
   _buildSummaryTotal() {
     return Container(
-      padding: const EdgeInsets.all(DEFAULT_PAGE_PADDING),
+      padding: const EdgeInsets.all(defaultPagePadding),
       child: Column(
         children: <Widget>[
           _buildTotal(),
@@ -325,13 +318,11 @@ class _OrderPageState extends State<OrderPage> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: <Widget>[
-        Text(
+        const Text(
           'Total',
-          style: CustomTheme.mainTheme.textTheme.headlineSmall,
         ),
         Text(
           '฿ ${_format.format(_total)}',
-          style: CustomTheme.mainTheme.textTheme.headlineSmall,
         ),
       ],
     );
@@ -342,13 +333,11 @@ class _OrderPageState extends State<OrderPage> {
       return Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[
-          Text(
+          const Text(
             'Total Cost',
-            style: CustomTheme.mainTheme.textTheme.headlineSmall,
           ),
           Text(
             '฿ ${_format.format(_totalCost)}',
-            style: CustomTheme.mainTheme.textTheme.headlineSmall,
           ),
         ],
       );
@@ -362,13 +351,11 @@ class _OrderPageState extends State<OrderPage> {
       return Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[
-          Text(
+          const Text(
             'Total Profit',
-            style: CustomTheme.mainTheme.textTheme.headlineSmall,
           ),
           Text(
             '฿ ${_format.format(_total - _totalCost)}',
-            style: CustomTheme.mainTheme.textTheme.headlineSmall,
           ),
         ],
       );

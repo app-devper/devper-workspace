@@ -16,9 +16,9 @@ class RouterApp {
       return RouterUm.generateRoute(settings);
     } else {
       switch (settings.name) {
-        case ROOT_ROUTE:
+        case rootRoute:
           return MaterialPageRoute(builder: (_) => const LoginPage());
-        case HOME_ROUTE:
+        case homeRoute:
           return MaterialPageRoute(builder: (_) => const HomePage());
         default:
           return MaterialPageRoute(builder: (_) => const ErrorPage());

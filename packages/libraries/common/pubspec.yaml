@@ -35,7 +35,3 @@ flutter:
         - asset: packages/common/assets/font/roboto_bold.ttf
           weight: 700
 
-  module:
-    androidX: true
-    androidPackage: com.devper.module.common
-    iosBundleIdentifier: com.devper.module.common

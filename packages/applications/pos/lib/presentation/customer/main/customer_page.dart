@@ -1,4 +1,5 @@
 // Flutter imports:
+import 'package:common/core/widgets/appbar_widget.dart';
 import 'package:flutter/material.dart';
 
 // Package imports:
@@ -59,14 +60,8 @@ class _CustomerPageState extends State<CustomerPage> {
     _snackBar = CustomSnackBar(key: const Key("snackbar"), context: context);
     return Scaffold(
       key: _scaffoldKey,
-      appBar: AppBar(
-        iconTheme: CustomTheme.mainTheme.iconTheme,
-        backgroundColor: CustomColor.white,
-        centerTitle: true,
-        title: Text(
-          Languages.of(context).customerTitle,
-          style: CustomTheme.mainTheme.textTheme.headlineSmall,
-        ),
+      appBar: buildAppBar(
+        Languages.of(context).customerTitle,
         actions: _buildAction(context),
       ),
       body: _buildBody(context),
@@ -139,12 +134,12 @@ class _CustomerPageState extends State<CustomerPage> {
   }
 
   _nextToCustomerEdit(BuildContext context, Customer content) async {
-    var result = await Navigator.pushNamed(context, CUSTOMER_EDIT_ROUTE, arguments: CustomerArgument(content));
+    var _ = await Navigator.pushNamed(context, CUSTOMER_EDIT_ROUTE, arguments: CustomerArgument(content));
     _viewModel.getCustomers();
   }
 
   _nextToCustomerAdd(BuildContext context) async {
-    var result = await Navigator.pushNamed(context, CUSTOMER_ADD_ROUTE);
+    var _ = await Navigator.pushNamed(context, CUSTOMER_ADD_ROUTE);
     _viewModel.getCustomers();
   }
 }

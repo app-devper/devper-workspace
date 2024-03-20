@@ -1,4 +1,5 @@
 // Flutter imports:
+import 'package:common/core/widgets/appbar_widget.dart';
 import 'package:flutter/material.dart';
 
 // Package imports:
@@ -160,14 +161,8 @@ class _ProductAddPageState extends State<ProductAddPage> {
     _snackBar = CustomSnackBar(key: const Key("snackbar"), context: context);
     return Scaffold(
       key: _scaffoldKey,
-      appBar: AppBar(
-        iconTheme: CustomTheme.mainTheme.iconTheme,
-        backgroundColor: CustomColor.white,
-        centerTitle: true,
-        title: Text(
-          Languages.of(context).productAddTitle,
-          style: CustomTheme.mainTheme.textTheme.headlineSmall,
-        ),
+      appBar: buildAppBar(
+        Languages.of(context).productAddTitle,
       ),
       body: _buildBody(context),
     );
@@ -175,7 +170,7 @@ class _ProductAddPageState extends State<ProductAddPage> {
 
   _buildBody(BuildContext context) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(DEFAULT_PAGE_PADDING),
+      padding: const EdgeInsets.all(defaultPagePadding),
       child: Column(
         children: <Widget>[
           _buildSerialNumber(context),
@@ -377,7 +372,6 @@ class _ProductAddPageState extends State<ProductAddPage> {
         fillColor: CustomColor.textFieldBackground,
         filled: true,
         labelText: "SerialNumber*",
-        labelStyle: CustomTheme.mainTheme.textTheme.bodyMedium,
         suffixIcon: IconButton(
           splashRadius: 20,
           onPressed: () {
@@ -387,7 +381,6 @@ class _ProductAddPageState extends State<ProductAddPage> {
         ),
       ),
       cursorColor: CustomColor.hintColor,
-
       onFieldSubmitted: (term) {
         final serialNumber = _serialNumberEditingController.text;
         if (serialNumber.isNotEmpty) {
@@ -428,7 +421,6 @@ class _ProductAddPageState extends State<ProductAddPage> {
         fillColor: CustomColor.textFieldBackground,
         filled: true,
         labelText: "Expire Date*",
-        labelStyle: CustomTheme.mainTheme.textTheme.bodyMedium,
       ),
       cursorColor: CustomColor.hintColor,
       readOnly: true,

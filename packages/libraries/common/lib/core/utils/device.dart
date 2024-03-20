@@ -5,42 +5,47 @@ import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart';
 
 class Device {
-  static os getPlatform() {
+  static Os getPlatform() {
     if (kIsWeb) {
-      return os.Web;
+      return Os.web;
     } else if (Platform.isIOS) {
-      return os.IOS;
+      return Os.iOS;
     } else if (Platform.isAndroid) {
-      return os.Android;
+      return Os.android;
     } else if (Platform.isFuchsia) {
-      return os.Fuchsia;
+      return Os.fuchsia;
     } else if (Platform.isLinux) {
-      return os.Linux;
+      return Os.linux;
     } else if (Platform.isMacOS) {
-      return os.MacOS;
+      return Os.macOS;
     } else if (Platform.isWindows) {
-      return os.Windows;
+      return Os.windows;
     }
-    return os.Unknown;
+    return Os.unknown;
   }
 
   static bool isWeb() {
-    return (getPlatform() == os.Web);
+    return (getPlatform() == Os.web);
   }
 
   static bool isMobile() {
-    os platform = getPlatform();
-    return (platform == os.Android ||
-        platform == os.IOS ||
-        platform == os.Fuchsia);
+    Os platform = getPlatform();
+    return (platform == Os.android || platform == Os.iOS || platform == Os.fuchsia);
   }
 
   static bool isComputer() {
-    os platform = getPlatform();
-    return (platform == os.Linux ||
-        platform == os.MacOS ||
-        platform == os.Windows);
+    Os platform = getPlatform();
+    return (platform == Os.linux || platform == Os.macOS || platform == Os.windows);
   }
 }
 
-enum os { Unknown, Web, Android, Fuchsia, IOS, Linux, MacOS, Windows }
+enum Os {
+  unknown,
+  web,
+  android,
+  fuchsia,
+  iOS,
+  linux,
+  macOS,
+  windows,
+}

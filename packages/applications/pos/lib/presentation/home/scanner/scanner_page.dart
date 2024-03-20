@@ -2,6 +2,7 @@
 import 'dart:io';
 
 // Flutter imports:
+import 'package:common/core/widgets/appbar_widget.dart';
 import 'package:flutter/material.dart';
 
 // Package imports:
@@ -15,7 +16,6 @@ import 'package:pos/domain/model/product/product.dart';
 import 'package:pos/localizations/language/languages.dart';
 import 'package:pos/presentation/constants.dart';
 import 'package:pos/presentation/product/argument.dart';
-import 'package:pos/presentation/theme.dart';
 import 'scanner_state.dart';
 import 'scanner_view_model.dart';
 
@@ -68,14 +68,8 @@ class _ScannerPageState extends State<ScannerPage> {
   Widget build(BuildContext context) {
     _snackBar = CustomSnackBar(key: const Key("snackbar"), context: context);
     return Scaffold(
-      appBar: AppBar(
-        iconTheme: CustomTheme.mainTheme.iconTheme,
-        backgroundColor: CustomColor.white,
-        centerTitle: true,
-        title: Text(
-          Languages.of(context).productFindTitle,
-          style: CustomTheme.mainTheme.textTheme.headlineSmall,
-        ),
+      appBar: buildAppBar(
+        Languages.of(context).productFindTitle,
         actions: [
           IconButton(
             onPressed: () {

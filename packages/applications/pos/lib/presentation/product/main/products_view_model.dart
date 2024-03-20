@@ -50,16 +50,16 @@ class ProductsViewModel {
 
   void initData() async {
     final dropdownItems = [
-      ListItem(SortProduct.CreatedAsc, "Created: Old to New"),
-      ListItem(SortProduct.CreatedDesc, "Created: New to Old"),
-      ListItem(SortProduct.NameAsc, "Name: A-Z"),
-      ListItem(SortProduct.NameDesc, "Name: Z-A"),
-      ListItem(SortProduct.PriceAsc, "Price: Low to High"),
-      ListItem(SortProduct.PriceDesc, "Price: High to Low"),
-      ListItem(SortProduct.QuantityAsc, "Quantity: Low to High"),
-      ListItem(SortProduct.QuantityDesc, "Quantity: High to Low"),
-      ListItem(SortProduct.SerialNoAsc, "Serial No.: Low to High"),
-      ListItem(SortProduct.SerialNoDesc, "Serial No.: High to Low"),
+      ListItem(SortProduct.createdAsc, "Created: Old to New"),
+      ListItem(SortProduct.createdDesc, "Created: New to Old"),
+      ListItem(SortProduct.nameAsc, "Name: A-Z"),
+      ListItem(SortProduct.nameDesc, "Name: Z-A"),
+      ListItem(SortProduct.priceAsc, "Price: Low to High"),
+      ListItem(SortProduct.priceDesc, "Price: High to Low"),
+      ListItem(SortProduct.quantityAsc, "Quantity: Low to High"),
+      ListItem(SortProduct.quantityDesc, "Quantity: High to Low"),
+      ListItem(SortProduct.serialNoAsc, "Serial No.: Low to High"),
+      ListItem(SortProduct.serialNoDesc, "Serial No.: High to Low"),
     ];
     if (!_dropdownItems.isClosed) {
       _dropdownItems.sink.add(dropdownItems);
@@ -185,38 +185,38 @@ class ProductsViewModel {
   List<Product> _sortProduct(SortProduct sort, String category, List<Product> data) {
     final filtered = data.where((element) => element.category == category).toList();
     switch (sort) {
-      case SortProduct.NameAsc:
+      case SortProduct.nameAsc:
         filtered.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
         return filtered;
-      case SortProduct.NameDesc:
+      case SortProduct.nameDesc:
         filtered.sort((a, b) => b.name.toLowerCase().compareTo(a.name.toLowerCase()));
         return filtered;
-      case SortProduct.PriceAsc:
+      case SortProduct.priceAsc:
         filtered.sort((a, b) => a.price.compareTo(b.price));
         return filtered;
-      case SortProduct.PriceDesc:
+      case SortProduct.priceDesc:
         filtered.sort((a, b) => b.price.compareTo(a.price));
         return filtered;
-      case SortProduct.CostPriceAsc:
+      case SortProduct.costPriceAsc:
         filtered.sort((a, b) => a.costPrice.compareTo(b.costPrice));
         return filtered;
-      case SortProduct.CostPriceDesc:
+      case SortProduct.costPriceDesc:
         filtered.sort((a, b) => b.costPrice.compareTo(a.costPrice));
         return filtered;
-      case SortProduct.QuantityAsc:
+      case SortProduct.quantityAsc:
         filtered.sort((a, b) => a.quantity.compareTo(b.quantity));
         return filtered;
-      case SortProduct.QuantityDesc:
+      case SortProduct.quantityDesc:
         filtered.sort((a, b) => b.quantity.compareTo(a.quantity));
         return filtered;
-      case SortProduct.CreatedAsc:
+      case SortProduct.createdAsc:
         return filtered;
-      case SortProduct.CreatedDesc:
+      case SortProduct.createdDesc:
         return filtered.reversed.toList();
-      case SortProduct.SerialNoAsc:
+      case SortProduct.serialNoAsc:
         filtered.sort((a, b) => a.serialNumber.compareTo(b.serialNumber));
         return filtered;
-      case SortProduct.SerialNoDesc:
+      case SortProduct.serialNoDesc:
         filtered.sort((a, b) => b.serialNumber.compareTo(a.serialNumber));
         return filtered;
     }

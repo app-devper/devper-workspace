@@ -53,7 +53,7 @@ class _MyAppState extends State<DevperPos> {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'DevperPOS',
-      theme: CustomTheme.mainTheme,
+      theme: CustomTheme.mainTheme(context),
       onGenerateRoute: RouterApp.generateRoute,
       initialRoute: ROOT_ROUTE,
       locale: _locale,

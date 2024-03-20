@@ -1,4 +1,5 @@
 // Flutter imports:
+import 'package:common/core/widgets/appbar_widget.dart';
 import 'package:flutter/material.dart';
 
 // Package imports:
@@ -59,14 +60,8 @@ class _SuppliersPageState extends State<SuppliersPage> {
     _snackBar = CustomSnackBar(key: const Key("snackbar"), context: context);
     return Scaffold(
       key: _scaffoldKey,
-      appBar: AppBar(
-        iconTheme: CustomTheme.mainTheme.iconTheme,
-        backgroundColor: CustomColor.white,
-        centerTitle: true,
-        title: Text(
-          Languages.of(context).suppliersTitle,
-          style: CustomTheme.mainTheme.textTheme.headlineSmall,
-        ),
+      appBar: buildAppBar(
+        Languages.of(context).suppliersTitle,
         actions: _buildAction(context),
       ),
       body: _buildBody(context),
@@ -139,12 +134,12 @@ class _SuppliersPageState extends State<SuppliersPage> {
   }
 
   _nextToSupplierEdit(BuildContext context, Supplier content) async {
-    var result = await Navigator.pushNamed(context, SUPPLIER_EDIT_ROUTE, arguments: SupplierArgument(content));
+    var _ = await Navigator.pushNamed(context, SUPPLIER_EDIT_ROUTE, arguments: SupplierArgument(content));
     _viewModel.getSuppliers();
   }
 
   _nextToSupplierAdd(BuildContext context) async {
-    var result = await Navigator.pushNamed(context, SUPPLIER_ADD_ROUTE);
+    var _ = await Navigator.pushNamed(context, SUPPLIER_ADD_ROUTE);
     _viewModel.getSuppliers();
   }
 }

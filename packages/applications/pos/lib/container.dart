@@ -21,7 +21,11 @@ import 'package:pos/presentation/category/main/category_view_model.dart';
 import 'package:pos/presentation/customer/add/customer_add_view_model.dart';
 import 'package:pos/presentation/customer/edit/customer_edit_view_model.dart';
 import 'package:pos/presentation/customer/main/customer_view_model.dart';
+import 'package:pos/presentation/home/main/cart_store.dart';
+import 'package:pos/presentation/home/main/cart_view_model.dart';
+import 'package:pos/presentation/home/main/customer_search_view_model.dart';
 import 'package:pos/presentation/home/main/home_view_model.dart';
+import 'package:pos/presentation/home/main/product_search_view_model.dart';
 import 'package:pos/presentation/home/scanner/scanner_view_model.dart';
 import 'package:pos/presentation/order/detail/order_detail_view_model.dart';
 import 'package:pos/presentation/order/history/order_history_view_model.dart';
@@ -43,13 +47,33 @@ final sl = getIt();
 // Dependency injection
 Future<void> initPos() async {
   // ViewModel
+
   sl.registerFactory(
     () => HomeViewModel(
       loginRepo: sl(),
+    ),
+  );
+
+  sl.registerSingleton(CartStore());
+
+  sl.registerFactory(
+    () => CartViewModel(
+      cartStore: sl(),
       orderRepo: sl(),
       productRepo: sl(),
       categoryRepo: sl(),
+    ),
+  );
+
+  sl.registerFactory(
+    () => CustomerSearchViewModel(
       customerRepo: sl(),
+    ),
+  );
+
+  sl.registerFactory(
+    () => ProductSearchViewModel(
+      productRepo: sl(),
     ),
   );
 

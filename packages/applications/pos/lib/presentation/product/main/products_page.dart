@@ -1,4 +1,5 @@
 // Flutter imports:
+import 'package:common/core/widgets/appbar_widget.dart';
 import 'package:flutter/material.dart';
 
 // Package imports:
@@ -40,9 +41,9 @@ class _ProductsPageState extends State<ProductsPage> {
   late CustomSnackBar _snackBar;
   late ProductsViewModel _viewModel;
 
-  Mode _mode = Mode.LIST;
+  Mode _mode = Mode.list;
   bool _isAdmin = false;
-  SortProduct _sort = SortProduct.CreatedAsc;
+  SortProduct _sort = SortProduct.createdAsc;
   double _totalCost = 0;
 
   List<Category> _categories = [];
@@ -83,7 +84,7 @@ class _ProductsPageState extends State<ProductsPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (widget.mode == "FIND") {
         setState(() {
-          _mode = Mode.SEARCH;
+          _mode = Mode.search;
         });
       } else {
         _viewModel.checkLogin();
@@ -108,7 +109,10 @@ class _ProductsPageState extends State<ProductsPage> {
     return Scaffold(
       key: _scaffoldKey,
       appBar: AppBar(
-        iconTheme: CustomTheme.mainTheme.iconTheme,
+        iconTheme: const IconThemeData(
+          color: CustomColor.fontBlack,
+        ),
+        elevation: 0,
         backgroundColor: CustomColor.white,
         centerTitle: true,
         title: _buildTitle(context),
@@ -201,13 +205,13 @@ class _ProductsPageState extends State<ProductsPage> {
   }
 
   List<Widget> _buildAction(BuildContext context) {
-    if (_mode == Mode.LIST) {
+    if (_mode == Mode.list) {
       List<Widget> action = [
         IconButton(
           splashRadius: 20,
           onPressed: () {
             setState(() {
-              _mode = Mode.SEARCH;
+              _mode = Mode.search;
             });
             WidgetsBinding.instance.addPostFrameCallback((_) {
               FocusScope.of(context).requestFocus(_searchNumberNode);
@@ -232,11 +236,8 @@ class _ProductsPageState extends State<ProductsPage> {
   }
 
   _buildTitle(BuildContext context) {
-    if (_mode == Mode.LIST) {
-      return Text(
-        Languages.of(context).productsTitle,
-        style: CustomTheme.mainTheme.textTheme.headlineSmall,
-      );
+    if (_mode == Mode.list) {
+      return Text(Languages.of(context).productsTitle, style: buildAppBarTextStyle());
     } else {
       return _buildSearchField(context);
     }
@@ -330,9 +331,9 @@ class _ProductsPageState extends State<ProductsPage> {
   }
 
   _buildSummaryTotal() {
-    if (_isAdmin && _mode == Mode.LIST) {
+    if (_isAdmin && _mode == Mode.list) {
       return Container(
-        padding: const EdgeInsets.all(DEFAULT_PAGE_PADDING),
+        padding: const EdgeInsets.all(defaultPagePadding),
         child: Column(
           children: <Widget>[
             _buildTotal(),
@@ -348,13 +349,11 @@ class _ProductsPageState extends State<ProductsPage> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: <Widget>[
-        Text(
+        const Text(
           'Total Cost',
-          style: CustomTheme.mainTheme.textTheme.headlineSmall,
         ),
         Text(
           '฿ ${_format.format(_totalCost)}',
-          style: CustomTheme.mainTheme.textTheme.headlineSmall,
         ),
       ],
     );
@@ -374,7 +373,7 @@ class _ProductsPageState extends State<ProductsPage> {
           splashRadius: 20,
           onPressed: () {
             setState(() {
-              _mode = Mode.LIST;
+              _mode = Mode.list;
             });
             FocusScope.of(context).requestFocus(_viewNode);
             _searchEditingController.text = "";

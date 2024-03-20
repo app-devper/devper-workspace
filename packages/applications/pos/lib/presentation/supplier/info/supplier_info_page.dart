@@ -1,4 +1,5 @@
 // Flutter imports:
+import 'package:common/core/widgets/appbar_widget.dart';
 import 'package:flutter/material.dart';
 
 // Package imports:
@@ -13,7 +14,6 @@ import 'package:pos/localizations/language/languages.dart';
 import 'package:pos/presentation/constants.dart';
 import 'package:pos/presentation/supplier/info/supplier_info_state.dart';
 import 'package:pos/presentation/supplier/info/supplier_info_view_model.dart';
-import 'package:pos/presentation/theme.dart';
 
 class SupplierInfoPage extends StatefulWidget {
   const SupplierInfoPage({super.key});
@@ -89,14 +89,8 @@ class _SupplierInfoPageState extends State<SupplierInfoPage> {
     _snackBar = CustomSnackBar(key: const Key("snackbar"), context: context);
     return Scaffold(
       key: _scaffoldKey,
-      appBar: AppBar(
-        iconTheme: CustomTheme.mainTheme.iconTheme,
-        backgroundColor: CustomColor.white,
-        centerTitle: true,
-        title: Text(
-          Languages.of(context).supplierInfoTitle,
-          style: CustomTheme.mainTheme.textTheme.headlineSmall,
-        ),
+      appBar: buildAppBar(
+        Languages.of(context).supplierInfoTitle,
       ),
       body: _buildBody(context),
     );
@@ -104,12 +98,12 @@ class _SupplierInfoPageState extends State<SupplierInfoPage> {
 
   _buildBody(BuildContext context) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(DEFAULT_PAGE_PADDING),
+      padding: const EdgeInsets.all(defaultPagePadding),
       child: Column(
         children: <Widget>[
           _buildForm(context),
           const Padding(
-            padding: EdgeInsets.only(top: DEFAULT_PAGE_PADDING),
+            padding: EdgeInsets.only(top: defaultPagePadding),
           ),
           _buildAddButton(),
         ],

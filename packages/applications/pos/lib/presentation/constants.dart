@@ -1,4 +1,4 @@
-const double DEFAULT_PAGE_PADDING = 20;
+const double defaultPagePadding = 20;
 
 //routes
 const String ROOT_ROUTE = '/';

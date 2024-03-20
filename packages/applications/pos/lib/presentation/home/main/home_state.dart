@@ -33,12 +33,6 @@ class OrderErrorState extends HomeState {
   OrderErrorState(this.message);
 }
 
-class ChangeState extends HomeState {
-  final double change;
-
-  ChangeState(this.change);
-}
-
 class CustomersState extends HomeState {
   final List<Customer> customers;
 
@@ -53,4 +47,3 @@ class ErrorState extends HomeState {
 
 class LogoutState extends HomeState {}
 
-class RequireCustomerState extends HomeState {}

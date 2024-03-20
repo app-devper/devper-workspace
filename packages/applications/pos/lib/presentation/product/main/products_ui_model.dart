@@ -1,21 +1,21 @@
 enum Mode {
-  SEARCH,
-  LIST,
+  search,
+  list,
 }
 
 enum SortProduct {
-  NameAsc,
-  NameDesc,
-  PriceAsc,
-  PriceDesc,
-  CostPriceAsc,
-  CostPriceDesc,
-  QuantityAsc,
-  QuantityDesc,
-  CreatedAsc,
-  CreatedDesc,
-  SerialNoAsc,
-  SerialNoDesc,
+  nameAsc,
+  nameDesc,
+  priceAsc,
+  priceDesc,
+  costPriceAsc,
+  costPriceDesc,
+  quantityAsc,
+  quantityDesc,
+  createdAsc,
+  createdDesc,
+  serialNoAsc,
+  serialNoDesc,
 }
 
 class ListItem {

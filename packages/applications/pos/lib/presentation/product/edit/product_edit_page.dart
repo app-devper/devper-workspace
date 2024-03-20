@@ -1,4 +1,5 @@
 // Flutter imports:
+import 'package:common/core/widgets/appbar_widget.dart';
 import 'package:flutter/material.dart';
 
 // Package imports:
@@ -129,14 +130,8 @@ class _ProductEditPageState extends State<ProductEditPage> {
 
     return Scaffold(
       key: _scaffoldKey,
-      appBar: AppBar(
-        iconTheme: CustomTheme.mainTheme.iconTheme,
-        backgroundColor: CustomColor.white,
-        centerTitle: true,
-        title: Text(
+      appBar: buildAppBar(
           Languages.of(context).productEditTitle,
-          style: CustomTheme.mainTheme.textTheme.headlineSmall,
-        ),
         actions: [
           IconButton(
             splashRadius: 20,
@@ -170,7 +165,7 @@ class _ProductEditPageState extends State<ProductEditPage> {
 
   _buildBody(BuildContext context) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(DEFAULT_PAGE_PADDING),
+      padding: const EdgeInsets.all(defaultPagePadding),
       child: Column(
         children: <Widget>[
           _buildSerialNumber(context),
@@ -316,7 +311,6 @@ class _ProductEditPageState extends State<ProductEditPage> {
         fillColor: CustomColor.textFieldBackground,
         filled: true,
         labelText: "SerialNumber*",
-        labelStyle: CustomTheme.mainTheme.textTheme.bodyMedium,
       ),
       cursorColor: CustomColor.hintColor,
     );
