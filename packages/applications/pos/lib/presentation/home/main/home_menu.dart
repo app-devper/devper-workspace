@@ -69,7 +69,7 @@ class _HomeMenuState extends State<HomeMenu> {
                 onTap: () {
                   _showProfileMenu();
                 },
-                icon: Icons.person,
+                icon: Icons.account_box,
                 defaultColor: CustomColor.primary,
               ),
               const Divider(height: 1),
@@ -96,18 +96,11 @@ class _HomeMenuState extends State<HomeMenu> {
                   icon: Icons.medical_information,
                 ),
                 MenuItem(
-                  active: widget.menuEvent == MenuEvent.receive,
+                  active: isDatabaseMenu(widget.menuEvent),
                   onTap: () {
-                    widget.onMenuTap(MenuEvent.receive);
+                    widget.onMenuTap(MenuEvent.database);
                   },
-                  icon: Icons.insert_drive_file,
-                ),
-                MenuItem(
-                  active: widget.menuEvent == MenuEvent.setting,
-                  onTap: () {
-                    widget.onMenuTap(MenuEvent.setting);
-                  },
-                  icon: Icons.settings,
+                  icon: Icons.storage,
                 ),
               ] else ...[
                 MenuItem(
@@ -152,10 +145,10 @@ class _HomeMenuState extends State<HomeMenu> {
       PopupMenuItem<int>(value: 0, child: Text(Languages.of(context).userInfoTitle)),
       PopupMenuItem<int>(value: 1, child: Text(Languages.of(context).changePasswordTitle)),
     ]);
-    handleClick(item);
+    _handleClick(item);
   }
 
-  void handleClick(int? item) {
+  void _handleClick(int? item) {
     switch (item) {
       case 0:
         Navigator.pushNamed(context, routeUserInfo);

@@ -3,13 +3,19 @@ import 'package:common/core/widgets/input_number.dart';
 import 'package:flutter/material.dart';
 
 class DecimalInput extends StatefulWidget {
+  final String title;
+  final bool isShowDot;
+  final int maxLength;
   final Function(String) onDone;
   final Function(String) onChange;
 
   const DecimalInput({
     super.key,
+    required this.title,
     required this.onChange,
     required this.onDone,
+    required this.isShowDot,
+    this.maxLength = 3,
   });
 
   @override
@@ -26,14 +32,14 @@ class _DecimalInputState extends State<DecimalInput> {
       child: Column(
         children: [
           Expanded(
-            child: _buildInputSection('จำนวน', _getNumberFormat(_number)),
+            child: _buildInputSection(widget.title, _getNumberFormat(_number)),
           ),
           const SizedBox(height: 16),
           SizedBox(
             height: 250,
             child: InputNumber(
-              maxLength: 2,
-              isShowDot: false,
+              maxLength: widget.maxLength,
+              isShowDot: widget.isShowDot,
               onChange: (value) {
                 setState(() {
                   _number = value;

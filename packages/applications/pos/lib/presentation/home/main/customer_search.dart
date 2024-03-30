@@ -5,11 +5,13 @@ import 'package:pos/domain/model/customer/customer.dart';
 import 'package:pos/presentation/home/main/customer_search_view_model.dart';
 
 class CustomerSearch extends StatefulWidget {
+  final Function(Function) onRefresh;
   final Function(Customer) onSelected;
 
   const CustomerSearch({
     super.key,
     required this.onSelected,
+    required this.onRefresh,
   });
 
   @override
@@ -27,7 +29,10 @@ class _CustomerSearchState extends State<CustomerSearch> {
   @override
   void initState() {
     _viewModel = sl<CustomerSearchViewModel>();
-    _viewModel.prepareData();
+    _viewModel.getCacheCustomers();
+    widget.onRefresh(() {
+      _viewModel.getCacheCustomers();
+    });
     super.initState();
   }
 

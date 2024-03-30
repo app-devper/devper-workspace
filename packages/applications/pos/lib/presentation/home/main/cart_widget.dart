@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 class ProductItem extends StatelessWidget {
   final String name;
   final double price;
+  final int quantity;
   final String unit;
   final String barcode;
   final Function onTap;
@@ -12,6 +13,7 @@ class ProductItem extends StatelessWidget {
     super.key,
     required this.name,
     required this.price,
+    required this.quantity,
     required this.unit,
     required this.barcode,
     required this.onTap,
@@ -24,7 +26,6 @@ class ProductItem extends StatelessWidget {
         onTap.call();
       },
       child: Card(
-        elevation: 4,
         shadowColor: Colors.grey[200],
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(10),
@@ -35,6 +36,21 @@ class ProductItem extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10),
+                  color: quantity != 0 ? Colors.green : Colors.grey,
+                ),
+                child: Text(
+                  quantity != 0 ? "$quantity${unit != "" ? " $unit" : ""}" : 'หมด',
+                  maxLines: 1,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                  ),
+                ),
+              ),
               Text(
                 name,
                 maxLines: 1,
@@ -139,9 +155,11 @@ class CartOrderItem extends StatelessWidget {
   final double price;
   final String unit;
   final String priceDetail;
+  final double discount;
   final Function onRemove;
   final Function onAdd;
   final Function onEdit;
+  final Function onEditPrice;
 
   const CartOrderItem({
     super.key,
@@ -149,18 +167,73 @@ class CartOrderItem extends StatelessWidget {
     required this.quantity,
     required this.price,
     required this.unit,
+    required this.discount,
     required this.priceDetail,
     required this.onRemove,
     required this.onAdd,
     required this.onEdit,
+    required this.onEditPrice,
   });
 
   @override
   Widget build(BuildContext context) {
+    getPriceDiscount() {
+      if (discount > 0) {
+        return SizedBox(
+          width: 100,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                '฿${formatDouble(price * quantity)}',
+                style: const TextStyle(
+                  decoration: TextDecoration.lineThrough,
+                  fontSize: 10,
+                  color: Colors.grey,
+                ),
+              ),
+              Text(
+                '฿${formatDouble((price * quantity) - (discount * quantity))}',
+                style: const TextStyle(
+                  fontSize: 14,
+                ),
+              ),
+            ],
+          ),
+        );
+        ;
+      }
+      return SizedBox(
+        width: 100,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Text(
+              '฿${formatDouble(price * quantity)}',
+              style: const TextStyle(
+                fontSize: 14,
+              ),
+            ),
+            Text(
+              priceDetail,
+              style: const TextStyle(
+                color: Colors.grey,
+                fontSize: 10,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
     return Column(
       children: [
-        const SizedBox(height: 4),
         ListTile(
+          onTap: () {
+            onEditPrice.call();
+          },
           dense: true,
           visualDensity: const VisualDensity(vertical: -3),
           title: Text(
@@ -216,6 +289,7 @@ class CartOrderItem extends StatelessWidget {
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
+                        decoration: TextDecoration.underline,
                       ),
                     ),
                   ),
@@ -240,33 +314,11 @@ class CartOrderItem extends StatelessWidget {
                     ),
                   ),
                 ),
-                SizedBox(
-                  width: 100,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
-                        '฿${formatDouble(price * quantity)}',
-                        style: const TextStyle(
-                          fontSize: 14,
-                        ),
-                      ),
-                      Text(
-                        priceDetail,
-                        style: const TextStyle(
-                          color: Colors.grey,
-                          fontSize: 10,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+                getPriceDiscount(),
               ],
             ),
           ),
         ),
-        const SizedBox(height: 4),
         const Divider(
           height: 1,
         ),

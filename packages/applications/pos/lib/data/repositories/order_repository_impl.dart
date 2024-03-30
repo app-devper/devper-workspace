@@ -22,11 +22,11 @@ class OrderRepositoryImpl implements OrderRepository {
   });
 
   @override
-  Future<Order> createOrder(CreateOrderParam param) async {
+  Future<OrderResult> createOrder(CreateOrderParam param) async {
     final mapper = OrderMapper();
     final response = await posService.createOrder(mapper.toOrderRequest(param));
     if (response.isSuccessful) {
-      return mapper.toOrderDomain(jsonDecode(response.body));
+      return mapper.toOrderResultDomain(jsonDecode(response.body));
     } else {
       throw HttpException(response);
     }

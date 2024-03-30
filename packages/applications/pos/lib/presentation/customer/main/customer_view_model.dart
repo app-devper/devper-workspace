@@ -24,26 +24,23 @@ class CustomerViewModel {
 
   Stream<List<Customer>> get customers => _customers.stream;
 
-  void getCustomers() async {
+  void getCustomerById(String id) async {
+    _onLoading();
     try {
-      final result = await customerRepo.getCustomers();
-      _onListCustomers(result);
+      final result = await customerRepo.getCustomerById(id);
+      _onGetCustomer(result);
     } on Exception catch (e) {
       _onError(toFailure(e));
     }
-  }
-
-  void setCustomers(List<Customer> data) {
-    _customers.sink.add(data);
   }
 
   _onLoading() {
     _states.sink.add(LoadingState());
   }
 
-  _onListCustomers(List<Customer> data) {
+  void _onGetCustomer(Customer data) {
     if (!_states.isClosed) {
-      _states.sink.add(ListCustomerState(data: data));
+      _states.sink.add(GetCustomerState(data: data));
     }
   }
 

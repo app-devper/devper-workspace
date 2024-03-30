@@ -1,4 +1,6 @@
 // Flutter imports:
+import 'dart:async';
+
 import 'package:common/core/ext/date_ext.dart';
 import 'package:common/core/ext/number_ext.dart';
 import 'package:common/core/widgets/responsive.dart';
@@ -10,6 +12,7 @@ import 'package:common/core/widgets/custom_snack_bar.dart';
 import 'package:common/core/widgets/title_bar.dart';
 import 'package:pos/presentation/constants.dart';
 import 'package:pos/presentation/core/dialog_widget.dart';
+import 'package:pos/presentation/customer/add/customer_add_page.dart';
 import 'package:pos/presentation/home/main/cart_widget.dart';
 import 'package:pos/presentation/home/main/customer_search.dart';
 import 'package:pos/presentation/home/main/payment_screen.dart';
@@ -38,6 +41,7 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
   late CartViewModel _viewModel;
 
   List<OrderItem> _orderItems = [];
+  Function refreshCustomer = () {};
 
   DateTime currentDate = getCurrentDate();
 
@@ -69,14 +73,14 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           _snackBar.hideAll();
         });
-      } else if (state is OrderState) {
+      } else if (state is OrderResultState) {
         hideLoadingDialog(context);
         WidgetsBinding.instance.addPostFrameCallback((_) {
           _snackBar.hideAll();
           _snackBar.showSnackBar(text: "Order success");
         });
-
         _viewModel.clearCart();
+        _viewModel.prepareData();
         if (_alertKey.currentContext != null) {
           Navigator.of(context).pop();
         }
@@ -162,33 +166,39 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
     final showCustomer = _viewModel.cartStore.customer != null;
     return Column(
       children: [
-        const SizedBox(height: 8),
         Row(children: [
           if (isMobile) ...[
-            const SizedBox(width: 8),
-            IconButton(
-              splashRadius: 20,
-              onPressed: () {
-                _showProductDialog();
-              },
-              icon: const Icon(
-                Icons.search,
-                color: CustomColor.primary,
+            const SizedBox(width: 4),
+            SizedBox(
+              height: 40,
+              width: 40,
+              child: IconButton(
+                padding: const EdgeInsets.all(0),
+                splashRadius: 20,
+                onPressed: () {
+                  _showProductDialog();
+                },
+                icon: const Icon(
+                  Icons.search,
+                  color: CustomColor.primary,
+                ),
               ),
             )
           ],
           Expanded(
-            child: Text(
-              'ตะกร้าสินค้า #${_viewModel.cartStore.cartIndex + 1}',
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Text(
+                'ตะกร้าสินค้า #${_viewModel.cartStore.cartIndex + 1}',
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ),
         ]),
-        const SizedBox(height: 8),
         const Divider(height: 1),
         const ListTile(
           visualDensity: VisualDensity(vertical: -4),
@@ -383,9 +393,10 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
           return CartOrderItem(
             title: content.product.name,
             quantity: content.quantity,
-            price: content.price,
-            unit: content.product.unit,
-            priceDetail: "ราคาหน้าร้าน",
+            price: content.priceType.price,
+            unit: content.unit,
+            discount: content.discount,
+            priceDetail: content.getPriceDetail(),
             onRemove: () {
               _viewModel.minusItem(index, _orderItems);
             },
@@ -395,8 +406,21 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
             onEdit: () {
               showInputNumberDialog(
                 context,
+                title: 'จำนวนสินค้า',
                 onCompleted: (value) {
                   _viewModel.editItem(index, value, _orderItems);
+                },
+              );
+            },
+            onEditPrice: () {
+              showEditOrderItemDialog(
+                context,
+                orderItem: content,
+                onCompleted: (value) {
+                  _viewModel.editOrderItem(index, value, _orderItems);
+                },
+                onRemove: () {
+                  _viewModel.removeItem(index, _orderItems);
                 },
               );
             },
@@ -409,10 +433,19 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
   double _getPrice() {
     double price = 0;
     for (var x in _orderItems) {
-      price += x.amountPrice();
+      price += x.amountPriceWithDiscount();
     }
     return price;
   }
+
+  double _getCostPrice() {
+    double costPrice = 0;
+    for (var x in _orderItems) {
+      costPrice += x.amountCostPrice();
+    }
+    return costPrice;
+  }
+
 
   _showCustomerDialog() {
     showRightDialog(
@@ -426,12 +459,15 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
             },
             action: "เพิ่มลูกค้า",
             onAction: () {
-              Navigator.pushNamed(context, CUSTOMER_ADD_ROUTE);
+              _showAddCustomerDialog();
             },
           ),
           const Divider(height: 1),
           Expanded(
             child: CustomerSearch(
+              onRefresh: (func) {
+                refreshCustomer = func;
+              },
               onSelected: (Customer customer) {
                 setState(() {
                   _viewModel.cartStore.customer = customer;
@@ -442,6 +478,18 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
           )
         ],
       ),
+    );
+  }
+
+  _showAddCustomerDialog() {
+    showCenterDialog(
+      context: context,
+      builder: (context) => CustomerAddPage(onBack: () {
+        Navigator.pop(context);
+      }, onAdd: () {
+        Navigator.pop(context);
+        refreshCustomer();
+      }),
     );
   }
 
@@ -471,7 +519,7 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
 
   _showPaymentDialog() {
     showCenterDialog(
-      context,
+      context: context,
       alertKey: _alertKey,
       builder: (dialogContext) => _buildPaymentScreen(dialogContext),
     );

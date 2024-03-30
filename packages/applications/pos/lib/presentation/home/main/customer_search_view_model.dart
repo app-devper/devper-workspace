@@ -18,10 +18,6 @@ class CustomerSearchViewModel {
 
   List<Customer> _customers = [];
 
-  void prepareData() async {
-    getCacheCustomers();
-  }
-
   void getCacheCustomers() async {
     try {
       _customers = await customerRepo.getLocalCustomers();

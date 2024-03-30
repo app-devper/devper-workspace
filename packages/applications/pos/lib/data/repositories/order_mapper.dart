@@ -16,15 +16,26 @@ class OrderMapper {
       'customerCode': param.customerCode,
       'customerName': param.customerName,
       'items': param.items
-          .map((e) => {
-                'productId': e.product.id,
-                'quantity': e.quantity,
-                'price': e.amountPrice(),
+          .map((item) => {
+                'stocks': item
+                    .getProductStockOrder()
+                    .map((stock) => {
+                          'stockId': stock.stockId,
+                          'quantity': stock.quantity,
+                        })
+                    .toList(),
+                'unitId': item.product.unit.id,
+                'productId': item.product.id,
+                'quantity': item.quantity,
+                'discount': item.discount,
+                'price': item.amountPrice(),
+                'costPrice': item.amountCostPrice(),
               })
           .toList(),
       'amount': param.amount,
       'type': param.type,
       'total': param.getTotal(),
+      'totalCost': param.getTotalCost(),
       'message': param.getMessage(),
       'change': param.amount - param.getTotal(),
     });
@@ -36,6 +47,14 @@ class OrderMapper {
       customerCode: json["customerCode"],
       customerName: json["customerName"],
       createdDate: json["createdDate"],
+    );
+  }
+
+  OrderResult toOrderResultDomain(Map<String, dynamic> json) {
+    final mapper = ProductMapper();
+    return OrderResult(
+      data: toOrderDomain(json["data"]),
+      stocks: mapper.toProductStocksDomain(json["stocks"]),
     );
   }
 

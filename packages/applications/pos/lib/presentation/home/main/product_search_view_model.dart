@@ -12,11 +12,11 @@ class ProductSearchViewModel {
     required this.productRepo,
   });
 
-  final _productItems = StreamController<List<Product>>();
+  final _productItems = StreamController<List<ProductUnitItem>>();
 
-  Stream<List<Product>> get productItems => _productItems.stream;
+  Stream<List<ProductUnitItem>> get productItems => _productItems.stream;
 
-  List<Product> _products = [];
+  List<ProductUnitItem> _products = [];
 
   void prepareData() async {
     getProducts();
@@ -24,7 +24,11 @@ class ProductSearchViewModel {
 
   void getProducts() async {
     try {
-      _products = await productRepo.getLocalProducts();
+      _products.clear();
+      final products = await productRepo.getLocalProducts();
+      for (var item in products) {
+        _products.addAll(item.toProductItems());
+      }
       _onSearchProductSuccess(_products);
     } on Exception catch (_) {}
   }
@@ -33,9 +37,9 @@ class ProductSearchViewModel {
     if (text.isEmpty) {
       _onSearchProductSuccess(_products);
     } else {
-      List<Product> filtered = [];
+      List<ProductUnitItem> filtered = [];
       for (var item in _products) {
-        if (item.name.toLowerCase().contains(text.toLowerCase()) || item.serialNumber.contains(text)) {
+        if (item.name.toLowerCase().contains(text.toLowerCase()) || item.unit.barcode.contains(text)) {
           filtered.add(item);
         }
       }
@@ -49,7 +53,7 @@ class ProductSearchViewModel {
     } on Exception catch (e) {}
   }
 
-  void _onSearchProductSuccess(List<Product> result) {
+  void _onSearchProductSuccess(List<ProductUnitItem> result) {
     if (!_productItems.isClosed) {
       _productItems.sink.add(result);
     }

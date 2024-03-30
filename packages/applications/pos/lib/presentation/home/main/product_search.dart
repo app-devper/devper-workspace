@@ -1,5 +1,4 @@
 import 'package:common/core/theme/theme.dart';
-import 'package:common/core/widgets/custom_snack_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:pos/container.dart';
 import 'package:pos/domain/model/product/product.dart';
@@ -21,10 +20,9 @@ class ProductSearch extends StatefulWidget {
 }
 
 class _ProductSearchState extends State<ProductSearch> {
-  final widthCard = 200;
+  final _widthCard = 200;
   final _serialNumberEditingController = TextEditingController();
   final _serialNumberNode = FocusNode();
-  late CustomSnackBar _snackBar;
 
   late ProductSearchViewModel _viewModel;
 
@@ -44,7 +42,6 @@ class _ProductSearchState extends State<ProductSearch> {
 
   @override
   Widget build(BuildContext context) {
-    _snackBar = CustomSnackBar(key: const Key("snackbar"), context: context);
     _serialNumberNode.requestFocus();
     return _buildProducts();
   }
@@ -52,7 +49,7 @@ class _ProductSearchState extends State<ProductSearch> {
   _buildProducts() {
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
-        int countRow = constraints.maxWidth ~/ widthCard;
+        int countRow = constraints.maxWidth ~/ _widthCard;
         if (countRow == 0) countRow = 1;
         return Column(
           children: [
@@ -87,7 +84,7 @@ class _ProductSearchState extends State<ProductSearch> {
             ),
             const Divider(height: 1),
             Expanded(
-              child: StreamBuilder<List<Product>>(
+              child: StreamBuilder<List<ProductUnitItem>>(
                 stream: _viewModel.productItems,
                 builder: (context, snapshot) {
                   if (snapshot.hasError) {
@@ -110,18 +107,19 @@ class _ProductSearchState extends State<ProductSearch> {
                     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: countRow,
                       childAspectRatio: 2,
-                      mainAxisExtent: 100,
+                      mainAxisExtent: 124,
                       mainAxisSpacing: 2,
                       crossAxisSpacing: 2,
                     ),
                     shrinkWrap: true,
                     itemBuilder: (context, i) => ProductItem(
                       name: items[i].name,
-                      price: items[i].price,
-                      unit: items[i].unit,
-                      barcode: items[i].serialNumber,
+                      price: items[i].getPrice("Stock").price,
+                      quantity: items[i].getQuantity(),
+                      unit: items[i].unit.unit,
+                      barcode: items[i].unit.barcode,
                       onTap: () {
-                        widget.onSelected(items[i].serialNumber);
+                        widget.onSelected(items[i].unit.barcode);
                       },
                     ),
                     itemCount: items.length,

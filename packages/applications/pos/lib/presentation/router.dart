@@ -28,7 +28,7 @@ import 'package:pos/presentation/product/argument.dart';
 import 'package:pos/presentation/product/edit/product_edit_page.dart';
 import 'package:pos/presentation/product/expired/products_expired_page.dart';
 import 'package:pos/presentation/product/lot_edit/product_lot_edit_page.dart';
-import 'package:pos/presentation/product/main/products_page.dart';
+import 'package:pos/presentation/product/main/product_page.dart';
 import 'package:pos/presentation/receive/argument.dart';
 import 'package:pos/presentation/receive/main/receives_page.dart';
 import 'package:pos/presentation/receive/manage/receive_manage_page.dart';
@@ -49,12 +49,6 @@ class RouterApp {
         case PRODUCTS_ROUTE:
           final args = settings.arguments as ProductsArgument?;
           return MaterialPageRoute(builder: (_) => ProductsPage(mode: args?.mode));
-        case PRODUCT_ADD_ROUTE:
-          final args = settings.arguments as ProductAddArgument?;
-          return MaterialPageRoute(builder: (_) => ProductAddPage(receiveId: args?.receiveId));
-        case PRODUCT_EDIT_ROUTE:
-          final args = settings.arguments as ProductArgument;
-          return MaterialPageRoute(builder: (_) => ProductEditPage(product: args.product));
         case PRODUCT_EXPIRED_ROUTE:
           return MaterialPageRoute(builder: (_) => const ProductsExpiredPage());
         case PRODUCT_LOT_EDIT_ROUTE:
@@ -75,13 +69,6 @@ class RouterApp {
         case CATEGORY_EDIT_ROUTE:
           final args = settings.arguments as CategoryArgument;
           return MaterialPageRoute(builder: (_) => CategoryEditPage(category: args.category));
-        case CUSTOMERS_ROUTE:
-          return MaterialPageRoute(builder: (_) => const CustomerPage());
-        case CUSTOMER_ADD_ROUTE:
-          return MaterialPageRoute(builder: (_) => const CustomerAddPage());
-        case CUSTOMER_EDIT_ROUTE:
-          final args = settings.arguments as CustomerArgument;
-          return MaterialPageRoute(builder: (_) => CustomerEditPage(customer: args.customer));
         case SUPPLIER_ROUTE:
           return MaterialPageRoute(builder: (_) => const SupplierInfoPage());
         case SUPPLIERS_ROUTE:

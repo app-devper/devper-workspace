@@ -17,6 +17,11 @@ class PosService {
     return client.post(url, body: jsonBody, headers: networkConfig.getHeaders(url));
   }
 
+  Future<http.Response> createProductReceive(String jsonBody) {
+    var url = Uri.parse('${networkConfig.getHostApp()}/api/pos/v1/products/receive');
+    return client.post(url, body: jsonBody, headers: networkConfig.getHeaders(url));
+  }
+
   Future<http.Response> getProducts() {
     var url = Uri.parse('${networkConfig.getHostApp()}/api/pos/v1/products');
     return client.get(url, headers: networkConfig.getHeaders(url));
@@ -74,6 +79,71 @@ class PosService {
 
   Future<http.Response> updateProductLotQuantityById(String lotId, String jsonBody) {
     var url = Uri.parse('${networkConfig.getHostApp()}/api/pos/v1/products/lots/$lotId/quantity');
+    return client.patch(url, body: jsonBody, headers: networkConfig.getHeaders(url));
+  }
+
+  Future<http.Response> addProductUnit(String jsonBody) {
+    var url = Uri.parse('${networkConfig.getHostApp()}/api/pos/v1/products/units');
+    return client.post(url, body: jsonBody, headers: networkConfig.getHeaders(url));
+  }
+
+  Future<http.Response> getProductUnitsByProductId(String productId) {
+    var url = Uri.parse('${networkConfig.getHostApp()}/api/pos/v1/products/$productId/units');
+    return client.get(url, headers: networkConfig.getHeaders(url));
+  }
+
+  Future<http.Response> updateProductUnitById(String unitId, String jsonBody) {
+    var url = Uri.parse('${networkConfig.getHostApp()}/api/pos/v1/products/units/$unitId');
+    return client.put(url, body: jsonBody, headers: networkConfig.getHeaders(url));
+  }
+
+  Future<http.Response> removeProductUnitById(String unitId) {
+    var url = Uri.parse('${networkConfig.getHostApp()}/api/pos/v1/products/units/$unitId');
+    return client.delete(url, headers: networkConfig.getHeaders(url));
+  }
+
+  Future<http.Response> addProductPrice(String jsonBody) {
+    var url = Uri.parse('${networkConfig.getHostApp()}/api/pos/v1/products/prices');
+    return client.post(url, body: jsonBody, headers: networkConfig.getHeaders(url));
+  }
+
+  Future<http.Response> getProductPricesByProductId(String productId) {
+    var url = Uri.parse('${networkConfig.getHostApp()}/api/pos/v1/products/$productId/prices');
+    return client.get(url, headers: networkConfig.getHeaders(url));
+  }
+
+  Future<http.Response> updateProductPriceById(String priceId, String jsonBody) {
+    var url = Uri.parse('${networkConfig.getHostApp()}/api/pos/v1/products/prices/$priceId');
+    return client.put(url, body: jsonBody, headers: networkConfig.getHeaders(url));
+  }
+
+  Future<http.Response> removeProductPriceById(String priceId) {
+    var url = Uri.parse('${networkConfig.getHostApp()}/api/pos/v1/products/prices/$priceId');
+    return client.delete(url, headers: networkConfig.getHeaders(url));
+  }
+
+  Future<http.Response> addProductStock(String jsonBody) {
+    var url = Uri.parse('${networkConfig.getHostApp()}/api/pos/v1/products/stocks');
+    return client.post(url, body: jsonBody, headers: networkConfig.getHeaders(url));
+  }
+
+  Future<http.Response> getProductStocksByProductId(String productId) {
+    var url = Uri.parse('${networkConfig.getHostApp()}/api/pos/v1/products/$productId/stocks');
+    return client.get(url, headers: networkConfig.getHeaders(url));
+  }
+
+  Future<http.Response> updateProductStockById(String stockId, String jsonBody) {
+    var url = Uri.parse('${networkConfig.getHostApp()}/api/pos/v1/products/stocks/$stockId');
+    return client.put(url, body: jsonBody, headers: networkConfig.getHeaders(url));
+  }
+
+  Future<http.Response> removeProductStockById(String stockId) {
+    var url = Uri.parse('${networkConfig.getHostApp()}/api/pos/v1/products/stocks/$stockId');
+    return client.delete(url, headers: networkConfig.getHeaders(url));
+  }
+
+  Future<http.Response> updateProductStockQuantityById(String id, String jsonBody) {
+    var url = Uri.parse('${networkConfig.getHostApp()}/api/pos/v1/products/stocks/$id/quantity');
     return client.patch(url, body: jsonBody, headers: networkConfig.getHeaders(url));
   }
 
@@ -270,5 +340,10 @@ class PosService {
   Future<http.Response> removeReceiveProductLotsByLotId(String lotId) {
     var url = Uri.parse('${networkConfig.getHostApp()}/api/pos/v1/receives/lots/$lotId');
     return client.delete(url, headers: networkConfig.getHeaders(url));
+  }
+
+  Future<http.Response> updateProductStockSequence(String updateProductStockSequenceRequest) {
+    var url = Uri.parse('${networkConfig.getHostApp()}/api/pos/v1/products/stocks/sequence');
+    return client.patch(url, body: updateProductStockSequenceRequest, headers: networkConfig.getHeaders(url));
   }
 }

@@ -24,7 +24,9 @@ class CustomerRepositoryImpl implements CustomerRepository {
     final mapper = CustomerMapper();
     final response = await posService.createCustomer(mapper.toCustomerRequest(param));
     if (response.isSuccessful) {
-      return mapper.toCustomerDomain(jsonDecode(response.body));
+      final result = mapper.toCustomerDomain(jsonDecode(response.body));
+      _customers.add(result);
+      return result;
     } else {
       throw HttpException(response);
     }
@@ -46,11 +48,15 @@ class CustomerRepositoryImpl implements CustomerRepository {
   @override
   Future<Customer> getCustomerById(String customerId) async {
     final mapper = CustomerMapper();
-    final response = await posService.getCustomerById(customerId);
-    if (response.isSuccessful) {
-      return mapper.toCustomerDomain(jsonDecode(response.body));
+    if (_customers.isNotEmpty) {
+      return _customers.firstWhere((element) => element.id == customerId);
     } else {
-      throw HttpException(response);
+      final response = await posService.getCustomerById(customerId);
+      if (response.isSuccessful) {
+        return mapper.toCustomerDomain(jsonDecode(response.body));
+      } else {
+        throw HttpException(response);
+      }
     }
   }
 
@@ -70,7 +76,9 @@ class CustomerRepositoryImpl implements CustomerRepository {
     final mapper = CustomerMapper();
     final response = await posService.removeCustomerById(customerId);
     if (response.isSuccessful) {
-      return mapper.toCustomerDomain(jsonDecode(response.body));
+      final result = mapper.toCustomerDomain(jsonDecode(response.body));
+      _customers.removeWhere((element) => element.id == result.id);
+      return result;
     } else {
       throw HttpException(response);
     }
@@ -81,7 +89,10 @@ class CustomerRepositoryImpl implements CustomerRepository {
     final mapper = CustomerMapper();
     final response = await posService.updateCustomerById(customerId, mapper.toCustomerRequest(param));
     if (response.isSuccessful) {
-      return mapper.toCustomerDomain(jsonDecode(response.body));
+      final result = mapper.toCustomerDomain(jsonDecode(response.body));
+      final index = _customers.indexWhere((element) => element.id == result.id);
+      _customers[index] = result;
+      return result;
     } else {
       throw HttpException(response);
     }

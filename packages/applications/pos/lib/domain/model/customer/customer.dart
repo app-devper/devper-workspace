@@ -6,6 +6,7 @@ class Customer {
   final String phone;
   final String email;
   final String status;
+  final String type;
 
   Customer({
     required this.id,
@@ -15,5 +16,7 @@ class Customer {
     required this.phone,
     required this.email,
     required this.status,
+    required this.type,
   });
 }
+

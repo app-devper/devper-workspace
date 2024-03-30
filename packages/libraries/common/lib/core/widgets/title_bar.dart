@@ -40,6 +40,7 @@ class TitleBar extends StatelessWidget {
                 SizedBox(width: 8),
                 Text(
                   "ปิด",
+                  maxLines: 1,
                   style: TextStyle(
                     color: Colors.grey,
                     fontSize: 14,
@@ -53,6 +54,7 @@ class TitleBar extends StatelessWidget {
         Expanded(
           child: Text(
             title,
+            maxLines: 1,
             textAlign: TextAlign.center,
             style: const TextStyle(
               color: CustomColor.fontBlack,
@@ -71,7 +73,7 @@ class TitleBar extends StatelessWidget {
               padding: const EdgeInsets.all(8.0),
               child: Text(
                 action ?? "",
-                textAlign: TextAlign.end,
+                textAlign: TextAlign.center,
                 style: const TextStyle(
                   color: CustomColor.primary,
                   fontSize: 14,

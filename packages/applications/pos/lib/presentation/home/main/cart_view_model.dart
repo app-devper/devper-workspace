@@ -38,12 +38,18 @@ class CartViewModel {
   void addOrderItem(String serialNumber, List<OrderItem> orderItem) async {
     _onLoading();
     try {
-      final data = orderItem.where((item) => item.product.serialNumber == serialNumber).firstOrNull;
+      final data = orderItem.where((item) => item.product.unit.barcode == serialNumber).firstOrNull;
       if (data != null) {
         data.plusAmount();
       } else {
         final result = await productRepo.getProductBySerialNumber(serialNumber);
-        orderItem.add(OrderItem(product: result, quantity: 1));
+        final productItems = result.toProductItems();
+        final productItem = productItems.firstWhere((element) => element.unit.barcode == serialNumber);
+        orderItem.add(OrderItem(
+          product: productItem,
+          quantity: 1,
+          customerType: cartStore.customer?.type ?? "Stock",
+        ));
       }
       _onOrderItemSuccess(orderItem);
     } on Exception catch (e) {
@@ -55,6 +61,9 @@ class CartViewModel {
     _onOrderLoading();
     try {
       final result = await orderRepo.createOrder(param);
+      for (var element in result.stocks) {
+        await productRepo.updateProductStock(element);
+      }
       _onOrderSuccess(result);
     } on Exception catch (e) {
       _onOrderError(toFailure(e));
@@ -110,12 +119,9 @@ class CartViewModel {
     _onOrderItemSuccess(orderItems);
   }
 
-  void updatePriceItem(int index, int quantity, double price, List<OrderItem> orderItem) {
-    final item = orderItem[index];
-    item.quantity = quantity;
-    item.price = price;
-    orderItem[index] = item;
-    _onOrderItemSuccess(orderItem);
+  void editOrderItem(int index, OrderItem orderItem, List<OrderItem> orderItems) {
+    orderItems[index] = orderItem;
+    _onOrderItemSuccess(orderItems);
   }
 
   _onLoading() {
@@ -132,8 +138,8 @@ class CartViewModel {
     _states.sink.add(OrderLoadingState());
   }
 
-  _onOrderSuccess(Order order) {
-    _states.sink.add(OrderState(order));
+  _onOrderSuccess(OrderResult order) {
+    _states.sink.add(OrderResultState(order));
   }
 
   _onOrderError(Failure failure) {

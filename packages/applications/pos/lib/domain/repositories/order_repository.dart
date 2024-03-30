@@ -6,7 +6,7 @@ import 'package:pos/domain/model/order/order_summary.dart';
 import 'package:pos/domain/model/order/param.dart';
 
 abstract class OrderRepository {
-  Future<Order> createOrder(CreateOrderParam param);
+  Future<OrderResult> createOrder(CreateOrderParam param);
 
   Future<List<OrderSummary>> getOrderRange(GetOrderRangeParam param);
 

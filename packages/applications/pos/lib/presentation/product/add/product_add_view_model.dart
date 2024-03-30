@@ -32,16 +32,6 @@ class ProductAddViewModel {
     } on Exception catch (_) {}
   }
 
-  void getProductSerialNumber(String serialNumber) async {
-    _onLoading();
-    try {
-      final result = await productRepo.getProductBySerialNumber(serialNumber);
-      _onGetProductSuccess(result);
-    } on Exception catch (e) {
-      _onGetProductError(toFailure(e));
-    }
-  }
-
   void generateSerialNumber() async {
     _onLoading();
     try {
@@ -52,10 +42,12 @@ class ProductAddViewModel {
     }
   }
 
-  void addProduct(ProductParam param) async {
+  void addProduct(CreateProductParam param) async {
     _onLoading();
     try {
       final result = await productRepo.addProduct(param);
+      await productRepo.getProductUnitsByProductId(result.id);
+      await productRepo.getProductPricesByProductId(result.id);
       _onCreateProduct(result);
     } on Exception catch (e) {
       _onError(toFailure(e));
@@ -63,18 +55,8 @@ class ProductAddViewModel {
   }
 
   _onLoading() {
-    _states.sink.add(LoadingState());
-  }
-
-  _onGetProductSuccess(Product data) {
     if (!_states.isClosed) {
-      _states.sink.add(GetProductState(data: data));
-    }
-  }
-
-  _onGetProductError(Failure failure) {
-    if (!_states.isClosed) {
-      _states.sink.add(GetProductState(data: null));
+      _states.sink.add(LoadingState());
     }
   }
 

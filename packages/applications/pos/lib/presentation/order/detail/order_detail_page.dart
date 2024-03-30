@@ -470,6 +470,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
       email: "",
       code: '',
       status: '',
+      type: '',
     );
   }
 }

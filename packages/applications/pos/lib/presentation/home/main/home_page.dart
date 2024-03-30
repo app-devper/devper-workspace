@@ -1,12 +1,14 @@
 // Flutter imports:
 import 'package:flutter/material.dart';
+import 'package:pos/presentation/customer/main/customer_page.dart';
 
 // Package imports:
 import 'package:pos/presentation/home/main/cart_page.dart';
+import 'package:pos/presentation/home/main/home_database_page.dart';
 import 'package:pos/presentation/home/main/home_menu.dart';
 import 'package:pos/presentation/home/main/menu_event.dart';
 import 'package:pos/presentation/order/main/order_page.dart';
-import 'package:pos/presentation/product/main/products_page.dart';
+import 'package:pos/presentation/product/main/product_page.dart';
 import 'package:pos/presentation/receive/main/receives_page.dart';
 
 class HomePage extends StatefulWidget {
@@ -68,8 +70,25 @@ class _HomePageState extends State<HomePage> {
         return const ProductsPage();
       case MenuEvent.receive:
         return const ReceivesPage();
+      case MenuEvent.database:
+        return HomeDatabasePage(
+          onMenuTap: (event) {
+            setState(() {
+              _menuEvent = event;
+            });
+          },
+        );
+      case MenuEvent.customer:
+        return CustomerPage(
+          onBack: () {
+            setState(() {
+              _menuEvent = MenuEvent.database;
+            });
+          },
+        );
       case MenuEvent.setting:
         return Container();
+
       default:
         return Container();
     }

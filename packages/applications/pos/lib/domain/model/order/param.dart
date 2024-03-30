@@ -29,7 +29,15 @@ class CreateOrderParam {
   double getTotal() {
     double total = 0;
     for (var x in items) {
-      total += x.amountPrice();
+      total += x.amountPriceWithDiscount();
+    }
+    return total;
+  }
+
+  double getTotalCost() {
+    double total = 0;
+    for (var x in items) {
+      total += x.amountCostPrice();
     }
     return total;
   }

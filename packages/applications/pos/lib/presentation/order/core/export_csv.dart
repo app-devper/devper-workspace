@@ -57,19 +57,36 @@ class ExportCsv {
     List<List<dynamic>> rows = <List<dynamic>>[];
     List<dynamic> row = [];
     row.add("No.");
-    row.add("SerialNumber");
-    row.add("Name");
-    row.add("Quantity");
-    row.add("Price");
+    row.add("Id");
+    row.add("ชื่อสินค้า");
+    row.add("ราคาขาย");
+    row.add("หน่วยนับ");
+    row.add("ขนาดบรรจุ");
+    row.add("ต้นทุน");
+    row.add("บาร์โค้ด");
+    row.add("คงเหลือ");
+    row.add("ปริมาณ");
+    row.add("หน่วยปริมาณ");
     rows.add(row);
+    int index = 0;
     for (int i = 0; i < data.length; i++) {
-      List<dynamic> row = [];
-      row.add(i + 1);
-      row.add(data[i].serialNumber);
-      row.add(data[i].name.replaceAll("#", " "));
-      row.add(data[i].quantity);
-      row.add(data[i].price);
-      rows.add(row);
+      for (int j = 0; j < data[i].units.length; j++) {
+        print(data[i].name);
+        List<dynamic> row = [];
+        row.add(index + 1);
+        row.add(data[i].id);
+        row.add(data[i].name.replaceAll("#", " "));
+        row.add(data[i].getDefaultPriceUnit(data[i].units[j].id).price);
+        row.add(data[i].units[j].unit);
+        row.add(data[i].units[j].size);
+        row.add(data[i].units[j].costPrice);
+        row.add(data[i].units[j].barcode);
+        row.add(data[i].getQuantityByUnit(data[i].units[j].id));
+        row.add(data[i].units[j].volume == 0 ? "" : data[i].units[j].volume);
+        row.add(data[i].units[j].volumeUnit);
+        rows.add(row);
+        index++;
+      }
     }
 
     String csv = const ListToCsvConverter().convert(rows);
