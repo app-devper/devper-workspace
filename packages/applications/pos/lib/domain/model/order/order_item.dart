@@ -1,6 +1,7 @@
-// Project imports:
+// Package imports:
 import 'package:common/core/ext/date_ext.dart';
-import 'package:intl/intl.dart';
+
+// Project imports:
 import 'package:pos/domain/model/product/product.dart';
 
 class OrderItem {

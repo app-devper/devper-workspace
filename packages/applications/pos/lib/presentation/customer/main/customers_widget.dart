@@ -1,21 +1,18 @@
 // Flutter imports:
-import 'package:common/core/widgets/appbar_widget.dart';
-import 'package:common/core/widgets/responsive.dart';
 import 'package:flutter/material.dart';
 
 // Package imports:
-import 'package:common/core/widgets/custom_snack_bar.dart';
+import 'package:common/core/widgets/responsive.dart';
 
 // Project imports:
 import 'package:pos/container.dart';
 import 'package:pos/domain/model/customer/customer.dart';
 import 'package:pos/localizations/language/languages.dart';
-import 'package:pos/presentation/constants.dart';
-import 'package:pos/presentation/customer/argument.dart';
-import 'package:pos/presentation/customer/main/customer_state.dart';
-import 'package:pos/presentation/customer/main/customer_view_model.dart';
 import 'package:pos/presentation/customer/main/customers_view_model.dart';
 import 'package:pos/presentation/theme.dart';
+
+// Package imports:
+
 
 class CustomersWidget extends StatefulWidget {
   final Function(Customer) onSelected;

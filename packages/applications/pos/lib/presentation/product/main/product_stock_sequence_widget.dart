@@ -1,11 +1,17 @@
+// Dart imports:
 import 'dart:ui';
 
+// Flutter imports:
+import 'package:flutter/material.dart';
+
+// Package imports:
 import 'package:common/core/ext/date_ext.dart';
 import 'package:common/core/ext/number_ext.dart';
 import 'package:common/core/ext/widget_ext.dart';
 import 'package:common/core/theme/theme.dart';
 import 'package:common/core/widgets/title_bar.dart';
-import 'package:flutter/material.dart';
+
+// Project imports:
 import 'package:pos/container.dart';
 import 'package:pos/domain/model/product/param.dart';
 import 'package:pos/domain/model/product/product.dart';

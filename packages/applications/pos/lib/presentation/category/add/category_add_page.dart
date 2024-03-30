@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 
 // Package imports:
 import 'package:common/core/ext/widget_ext.dart';
+import 'package:common/core/widgets/appbar_widget.dart';
 import 'package:common/core/widgets/button_widget.dart';
 import 'package:common/core/widgets/custom_snack_bar.dart';
-import 'package:common/core/widgets/appbar_widget.dart';
 
 // Project imports:
 import 'package:pos/container.dart';

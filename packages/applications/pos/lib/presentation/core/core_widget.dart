@@ -1,3 +1,4 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -104,10 +105,10 @@ class DateFormatter extends TextInputFormatter {
     } else if (cLen == 3 && pLen == 2) {
       if (int.parse(cText.substring(2, 3)) > 1) {
         // Replace char
-        cText = cText.substring(0, 2) + '/';
+        cText = '${cText.substring(0, 2)}/';
       } else {
         // Insert / char
-        cText = cText.substring(0, pLen) + '/' + cText.substring(pLen, pLen + 1);
+        cText = '${cText.substring(0, pLen)}/${cText.substring(pLen, pLen + 1)}';
       }
 
       /// ENTERING THE YEAR
@@ -117,10 +118,10 @@ class DateFormatter extends TextInputFormatter {
       if (y1 < 1 || y1 > 2) {
         // Replace char
         /// i.e, add '/' after the 5th position
-        cText = cText.substring(0, 5) + '/';
+        cText = '${cText.substring(0, 5)}/';
       } else {
         // Insert / char
-        cText = cText.substring(0, 5) + '/' + cText.substring(5, 6);
+        cText = '${cText.substring(0, 5)}/${cText.substring(5, 6)}';
       }
     } else if (cLen == 7) {
       /// the first digit of year

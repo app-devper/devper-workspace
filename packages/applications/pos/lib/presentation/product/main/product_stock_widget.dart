@@ -1,17 +1,17 @@
 // Flutter imports:
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+
+// Package imports:
 import 'package:common/core/ext/date_ext.dart';
 import 'package:common/core/ext/number_ext.dart';
 import 'package:common/core/ext/widget_ext.dart';
 import 'package:common/core/widgets/title_bar.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
-import 'package:pos/container.dart';
-import 'package:pos/domain/model/product/param.dart';
 
 // Project imports:
+import 'package:pos/container.dart';
+import 'package:pos/domain/model/product/param.dart';
 import 'package:pos/domain/model/product/product.dart';
 import 'package:pos/presentation/core/core_widget.dart';
 import 'package:pos/presentation/product/main/product_stock_state.dart';

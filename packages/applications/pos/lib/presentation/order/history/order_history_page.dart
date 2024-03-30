@@ -1,9 +1,9 @@
 // Flutter imports:
-import 'package:common/core/widgets/appbar_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 // Package imports:
+import 'package:common/core/widgets/appbar_widget.dart';
 import 'package:common/core/widgets/custom_snack_bar.dart';
 import 'package:intl/intl.dart';
 

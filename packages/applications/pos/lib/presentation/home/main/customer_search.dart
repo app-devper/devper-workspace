@@ -1,5 +1,10 @@
-import 'package:common/core/theme/theme.dart';
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Package imports:
+import 'package:common/core/theme/theme.dart';
+
+// Project imports:
 import 'package:pos/container.dart';
 import 'package:pos/domain/model/customer/customer.dart';
 import 'package:pos/presentation/home/main/customer_search_view_model.dart';

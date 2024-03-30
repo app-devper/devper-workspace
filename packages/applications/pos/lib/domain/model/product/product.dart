@@ -1,3 +1,4 @@
+// Project imports:
 import 'package:pos/domain/model/core/core.dart';
 
 class Product {

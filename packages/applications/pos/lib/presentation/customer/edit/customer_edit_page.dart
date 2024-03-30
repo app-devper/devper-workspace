@@ -1,20 +1,16 @@
 // Flutter imports:
-import 'package:common/core/widgets/appbar_widget.dart';
-import 'package:common/core/widgets/title_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 // Package imports:
 import 'package:common/core/ext/widget_ext.dart';
-import 'package:common/core/widgets/button_widget.dart';
-import 'package:common/core/widgets/custom_snack_bar.dart';
-import 'package:flutter/services.dart';
+import 'package:common/core/widgets/title_bar.dart';
 
 // Project imports:
 import 'package:pos/container.dart';
 import 'package:pos/domain/model/core/core.dart';
 import 'package:pos/domain/model/customer/customer.dart';
 import 'package:pos/domain/model/customer/param.dart';
-import 'package:pos/localizations/language/languages.dart';
 import 'package:pos/presentation/constants.dart';
 import 'package:pos/presentation/core/core_widget.dart';
 import 'package:pos/presentation/customer/edit/customer_edit_state.dart';

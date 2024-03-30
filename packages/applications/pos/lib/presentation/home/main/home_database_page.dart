@@ -1,7 +1,12 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Package imports:
+import 'package:um/presentation/constants.dart';
+
+// Project imports:
 import 'package:pos/presentation/constants.dart';
 import 'package:pos/presentation/home/main/menu_event.dart';
-import 'package:um/presentation/constants.dart';
 
 class HomeDatabasePage extends StatelessWidget {
   final Function(MenuEvent) onMenuTap;

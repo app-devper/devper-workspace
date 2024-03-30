@@ -1,5 +1,10 @@
-import 'package:common/core/theme/theme.dart';
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Package imports:
+import 'package:common/core/theme/theme.dart';
+
+// Project imports:
 import 'package:pos/container.dart';
 import 'package:pos/domain/model/product/product.dart';
 import 'package:pos/presentation/home/main/cart_widget.dart';

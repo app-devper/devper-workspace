@@ -1,23 +1,24 @@
 // Flutter imports:
-import 'package:common/core/widgets/responsive.dart';
-import 'package:common/core/widgets/title_bar.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:pos/container.dart';
 
 // Package imports:
+import 'package:common/core/widgets/responsive.dart';
+import 'package:common/core/widgets/title_bar.dart';
 
 // Project imports:
+import 'package:pos/container.dart';
 import 'package:pos/domain/model/product/product.dart';
 import 'package:pos/presentation/core/dialog_widget.dart';
 import 'package:pos/presentation/product/add/product_add_page.dart';
 import 'package:pos/presentation/product/edit/product_edit_page.dart';
 import 'package:pos/presentation/product/main/product_detail_widget.dart';
 import 'package:pos/presentation/product/main/product_menu_widget.dart';
+import 'package:pos/presentation/product/main/product_state.dart';
 import 'package:pos/presentation/product/main/product_view_model.dart';
 import 'package:pos/presentation/product/main/products_widget.dart';
-import 'package:pos/presentation/product/main/product_state.dart';
-import 'package:pos/presentation/theme.dart';
+
+// Package imports:
+
 
 class ProductsPage extends StatefulWidget {
   final String? mode;

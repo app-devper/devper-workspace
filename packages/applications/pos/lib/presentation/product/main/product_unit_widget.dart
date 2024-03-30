@@ -1,12 +1,14 @@
 // Flutter imports:
-import 'package:common/core/ext/widget_ext.dart';
-import 'package:common/core/widgets/title_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:pos/container.dart';
-import 'package:pos/domain/model/product/param.dart';
+
+// Package imports:
+import 'package:common/core/ext/widget_ext.dart';
+import 'package:common/core/widgets/title_bar.dart';
 
 // Project imports:
+import 'package:pos/container.dart';
+import 'package:pos/domain/model/product/param.dart';
 import 'package:pos/domain/model/product/product.dart';
 import 'package:pos/presentation/core/core_widget.dart';
 import 'package:pos/presentation/core/dialog_widget.dart';
@@ -287,7 +289,7 @@ class _ProductUnitWidgetState extends State<ProductUnitWidget> {
                                     child: Center(
                                       child: Text(
                                         _volumeUnit,
-                                        style: TextStyle(color: Colors.blue),
+                                        style: const TextStyle(color: Colors.blue),
                                       ),
                                     ),
                                   ),

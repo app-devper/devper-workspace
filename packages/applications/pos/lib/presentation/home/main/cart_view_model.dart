@@ -3,7 +3,6 @@ import 'dart:async';
 
 // Package imports:
 import 'package:common/core/error/failure.dart';
-import 'package:pos/presentation/home/main/cart_store.dart';
 
 // Project imports:
 import 'package:pos/domain/model/order/order.dart';
@@ -12,6 +11,7 @@ import 'package:pos/domain/model/order/param.dart';
 import 'package:pos/domain/repositories/category_repository.dart';
 import 'package:pos/domain/repositories/order_repository.dart';
 import 'package:pos/domain/repositories/product_repository.dart';
+import 'package:pos/presentation/home/main/cart_store.dart';
 import 'home_state.dart';
 
 class CartViewModel {

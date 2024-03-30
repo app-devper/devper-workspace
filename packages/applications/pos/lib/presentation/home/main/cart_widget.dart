@@ -1,5 +1,8 @@
-import 'package:common/core/ext/number_ext.dart';
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Package imports:
+import 'package:common/core/ext/number_ext.dart';
 
 class ProductItem extends StatelessWidget {
   final String name;
@@ -202,7 +205,6 @@ class CartOrderItem extends StatelessWidget {
             ],
           ),
         );
-        ;
       }
       return SizedBox(
         width: 100,

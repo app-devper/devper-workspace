@@ -1,4 +1,10 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Package imports:
+import 'package:um/presentation/constants.dart';
+
+// Project imports:
 import 'package:pos/container.dart';
 import 'package:pos/localizations/language/languages.dart';
 import 'package:pos/presentation/home/main/home_state.dart';
@@ -6,7 +12,6 @@ import 'package:pos/presentation/home/main/home_view_model.dart';
 import 'package:pos/presentation/home/main/home_widget.dart';
 import 'package:pos/presentation/home/main/menu_event.dart';
 import 'package:pos/presentation/theme.dart';
-import 'package:um/presentation/constants.dart';
 
 class HomeMenu extends StatefulWidget {
   final MenuEvent menuEvent;

@@ -7,7 +7,6 @@ import 'package:common/core/error/failure.dart';
 // Project imports:
 import 'package:pos/domain/model/customer/customer.dart';
 import 'package:pos/domain/repositories/customer_repository.dart';
-import 'package:pos/presentation/customer/main/customer_state.dart';
 
 class CustomersViewModel {
   final CustomerRepository customerRepo;

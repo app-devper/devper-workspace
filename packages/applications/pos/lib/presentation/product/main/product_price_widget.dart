@@ -1,14 +1,14 @@
 // Flutter imports:
+import 'package:flutter/material.dart';
+
+// Package imports:
 import 'package:common/core/ext/widget_ext.dart';
 import 'package:common/core/widgets/title_bar.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
-import 'package:pos/container.dart';
-import 'package:pos/domain/model/core/core.dart';
-import 'package:pos/domain/model/customer/customer.dart';
-import 'package:pos/domain/model/product/param.dart';
 
 // Project imports:
+import 'package:pos/container.dart';
+import 'package:pos/domain/model/core/core.dart';
+import 'package:pos/domain/model/product/param.dart';
 import 'package:pos/domain/model/product/product.dart';
 import 'package:pos/presentation/core/core_widget.dart';
 import 'package:pos/presentation/product/main/product_price_state.dart';
@@ -221,7 +221,7 @@ class _ProductPriceWidgetState extends State<ProductPriceWidget> {
                     ],
                   ),
                 ),
-                Spacer(),
+                const Spacer(),
                 widget.price != null && widget.price!.customerType != "General"
                     ? TextButton(
                         onPressed: () {
@@ -233,7 +233,7 @@ class _ProductPriceWidgetState extends State<ProductPriceWidget> {
                             },
                           );
                         },
-                        child: Text(
+                        child: const Text(
                           'ลบราคาขาย',
                           style: TextStyle(
                             color: Colors.red,

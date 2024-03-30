@@ -1,5 +1,4 @@
 // Project imports:
-import 'package:pos/domain/model/category/category.dart';
 import 'package:pos/domain/model/product/product.dart';
 
 abstract class ProductStockState {}

@@ -1,8 +1,8 @@
 // Flutter imports:
 import 'package:flutter/material.dart';
-import 'package:pos/presentation/customer/main/customer_page.dart';
 
-// Package imports:
+// Project imports:
+import 'package:pos/presentation/customer/main/customer_page.dart';
 import 'package:pos/presentation/home/main/cart_page.dart';
 import 'package:pos/presentation/home/main/home_database_page.dart';
 import 'package:pos/presentation/home/main/home_menu.dart';

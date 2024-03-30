@@ -1,6 +1,8 @@
 // Flutter imports:
-import 'package:common/core/widgets/responsive.dart';
 import 'package:flutter/material.dart';
+
+// Package imports:
+import 'package:common/core/widgets/responsive.dart';
 
 // Project imports:
 import 'package:pos/container.dart';

@@ -1,6 +1,11 @@
+// Flutter imports:
+import 'package:flutter/material.dart';
+
+// Package imports:
 import 'package:common/core/ext/number_ext.dart';
 import 'package:common/core/widgets/input_number.dart';
-import 'package:flutter/material.dart';
+
+// Project imports:
 import 'package:pos/presentation/theme.dart';
 
 class PaymentScreen extends StatefulWidget {

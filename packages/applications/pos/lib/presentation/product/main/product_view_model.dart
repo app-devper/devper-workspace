@@ -3,12 +3,12 @@ import 'dart:async';
 
 // Package imports:
 import 'package:common/core/error/failure.dart';
-import 'package:pos/presentation/order/core/export_csv.dart';
-import 'package:pos/presentation/product/main/product_state.dart';
 
 // Project imports:
 import 'package:pos/domain/model/product/product.dart';
 import 'package:pos/domain/repositories/product_repository.dart';
+import 'package:pos/presentation/order/core/export_csv.dart';
+import 'package:pos/presentation/product/main/product_state.dart';
 
 class ProductViewModel {
   final ProductRepository productRepo;

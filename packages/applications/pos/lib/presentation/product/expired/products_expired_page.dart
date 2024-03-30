@@ -1,8 +1,8 @@
 // Flutter imports:
-import 'package:common/core/widgets/appbar_widget.dart';
 import 'package:flutter/material.dart';
 
 // Package imports:
+import 'package:common/core/widgets/appbar_widget.dart';
 import 'package:common/core/widgets/custom_snack_bar.dart';
 import 'package:intl/intl.dart';
 
@@ -15,7 +15,6 @@ import 'package:pos/presentation/product/argument.dart';
 import 'package:pos/presentation/product/expired/products_expired_state.dart';
 import 'package:pos/presentation/product/expired/products_expired_view_model.dart';
 import 'package:pos/presentation/theme.dart';
-
 import 'products_expire_ui_model.dart';
 
 class ProductsExpiredPage extends StatefulWidget {

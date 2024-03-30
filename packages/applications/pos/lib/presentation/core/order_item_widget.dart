@@ -1,6 +1,11 @@
+// Flutter imports:
+import 'package:flutter/material.dart';
+
+// Package imports:
 import 'package:common/core/ext/date_ext.dart';
 import 'package:common/core/ext/number_ext.dart';
-import 'package:flutter/material.dart';
+
+// Project imports:
 import 'package:pos/domain/model/order/order_item.dart';
 import 'package:pos/domain/model/product/product.dart';
 import 'package:pos/presentation/core/dialog_widget.dart';

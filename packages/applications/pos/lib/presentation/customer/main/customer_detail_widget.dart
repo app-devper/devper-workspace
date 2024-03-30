@@ -1,20 +1,14 @@
 // Flutter imports:
-import 'package:common/core/ext/date_ext.dart';
-import 'package:common/core/ext/number_ext.dart';
-import 'package:common/core/widgets/title_bar.dart';
 import 'package:flutter/material.dart';
+
+// Package imports:
+import 'package:common/core/widgets/title_bar.dart';
+
+// Project imports:
 import 'package:pos/domain/model/core/core.dart';
 import 'package:pos/domain/model/customer/customer.dart';
 
 // Project imports:
-import 'package:pos/domain/model/product/product.dart';
-import 'package:pos/presentation/core/dialog_widget.dart';
-import 'package:pos/presentation/product/main/product_price_widget.dart';
-import 'package:pos/presentation/product/main/product_stock_quantity_widget.dart';
-import 'package:pos/presentation/product/main/product_stock_sequence_widget.dart';
-import 'package:pos/presentation/product/main/product_stock_widget.dart';
-import 'package:pos/presentation/product/main/product_unit_widget.dart';
-import 'package:pos/presentation/theme.dart';
 
 class CustomerDetailWidget extends StatefulWidget {
   final Customer customer;

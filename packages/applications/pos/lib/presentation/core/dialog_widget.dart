@@ -1,7 +1,11 @@
-import 'package:common/core/ext/number_ext.dart';
-import 'package:common/core/widgets/input_number.dart';
-import 'package:common/core/widgets/title_bar.dart';
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Package imports:
+import 'package:common/core/ext/number_ext.dart';
+import 'package:common/core/widgets/title_bar.dart';
+
+// Project imports:
 import 'package:pos/domain/model/order/order_item.dart';
 import 'package:pos/domain/model/product/product.dart';
 import 'package:pos/presentation/core/decimal_input.dart';

@@ -30,7 +30,7 @@ class ProductEditViewModel {
       final result = await productRepo.getLocalProductById(productId);
       final categories = await categoryRepo.getLocalCategories();
       _onGetProduct(result!, categories);
-    } on Exception catch (e) {}
+    } on Exception {}
   }
 
   void updateProductById(String productId, ProductParam param) async {

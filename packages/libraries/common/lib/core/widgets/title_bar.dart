@@ -1,7 +1,7 @@
 // Flutter imports:
 import 'package:flutter/material.dart';
 
-// Package imports:
+// Project imports:
 import 'package:common/core/theme/theme.dart';
 
 class TitleBar extends StatelessWidget {

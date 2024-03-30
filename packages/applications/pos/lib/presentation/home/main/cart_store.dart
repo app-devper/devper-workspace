@@ -1,3 +1,4 @@
+// Project imports:
 import 'package:pos/domain/model/customer/customer.dart';
 import 'package:pos/domain/model/order/order_item.dart';
 

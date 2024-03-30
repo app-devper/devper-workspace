@@ -16,7 +16,7 @@ class ProductSearchViewModel {
 
   Stream<List<ProductUnitItem>> get productItems => _productItems.stream;
 
-  List<ProductUnitItem> _products = [];
+  final List<ProductUnitItem> _products = [];
 
   void prepareData() async {
     getProducts();
@@ -50,7 +50,7 @@ class ProductSearchViewModel {
   void getProductBySerialNumber(String serialNumber) async {
     try {
       final result = await productRepo.getProductBySerialNumber(serialNumber);
-    } on Exception catch (e) {}
+    } on Exception {}
   }
 
   void _onSearchProductSuccess(List<ProductUnitItem> result) {
