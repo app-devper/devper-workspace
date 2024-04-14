@@ -45,6 +45,9 @@ class _ProductEditPageState extends State<ProductEditPage> {
   ItemType? _category;
   final List<ItemType> _categories = categoryTypes;
 
+  ItemType? _status;
+  final List<ItemType> _productStatus = productStatus;
+
   @override
   void initState() {
     super.initState();
@@ -57,6 +60,7 @@ class _ProductEditPageState extends State<ProductEditPage> {
       } else if (state is GetProductState) {
         setState(() {
           _category = findCategoryType(state.data.category);
+          _status = findProductStatus(state.data.status);
         });
         _setupProduct(state.data);
       } else if (state is UpdateProductState) {
@@ -228,6 +232,28 @@ class _ProductEditPageState extends State<ProductEditPage> {
             return null;
           },
         ),
+        const SizedBox(height: 16),
+        DropdownButtonFormField<ItemType>(
+          validator: (value) {
+            return null;
+          },
+          decoration: buildInputDecoration(
+            labelText: 'การแสดงข้อมูลสินค้า',
+            hintText: 'โปรดเลือกการแสดงข้อมูลสินค้า',
+          ),
+          value: _status,
+          onChanged: (value) {
+            setState(() {
+              _status = value;
+            });
+          },
+          items: _productStatus.map((ItemType value) {
+            return DropdownMenuItem<ItemType>(
+              value: value,
+              child: Text(value.name),
+            );
+          }).toList(),
+        ),
       ],
     );
   }
@@ -246,6 +272,7 @@ class _ProductEditPageState extends State<ProductEditPage> {
       category: _category?.type ?? "",
       expireDate: null,
       receiveId: null,
+      status: _status?.type ?? "",
     );
   }
 

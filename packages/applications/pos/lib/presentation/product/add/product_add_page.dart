@@ -51,6 +51,9 @@ class _ProductAddPageState extends State<ProductAddPage> {
   ItemType? _category = categoryTypes.first;
   final List<ItemType> _categories = categoryTypes;
 
+  ItemType? _status;
+  final List<ItemType> _productStatus = productStatus;
+
   @override
   void initState() {
     super.initState();
@@ -246,6 +249,28 @@ class _ProductAddPageState extends State<ProductAddPage> {
             return null;
           },
         ),
+        const SizedBox(height: 16),
+        DropdownButtonFormField<ItemType>(
+          validator: (value) {
+            return null;
+          },
+          decoration: buildInputDecoration(
+            labelText: 'การแสดงข้อมูลสินค้า',
+            hintText: 'โปรดเลือกการแสดงข้อมูลสินค้า',
+          ),
+          value: _status,
+          onChanged: (value) {
+            setState(() {
+              _status = value;
+            });
+          },
+          items: _productStatus.map((ItemType value) {
+            return DropdownMenuItem<ItemType>(
+              value: value,
+              child: Text(value.name),
+            );
+          }).toList(),
+        ),
       ],
     );
   }
@@ -382,6 +407,7 @@ class _ProductAddPageState extends State<ProductAddPage> {
       unit: _unitEditingController.text,
       serialNumber: _serialNumberEditingController.text,
       category: _category?.type ?? "",
+      status: _status?.type ?? "",
     );
   }
 }

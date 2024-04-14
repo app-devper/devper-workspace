@@ -6,6 +6,7 @@ class Product {
   String name;
   String? nameEn;
   String? description;
+  String status;
   String category;
   String createdDate;
   List<ProductUnit> units;
@@ -17,6 +18,7 @@ class Product {
     required this.name,
     this.nameEn,
     this.description,
+    required this.status,
     required this.category,
     required this.createdDate,
     required this.units,
@@ -35,6 +37,7 @@ class Product {
         nameEn: nameEn,
         description: description,
         category: category,
+        status: status,
         createdDate: createdDate,
         unit: unit,
         prices: prices,
@@ -73,6 +76,7 @@ class ProductUnitItem {
   final String? nameEn;
   final String? description;
   final String category;
+  final String status;
   final String createdDate;
   final ProductUnit unit;
   final List<ProductPrice> prices;
@@ -84,6 +88,7 @@ class ProductUnitItem {
     this.nameEn,
     this.description,
     required this.category,
+    required this.status,
     required this.createdDate,
     required this.unit,
     required this.prices,
@@ -92,11 +97,11 @@ class ProductUnitItem {
 
   ProductPriceType getPrice(String customerType) {
     final stock = getFirstSequenceStock();
-    if (customerType == "Stock") {
+    if (customerType == priceTypeStock) {
       if (stock != null && stock.price > 0) {
         return ProductPriceType(
           stock: stock,
-          type: "Stock",
+          type: priceTypeStock,
           price: stock.price,
           costPrice: stock.costPrice > 0 ? stock.costPrice : unit.costPrice,
         );

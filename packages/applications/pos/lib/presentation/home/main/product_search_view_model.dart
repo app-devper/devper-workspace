@@ -2,6 +2,7 @@
 import 'dart:async';
 
 // Project imports:
+import 'package:pos/domain/model/core/core.dart';
 import 'package:pos/domain/model/product/product.dart';
 import 'package:pos/domain/repositories/product_repository.dart';
 
@@ -27,7 +28,9 @@ class ProductSearchViewModel {
       _products.clear();
       final products = await productRepo.getLocalProducts();
       for (var item in products) {
-        _products.addAll(item.toProductItems());
+        if (item.status == productStatusActive) {
+          _products.addAll(item.toProductItems());
+        }
       }
       _onSearchProductSuccess(_products);
     } on Exception catch (_) {}
@@ -45,12 +48,6 @@ class ProductSearchViewModel {
       }
       _onSearchProductSuccess(filtered);
     }
-  }
-
-  void getProductBySerialNumber(String serialNumber) async {
-    try {
-      final result = await productRepo.getProductBySerialNumber(serialNumber);
-    } on Exception {}
   }
 
   void _onSearchProductSuccess(List<ProductUnitItem> result) {

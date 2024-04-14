@@ -8,6 +8,7 @@ class ProductParam {
   final int quantity;
   final String serialNumber;
   final String? category;
+  final String status;
   final String? lotNumber;
   final String? expireDate;
   final String? receiveId;
@@ -22,6 +23,7 @@ class ProductParam {
     required this.quantity,
     required this.serialNumber,
     required this.category,
+    required this.status,
     required this.lotNumber,
     required this.expireDate,
     required this.receiveId,
@@ -37,6 +39,7 @@ class CreateProductParam {
   final String unit;
   final String serialNumber;
   final String category;
+  final String status;
 
   CreateProductParam({
     required this.name,
@@ -47,6 +50,7 @@ class CreateProductParam {
     required this.unit,
     required this.serialNumber,
     required this.category,
+    required this.status,
   });
 }
 

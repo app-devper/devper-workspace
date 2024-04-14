@@ -3,6 +3,7 @@ import 'dart:async';
 
 // Package imports:
 import 'package:common/core/error/failure.dart';
+import 'package:pos/domain/model/core/core.dart';
 
 // Project imports:
 import 'package:pos/domain/model/order/order.dart';
@@ -42,13 +43,17 @@ class CartViewModel {
       if (data != null) {
         data.plusAmount();
       } else {
-        final result = await productRepo.getProductBySerialNumber(serialNumber);
+        final result = await productRepo.getProductByBarcode(serialNumber);
+        if (result == null) {
+          _onError(Failure(errorCode: "A-404", error: "ไม่พบสินค้า"));
+          return;
+        }
         final productItems = result.toProductItems();
-        final productItem = productItems.firstWhere((element) => element.unit.barcode == serialNumber);
+        final productItem = productItems.firstWhere((item) => item.unit.barcode == serialNumber);
         orderItem.add(OrderItem(
           product: productItem,
           quantity: 1,
-          customerType: cartStore.customer?.type ?? "Stock",
+          customerType: cartStore.customer?.type ?? priceTypeStock,
         ));
       }
       _onOrderItemSuccess(orderItem);

@@ -7,6 +7,7 @@ import 'package:common/core/network/exception.dart';
 // Project imports:
 import 'package:pos/data/datasource/network/pos_service.dart';
 import 'package:pos/data/repositories/product_mapper.dart';
+import 'package:pos/domain/model/core/core.dart';
 import 'package:pos/domain/model/product/param.dart';
 import 'package:pos/domain/model/product/product.dart';
 import 'package:pos/domain/model/product/product_lot.dart';
@@ -21,22 +22,16 @@ class ProductRepositoryImpl implements ProductRepository {
   });
 
   @override
-  Future<Product> getProductBySerialNumber(String serialNumber) async {
+  Future<Product?> getProductByBarcode(String barcode) async {
     if (_products.isNotEmpty) {
       final result = _products.where((product) {
-        return product.units.any((unit) => unit.barcode == serialNumber);
+        return product.status == productStatusActive && product.units.any((unit) => unit.barcode == barcode);
       }).firstOrNull;
       if (result != null) {
         return result;
       }
     }
-    final mapper = ProductMapper();
-    final response = await posService.getProductBySerialNumber(serialNumber);
-    if (response.isSuccessful) {
-      return mapper.toProductDomain(jsonDecode(response.body));
-    } else {
-      throw HttpException(response);
-    }
+    return null;
   }
 
   @override
@@ -103,6 +98,7 @@ class ProductRepositoryImpl implements ProductRepository {
           element.description = product.description;
           element.category = product.category;
           element.createdDate = product.createdDate;
+          element.status = product.status;
           break;
         }
       }

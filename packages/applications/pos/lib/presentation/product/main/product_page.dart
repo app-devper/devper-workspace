@@ -148,9 +148,7 @@ class _ProductsPageState extends State<ProductsPage> {
           _viewModel.getProduct(product.id);
         },
         onRemove: () {
-          setState(() {
-            _pageState = MainPage();
-          });
+          _viewModel.getProduct(product.id);
         },
       );
     } else if (_pageState is AddPage) {

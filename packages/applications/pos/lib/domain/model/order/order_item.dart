@@ -1,5 +1,6 @@
 // Package imports:
 import 'package:common/core/ext/date_ext.dart';
+import 'package:pos/domain/model/core/core.dart';
 
 // Project imports:
 import 'package:pos/domain/model/product/product.dart';
@@ -129,13 +130,13 @@ class OrderItem {
 
   String getPriceDetail() {
     switch (priceType.type) {
-      case "Stock":
+      case priceTypeStock:
         return "สต็อก${priceType.stock != null ? " ${priceType.stock!.importDate.formatDate()}" : ""}";
-      case "General":
+      case customerTypeGeneral:
         return "ราคาหน้าร้าน";
-      case "Regular":
+      case customerTypeRegular:
         return "ลูกค้าประจำ";
-      case "Wholesaler":
+      case customerTypeWholesaler:
         return "ราคาขายส่ง";
       default:
         return "ไม่มีราคา";
@@ -143,7 +144,7 @@ class OrderItem {
   }
 
   String getMessage() {
-    return "ขาย ${product.name} จำนวน $quantity $unit ราคา ${amountPrice()} บาท";
+    return "ขาย ${product.name} จำนวน $quantity $unit ราคา ${amountPriceWithDiscount()} บาท";
   }
 
   void updateQuantity(double value) {

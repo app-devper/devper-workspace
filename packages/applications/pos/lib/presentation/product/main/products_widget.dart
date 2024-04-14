@@ -150,7 +150,7 @@ class _ProductsWidgetState extends State<ProductsWidget> {
   _buildProducts(List<Product> item) {
     getSubTitle(Product content) {
       if (_sortBalance) {
-        return "คงเหลือ ${content.getQuantity()}";
+        return "คงเหลือ ${content.getQuantity()} ${content.units.isNotEmpty ? content.units.first.unit : ""}";
       } else {
         return content.units.isNotEmpty ? content.units.first.unit : "";
       }

@@ -157,7 +157,7 @@ class _ProductDetailWidgetState extends State<ProductDetailWidget> with TickerPr
           _buildListItem('ชื่อสินค้า', product.name),
           _buildListItem('ชื่อสามัญทางยา', '-'),
           _buildListItem('ชื่อย่อ', '-'),
-          _buildListItem('การแสดงข้อมูลสินค้า', 'แสดงหน้าร้าน'),
+          _buildListItem('การแสดงข้อมูลสินค้า', findProductStatus(product.status).name),
           _buildListItem('วันแจ้งเตือนก่อนวันหมดอายุ', 'ก่อน 240 วัน'),
           _buildListItem('อัตราภาษีสินค้า', 'ไม่มี VAT'),
           const SizedBox(height: 8),

@@ -6,7 +6,7 @@ import 'package:pos/domain/model/product/product_lot.dart';
 abstract class ProductRepository {
   Future<String> generateSerialNumber();
 
-  Future<Product> getProductBySerialNumber(String serialNumber);
+  Future<Product?> getProductByBarcode(String barcode);
 
   Future<Product> getProductById(String productId);
 

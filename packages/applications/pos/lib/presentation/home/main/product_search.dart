@@ -6,6 +6,7 @@ import 'package:common/core/theme/theme.dart';
 
 // Project imports:
 import 'package:pos/container.dart';
+import 'package:pos/domain/model/core/core.dart';
 import 'package:pos/domain/model/product/product.dart';
 import 'package:pos/presentation/home/main/cart_widget.dart';
 import 'package:pos/presentation/home/main/product_search_view_model.dart';
@@ -119,7 +120,7 @@ class _ProductSearchState extends State<ProductSearch> {
                     shrinkWrap: true,
                     itemBuilder: (context, i) => ProductItem(
                       name: items[i].name,
-                      price: items[i].getPrice("Stock").price,
+                      price: items[i].getPrice(priceTypeStock).price,
                       quantity: items[i].getQuantity(),
                       unit: items[i].unit.unit,
                       barcode: items[i].unit.barcode,

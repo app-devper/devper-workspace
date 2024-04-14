@@ -1,5 +1,11 @@
-// Project imports:
-import 'package:pos/domain/model/product/product.dart';
+const String productStatusActive = "Active";
+const String productStatusInactive = "Inactive";
+
+const String customerTypeGeneral = "General";
+const String customerTypeWholesaler = "Wholesaler";
+const String customerTypeRegular = "Regular";
+
+const String priceTypeStock = "Stock";
 
 class ItemType {
   final String name;
@@ -13,16 +19,27 @@ class ItemType {
   });
 }
 
-List<ItemType> customerTypes = [
-  ItemType(name: "ลูกค้าทั่วไป", type: "General"),
-  ItemType(name: "ลูกค้าขายส่ง", type: "Wholesaler"),
-  ItemType(name: "ลูกค้าประจำ", type: "Regular"),
+List<ItemType> productStatus = [
+  ItemType(name: "แสดงหน้าร้าน", type: productStatusActive),
+  ItemType(name: "ไม่แสดงหน้าร้าน", type: productStatusInactive),
 ];
 
+findProductStatus(String status) {
+  return productStatus.firstWhere(
+    (element) => element.type.toLowerCase() == status.toLowerCase(),
+    orElse: () => categoryTypes.first,
+  );
+}
+
+List<ItemType> customerTypes = [
+  ItemType(name: "ลูกค้าทั่วไป", type: customerTypeGeneral),
+  ItemType(name: "ลูกค้าขายส่ง", type: customerTypeWholesaler),
+  ItemType(name: "ลูกค้าประจำ", type: customerTypeRegular),
+];
 
 ItemType findCustomerType(String type) {
   return customerTypes.firstWhere(
-        (element) => element.type.toLowerCase() == type.toLowerCase(),
+    (element) => element.type.toLowerCase() == type.toLowerCase(),
     orElse: () => customerTypes.first,
   );
 }
@@ -58,11 +75,6 @@ ItemType findCategoryType(String type) {
     (element) => element.type.toLowerCase() == type.toLowerCase(),
     orElse: () => categoryTypes.first,
   );
-}
-
-enum Mode {
-  search,
-  list,
 }
 
 enum SortProduct {
@@ -102,35 +114,3 @@ final dropdownItems = [
   SortItem(SortProduct.serialNoAsc, "Serial No.: Low to High"),
   SortItem(SortProduct.serialNoDesc, "Serial No.: High to Low"),
 ];
-
-List<Product> _sortProduct(SortProduct sort, String category, List<Product> data) {
-  final filtered = data.where((element) => element.category == category).toList();
-  switch (sort) {
-    case SortProduct.nameAsc:
-      filtered.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
-      return filtered;
-    case SortProduct.nameDesc:
-      filtered.sort((a, b) => b.name.toLowerCase().compareTo(a.name.toLowerCase()));
-      return filtered;
-    case SortProduct.priceAsc:
-      return filtered;
-    case SortProduct.priceDesc:
-      return filtered;
-    case SortProduct.costPriceAsc:
-      return filtered;
-    case SortProduct.costPriceDesc:
-      return filtered;
-    case SortProduct.quantityAsc:
-      return filtered;
-    case SortProduct.quantityDesc:
-      return filtered;
-    case SortProduct.createdAsc:
-      return filtered;
-    case SortProduct.createdDesc:
-      return filtered.reversed.toList();
-    case SortProduct.serialNoAsc:
-      return filtered;
-    case SortProduct.serialNoDesc:
-      return filtered;
-  }
-}

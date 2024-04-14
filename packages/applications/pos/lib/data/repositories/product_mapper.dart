@@ -13,11 +13,16 @@ class ProductMapper {
   }
 
   Product toProductDomain(Map<String, dynamic> json) {
+    String? status = json['status'];
+    if (status == null || status == "") {
+      status = "Active";
+    }
     return Product(
       id: json['id'],
       name: json['name'],
       nameEn: json['nameEn'],
       description: json['description'],
+      status: status,
       createdDate: json['createdDate'],
       category: json['category'],
       units: toProductUnitsDomain(json['units'] ?? []),
@@ -116,6 +121,7 @@ class ProductMapper {
       'category': param.category,
       'expireDate': param.expireDate,
       'receiveId': param.receiveId,
+      'status': param.status,
     });
   }
 
@@ -186,6 +192,7 @@ class ProductMapper {
       'costPrice': param.costPrice,
       'price': param.price,
       'serialNumber': param.serialNumber,
+      'status': param.status,
     });
   }
 }

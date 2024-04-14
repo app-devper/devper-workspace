@@ -22,7 +22,7 @@ scripts:
   build:web:pos:
     run: |
       melos exec -c 1 --scope pos -- \
-      flutter build web --release && \
+      flutter build web --release
     description: |
       Build.
     
