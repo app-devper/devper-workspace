@@ -14,8 +14,8 @@ import 'package:pos/container.dart';
 import 'package:pos/domain/model/product/param.dart';
 import 'package:pos/domain/model/product/product.dart';
 import 'package:pos/presentation/core/core_widget.dart';
-import 'package:pos/presentation/product/main/product_stock_state.dart';
-import 'package:pos/presentation/product/main/product_stock_view_model.dart';
+import 'package:pos/presentation/product/stock/product_stock_state.dart';
+import 'package:pos/presentation/product/stock/product_stock_view_model.dart';
 
 class ProductStockWidget extends StatefulWidget {
   final ProductUnit unit;

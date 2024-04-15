@@ -3,9 +3,9 @@ import 'dart:async';
 
 // Package imports:
 import 'package:common/core/error/failure.dart';
-import 'package:pos/domain/model/core/core.dart';
 
 // Project imports:
+import 'package:pos/domain/model/core/core.dart';
 import 'package:pos/domain/model/order/order.dart';
 import 'package:pos/domain/model/order/order_item.dart';
 import 'package:pos/domain/model/order/param.dart';

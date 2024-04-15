@@ -8,38 +8,36 @@ import 'package:common/core/error/failure.dart';
 import 'package:pos/domain/model/product/param.dart';
 import 'package:pos/domain/model/product/product.dart';
 import 'package:pos/domain/repositories/product_repository.dart';
-import 'package:pos/presentation/product/main/product_stock_quantity_state.dart';
+import 'package:pos/presentation/product/stock/product_stock_sequence_state.dart';
 
-class ProductStockQuantityViewModel {
+class ProductStockSequenceViewModel {
   final ProductRepository productRepo;
 
-  ProductStockQuantityViewModel({
+  ProductStockSequenceViewModel({
     required this.productRepo,
   });
 
-  final _states = StreamController<ProductStockQuantityState>();
+  final _states = StreamController<ProductStockSequenceState>();
 
-  Stream<ProductStockQuantityState> get states => _states.stream;
+  Stream<ProductStockSequenceState> get states => _states.stream;
 
-  void updateProductStockQuantityById(String id, UpdateProductStockQuantityParam param) async {
+  void updateProductStockSequenceById(UpdateProductStockSequenceParam param) async {
     _onLoading();
     try {
-      final result = await productRepo.updateProductStockQuantityById(id, param);
-      _onUpdateProductStock(result);
+      final result = await productRepo.updateProductStockSequence(param);
+      _onUpdateProductSequence(result);
     } on Exception catch (e) {
       _onError(toFailure(e));
     }
   }
 
   _onLoading() {
-    if (!_states.isClosed) {
-      _states.sink.add(LoadingState());
-    }
+    _states.sink.add(LoadingState());
   }
 
-  _onUpdateProductStock(ProductStock data) {
+  _onUpdateProductSequence(List<ProductStock> data) {
     if (!_states.isClosed) {
-      _states.sink.add(UpdateProductStockState(data: data));
+      _states.sink.add(UpdateProductSequenceState(data: data));
     }
   }
 

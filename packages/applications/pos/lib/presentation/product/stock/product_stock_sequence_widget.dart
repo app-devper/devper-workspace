@@ -15,8 +15,8 @@ import 'package:common/core/widgets/title_bar.dart';
 import 'package:pos/container.dart';
 import 'package:pos/domain/model/product/param.dart';
 import 'package:pos/domain/model/product/product.dart';
-import 'package:pos/presentation/product/main/product_stock_sequence_state.dart';
-import 'package:pos/presentation/product/main/product_stock_sequence_view_model.dart';
+import 'package:pos/presentation/product/stock/product_stock_sequence_state.dart';
+import 'package:pos/presentation/product/stock/product_stock_sequence_view_model.dart';
 
 class ProductStockSequenceWidget extends StatefulWidget {
   final String unit;

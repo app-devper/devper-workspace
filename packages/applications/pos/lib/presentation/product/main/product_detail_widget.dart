@@ -10,11 +10,11 @@ import 'package:common/core/widgets/title_bar.dart';
 import 'package:pos/domain/model/core/core.dart';
 import 'package:pos/domain/model/product/product.dart';
 import 'package:pos/presentation/core/dialog_widget.dart';
-import 'package:pos/presentation/product/main/product_price_widget.dart';
-import 'package:pos/presentation/product/main/product_stock_quantity_widget.dart';
-import 'package:pos/presentation/product/main/product_stock_sequence_widget.dart';
-import 'package:pos/presentation/product/main/product_stock_widget.dart';
-import 'package:pos/presentation/product/main/product_unit_widget.dart';
+import 'package:pos/presentation/product/price/product_price_widget.dart';
+import 'package:pos/presentation/product/stock/product_stock_quantity_widget.dart';
+import 'package:pos/presentation/product/stock/product_stock_sequence_widget.dart';
+import 'package:pos/presentation/product/stock/product_stock_widget.dart';
+import 'package:pos/presentation/product/unit/product_unit_widget.dart';
 import 'package:pos/presentation/theme.dart';
 
 class ProductDetailWidget extends StatefulWidget {
@@ -147,6 +147,10 @@ class _ProductDetailWidgetState extends State<ProductDetailWidget> with TickerPr
   }
 
   Widget _buildProductInfo(Product product) {
+    Color colorStatus = Colors.green;
+    if (product.status == productStatusInactive) {
+      colorStatus = Colors.red;
+    }
     return Card(
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(10.0),
@@ -156,8 +160,7 @@ class _ProductDetailWidgetState extends State<ProductDetailWidget> with TickerPr
           _buildListItem('ประเภทสินค้า', findCategoryType(product.category).name),
           _buildListItem('ชื่อสินค้า', product.name),
           _buildListItem('ชื่อสามัญทางยา', '-'),
-          _buildListItem('ชื่อย่อ', '-'),
-          _buildListItem('การแสดงข้อมูลสินค้า', findProductStatus(product.status).name),
+          _buildListItem('การแสดงข้อมูลสินค้า', findProductStatus(product.status).name, color: colorStatus),
           _buildListItem('วันแจ้งเตือนก่อนวันหมดอายุ', 'ก่อน 240 วัน'),
           _buildListItem('อัตราภาษีสินค้า', 'ไม่มี VAT'),
           const SizedBox(height: 8),
@@ -166,7 +169,11 @@ class _ProductDetailWidgetState extends State<ProductDetailWidget> with TickerPr
     );
   }
 
-  Widget _buildListItem(String title, String subtitle) {
+  Widget _buildListItem(
+    String title,
+    String subtitle, {
+    Color color = Colors.black,
+  }) {
     return Column(
       children: [
         ListTile(
@@ -179,8 +186,8 @@ class _ProductDetailWidgetState extends State<ProductDetailWidget> with TickerPr
           ),
           trailing: Text(
             subtitle,
-            style: const TextStyle(
-              color: Colors.black,
+            style: TextStyle(
+              color: color,
               fontSize: 16.0,
             ),
           ),

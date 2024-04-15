@@ -11,8 +11,8 @@ import 'package:pos/domain/model/core/core.dart';
 import 'package:pos/domain/model/product/param.dart';
 import 'package:pos/domain/model/product/product.dart';
 import 'package:pos/presentation/core/core_widget.dart';
-import 'package:pos/presentation/product/main/product_price_state.dart';
-import 'package:pos/presentation/product/main/product_price_view_model.dart';
+import 'package:pos/presentation/product/price/product_price_state.dart';
+import 'package:pos/presentation/product/price/product_price_view_model.dart';
 
 class ProductPriceWidget extends StatefulWidget {
   final ProductUnit unit;

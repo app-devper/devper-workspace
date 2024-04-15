@@ -8,7 +8,7 @@ import 'package:common/core/error/failure.dart';
 import 'package:pos/domain/model/product/param.dart';
 import 'package:pos/domain/model/product/product.dart';
 import 'package:pos/domain/repositories/product_repository.dart';
-import 'package:pos/presentation/product/main/product_stock_state.dart';
+import 'package:pos/presentation/product/stock/product_stock_state.dart';
 
 class ProductStockViewModel {
   final ProductRepository productRepo;

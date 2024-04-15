@@ -9,7 +9,7 @@ import 'package:common/core/ext/number_ext.dart';
 import 'package:pos/domain/model/order/order_item.dart';
 import 'package:pos/domain/model/product/product.dart';
 import 'package:pos/presentation/core/dialog_widget.dart';
-import 'package:pos/presentation/product/main/product_stock_sequence_widget.dart';
+import 'package:pos/presentation/product/stock/product_stock_sequence_widget.dart';
 
 class OrderItemWidget extends StatefulWidget {
   final OrderItem orderItem;

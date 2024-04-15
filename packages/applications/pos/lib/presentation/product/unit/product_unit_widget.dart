@@ -12,9 +12,9 @@ import 'package:pos/domain/model/product/param.dart';
 import 'package:pos/domain/model/product/product.dart';
 import 'package:pos/presentation/core/core_widget.dart';
 import 'package:pos/presentation/core/dialog_widget.dart';
-import 'package:pos/presentation/product/main/product_unit_state.dart';
-import 'package:pos/presentation/product/main/product_unit_view_model.dart';
-import 'package:pos/presentation/product/main/product_volume_unit_widget.dart';
+import 'package:pos/presentation/product/unit/product_unit_state.dart';
+import 'package:pos/presentation/product/unit/product_unit_view_model.dart';
+import 'package:pos/presentation/product/unit/product_volume_unit_widget.dart';
 
 class ProductUnitWidget extends StatefulWidget {
   final ProductUnit? unit;
