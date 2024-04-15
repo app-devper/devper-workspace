@@ -39,22 +39,27 @@ class _HomePageState extends State<HomePage> {
     return GestureDetector(
       onTap: () => FocusScope.of(context).requestFocus(_viewNode),
       child: Scaffold(
-        body: Row(
-          children: [
-            SizedBox(
-              width: 60,
-              child: HomeMenu(
-                onMenuTap: (event) {
-                  setState(() {
-                    _menuEvent = event;
-                  });
-                },
-                menuEvent: _menuEvent,
+        resizeToAvoidBottomInset: false,
+        body: SafeArea(
+          bottom: true,
+          top: true,
+          child: Row(
+            children: [
+              SizedBox(
+                width: 60,
+                child: HomeMenu(
+                  onMenuTap: (event) {
+                    setState(() {
+                      _menuEvent = event;
+                    });
+                  },
+                  menuEvent: _menuEvent,
+                ),
               ),
-            ),
-            Container(width: 1, color: Colors.grey[200]),
-            Expanded(child: _buildPage())
-          ],
+              Container(width: 1, color: Colors.grey[200]),
+              Expanded(child: _buildPage())
+            ],
+          ),
         ),
       ),
     );
