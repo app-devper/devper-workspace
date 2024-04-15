@@ -26,7 +26,7 @@ class ProductSearch extends StatefulWidget {
 }
 
 class _ProductSearchState extends State<ProductSearch> {
-  final _widthCard = 200;
+  final _widthCard = 300;
   final _serialNumberEditingController = TextEditingController();
   final _serialNumberNode = FocusNode();
 
