@@ -69,7 +69,7 @@ class OrderItem {
 
   List<ProductStockOrder> getProductStockOrder() {
     List<ProductStockOrder> productStockOrder = [];
-    final productStock = product.getProductStockById(priceType.stock!.id);
+    final productStock = product.getProductStockById(priceType.stock?.id);
     if (productStock != null) {
       if (productStock.quantity >= quantity) {
         productStockOrder.add(ProductStockOrder(

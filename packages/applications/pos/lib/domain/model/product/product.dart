@@ -148,7 +148,7 @@ class ProductUnitItem {
     stocks = items;
   }
 
-  ProductStock? getProductStockById(String stockId) {
+  ProductStock? getProductStockById(String? stockId) {
     return stocks.where((element) => element.id == stockId).firstOrNull;
   }
 }

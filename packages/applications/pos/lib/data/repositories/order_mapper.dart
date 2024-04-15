@@ -54,7 +54,7 @@ class OrderMapper {
     final mapper = ProductMapper();
     return OrderResult(
       data: toOrderDomain(json["data"]),
-      stocks: mapper.toProductStocksDomain(json["stocks"]),
+      stocks: json["stocks"] != null ? mapper.toProductStocksDomain(json["stocks"]) : [],
     );
   }
 
