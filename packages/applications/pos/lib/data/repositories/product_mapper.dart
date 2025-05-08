@@ -182,7 +182,7 @@ class ProductMapper {
     });
   }
 
-  toCreateProductRequest(CreateProductParam param) {
+  String toCreateProductRequest(CreateProductParam param) {
     return jsonEncode({
       'name': param.name,
       'nameEn': param.nameEn,

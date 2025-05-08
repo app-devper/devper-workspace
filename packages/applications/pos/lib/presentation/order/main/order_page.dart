@@ -72,7 +72,6 @@ class _OrderPageState extends State<OrderPage> {
       } else if (state is LoggedState) {
         setState(() {
           _isAdmin = state.isAdmin;
-          _defaultChoiceIndex = state.isAdmin ? 0 : 1;
         });
         _viewModel.initData();
       } else if (state is OrderRangeState) {

@@ -24,7 +24,7 @@ import 'package:pos/presentation/product/expired/products_expired_page.dart';
 import 'package:pos/presentation/product/lot_edit/product_lot_edit_page.dart';
 import 'package:pos/presentation/product/main/product_page.dart';
 import 'package:pos/presentation/receive/argument.dart';
-import 'package:pos/presentation/receive/main/receives_page.dart';
+import 'package:pos/presentation/receive/main/receive_page.dart';
 import 'package:pos/presentation/receive/manage/receive_manage_page.dart';
 import 'package:pos/presentation/supplier/add/supplier_add_page.dart';
 import 'package:pos/presentation/supplier/argument.dart';
@@ -73,7 +73,7 @@ class RouterApp {
           final args = settings.arguments as SupplierArgument;
           return MaterialPageRoute(builder: (_) => SupplierEditPage(supplier: args.supplier));
         case RECEIVES_ROUTE:
-          return MaterialPageRoute(builder: (_) => const ReceivesPage());
+          return MaterialPageRoute(builder: (_) => const ReceivePage());
         case RECEIVE_MANAGE_ROUTE:
           final args = settings.arguments as ReceiveManageArgument?;
           return MaterialPageRoute(builder: (_) => ReceiveManagePage(receiveId: args?.receiveId));

@@ -9,7 +9,7 @@ import 'package:pos/presentation/home/main/home_menu.dart';
 import 'package:pos/presentation/home/main/menu_event.dart';
 import 'package:pos/presentation/order/main/order_page.dart';
 import 'package:pos/presentation/product/main/product_page.dart';
-import 'package:pos/presentation/receive/main/receives_page.dart';
+import 'package:pos/presentation/receive/main/receive_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -74,7 +74,7 @@ class _HomePageState extends State<HomePage> {
       case MenuEvent.product:
         return const ProductsPage();
       case MenuEvent.receive:
-        return const ReceivesPage();
+        return const ReceivePage();
       case MenuEvent.database:
         return HomeDatabasePage(
           onMenuTap: (event) {

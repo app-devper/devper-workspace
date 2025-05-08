@@ -23,9 +23,4 @@ class Receive {
     this.supplier,
   });
 
-  String getCreatedDate() {
-    final date = DateTime.parse(createdDate);
-    final format = DateFormat("dd/MM/yyyy HH:mm");
-    return format.format(date.toLocal());
-  }
 }

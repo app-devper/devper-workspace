@@ -35,7 +35,10 @@ class _DecimalInputState extends State<DecimalInput> {
       child: Column(
         children: [
           Expanded(
-            child: _buildInputSection(widget.title, _getNumberFormat(_number)),
+            child: _buildInputSection(
+              widget.title,
+              _getNumberFormat(_number),
+            ),
           ),
           const SizedBox(height: 16),
           SizedBox(
@@ -79,7 +82,13 @@ class _DecimalInputState extends State<DecimalInput> {
 
   Widget _buildInputSection(String title, String amount) {
     getAmount() {
-      return Text(amount, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold));
+      return Text(
+        amount,
+        style: const TextStyle(
+          fontSize: 24,
+          fontWeight: FontWeight.bold,
+        ),
+      );
     }
 
     return Container(
@@ -94,7 +103,13 @@ class _DecimalInputState extends State<DecimalInput> {
         crossAxisAlignment: CrossAxisAlignment.end,
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          Text(title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
           getAmount(),
         ],
       ),
