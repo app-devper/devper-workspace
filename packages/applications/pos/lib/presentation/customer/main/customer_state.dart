@@ -6,10 +6,10 @@ abstract class CustomerState {
 
 class LoadingState extends CustomerState {}
 
-class ListCustomerState extends CustomerState {
-  final List<Customer> data;
+class GetCustomerState extends CustomerState {
+  final Customer data;
 
-  ListCustomerState({required this.data});
+  GetCustomerState({required this.data});
 }
 
 class ErrorState extends CustomerState {

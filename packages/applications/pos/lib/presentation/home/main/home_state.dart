@@ -21,22 +21,16 @@ class OrderItemState extends HomeState {
 
 class OrderLoadingState extends HomeState {}
 
-class OrderState extends HomeState {
-  final Order order;
+class OrderResultState extends HomeState {
+  final OrderResult order;
 
-  OrderState(this.order);
+  OrderResultState(this.order);
 }
 
 class OrderErrorState extends HomeState {
   final String message;
 
   OrderErrorState(this.message);
-}
-
-class ChangeState extends HomeState {
-  final double change;
-
-  ChangeState(this.change);
 }
 
 class CustomersState extends HomeState {
@@ -52,5 +46,3 @@ class ErrorState extends HomeState {
 }
 
 class LogoutState extends HomeState {}
-
-class RequireCustomerState extends HomeState {}

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 // Package imports:
 import 'package:common/core/ext/widget_ext.dart';
+import 'package:common/core/widgets/appbar_widget.dart';
 import 'package:common/core/widgets/button_widget.dart';
 import 'package:common/core/widgets/custom_snack_bar.dart';
 
@@ -84,32 +85,22 @@ class _CategoryAddPageState extends State<CategoryAddPage> {
     _snackBar = CustomSnackBar(key: const Key("snackbar"), context: context);
     return Scaffold(
       key: _scaffoldKey,
-      appBar: AppBar(
-        iconTheme: CustomTheme.mainTheme.iconTheme,
-        backgroundColor: CustomColor.white,
-        centerTitle: true,
-        title: Text(
-          Languages.of(context).categoryAddTitle,
-          style: CustomTheme.mainTheme.textTheme.headlineSmall,
-        ),
-      ),
+      appBar: buildAppBar(Languages.of(context).categoryAddTitle),
       body: _buildBody(context),
     );
   }
 
   _buildBody(BuildContext context) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(DEFAULT_PAGE_PADDING),
-      child: Container(
-        child: Column(
-          children: <Widget>[
-            _buildForm(context),
-            const Padding(
-              padding: EdgeInsets.only(top: DEFAULT_PAGE_PADDING),
-            ),
-            _buildAddButton(),
-          ],
-        ),
+      padding: const EdgeInsets.all(defaultPagePadding),
+      child: Column(
+        children: <Widget>[
+          _buildForm(context),
+          const Padding(
+            padding: EdgeInsets.only(top: defaultPagePadding),
+          ),
+          _buildAddButton(),
+        ],
       ),
     );
   }
@@ -154,9 +145,8 @@ class _CategoryAddPageState extends State<CategoryAddPage> {
           padding: EdgeInsets.only(top: 12),
         ),
         CheckboxListTile(
-          title: Text(
+          title: const Text(
             "Require customer order",
-            style: CustomTheme.mainTheme.textTheme.bodyMedium,
           ),
           value: _requireCustomerOrder,
           onChanged: (newValue) {
@@ -210,7 +200,6 @@ class _CategoryAddPageState extends State<CategoryAddPage> {
           fillColor: CustomColor.textFieldBackground,
           filled: true,
           labelText: labelText,
-          labelStyle: CustomTheme.mainTheme.textTheme.bodyMedium,
         ),
         cursorColor: CustomColor.hintColor,
         onFieldSubmitted: (term) {

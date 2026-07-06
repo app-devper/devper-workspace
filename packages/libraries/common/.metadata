@@ -7,4 +7,4 @@ version:
   revision: db747aa1331bd95bc9b3874c842261ca2d302cd5
   channel: stable
 
-project_type: module
+project_type: package

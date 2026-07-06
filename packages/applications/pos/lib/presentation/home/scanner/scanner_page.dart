@@ -1,11 +1,9 @@
-// Dart imports:
-import 'dart:io';
-
 // Flutter imports:
 import 'package:flutter/material.dart';
 
 // Package imports:
 import 'package:common/core/ext/widget_ext.dart';
+import 'package:common/core/widgets/appbar_widget.dart';
 import 'package:common/core/widgets/custom_snack_bar.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 
@@ -15,7 +13,6 @@ import 'package:pos/domain/model/product/product.dart';
 import 'package:pos/localizations/language/languages.dart';
 import 'package:pos/presentation/constants.dart';
 import 'package:pos/presentation/product/argument.dart';
-import 'package:pos/presentation/theme.dart';
 import 'scanner_state.dart';
 import 'scanner_view_model.dart';
 
@@ -58,9 +55,7 @@ class _ScannerPageState extends State<ScannerPage> {
   @override
   void reassemble() {
     super.reassemble();
-    if (Platform.isAndroid) {
-      controller?.pauseCamera();
-    }
+    controller?.pauseCamera();
     controller?.resumeCamera();
   }
 
@@ -68,14 +63,8 @@ class _ScannerPageState extends State<ScannerPage> {
   Widget build(BuildContext context) {
     _snackBar = CustomSnackBar(key: const Key("snackbar"), context: context);
     return Scaffold(
-      appBar: AppBar(
-        iconTheme: CustomTheme.mainTheme.iconTheme,
-        backgroundColor: CustomColor.white,
-        centerTitle: true,
-        title: Text(
-          Languages.of(context).productFindTitle,
-          style: CustomTheme.mainTheme.textTheme.headlineSmall,
-        ),
+      appBar: buildAppBar(
+        Languages.of(context).productFindTitle,
         actions: [
           IconButton(
             onPressed: () {
@@ -102,11 +91,19 @@ class _ScannerPageState extends State<ScannerPage> {
   }
 
   Widget _buildQrView(BuildContext context) {
-    var scanArea = (MediaQuery.of(context).size.width < 850 || MediaQuery.of(context).size.width < 850) ? 300.0 : 600.0;
+    var scanArea = (MediaQuery.of(context).size.width < 850 ||
+            MediaQuery.of(context).size.width < 850)
+        ? 300.0
+        : 600.0;
     return QRView(
       key: _qrKey,
       onQRViewCreated: (ctrl) => _onQRViewCreated(context, ctrl),
-      overlay: QrScannerOverlayShape(borderColor: Colors.red, borderRadius: 10, borderLength: 30, borderWidth: 10, cutOutSize: scanArea),
+      overlay: QrScannerOverlayShape(
+          borderColor: Colors.red,
+          borderRadius: 10,
+          borderLength: 30,
+          borderWidth: 10,
+          cutOutSize: scanArea),
       onPermissionSet: (ctrl, p) => _onPermissionSet(context, ctrl, p),
     );
   }
@@ -133,7 +130,8 @@ class _ScannerPageState extends State<ScannerPage> {
   }
 
   _nextToProductEdit(BuildContext context, Product content) async {
-    var _ = await Navigator.pushNamed(context, PRODUCT_EDIT_ROUTE, arguments: ProductArgument(content));
+    var _ = await Navigator.pushNamed(context, PRODUCT_EDIT_ROUTE,
+        arguments: ProductArgument(content));
     controller?.resumeCamera();
   }
 

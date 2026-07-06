@@ -149,9 +149,7 @@ class CustomTheme {
 
     // Default font family.
     fontFamily: 'Roboto',
-
-    // Default TextTheme. Use this to specify the default
-    // text styling for headlines, titles, bodies of text, and etc.
+    
     textTheme: const TextTheme(
       headlineSmall: TextStyle(
         fontSize: 20.0,

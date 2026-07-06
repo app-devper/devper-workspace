@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 // Package imports:
+import 'package:common/core/widgets/appbar_widget.dart';
 import 'package:common/core/widgets/custom_snack_bar.dart';
 import 'package:intl/intl.dart';
 
@@ -82,14 +83,8 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
     _snackBar = CustomSnackBar(key: const Key("snackbar"), context: context);
     return Scaffold(
       key: _scaffoldKey,
-      appBar: AppBar(
-        iconTheme: CustomTheme.mainTheme.iconTheme,
-        backgroundColor: CustomColor.white,
-        centerTitle: true,
-        title: Text(
-          Languages.of(context).orderHistoryTitle,
-          style: CustomTheme.mainTheme.textTheme.headlineSmall,
-        ),
+      appBar: buildAppBar(
+        Languages.of(context).orderHistoryTitle,
         actions: _buildAction(context),
       ),
       body: AnnotatedRegion<SystemUiOverlayStyle>(
@@ -111,11 +106,10 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
         children: <Widget>[
           Container(
             height: 50,
-            padding: const EdgeInsets.only(left: DEFAULT_PAGE_PADDING),
+            padding: const EdgeInsets.only(left: defaultPagePadding),
             alignment: Alignment.centerLeft,
             child: Text(
               widget.product.name,
-              style: CustomTheme.mainTheme.textTheme.titleLarge,
               textAlign: TextAlign.justify,
             ),
           ),
@@ -160,7 +154,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
 
   _buildSummaryTotal() {
     return Container(
-      padding: const EdgeInsets.all(DEFAULT_PAGE_PADDING),
+      padding: const EdgeInsets.all(defaultPagePadding),
       child: Column(
         children: <Widget>[
           _buildPrice(),
@@ -175,13 +169,11 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: <Widget>[
-        Text(
+        const Text(
           'Total',
-          style: CustomTheme.mainTheme.textTheme.headlineSmall,
         ),
         Text(
           '฿ ${_format.format(getTotalPrice())}',
-          style: CustomTheme.mainTheme.textTheme.headlineSmall,
         ),
       ],
     );
@@ -192,13 +184,11 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
       return Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[
-          Text(
+          const Text(
             'Total Cost',
-            style: CustomTheme.mainTheme.textTheme.headlineSmall,
           ),
           Text(
             '฿ ${_format.format(getTotalCostPrice())}',
-            style: CustomTheme.mainTheme.textTheme.headlineSmall,
           ),
         ],
       );
@@ -212,13 +202,11 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
       return Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[
-          Text(
+          const Text(
             'Total Profit',
-            style: CustomTheme.mainTheme.textTheme.headlineSmall,
           ),
           Text(
             '฿ ${_format.format(getTotalPrice() - getTotalCostPrice())}',
-            style: CustomTheme.mainTheme.textTheme.headlineSmall,
           ),
         ],
       );

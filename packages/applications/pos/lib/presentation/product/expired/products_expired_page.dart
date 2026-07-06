@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 
 // Package imports:
+import 'package:common/core/widgets/appbar_widget.dart';
 import 'package:common/core/widgets/custom_snack_bar.dart';
 import 'package:intl/intl.dart';
 
@@ -14,7 +15,6 @@ import 'package:pos/presentation/product/argument.dart';
 import 'package:pos/presentation/product/expired/products_expired_state.dart';
 import 'package:pos/presentation/product/expired/products_expired_view_model.dart';
 import 'package:pos/presentation/theme.dart';
-
 import 'products_expire_ui_model.dart';
 
 class ProductsExpiredPage extends StatefulWidget {
@@ -71,14 +71,8 @@ class _ProductsExpiredPageState extends State<ProductsExpiredPage> {
     _snackBar = CustomSnackBar(key: const Key("snackbar"), context: context);
     return Scaffold(
       key: _scaffoldKey,
-      appBar: AppBar(
-        iconTheme: CustomTheme.mainTheme.iconTheme,
-        backgroundColor: CustomColor.white,
-        centerTitle: true,
-        title: Text(
+      appBar: buildAppBar(
           Languages.of(context).productsExpiredTitle,
-          style: CustomTheme.mainTheme.textTheme.headlineSmall,
-        ),
       ),
       body: _buildBody(context),
     );
@@ -101,7 +95,7 @@ class _ProductsExpiredPageState extends State<ProductsExpiredPage> {
 
   _buildMenu() {
     return Container(
-      padding: const EdgeInsets.only(right: DEFAULT_PAGE_PADDING, left: DEFAULT_PAGE_PADDING),
+      padding: const EdgeInsets.only(right: defaultPagePadding, left: defaultPagePadding),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.end,
         children: <Widget>[
@@ -204,17 +198,15 @@ class _ProductsExpiredPageState extends State<ProductsExpiredPage> {
 
   _buildTotalCost() {
     return Container(
-      padding: const EdgeInsets.all(DEFAULT_PAGE_PADDING),
+      padding: const EdgeInsets.all(defaultPagePadding),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[
-          Text(
+          const Text(
             'Total Cost',
-            style: CustomTheme.mainTheme.textTheme.headlineSmall,
           ),
           Text(
             '฿ ${_format.format(_totalCost)}',
-            style: CustomTheme.mainTheme.textTheme.headlineSmall,
           ),
         ],
       ),

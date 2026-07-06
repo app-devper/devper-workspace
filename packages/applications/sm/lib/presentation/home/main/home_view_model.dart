@@ -47,7 +47,7 @@ class HomeViewModel {
 
   void logout() async {
     try {
-      final result = await loginRepo.logoutUser();
+      final _ = await loginRepo.logoutUser();
     } on Exception catch (_) {
     }
     _onLogoutSuccess();

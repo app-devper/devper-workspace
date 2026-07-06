@@ -11,6 +11,7 @@ class OrderItemDetail {
   int quantity;
   double price;
   double costPrice;
+  double discount;
   String createdDate;
   Order? order;
 
@@ -20,6 +21,7 @@ class OrderItemDetail {
     required this.quantity,
     required this.price,
     required this.costPrice,
+    required this.discount,
     required this.createdDate,
     required this.order,
   });

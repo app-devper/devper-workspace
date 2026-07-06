@@ -7,8 +7,8 @@ class CustomSnackBar {
 
   CustomSnackBar({required this.key, required this.context});
 
-  void showErrorSnackBar(final msg) {
-    showSnackBar(text: "Error: $msg", color: Colors.red[400]);
+  void showErrorSnackBar(final msg, {action = false}) {
+    showSnackBar(text: "Error: $msg", color: Colors.red[400], action: action);
   }
 
   void showLoadingSnackBar() {
@@ -50,8 +50,7 @@ class CustomSnackBar {
           ? SnackBarAction(
               label: "Clear",
               textColor: Colors.black,
-              onPressed: () =>
-                  ScaffoldMessenger.of(context).removeCurrentSnackBar(),
+              onPressed: () => ScaffoldMessenger.of(context).removeCurrentSnackBar(),
             )
           : null,
     );

@@ -71,21 +71,17 @@ class OrderDetailViewModel {
     }
   }
 
-  void updateTotalCost(String id) async {
+  void updateTotalCost() {
     _onLoading();
-    try {
-      final _ = await orderRepo.updateTotalCostOrderById(id);
-      _onUpdateTotalCost();
-    } on Exception catch (e) {
-      _onError(toFailure(e));
-    }
+    _onUpdateTotalCost();
   }
 
   void getSupplier(String customerCode) async {
     Customer? customer;
     try {
       final result = await customerRepo.getLocalCustomers();
-      customer = result.where((element) => element.code == customerCode).firstOrNull;
+      customer =
+          result.where((element) => element.code == customerCode).firstOrNull;
     } on Exception catch (_) {}
     try {
       final result = await supplierRepo.getSupplierInfo();

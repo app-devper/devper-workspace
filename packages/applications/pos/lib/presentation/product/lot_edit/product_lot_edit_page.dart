@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 // Package imports:
 import 'package:common/core/ext/widget_ext.dart';
+import 'package:common/core/widgets/appbar_widget.dart';
 import 'package:common/core/widgets/button_widget.dart';
 import 'package:common/core/widgets/custom_snack_bar.dart';
 
@@ -12,7 +13,6 @@ import 'package:pos/domain/model/product/param.dart';
 import 'package:pos/domain/model/product/product_lot.dart';
 import 'package:pos/localizations/language/languages.dart';
 import 'package:pos/presentation/constants.dart';
-import 'package:pos/presentation/theme.dart';
 import 'product_lot_edit_state.dart';
 import 'product_lot_edit_view_model.dart';
 
@@ -99,14 +99,8 @@ class _ProductLotEditPageState extends State<ProductLotEditPage> {
     _snackBar = CustomSnackBar(key: const Key("snackbar"), context: context);
     return Scaffold(
       key: _scaffoldKey,
-      appBar: AppBar(
-        iconTheme: CustomTheme.mainTheme.iconTheme,
-        backgroundColor: CustomColor.white,
-        centerTitle: true,
-        title: Text(
+      appBar: buildAppBar(
           Languages.of(context).productLotEditTitle,
-          style: CustomTheme.mainTheme.textTheme.headlineSmall,
-        ),
       ),
       body: _buildBody(context),
     );
@@ -114,7 +108,7 @@ class _ProductLotEditPageState extends State<ProductLotEditPage> {
 
   _buildBody(BuildContext context) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(DEFAULT_PAGE_PADDING),
+      padding: const EdgeInsets.all(defaultPagePadding),
       child: Column(
         children: <Widget>[
           _buildForm(context),

@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 
 // Package imports:
 import 'package:common/core/ext/widget_ext.dart';
+import 'package:common/core/widgets/appbar_widget.dart';
 import 'package:common/core/widgets/custom_snack_bar.dart';
 import 'package:intl/intl.dart';
 
@@ -126,14 +127,8 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
     _snackBar = CustomSnackBar(key: const Key("snackbar"), context: context);
     return Scaffold(
       key: _scaffoldKey,
-      appBar: AppBar(
-        iconTheme: CustomTheme.mainTheme.iconTheme,
-        backgroundColor: CustomColor.white,
-        centerTitle: true,
-        title: Text(
-          Languages.of(context).orderDetailTitle,
-          style: CustomTheme.mainTheme.textTheme.headlineSmall,
-        ),
+      appBar: buildAppBar(
+        Languages.of(context).orderDetailTitle,
         actions: _buildAction(context),
       ),
       body: AnnotatedRegion<SystemUiOverlayStyle>(
@@ -158,7 +153,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
         IconButton(
           splashRadius: 20,
           onPressed: () {
-            _viewModel.updateTotalCost(widget.orderId);
+            _viewModel.updateTotalCost();
           },
           icon: const Icon(Icons.sync),
         ),
@@ -203,7 +198,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
     final Size size = MediaQuery.of(context).size;
     return Container(
       width: size.width,
-      padding: const EdgeInsets.all(DEFAULT_PAGE_PADDING),
+      padding: const EdgeInsets.all(defaultPagePadding),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.start,
         children: <Widget>[
@@ -221,7 +216,6 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
       alignment: Alignment.centerLeft,
       child: Text(
         "${order?.code ?? ""} ${(order?.getCreatedDate() ?? "-")}",
-        style: CustomTheme.mainTheme.textTheme.titleLarge,
       ),
     );
   }
@@ -236,7 +230,10 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
             leading: _buildListMenu(context, content),
             title: Text(content.product?.name ?? ""),
             trailing: Text(format.format(content.price)),
-            subtitle: isAdmin ? Text("Cost : ${format.format(content.costPrice)}  Profit : ${format.format(content.price - content.costPrice)}") : null,
+            subtitle: isAdmin
+                ? Text(
+                    "Cost : ${format.format(content.costPrice)}  Profit : ${format.format(content.price - content.costPrice)}")
+                : null,
             onTap: () {
               if (isAdmin) {
                 _nextToProductEdit(context, content.product);
@@ -282,7 +279,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
 
   Widget _buildSummaryTotal() {
     return Container(
-      padding: const EdgeInsets.all(DEFAULT_PAGE_PADDING),
+      padding: const EdgeInsets.all(defaultPagePadding),
       child: Column(
         children: <Widget>[
           _buildPrice(),
@@ -297,13 +294,11 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: <Widget>[
-        Text(
+        const Text(
           'Total',
-          style: CustomTheme.mainTheme.textTheme.headlineSmall,
         ),
         Text(
           '฿ ${format.format(getTotalPrice())}',
-          style: CustomTheme.mainTheme.textTheme.headlineSmall,
         ),
       ],
     );
@@ -314,13 +309,11 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
       return Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[
-          Text(
+          const Text(
             'Total Cost',
-            style: CustomTheme.mainTheme.textTheme.headlineSmall,
           ),
           Text(
             '฿ ${format.format(getTotalCostPrice())}',
-            style: CustomTheme.mainTheme.textTheme.headlineSmall,
           ),
         ],
       );
@@ -334,13 +327,11 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
       return Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[
-          Text(
+          const Text(
             'Total Profit',
-            style: CustomTheme.mainTheme.textTheme.headlineSmall,
           ),
           Text(
             '฿ ${format.format(getTotalPrice() - getTotalCostPrice())}',
-            style: CustomTheme.mainTheme.textTheme.headlineSmall,
           ),
         ],
       );
@@ -379,7 +370,8 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
 
   _nextToProductEdit(BuildContext context, Product? product) async {
     if (product != null) {
-      var result = await Navigator.pushNamed(context, PRODUCT_EDIT_ROUTE, arguments: ProductArgument(product));
+      var result = await Navigator.pushNamed(context, PRODUCT_EDIT_ROUTE,
+          arguments: ProductArgument(product));
       if (result != null) {
         _viewModel.getOrderById(widget.orderId);
       }
@@ -388,7 +380,8 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
 
   _nextToOrderHistory(BuildContext context, Product? product) async {
     if (product != null) {
-      var result = await Navigator.pushNamed(context, ORDER_HISTORY_ROUTE, arguments: OrderHistoryArgument(product));
+      var result = await Navigator.pushNamed(context, ORDER_HISTORY_ROUTE,
+          arguments: OrderHistoryArgument(product));
       if (result != null) {
         _viewModel.getOrderById(widget.orderId);
       }
@@ -482,6 +475,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
       email: "",
       code: '',
       status: '',
+      type: '',
     );
   }
 }

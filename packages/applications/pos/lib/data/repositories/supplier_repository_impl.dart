@@ -2,6 +2,7 @@
 import 'dart:convert';
 
 // Package imports:
+import 'package:common/core/network/error_mapper.dart';
 import 'package:common/core/network/exception.dart';
 
 // Project imports:
@@ -23,22 +24,14 @@ class SupplierRepositoryImpl implements SupplierRepository {
   Future<Supplier> updateSupplierInfo(SupplierParam param) async {
     final mapper = SupplierMapper();
     final response = await posService.updateSupplierInfo(mapper.toSupplierRequest(param));
-    if (response.isSuccessful) {
-      return mapper.toSupplierDomain(jsonDecode(response.body));
-    } else {
-      throw HttpException(response);
-    }
+    return mapper.toSupplierDomain(jsonOrThrow(response));
   }
 
   @override
   Future<Supplier> getSupplierInfo() async {
     final mapper = SupplierMapper();
     final response = await posService.getSupplierInfo();
-    if (response.isSuccessful) {
-      return mapper.toSupplierDomain(jsonDecode(response.body));
-    } else {
-      throw HttpException(response);
-    }
+    return mapper.toSupplierDomain(jsonOrThrow(response));
   }
 
   @override
@@ -50,7 +43,7 @@ class SupplierRepositoryImpl implements SupplierRepository {
       _suppliers = suppliers;
       return suppliers;
     } else {
-      throw HttpException(response);
+      throw toAppException(response);
     }
   }
 
@@ -67,33 +60,21 @@ class SupplierRepositoryImpl implements SupplierRepository {
   Future<Supplier> getSupplierById(String supplierId) async {
     final mapper = SupplierMapper();
     final response = await posService.getSupplierById(supplierId);
-    if (response.isSuccessful) {
-      return mapper.toSupplierDomain(jsonDecode(response.body));
-    } else {
-      throw HttpException(response);
-    }
+    return mapper.toSupplierDomain(jsonOrThrow(response));
   }
 
   @override
   Future<Supplier> removeSupplierById(String supplierId) async {
     final mapper = SupplierMapper();
     final response = await posService.removeSupplierById(supplierId);
-    if (response.isSuccessful) {
-      return mapper.toSupplierDomain(jsonDecode(response.body));
-    } else {
-      throw HttpException(response);
-    }
+    return mapper.toSupplierDomain(jsonOrThrow(response));
   }
 
   @override
   Future<Supplier> updateSupplierById(String supplierId, SupplierParam param) async {
     final mapper = SupplierMapper();
     final response = await posService.updateSupplierById(supplierId, mapper.toSupplierRequest(param));
-    if (response.isSuccessful) {
-      return mapper.toSupplierDomain(jsonDecode(response.body));
-    } else {
-      throw HttpException(response);
-    }
+    return mapper.toSupplierDomain(jsonOrThrow(response));
   }
 
   @override
@@ -109,10 +90,6 @@ class SupplierRepositoryImpl implements SupplierRepository {
   Future<Supplier> createSupplier(SupplierParam param) async {
     final mapper = SupplierMapper();
     final response = await posService.createSupplier(mapper.toSupplierRequest(param));
-    if (response.isSuccessful) {
-      return mapper.toSupplierDomain(jsonDecode(response.body));
-    } else {
-      throw HttpException(response);
-    }
+    return mapper.toSupplierDomain(jsonOrThrow(response));
   }
 }

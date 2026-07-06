@@ -1,16 +1,14 @@
-// Dart imports:
-import 'dart:convert';
-import 'dart:io';
+import 'dart:async';
 
-// Project imports:
-import 'package:common/core/error/exception.dart';
-import 'package:common/core/network/exception.dart';
+import 'package:http/http.dart' as http;
+
+import 'exception.dart';
 
 class Failure {
-  late String error;
-  late String errorCode;
+  final String error;
+  final String errorCode;
 
-  Failure({
+  const Failure({
     required this.errorCode,
     required this.error,
   });
@@ -20,29 +18,20 @@ class Failure {
   }
 }
 
-Failure toFailure(Exception e) {
-  if (e is AppException) {
-    return Failure(
-      errorCode: "A-500",
-      error: e.error,
-    );
-  } else if (e is HttpException) {
-    Map<String, dynamic> json = jsonDecode(e.response.body);
-    final errorCode = "N-${e.response.statusCode}";
-    final error = json['error'] ?? e.response.reasonPhrase;
-    return Failure(
-      errorCode: errorCode,
-      error: error,
-    );
-  } else if (e is SocketException) {
-    return Failure(
-      errorCode: "N-000",
-      error: "Connection error. Please try again.",
-    );
-  } else {
-    return Failure(
-      errorCode: "A-000",
-      error: e.toString(),
-    );
-  }
+const _networkErrorMessage = "เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ กรุณาลองใหม่";
+
+Failure toFailure(Object e) {
+  return switch (e) {
+    AuthException() => Failure(errorCode: e.code, error: "เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่"),
+    ForbiddenException() => Failure(errorCode: e.code, error: "ไม่มีสิทธิ์ใช้งานส่วนนี้"),
+    NotFoundException() => Failure(errorCode: e.code, error: "ไม่พบข้อมูลที่ต้องการ"),
+    NetworkException() => Failure(errorCode: e.code, error: _networkErrorMessage),
+    ServerException() => Failure(errorCode: e.code, error: "ระบบขัดข้อง กรุณาลองใหม่ภายหลัง"),
+    ValidationException() => Failure(errorCode: e.code, error: e.message),
+    ConflictException() => Failure(errorCode: e.code, error: e.message),
+    UnknownHttpException() => Failure(errorCode: e.code, error: e.message),
+    http.ClientException() => const Failure(errorCode: "NETWORK_ERROR", error: _networkErrorMessage),
+    TimeoutException() => const Failure(errorCode: "NETWORK_ERROR", error: _networkErrorMessage),
+    _ => Failure(errorCode: "UNKNOWN", error: e.toString()),
+  };
 }

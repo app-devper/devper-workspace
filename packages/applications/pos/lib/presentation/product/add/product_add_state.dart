@@ -6,11 +6,6 @@ abstract class ProductAddState {}
 
 class LoadingState extends ProductAddState {}
 
-class GetProductState extends ProductAddState {
-  final Product? data;
-
-  GetProductState({required this.data});
-}
 
 class GetCategoryState extends ProductAddState {
   final List<Category> data;

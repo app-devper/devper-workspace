@@ -23,7 +23,11 @@ class ScannerViewModel {
   void getProductBySerialNumber(String serialNumber) async {
     _onLoading();
     try {
-      final result = await productRepo.getProductBySerialNumber(serialNumber);
+      final result = await productRepo.getProductByBarcode(serialNumber);
+      if (result == null) {
+        _onGetProductError(Failure(errorCode: "A-404", error: "ไม่พบสินค้า"));
+        return;
+      }
       _onGetProductSuccess(result);
     } on Exception catch (e) {
       _onGetProductError(toFailure(e));

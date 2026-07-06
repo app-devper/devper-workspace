@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 // Package imports:
 import 'package:common/core/ext/widget_ext.dart';
+import 'package:common/core/widgets/appbar_widget.dart';
 import 'package:common/core/widgets/button_widget.dart';
 import 'package:common/core/widgets/custom_snack_bar.dart';
 
@@ -13,7 +14,6 @@ import 'package:pos/localizations/language/languages.dart';
 import 'package:pos/presentation/constants.dart';
 import 'package:pos/presentation/supplier/add/supplier_add_state.dart';
 import 'package:pos/presentation/supplier/add/supplier_add_view_model.dart';
-import 'package:pos/presentation/theme.dart';
 
 class SupplierAddPage extends StatefulWidget {
   const SupplierAddPage({super.key});
@@ -67,7 +67,6 @@ class _SupplierAddPageState extends State<SupplierAddPage> {
         _taxIdEditingController.text = "";
       }
     });
-
   }
 
   @override
@@ -87,14 +86,8 @@ class _SupplierAddPageState extends State<SupplierAddPage> {
     _snackBar = CustomSnackBar(key: const Key("snackbar"), context: context);
     return Scaffold(
       key: _scaffoldKey,
-      appBar: AppBar(
-        iconTheme: CustomTheme.mainTheme.iconTheme,
-        backgroundColor: CustomColor.white,
-        centerTitle: true,
-        title: Text(
-          Languages.of(context).supplierAddTitle,
-          style: CustomTheme.mainTheme.textTheme.headlineSmall,
-        ),
+      appBar: buildAppBar(
+        Languages.of(context).supplierAddTitle,
       ),
       body: _buildBody(context),
     );
@@ -102,12 +95,12 @@ class _SupplierAddPageState extends State<SupplierAddPage> {
 
   _buildBody(BuildContext context) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(DEFAULT_PAGE_PADDING),
+      padding: const EdgeInsets.all(defaultPagePadding),
       child: Column(
         children: <Widget>[
           _buildForm(context),
           const Padding(
-            padding: EdgeInsets.only(top: DEFAULT_PAGE_PADDING),
+            padding: EdgeInsets.only(top: defaultPagePadding),
           ),
           _buildAddButton(),
         ],

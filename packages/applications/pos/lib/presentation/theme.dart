@@ -11,41 +11,20 @@ class CustomColor {
 }
 
 class CustomTheme {
-  static ThemeData mainTheme = ThemeData(
-    brightness: Brightness.light,
-    primaryColor: CustomColor.primary,
-    primaryColorDark: Colors.cyan[600],
-    fontFamily: 'Roboto',
-    useMaterial3: false,
-    textTheme: const TextTheme(
-      headlineSmall: TextStyle(
-        fontSize: 20.0,
-        fontWeight: FontWeight.bold,
-        color: CustomColor.fontBlack,
+  static ThemeData mainTheme(BuildContext context) {
+    return ThemeData(
+      brightness: Brightness.light,
+      primaryColor: CustomColor.primary,
+      primaryColorDark: Colors.cyan[600],
+      fontFamily: 'Roboto',
+      useMaterial3: false,
+      textTheme: Theme.of(context).textTheme.apply(
+            fontSizeDelta: 0.0,
+          ),
+      buttonTheme: const ButtonThemeData(
+        alignedDropdown: true,
+        padding: EdgeInsets.symmetric(horizontal: 0),
       ),
-      titleLarge: TextStyle(
-        fontSize: 18.0,
-        fontWeight: FontWeight.bold,
-        color: CustomColor.fontBlack,
-      ),
-      bodyMedium: TextStyle(
-        fontSize: 16.0,
-        color: CustomColor.fontBlack,
-      ),
-      bodyLarge: TextStyle(
-        fontSize: 16.0,
-        color: CustomColor.hintColor,
-      ),
-      labelLarge: TextStyle(
-        color: CustomColor.white,
-        fontFamily: 'Roboto',
-        fontWeight: FontWeight.w500,
-        fontSize: 16,
-      ),
-    ),
-    buttonTheme: const ButtonThemeData(
-      alignedDropdown: true,
-      padding: EdgeInsets.symmetric(horizontal: 0),
-    ),
-  );
+    );
+  }
 }

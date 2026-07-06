@@ -1,8 +1,6 @@
-// Flutter imports:
-import 'package:flutter/material.dart';
-
 // Package imports:
 import 'package:common/config/app_config.dart';
+import 'package:flutter/material.dart';
 import 'package:um/container.dart' as um;
 
 // Project imports:
@@ -11,10 +9,13 @@ import 'presentation/app.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  final config = await AppConfig.forEnvironment("app");
+  // Use --dart-define=ENV=dev to load dev.json (local APIs)
+  // Default is "app" which loads app.json (production)
+  const env = String.fromEnvironment('ENV', defaultValue: 'app');
+  final config = await AppConfig.forEnvironment(env);
   um.setupLogging();
   await um.initCore(config);
   await um.initUm();
   await pos.initPos();
-  runApp(DevperPos(config: config));
+  runApp(const DevperPos());
 }

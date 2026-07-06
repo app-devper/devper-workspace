@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 // Package imports:
 import 'package:common/core/ext/widget_ext.dart';
+import 'package:common/core/widgets/appbar_widget.dart';
 import 'package:common/core/widgets/button_widget.dart';
 import 'package:common/core/widgets/custom_snack_bar.dart';
 import 'package:common/core/widgets/dropdown_widget.dart';
@@ -17,7 +18,6 @@ import 'package:pos/domain/model/supplier/supplier.dart';
 import 'package:pos/localizations/language/languages.dart';
 import 'package:pos/presentation/constants.dart';
 import 'package:pos/presentation/product/argument.dart';
-import 'package:pos/presentation/theme.dart';
 import 'receive_manage_state.dart';
 import 'receive_manage_view_model.dart';
 
@@ -140,14 +140,8 @@ class _ReceiveManagePageState extends State<ReceiveManagePage> {
 
     return Scaffold(
       key: _scaffoldKey,
-      appBar: AppBar(
-        iconTheme: CustomTheme.mainTheme.iconTheme,
-        backgroundColor: CustomColor.white,
-        centerTitle: true,
-        title: Text(
-          Languages.of(context).receiveManageTitle,
-          style: CustomTheme.mainTheme.textTheme.headlineSmall,
-        ),
+      appBar: buildAppBar(
+        Languages.of(context).receiveManageTitle,
         actions: [
           IconButton(
             splashRadius: 20,
@@ -167,7 +161,7 @@ class _ReceiveManagePageState extends State<ReceiveManagePage> {
   _buildBody(BuildContext context) {
     final button = _receive == null ? _buildAddButton() : _buildAddProductButton();
     return Container(
-      padding: const EdgeInsets.all(DEFAULT_PAGE_PADDING),
+      padding: const EdgeInsets.all(defaultPagePadding),
       child: Column(
         children: <Widget>[
           _buildForm(context),
@@ -265,14 +259,12 @@ class _ReceiveManagePageState extends State<ReceiveManagePage> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.start,
       children: <Widget>[
-        Text(
+        const Text(
           'Total Cost',
-          style: CustomTheme.mainTheme.textTheme.headlineSmall,
         ),
         Expanded(
           child: Text(
             '฿ ${_format.format(_totalCost)}',
-            style: CustomTheme.mainTheme.textTheme.headlineSmall,
             textAlign: TextAlign.end,
           ),
         ),

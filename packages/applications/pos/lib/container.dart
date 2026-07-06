@@ -21,7 +21,12 @@ import 'package:pos/presentation/category/main/category_view_model.dart';
 import 'package:pos/presentation/customer/add/customer_add_view_model.dart';
 import 'package:pos/presentation/customer/edit/customer_edit_view_model.dart';
 import 'package:pos/presentation/customer/main/customer_view_model.dart';
+import 'package:pos/presentation/customer/main/customers_view_model.dart';
+import 'package:pos/presentation/home/main/cart_store.dart';
+import 'package:pos/presentation/home/main/cart_view_model.dart';
+import 'package:pos/presentation/home/main/customer_search_view_model.dart';
 import 'package:pos/presentation/home/main/home_view_model.dart';
+import 'package:pos/presentation/home/main/product_search_view_model.dart';
 import 'package:pos/presentation/home/scanner/scanner_view_model.dart';
 import 'package:pos/presentation/order/detail/order_detail_view_model.dart';
 import 'package:pos/presentation/order/history/order_history_view_model.dart';
@@ -29,8 +34,16 @@ import 'package:pos/presentation/order/main/order_view_model.dart';
 import 'package:pos/presentation/product/add/product_add_view_model.dart';
 import 'package:pos/presentation/product/edit/product_edit_view_model.dart';
 import 'package:pos/presentation/product/expired/products_expired_view_model.dart';
+import 'package:pos/presentation/product/history/product_history_view_model.dart';
 import 'package:pos/presentation/product/lot_edit/product_lot_edit_view_model.dart';
+import 'package:pos/presentation/product/main/product_view_model.dart';
 import 'package:pos/presentation/product/main/products_view_model.dart';
+import 'package:pos/presentation/product/price/product_price_view_model.dart';
+import 'package:pos/presentation/product/stock/product_stock_quantity_view_model.dart';
+import 'package:pos/presentation/product/stock/product_stock_sequence_view_model.dart';
+import 'package:pos/presentation/product/stock/product_stock_view_model.dart';
+import 'package:pos/presentation/product/unit/product_unit_view_model.dart';
+import 'package:pos/presentation/receive/add/receive_add_view_model.dart';
 import 'package:pos/presentation/receive/main/receives_view_model.dart';
 import 'package:pos/presentation/receive/manage/receive_manage_view_model.dart';
 import 'package:pos/presentation/supplier/add/supplier_add_view_model.dart';
@@ -43,21 +56,75 @@ final sl = getIt();
 // Dependency injection
 Future<void> initPos() async {
   // ViewModel
+
   sl.registerFactory(
     () => HomeViewModel(
       loginRepo: sl(),
+    ),
+  );
+
+  sl.registerSingleton(CartStore());
+
+  sl.registerFactory(
+    () => CartViewModel(
+      cartStore: sl(),
       orderRepo: sl(),
       productRepo: sl(),
       categoryRepo: sl(),
+    ),
+  );
+
+  sl.registerFactory(
+    () => CustomerSearchViewModel(
       customerRepo: sl(),
     ),
   );
 
   sl.registerFactory(
+    () => CustomersViewModel(
+      customerRepo: sl(),
+    ),
+  );
+
+  sl.registerFactory(
+    () => ProductSearchViewModel(
+      productRepo: sl(),
+    ),
+  );
+
+  sl.registerFactory(
+    () => ProductViewModel(
+      productRepo: sl(),
+    ),
+  );
+  sl.registerFactory(
     () => ProductsViewModel(
       productRepo: sl(),
-      categoryRepo: sl(),
-      loginRepo: sl(),
+    ),
+  );
+  sl.registerFactory(
+    () => ProductUnitViewModel(
+      productRepo: sl(),
+    ),
+  );
+  sl.registerFactory(
+    () => ProductPriceViewModel(
+      productRepo: sl(),
+    ),
+  );
+  sl.registerFactory(
+    () => ProductStockViewModel(
+      productRepo: sl(),
+    ),
+  );
+  sl.registerFactory(
+    () => ProductStockQuantityViewModel(
+      productRepo: sl(),
+    ),
+  );
+  sl.registerFactory(
+    () => ProductStockSequenceViewModel(
+      productRepo: sl(),
     ),
   );
   sl.registerFactory(
@@ -79,6 +146,11 @@ Future<void> initPos() async {
   );
   sl.registerFactory(
     () => ProductLotEditViewModel(
+      productRepo: sl(),
+    ),
+  );
+  sl.registerFactory(
+    () => ProductHistoryViewModel(
       productRepo: sl(),
     ),
   );
@@ -161,6 +233,12 @@ Future<void> initPos() async {
     () => ReceivesViewModel(
       receiveRepo: sl(),
       supplierRepo: sl(),
+    ),
+  );
+  sl.registerFactory(
+    () => ReceiveAddViewModel(
+      receiveRepo: sl(),
+      categoryRepo: sl(),
     ),
   );
   sl.registerFactory(

@@ -1,0 +1,40 @@
+name: check
+
+on:
+  pull_request:
+  push:
+    branches: [main, develop]
+
+concurrency:
+  group: check-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  analyze-test:
+    name: Analyze + Test (Flutter/melos)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.38.7
+          channel: stable
+          cache: true
+
+      - name: Activate melos
+        run: dart pub global activate melos 8.1.0
+
+      - name: Bootstrap
+        run: dart pub global run melos bootstrap
+
+      - name: Analyze
+        continue-on-error: true
+        run: dart pub global run melos run analyze
+
+      - name: Test
+        run: melos exec -c 1 --dir-exists=test -- flutter test

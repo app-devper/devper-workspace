@@ -3,9 +3,9 @@ import 'dart:async';
 
 // Package imports:
 import 'package:common/core/error/failure.dart';
-import 'package:pos/domain/model/product/param.dart';
 
 // Project imports:
+import 'package:pos/domain/model/product/param.dart';
 import 'package:pos/domain/model/product/product_lot.dart';
 import 'package:pos/domain/repositories/product_repository.dart';
 import 'package:pos/presentation/product/expired/products_expire_ui_model.dart';

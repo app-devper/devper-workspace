@@ -1,0 +1,8 @@
+{
+  "apiUrl": "http://127.0.0.1:8585",
+  "hostApp": "http://127.0.0.1:8586",
+  "logo": "assets/images/logo.png",
+  "name": "หน้าหลัก",
+  "system": "POS",
+  "home": "/home"
+}

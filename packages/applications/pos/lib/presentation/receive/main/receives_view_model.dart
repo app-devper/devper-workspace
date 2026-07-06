@@ -9,7 +9,6 @@ import 'package:pos/domain/model/receive/param.dart';
 import 'package:pos/domain/model/receive/receive.dart';
 import 'package:pos/domain/repositories/receive_repository.dart';
 import 'package:pos/domain/repositories/supplier_repository.dart';
-import 'package:pos/presentation/receive/main/receives_state.dart';
 
 class ReceivesViewModel {
   final ReceiveRepository receiveRepo;
@@ -20,67 +19,56 @@ class ReceivesViewModel {
     required this.supplierRepo,
   });
 
-  final _states = StreamController<ReceivesState>();
-
-  Stream<ReceivesState> get states => _states.stream;
-
   final _receives = StreamController<List<Receive>>();
 
   Stream<List<Receive>> get receives => _receives.stream;
+
+  void searchReceive(String s) {
+    getReceives();
+  }
 
   void getReceives() async {
     try {
       final now = DateTime.now();
       final startDate = DateTime(now.year, now.month, now.day).subtract(const Duration(days: 365));
-      final result = await receiveRepo.getReceives(
-        GetReceivesRangeParam(
-          startDate: startDate.toUtc().toIso8601String(),
-          endDate: now.toUtc().toIso8601String(),
-        ),
+      final param = GetReceivesRangeParam(
+        startDate: startDate.toUtc().toIso8601String(),
+        endDate: now.toUtc().toIso8601String(),
       );
-      final _ = await supplierRepo.getSuppliers();
-      for (var item in result) {
-        item.supplier = await supplierRepo.getLocalSupplierById(item.supplierId);
-      }
-      _onListReceive(result);
+      final result = await receiveRepo.getReceives(param);
+      _onListReceive("", result);
     } on Exception catch (e) {
       _onError(toFailure(e));
     }
   }
 
-  void setReceives(List<Receive> data) {
-    _receives.sink.add(data);
-  }
-
-  void _onLoading() {
-    _states.sink.add(LoadingState());
-  }
-
-  void _onListReceive(List<Receive> data) {
-    if (!_states.isClosed) {
-      _states.sink.add(ListReceiveState(
-        data: data,
-        totalCost: _calculateTotalCost(data),
-      ));
+  void _onListReceive(String param, List<Receive> data) {
+    if (!_receives.isClosed) {
+      _receives.sink.add(_searchReceive(param, data));
     }
   }
 
   void _onError(Failure failure) {
-    if (!_states.isClosed) {
-      _states.sink.add(ErrorState(message: failure.getMessage()));
+    if (!_receives.isClosed) {
+      _receives.sink.addError(failure.getMessage());
     }
   }
 
-  double _calculateTotalCost(List<Receive> data) {
-    double total = 0;
-    for (var x in data) {
-      total += x.totalCost;
+  List<Receive> _searchReceive(String param, List<Receive> data) {
+    if (param.isEmpty) {
+      return data;
+    } else {
+      List<Receive> filtered = [];
+      for (var item in data) {
+        if (item.code.toLowerCase().contains(param.toLowerCase())) {
+          filtered.add(item);
+        }
+      }
+      return filtered;
     }
-    return total;
   }
 
   void dispose() {
-    _states.close();
     _receives.close();
   }
 }
