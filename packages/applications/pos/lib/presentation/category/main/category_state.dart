@@ -1,26 +1,31 @@
+// Flutter imports:
+import 'package:flutter/foundation.dart' hide Category;
+
 // Project imports:
 import 'package:pos/domain/model/category/category.dart';
 
-abstract class CategoryState {
-  CategoryState();
-}
+@immutable
+class CategoryState {
+  final List<Category> items;
+  final bool loading;
+  final String? error;
 
-class LoadingState extends CategoryState {}
+  const CategoryState({
+    this.items = const [],
+    this.loading = false,
+    this.error,
+  });
 
-class ListCategoryState extends CategoryState {
-  final List<Category> data;
-
-  ListCategoryState({required this.data});
-}
-
-class UpdateCategoryState extends CategoryState {
-  final Category data;
-
-  UpdateCategoryState({required this.data});
-}
-
-class ErrorState extends CategoryState {
-  final String message;
-
-  ErrorState({required this.message});
+  CategoryState copyWith({
+    List<Category>? items,
+    bool? loading,
+    String? error,
+    bool clearError = false,
+  }) {
+    return CategoryState(
+      items: items ?? this.items,
+      loading: loading ?? this.loading,
+      error: clearError ? null : (error ?? this.error),
+    );
+  }
 }

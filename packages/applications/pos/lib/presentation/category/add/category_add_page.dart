@@ -13,7 +13,6 @@ import 'package:pos/domain/model/category/param.dart';
 import 'package:pos/localizations/language/languages.dart';
 import 'package:pos/presentation/constants.dart';
 import 'package:pos/presentation/theme.dart';
-import 'category_add_state.dart';
 import 'category_add_view_model.dart';
 
 class CategoryAddPage extends StatefulWidget {
@@ -39,40 +38,44 @@ class _CategoryAddPageState extends State<CategoryAddPage> {
 
   late CategoryAddViewModel _viewModel;
 
+  bool _loadingShown = false;
   bool? _requireCustomerOrder = false;
 
   @override
   void initState() {
     super.initState();
     _viewModel = sl<CategoryAddViewModel>();
-    _viewModel.states.stream.listen((state) {
-      if (state is ErrorState) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _snackBar.hideAll();
-          _snackBar.showErrorSnackBar(state.message);
-        });
-        hideLoadingDialog(context);
-      } else if (state is LoadingState) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _snackBar.hideAll();
-        });
-        showLoadingDialog(context);
-      } else if (state is CreateCategoryState) {
-        hideLoadingDialog(context);
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _snackBar.hideAll();
-          _snackBar.showSnackBar(text: "Add ${state.data.name} success");
-        });
-        _nameEditingController.text = "";
-        _valueEditingController.text = "";
-        _descriptionEditingController.text = "";
-        FocusScope.of(context).requestFocus(_nameNode);
-      }
-    });
+    _viewModel.state.addListener(_onStateChanged);
+  }
+
+  void _onStateChanged() {
+    final state = _viewModel.state.value;
+    if (state.saving && !_loadingShown) {
+      _loadingShown = true;
+      showLoadingDialog(context);
+    } else if (!state.saving && _loadingShown) {
+      _loadingShown = false;
+      hideLoadingDialog(context);
+    }
+    if (state.error != null) {
+      _snackBar.hideAll();
+      _snackBar.showErrorSnackBar(state.error!);
+      _viewModel.consumeError();
+    }
+    if (state.created != null) {
+      _snackBar.hideAll();
+      _snackBar.showSnackBar(text: "Add ${state.created!.name} success");
+      _nameEditingController.text = "";
+      _valueEditingController.text = "";
+      _descriptionEditingController.text = "";
+      FocusScope.of(context).requestFocus(_nameNode);
+      _viewModel.consumeCreated();
+    }
   }
 
   @override
   void dispose() {
+    _viewModel.state.removeListener(_onStateChanged);
     _nameNode.dispose();
     _valueNode.dispose();
     _descriptionNode.dispose();

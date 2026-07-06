@@ -14,7 +14,6 @@ import 'package:pos/domain/model/category/param.dart';
 import 'package:pos/localizations/language/languages.dart';
 import 'package:pos/presentation/constants.dart';
 import 'package:pos/presentation/theme.dart';
-import 'category_edit_state.dart';
 import 'category_edit_view_model.dart';
 
 class CategoryEditPage extends StatefulWidget {
@@ -41,44 +40,47 @@ class _CategoryEditPageState extends State<CategoryEditPage> {
   late CustomSnackBar _snackBar;
   late CategoryEditViewModel _viewModel;
 
+  bool _loadingShown = false;
   bool? _requireCustomerOrder = false;
 
   @override
   void initState() {
     super.initState();
     _viewModel = sl<CategoryEditViewModel>();
-    _viewModel.states.stream.listen((state) {
-      if (state is ErrorState) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _snackBar.hideAll();
-          _snackBar.showErrorSnackBar(state.message);
-        });
-        hideLoadingDialog(context);
-      } else if (state is LoadingState) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _snackBar.hideAll();
-        });
-        showLoadingDialog(context);
-      } else if (state is UpdateCategoryState) {
-        hideLoadingDialog(context);
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _snackBar.hideAll();
-          _snackBar.showSnackBar(text: "Update ${state.data.name} success");
-        });
-      } else if (state is RemoveCategoryState) {
-        hideLoadingDialog(context);
-        Navigator.pop(context, state.data);
-      }
-    });
-
+    _viewModel.state.addListener(_onStateChanged);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _setupCategory(widget.category);
       _viewModel.getCategoryById(widget.category.id);
     });
   }
 
+  void _onStateChanged() {
+    final state = _viewModel.state.value;
+    if (state.loading && !_loadingShown) {
+      _loadingShown = true;
+      showLoadingDialog(context);
+    } else if (!state.loading && _loadingShown) {
+      _loadingShown = false;
+      hideLoadingDialog(context);
+    }
+    if (state.error != null) {
+      _snackBar.hideAll();
+      _snackBar.showErrorSnackBar(state.error!);
+      _viewModel.consumeError();
+    }
+    if (state.updated != null) {
+      _snackBar.hideAll();
+      _snackBar.showSnackBar(text: "Update ${state.updated!.name} success");
+      _viewModel.consumeUpdated();
+    }
+    if (state.removed != null) {
+      Navigator.pop(context, state.removed);
+    }
+  }
+
   @override
   void dispose() {
+    _viewModel.state.removeListener(_onStateChanged);
     _nameNode.dispose();
     _valueNode.dispose();
     _descriptionNode.dispose();

@@ -32,27 +32,24 @@ class _CategoryPageState extends State<CategoryPage> {
   void initState() {
     super.initState();
     _viewModel = sl<CategoryViewModel>();
-    _viewModel.states.stream.listen((state) {
-      if (state is ErrorState) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _snackBar.hideAll();
-          _snackBar.showErrorSnackBar(state.message);
-        });
-      } else if (state is LoadingState) {
-      } else if (state is ListCategoryState) {
-        _viewModel.setCategories(state.data);
-      } else if (state is UpdateCategoryState) {
-        _viewModel.getCategories();
-      }
-    });
-
+    _viewModel.state.addListener(_onStateChanged);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _viewModel.getCategories();
     });
   }
 
+  void _onStateChanged() {
+    final error = _viewModel.state.value.error;
+    if (error != null) {
+      _snackBar.hideAll();
+      _snackBar.showErrorSnackBar(error);
+      _viewModel.consumeError();
+    }
+  }
+
   @override
   void dispose() {
+    _viewModel.state.removeListener(_onStateChanged);
     _viewModel.dispose();
     super.dispose();
   }
@@ -96,13 +93,10 @@ class _CategoryPageState extends State<CategoryPage> {
   }
 
   _buildCategoryList() {
-    return StreamBuilder(
-      stream: _viewModel.categories.stream,
-      builder: (BuildContext context, AsyncSnapshot<List<Category>> snapshot) {
-        if (snapshot.hasData) {
-          var data = snapshot.data;
-          return _buildCategory(data ?? []);
-        } else {
+    return ValueListenableBuilder<CategoryState>(
+      valueListenable: _viewModel.state,
+      builder: (BuildContext context, CategoryState state, _) {
+        if (state.loading && state.items.isEmpty) {
           return const Center(
             child: CircularProgressIndicator(
               strokeWidth: 6,
@@ -111,6 +105,7 @@ class _CategoryPageState extends State<CategoryPage> {
             ),
           );
         }
+        return _buildCategory(state.items);
       },
     );
   }
