@@ -2,9 +2,8 @@
 import 'package:flutter/material.dart';
 
 // Package imports:
-import 'package:um/presentation/not_found/not_found_page.dart';
+import 'package:um/presentation/constants.dart';
 import 'package:um/presentation/router.dart';
-import 'package:um/presentation/splash/splash_page.dart';
 
 // Project imports:
 import 'package:pos/presentation/category/add/category_add_page.dart';
@@ -12,9 +11,7 @@ import 'package:pos/presentation/category/argument.dart';
 import 'package:pos/presentation/category/edit/category_edit_page.dart';
 import 'package:pos/presentation/category/main/category_page.dart';
 import 'package:pos/presentation/constants.dart';
-import 'package:pos/presentation/home/argument.dart';
 import 'package:pos/presentation/home/main/home_page.dart';
-import 'package:pos/presentation/home/scanner/scanner_page.dart';
 import 'package:pos/presentation/order/argument.dart';
 import 'package:pos/presentation/order/detail/order_detail_page.dart';
 import 'package:pos/presentation/order/history/order_history_page.dart';
@@ -42,27 +39,32 @@ class RouterApp {
           return MaterialPageRoute(builder: (_) => const HomePage());
         case PRODUCTS_ROUTE:
           final args = settings.arguments as ProductsArgument?;
-          return MaterialPageRoute(builder: (_) => ProductsPage(mode: args?.mode));
+          return MaterialPageRoute(
+              builder: (_) => ProductsPage(mode: args?.mode));
         case PRODUCT_EXPIRED_ROUTE:
           return MaterialPageRoute(builder: (_) => const ProductsExpiredPage());
         case PRODUCT_LOT_EDIT_ROUTE:
           final args = settings.arguments as ProductLotArgument;
-          return MaterialPageRoute(builder: (_) => ProductLotEditPage(productLot: args.productLot));
+          return MaterialPageRoute(
+              builder: (_) => ProductLotEditPage(productLot: args.productLot));
         case ORDERS_ROUTE:
           return MaterialPageRoute(builder: (_) => const OrderPage());
         case ORDER_DETAIL_ROUTE:
           final args = settings.arguments as OrderArgument;
-          return MaterialPageRoute(builder: (_) => OrderDetailPage(orderId: args.orderId));
+          return MaterialPageRoute(
+              builder: (_) => OrderDetailPage(orderId: args.orderId));
         case ORDER_HISTORY_ROUTE:
           final args = settings.arguments as OrderHistoryArgument;
-          return MaterialPageRoute(builder: (_) => OrderHistoryPage(product: args.product));
+          return MaterialPageRoute(
+              builder: (_) => OrderHistoryPage(product: args.product));
         case CATEGORIES_ROUTE:
           return MaterialPageRoute(builder: (_) => const CategoryPage());
         case CATEGORY_ADD_ROUTE:
           return MaterialPageRoute(builder: (_) => const CategoryAddPage());
         case CATEGORY_EDIT_ROUTE:
           final args = settings.arguments as CategoryArgument;
-          return MaterialPageRoute(builder: (_) => CategoryEditPage(category: args.category));
+          return MaterialPageRoute(
+              builder: (_) => CategoryEditPage(category: args.category));
         case SUPPLIER_ROUTE:
           return MaterialPageRoute(builder: (_) => const SupplierInfoPage());
         case SUPPLIERS_ROUTE:
@@ -71,19 +73,39 @@ class RouterApp {
           return MaterialPageRoute(builder: (_) => const SupplierAddPage());
         case SUPPLIER_EDIT_ROUTE:
           final args = settings.arguments as SupplierArgument;
-          return MaterialPageRoute(builder: (_) => SupplierEditPage(supplier: args.supplier));
+          return MaterialPageRoute(
+              builder: (_) => SupplierEditPage(supplier: args.supplier));
         case RECEIVES_ROUTE:
           return MaterialPageRoute(builder: (_) => const ReceivePage());
         case RECEIVE_MANAGE_ROUTE:
           final args = settings.arguments as ReceiveManageArgument?;
-          return MaterialPageRoute(builder: (_) => ReceiveManagePage(receiveId: args?.receiveId));
+          return MaterialPageRoute(
+              builder: (_) => ReceiveManagePage(receiveId: args?.receiveId));
         case SCAN_ROUTE:
-          final args = settings.arguments as ScannerArgument;
-          return MaterialPageRoute(builder: (_) => ScannerPage(mode: args.mode));
+          return MaterialPageRoute(
+            builder: (_) => Scaffold(
+              appBar: AppBar(
+                title: const Text('Scanner'),
+              ),
+              body: const Center(
+                child: Text('Scanner is not available on web'),
+              ),
+            ),
+          );
         case ROOT_ROUTE:
-          return MaterialPageRoute(builder: (_) => const SplashPage());
+          return RouterUm.generateRoute(
+              RouteSettings(name: routeSplash, arguments: settings.arguments));
         default:
-          return MaterialPageRoute(builder: (_) => const NotFoundPage());
+          return MaterialPageRoute(
+            builder: (_) => Scaffold(
+              appBar: AppBar(
+                title: const Text('Error'),
+              ),
+              body: const Center(
+                child: Text('Page Not Found'),
+              ),
+            ),
+          );
       }
     }
   }

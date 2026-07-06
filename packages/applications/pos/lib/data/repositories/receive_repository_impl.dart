@@ -1,8 +1,5 @@
-// Dart imports:
-import 'dart:convert';
-
 // Package imports:
-import 'package:common/core/network/exception.dart';
+import 'package:common/core/network/error_mapper.dart';
 
 // Project imports:
 import 'package:pos/data/datasource/network/pos_service.dart';
@@ -23,76 +20,48 @@ class ReceiveRepositoryImpl implements ReceiveRepository {
   Future<Receive> createReceive(ReceiveParam param) async {
     final mapper = ReceiveMapper();
     final response = await posService.createReceive(mapper.toReceiveRequest(param));
-    if (response.isSuccessful) {
-      return mapper.toReceiveDomain(jsonDecode(response.body));
-    } else {
-      throw HttpException(response);
-    }
+    return mapper.toReceiveDomain(jsonOrThrow(response));
   }
 
   @override
   Future<List<ReceiveItem>> getReceiveItemsById(String receiveId) async {
     final mapper = ReceiveMapper();
     final response = await posService.getReceiveProductLotsById(receiveId);
-    if (response.isSuccessful) {
-      return mapper.toReceiveItemsDomain(jsonDecode(response.body));
-    } else {
-      throw HttpException(response);
-    }
+    return mapper.toReceiveItemsDomain(jsonOrThrow(response));
   }
 
   @override
   Future<Receive> getReceiveById(String receiveId) async {
     final mapper = ReceiveMapper();
     final response = await posService.getReceiveById(receiveId);
-    if (response.isSuccessful) {
-      return mapper.toReceiveDomain(jsonDecode(response.body));
-    } else {
-      throw HttpException(response);
-    }
+    return mapper.toReceiveDomain(jsonOrThrow(response));
   }
 
   @override
   Future<List<Receive>> getReceives(GetReceivesRangeParam param) async {
     final mapper = ReceiveMapper();
     final response = await posService.getReceives(param.startDate, param.endDate);
-    if (response.isSuccessful) {
-      return mapper.toReceivesDomain(jsonDecode(response.body));
-    } else {
-      throw HttpException(response);
-    }
+    return mapper.toReceivesDomain(jsonOrThrow(response));
   }
 
   @override
   Future<Receive> removeReceiveById(String receiveId) async {
     final mapper = ReceiveMapper();
     final response = await posService.removeReceiveById(receiveId);
-    if (response.isSuccessful) {
-      return mapper.toReceiveDomain(jsonDecode(response.body));
-    } else {
-      throw HttpException(response);
-    }
+    return mapper.toReceiveDomain(jsonOrThrow(response));
   }
 
   @override
   Future<ReceiveItem> removeReceiveItemByLotId(String lotId) async {
     final mapper = ReceiveMapper();
     final response = await posService.removeReceiveProductLotsByLotId(lotId);
-    if (response.isSuccessful) {
-      return mapper.toReceiveItemDomain(jsonDecode(response.body));
-    } else {
-      throw HttpException(response);
-    }
+    return mapper.toReceiveItemDomain(jsonOrThrow(response));
   }
 
   @override
   Future<Receive> updateReceiveById(String receiveId, UpdateReceiveParam param) async {
     final mapper = ReceiveMapper();
     final response = await posService.updateReceiveById(receiveId, mapper.toUpdateReceiveRequest(param));
-    if (response.isSuccessful) {
-      return mapper.toReceiveDomain(jsonDecode(response.body));
-    } else {
-      throw HttpException(response);
-    }
+    return mapper.toReceiveDomain(jsonOrThrow(response));
   }
 }

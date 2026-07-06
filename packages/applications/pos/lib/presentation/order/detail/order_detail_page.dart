@@ -153,7 +153,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
         IconButton(
           splashRadius: 20,
           onPressed: () {
-            _viewModel.updateTotalCost(widget.orderId);
+            _viewModel.updateTotalCost();
           },
           icon: const Icon(Icons.sync),
         ),
@@ -230,7 +230,10 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
             leading: _buildListMenu(context, content),
             title: Text(content.product?.name ?? ""),
             trailing: Text(format.format(content.price)),
-            subtitle: isAdmin ? Text("Cost : ${format.format(content.costPrice)}  Profit : ${format.format(content.price - content.costPrice)}") : null,
+            subtitle: isAdmin
+                ? Text(
+                    "Cost : ${format.format(content.costPrice)}  Profit : ${format.format(content.price - content.costPrice)}")
+                : null,
             onTap: () {
               if (isAdmin) {
                 _nextToProductEdit(context, content.product);
@@ -367,7 +370,8 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
 
   _nextToProductEdit(BuildContext context, Product? product) async {
     if (product != null) {
-      var result = await Navigator.pushNamed(context, PRODUCT_EDIT_ROUTE, arguments: ProductArgument(product));
+      var result = await Navigator.pushNamed(context, PRODUCT_EDIT_ROUTE,
+          arguments: ProductArgument(product));
       if (result != null) {
         _viewModel.getOrderById(widget.orderId);
       }
@@ -376,7 +380,8 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
 
   _nextToOrderHistory(BuildContext context, Product? product) async {
     if (product != null) {
-      var result = await Navigator.pushNamed(context, ORDER_HISTORY_ROUTE, arguments: OrderHistoryArgument(product));
+      var result = await Navigator.pushNamed(context, ORDER_HISTORY_ROUTE,
+          arguments: OrderHistoryArgument(product));
       if (result != null) {
         _viewModel.getOrderById(widget.orderId);
       }

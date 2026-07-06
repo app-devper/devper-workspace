@@ -2,6 +2,7 @@
 import 'dart:convert';
 
 // Package imports:
+import 'package:common/core/network/error_mapper.dart';
 import 'package:common/core/network/exception.dart';
 
 // Project imports:
@@ -28,7 +29,7 @@ class CustomerRepositoryImpl implements CustomerRepository {
       _customers.add(result);
       return result;
     } else {
-      throw HttpException(response);
+      throw toAppException(response);
     }
   }
 
@@ -41,7 +42,7 @@ class CustomerRepositoryImpl implements CustomerRepository {
       _customers = customers;
       return customers;
     } else {
-      throw HttpException(response);
+      throw toAppException(response);
     }
   }
 
@@ -52,11 +53,7 @@ class CustomerRepositoryImpl implements CustomerRepository {
       return _customers.firstWhere((element) => element.id == customerId);
     } else {
       final response = await posService.getCustomerById(customerId);
-      if (response.isSuccessful) {
-        return mapper.toCustomerDomain(jsonDecode(response.body));
-      } else {
-        throw HttpException(response);
-      }
+      return mapper.toCustomerDomain(jsonOrThrow(response));
     }
   }
 
@@ -64,11 +61,7 @@ class CustomerRepositoryImpl implements CustomerRepository {
   Future<Customer> getCustomerByCode(String customerCode) async {
     final mapper = CustomerMapper();
     final response = await posService.getCustomerByCode(customerCode);
-    if (response.isSuccessful) {
-      return mapper.toCustomerDomain(jsonDecode(response.body));
-    } else {
-      throw HttpException(response);
-    }
+    return mapper.toCustomerDomain(jsonOrThrow(response));
   }
 
   @override
@@ -80,7 +73,7 @@ class CustomerRepositoryImpl implements CustomerRepository {
       _customers.removeWhere((element) => element.id == result.id);
       return result;
     } else {
-      throw HttpException(response);
+      throw toAppException(response);
     }
   }
 
@@ -94,7 +87,7 @@ class CustomerRepositoryImpl implements CustomerRepository {
       _customers[index] = result;
       return result;
     } else {
-      throw HttpException(response);
+      throw toAppException(response);
     }
   }
 

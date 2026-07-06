@@ -250,11 +250,15 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
             child: Icon(Icons.person),
           ),
           title: Text(
-            !showCustomer ? 'ข้อมูลลูกค้า' : _viewModel.cartStore.customer?.name ?? "",
+            !showCustomer
+                ? 'ข้อมูลลูกค้า'
+                : _viewModel.cartStore.customer?.name ?? "",
             style: const TextStyle(fontSize: 18),
           ),
           subtitle: Text(
-            !showCustomer ? 'เลือกลูกค้า' : _viewModel.cartStore.customer?.code ?? "",
+            !showCustomer
+                ? 'เลือกลูกค้า'
+                : _viewModel.cartStore.customer?.code ?? "",
             style: const TextStyle(fontSize: 14),
           ),
           trailing: !showCustomer
@@ -321,7 +325,8 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
               children: [
                 Text(
                   "ชำระสินค้า (${_orderItems.length} รายการ)",
-                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                      fontSize: 14, fontWeight: FontWeight.bold),
                 ),
                 Text(
                   '฿${formatDouble(_getPrice())}',
@@ -353,7 +358,8 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
                 onTap: () {
                   _viewModel.selectCart(index);
                 },
-                haveOrder: _viewModel.cartStore.cart[index]?.isNotEmpty ?? false,
+                haveOrder:
+                    _viewModel.cartStore.cart[index]?.isNotEmpty ?? false,
               );
             },
           ),
@@ -444,7 +450,6 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
     }
     return costPrice;
   }
-
 
   _showCustomerDialog() {
     showRightDialog(
@@ -541,7 +546,8 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
               _viewModel.createOrder(_getOrderParam(amount, typeMode));
             },
             onError: () {
-              final snackBar = CustomSnackBar(key: const Key("snackbar"), context: context);
+              final snackBar =
+                  CustomSnackBar(key: const Key("snackbar"), context: context);
               snackBar.showErrorSnackBar("คุณรับเงินน้อยกว่ายอดราคาสินค้า");
             },
           ),
@@ -557,6 +563,9 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
       amount: amount,
       items: _orderItems,
       type: typeMode,
+      payments: [
+        OrderPayment(amount: amount, type: typeMode),
+      ],
     );
   }
 }

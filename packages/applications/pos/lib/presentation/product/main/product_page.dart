@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 // Package imports:
 import 'package:common/core/widgets/responsive.dart';
 import 'package:common/core/widgets/title_bar.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:http/http.dart' as http;
 
 // Project imports:
 import 'package:pos/container.dart';
@@ -18,7 +20,6 @@ import 'package:pos/presentation/product/main/product_view_model.dart';
 import 'package:pos/presentation/product/main/products_widget.dart';
 
 // Package imports:
-
 
 class ProductsPage extends StatefulWidget {
   final String? mode;
@@ -42,6 +43,29 @@ class _ProductsPageState extends State<ProductsPage> {
         setState(() {
           _pageState = InfoPage(data: state.data);
         });
+      } else if (state is ImportCSVState) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'นำเข้าสำเร็จ ${state.data.success} รายการ, ล้มเหลว ${state.data.failed} รายการ',
+              ),
+            ),
+          );
+        }
+      } else if (state is ClearSoldFirstState) {
+        setState(() {
+          _pageState = InfoPage(data: state.data);
+        });
+      } else if (state is ErrorState) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.message),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
       }
     });
     super.initState();
@@ -115,6 +139,9 @@ class _ProductsPageState extends State<ProductsPage> {
           onExport: () {
             _viewModel.exportProducts();
           },
+          onImportCsv: () {
+            _pickAndImportCSV();
+          },
         );
       }
     } else if (_pageState is InfoPage) {
@@ -133,6 +160,9 @@ class _ProductsPageState extends State<ProductsPage> {
           setState(() {
             _pageState = EditPage(data: product);
           });
+        },
+        onClearSoldFirst: (productId) {
+          _viewModel.clearSoldFirst(productId);
         },
       );
     } else if (_pageState is EditPage) {
@@ -167,6 +197,25 @@ class _ProductsPageState extends State<ProductsPage> {
     }
   }
 
+  void _pickAndImportCSV() async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['csv'],
+      withData: true,
+    );
+    if (result != null && result.files.isNotEmpty) {
+      final file = result.files.first;
+      if (file.bytes != null) {
+        final multipartFile = http.MultipartFile.fromBytes(
+          'file',
+          file.bytes!,
+          filename: file.name,
+        );
+        _viewModel.importCSV(multipartFile);
+      }
+    }
+  }
+
   _showProductMenuDialog() {
     showRightDialog(
       context,
@@ -190,6 +239,10 @@ class _ProductsPageState extends State<ProductsPage> {
             onExport: () {
               Navigator.pop(context);
               _viewModel.exportProducts();
+            },
+            onImportCsv: () {
+              Navigator.pop(context);
+              _pickAndImportCSV();
             },
           )),
         ],

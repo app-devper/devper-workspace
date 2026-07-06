@@ -14,8 +14,6 @@ abstract class OrderRepository {
 
   Future<OrderDetail> getOrderById(String orderId);
 
-  Future<bool> updateTotalCostOrderById(String orderId);
-
   Future<OrderDetail> removeOrderById(String orderId);
 
   Future<OrderItemDetail> removeProductOrder(RemoveProductOrderParam param);

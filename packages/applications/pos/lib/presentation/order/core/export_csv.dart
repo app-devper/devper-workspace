@@ -1,14 +1,9 @@
-// Dart imports:
-import 'dart:io';
-
 // Flutter imports:
 import 'package:flutter/foundation.dart';
 
 // Package imports:
 import 'package:csv/csv.dart';
 import 'package:intl/intl.dart';
-import 'package:open_file/open_file.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:universal_html/html.dart' as html;
 
 // Project imports:
@@ -40,17 +35,12 @@ class ExportCsv {
     var date = format.format(DateTime.now().toLocal());
     String filename = "${product.name.trim()}-$date.csv";
 
-    if (kIsWeb) {
-      html.AnchorElement(href: "data:text/plain;charset=utf-8,$csv")
-        ..setAttribute("download", filename)
-        ..click();
-    } else {
-      final dir = await getApplicationDocumentsDirectory();
-      final file = File("${dir.path}/$filename");
-      await file.writeAsString(csv);
-      final url = file.path;
-      await OpenFile.open(url);
+    if (!kIsWeb) {
+      return;
     }
+    html.AnchorElement(href: "data:text/plain;charset=utf-8,$csv")
+      ..setAttribute("download", filename)
+      ..click();
   }
 
   static downloadProducts(List<Product> data) async {
@@ -94,16 +84,11 @@ class ExportCsv {
     var date = format.format(DateTime.now().toLocal());
     String filename = "products-$date.csv";
 
-    if (kIsWeb) {
-      html.AnchorElement(href: "data:text/plain;charset=utf-8,$csv")
-        ..setAttribute("download", filename)
-        ..click();
-    } else {
-      final dir = await getApplicationDocumentsDirectory();
-      final file = File("${dir.path}/$filename");
-      await file.writeAsString(csv);
-      final url = file.path;
-      await OpenFile.open(url);
+    if (!kIsWeb) {
+      return;
     }
+    html.AnchorElement(href: "data:text/plain;charset=utf-8,$csv")
+      ..setAttribute("download", filename)
+      ..click();
   }
 }

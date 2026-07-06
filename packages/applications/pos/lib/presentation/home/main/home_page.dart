@@ -2,14 +2,10 @@
 import 'package:flutter/material.dart';
 
 // Project imports:
-import 'package:pos/presentation/customer/main/customer_page.dart';
 import 'package:pos/presentation/home/main/cart_page.dart';
-import 'package:pos/presentation/home/main/home_database_page.dart';
 import 'package:pos/presentation/home/main/home_menu.dart';
 import 'package:pos/presentation/home/main/menu_event.dart';
-import 'package:pos/presentation/order/main/order_page.dart';
 import 'package:pos/presentation/product/main/product_page.dart';
-import 'package:pos/presentation/receive/main/receive_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -70,31 +66,20 @@ class _HomePageState extends State<HomePage> {
       case MenuEvent.home:
         return const CartPage();
       case MenuEvent.order:
-        return const OrderPage();
+        return const Center(
+            child: Text('Order page is not available on web yet'));
       case MenuEvent.product:
         return const ProductsPage();
       case MenuEvent.receive:
-        return const ReceivePage();
+        return const Center(
+            child: Text('Receive page is not available on web yet'));
       case MenuEvent.database:
-        return HomeDatabasePage(
-          onMenuTap: (event) {
-            setState(() {
-              _menuEvent = event;
-            });
-          },
-        );
+        return const Center(
+            child: Text('Database page is not available on web yet'));
       case MenuEvent.customer:
-        return CustomerPage(
-          onBack: () {
-            setState(() {
-              _menuEvent = MenuEvent.database;
-            });
-          },
-        );
+        return const Center(
+            child: Text('Customer page is not available on web yet'));
       case MenuEvent.setting:
-        return Container();
-
-      default:
         return Container();
     }
   }

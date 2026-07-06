@@ -1,6 +1,3 @@
-// Dart imports:
-import 'dart:io';
-
 // Flutter imports:
 import 'package:flutter/material.dart';
 
@@ -58,9 +55,7 @@ class _ScannerPageState extends State<ScannerPage> {
   @override
   void reassemble() {
     super.reassemble();
-    if (Platform.isAndroid) {
-      controller?.pauseCamera();
-    }
+    controller?.pauseCamera();
     controller?.resumeCamera();
   }
 
@@ -96,11 +91,19 @@ class _ScannerPageState extends State<ScannerPage> {
   }
 
   Widget _buildQrView(BuildContext context) {
-    var scanArea = (MediaQuery.of(context).size.width < 850 || MediaQuery.of(context).size.width < 850) ? 300.0 : 600.0;
+    var scanArea = (MediaQuery.of(context).size.width < 850 ||
+            MediaQuery.of(context).size.width < 850)
+        ? 300.0
+        : 600.0;
     return QRView(
       key: _qrKey,
       onQRViewCreated: (ctrl) => _onQRViewCreated(context, ctrl),
-      overlay: QrScannerOverlayShape(borderColor: Colors.red, borderRadius: 10, borderLength: 30, borderWidth: 10, cutOutSize: scanArea),
+      overlay: QrScannerOverlayShape(
+          borderColor: Colors.red,
+          borderRadius: 10,
+          borderLength: 30,
+          borderWidth: 10,
+          cutOutSize: scanArea),
       onPermissionSet: (ctrl, p) => _onPermissionSet(context, ctrl, p),
     );
   }
@@ -127,7 +130,8 @@ class _ScannerPageState extends State<ScannerPage> {
   }
 
   _nextToProductEdit(BuildContext context, Product content) async {
-    var _ = await Navigator.pushNamed(context, PRODUCT_EDIT_ROUTE, arguments: ProductArgument(content));
+    var _ = await Navigator.pushNamed(context, PRODUCT_EDIT_ROUTE,
+        arguments: ProductArgument(content));
     controller?.resumeCamera();
   }
 

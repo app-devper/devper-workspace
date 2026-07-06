@@ -3,9 +3,11 @@ import 'dart:async';
 
 // Package imports:
 import 'package:common/core/error/failure.dart';
+import 'package:http/http.dart' as http;
 
 // Project imports:
 import 'package:pos/domain/model/product/product.dart';
+import 'package:pos/domain/model/product/product_history.dart';
 import 'package:pos/domain/repositories/product_repository.dart';
 import 'package:pos/presentation/order/core/export_csv.dart';
 import 'package:pos/presentation/product/main/product_state.dart';
@@ -41,15 +43,53 @@ class ProductViewModel {
     } on Exception catch (_) {}
   }
 
+  void importCSV(http.MultipartFile file) async {
+    _onLoading();
+    try {
+      final result = await productRepo.importProductCSV(file);
+      _onImportCSV(result);
+    } on Exception catch (e) {
+      _onError(toFailure(e));
+    }
+  }
+
+  void clearSoldFirst(String productId) async {
+    _onLoading();
+    try {
+      final result = await productRepo.clearQuantitySoldFirstById(productId);
+      _onClearSoldFirst(result);
+    } on Exception catch (e) {
+      _onError(toFailure(e));
+    }
+  }
+
   getInit() {
     if (!_states.isClosed) {
       _states.sink.add(InitState());
     }
   }
 
+  _onLoading() {
+    if (!_states.isClosed) {
+      _states.sink.add(LoadingState());
+    }
+  }
+
   _onGetProduct(Product data) {
     if (!_states.isClosed) {
       _states.sink.add(ProductInfoState(data: data));
+    }
+  }
+
+  _onImportCSV(CSVImportResult data) {
+    if (!_states.isClosed) {
+      _states.sink.add(ImportCSVState(data: data));
+    }
+  }
+
+  _onClearSoldFirst(Product data) {
+    if (!_states.isClosed) {
+      _states.sink.add(ClearSoldFirstState(data: data));
     }
   }
 

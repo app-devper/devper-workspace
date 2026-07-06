@@ -1,3 +1,5 @@
+import 'request_drug_info.dart';
+
 class ProductParam {
   final String name;
   final String? nameEn;
@@ -12,6 +14,9 @@ class ProductParam {
   final String? lotNumber;
   final String? expireDate;
   final String? receiveId;
+  final int minStock;
+  final RequestDrugInfo? drugInfo;
+  final List<String> drugRegistrations;
 
   ProductParam({
     required this.name,
@@ -27,6 +32,9 @@ class ProductParam {
     required this.lotNumber,
     required this.expireDate,
     required this.receiveId,
+    this.minStock = 0,
+    this.drugInfo,
+    this.drugRegistrations = const [],
   });
 }
 
@@ -40,6 +48,9 @@ class CreateProductParam {
   final String serialNumber;
   final String category;
   final String status;
+  final int minStock;
+  final RequestDrugInfo? drugInfo;
+  final List<String> drugRegistrations;
 
   CreateProductParam({
     required this.name,
@@ -51,6 +62,9 @@ class CreateProductParam {
     required this.serialNumber,
     required this.category,
     required this.status,
+    this.minStock = 0,
+    this.drugInfo,
+    this.drugRegistrations = const [],
   });
 }
 
@@ -59,12 +73,50 @@ class UpdateProductParam {
   final String? nameEn;
   final String? description;
   final String category;
+  final String status;
+  final int minStock;
+  final RequestDrugInfo? drugInfo;
+  final List<String> drugRegistrations;
 
   UpdateProductParam({
     required this.name,
     this.nameEn,
     this.description,
     required this.category,
+    required this.status,
+    this.minStock = 0,
+    this.drugInfo,
+    this.drugRegistrations = const [],
+  });
+}
+
+class CreateProductLotParam {
+  final String productId;
+  final int quantity;
+  final String lotNumber;
+  final String expireDate;
+  final double costPrice;
+
+  CreateProductLotParam({
+    required this.productId,
+    required this.quantity,
+    required this.lotNumber,
+    required this.expireDate,
+    required this.costPrice,
+  });
+}
+
+class UpdateProductLotParam {
+  final int quantity;
+  final String lotNumber;
+  final String expireDate;
+  final double costPrice;
+
+  UpdateProductLotParam({
+    required this.quantity,
+    required this.lotNumber,
+    required this.expireDate,
+    required this.costPrice,
   });
 }
 
@@ -104,6 +156,7 @@ class ProductUnitParam {
   final String productId;
   final String unit;
   final double costPrice;
+  final double price;
   final int size;
   final String barcode;
   final double volume;
@@ -113,6 +166,7 @@ class ProductUnitParam {
     required this.productId,
     required this.unit,
     required this.costPrice,
+    this.price = 0,
     required this.size,
     required this.barcode,
     required this.volume,

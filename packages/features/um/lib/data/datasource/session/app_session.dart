@@ -1,14 +1,20 @@
 // Package imports:
 import 'package:common/config/app_config.dart';
 
-class AppSession  {
+class AppSession {
   String _hostUm = "";
   String _hostApp = "";
   String _clientId = "";
   String _accessToken = "";
+  // When set from config (dev mode), this takes priority over system endpoint
+  String _configHostApp = "";
 
   AppSession(AppConfig config) {
     _hostUm = config.apiUrl;
+    if (config.hostApp.isNotEmpty) {
+      _configHostApp = config.hostApp;
+      _hostApp = config.hostApp;
+    }
   }
 
   String getClientId() {
@@ -35,12 +41,15 @@ class AppSession  {
     _clientId = clientId;
   }
 
+  // If hostApp is pinned in config (dev mode), ignore system endpoint override
   void setHostApp(String hostApp) {
-    _hostApp = hostApp;
+    if (_configHostApp.isEmpty) {
+      _hostApp = hostApp;
+    }
   }
 
   void clear() {
-    _hostApp = "";
+    _hostApp = _configHostApp; // restore config override after logout
     _clientId = "";
     _accessToken = "";
   }

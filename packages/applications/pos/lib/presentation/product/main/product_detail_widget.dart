@@ -10,6 +10,7 @@ import 'package:common/core/widgets/title_bar.dart';
 import 'package:pos/domain/model/core/core.dart';
 import 'package:pos/domain/model/product/product.dart';
 import 'package:pos/presentation/core/dialog_widget.dart';
+import 'package:pos/presentation/product/history/product_history_widget.dart';
 import 'package:pos/presentation/product/price/product_price_widget.dart';
 import 'package:pos/presentation/product/stock/product_stock_quantity_widget.dart';
 import 'package:pos/presentation/product/stock/product_stock_sequence_widget.dart';
@@ -22,6 +23,7 @@ class ProductDetailWidget extends StatefulWidget {
   final Function() onBack;
   final Function() onEdit;
   final Function() onClickEdit;
+  final Function(String productId)? onClearSoldFirst;
 
   const ProductDetailWidget({
     super.key,
@@ -29,13 +31,15 @@ class ProductDetailWidget extends StatefulWidget {
     required this.product,
     required this.onEdit,
     required this.onClickEdit,
+    this.onClearSoldFirst,
   });
 
   @override
   State<StatefulWidget> createState() => _ProductDetailWidgetState();
 }
 
-class _ProductDetailWidgetState extends State<ProductDetailWidget> with TickerProviderStateMixin {
+class _ProductDetailWidgetState extends State<ProductDetailWidget>
+    with TickerProviderStateMixin {
   late final TabController _tabController;
 
   @override
@@ -117,12 +121,9 @@ class _ProductDetailWidgetState extends State<ProductDetailWidget> with TickerPr
             controller: _tabController,
             children: <Widget>[
               Container(
-                  margin: const EdgeInsets.all(8.0),
-                  child: Column(
-                    children: [
-                      _buildProductInfo(widget.product),
-                    ],
-                  )),
+                margin: const EdgeInsets.all(8.0),
+                child: _buildProductInfo(widget.product),
+              ),
               Container(
                 margin: const EdgeInsets.all(8.0),
                 child: _buildUnits(widget.product),
@@ -137,7 +138,9 @@ class _ProductDetailWidgetState extends State<ProductDetailWidget> with TickerPr
               ),
               Container(
                 margin: const EdgeInsets.all(8.0),
-                child: const Center(child: Text('ประวัติ tab')),
+                child: ProductHistoryWidget(
+                  productId: widget.product.id,
+                ),
               ),
             ],
           ),
@@ -151,19 +154,140 @@ class _ProductDetailWidgetState extends State<ProductDetailWidget> with TickerPr
     if (product.status == productStatusInactive) {
       colorStatus = Colors.red;
     }
-    return Card(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10.0),
-      ),
+    final drugInfo = product.drugInfo;
+    return SingleChildScrollView(
       child: Column(
         children: [
-          _buildListItem('ประเภทสินค้า', findCategoryType(product.category).name),
-          _buildListItem('ชื่อสินค้า', product.name),
-          _buildListItem('ชื่อสามัญทางยา', '-'),
-          _buildListItem('การแสดงข้อมูลสินค้า', findProductStatus(product.status).name, color: colorStatus),
-          _buildListItem('วันแจ้งเตือนก่อนวันหมดอายุ', 'ก่อน 240 วัน'),
-          _buildListItem('อัตราภาษีสินค้า', 'ไม่มี VAT'),
-          const SizedBox(height: 8),
+          Card(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10.0),
+            ),
+            child: Column(
+              children: [
+                _buildListItem(
+                    'ประเภทสินค้า', findCategoryType(product.category).name),
+                _buildListItem('ชื่อสินค้า', product.name),
+                if (product.nameEn != null && product.nameEn!.isNotEmpty)
+                  _buildListItem('ชื่อสินค้า (EN)', product.nameEn!),
+                _buildListItem('บาร์โค้ด/รหัส',
+                    product.serialNumber.isEmpty ? '-' : product.serialNumber),
+                _buildListItem('การแสดงข้อมูลสินค้า',
+                    findProductStatus(product.status).name,
+                    color: colorStatus),
+                _buildListItem('สต็อกขั้นต่ำ', '${product.minStock}'),
+                if (product.soldFirst > 0) ...[
+                  _buildListItem(
+                      'ขายก่อน (Sold First)', '${product.soldFirst}'),
+                  if (widget.onClearSoldFirst != null)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      child: Align(
+                        alignment: Alignment.centerRight,
+                        child: TextButton(
+                          onPressed: () {
+                            widget.onClearSoldFirst!(product.id);
+                          },
+                          child: const Text(
+                            'ล้างค่าขายก่อน',
+                            style: TextStyle(
+                              color: Colors.red,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+                if (product.description != null &&
+                    product.description!.isNotEmpty)
+                  _buildListItem('คำอธิบาย', product.description!),
+                const SizedBox(height: 8),
+              ],
+            ),
+          ),
+          if (product.drugRegistrations.isNotEmpty)
+            Card(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10.0),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Padding(
+                    padding: EdgeInsets.fromLTRB(16, 12, 16, 0),
+                    child: Text(
+                      'ทะเบียนยา',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  ...product.drugRegistrations.map(
+                    (reg) => _buildListItem('', reg),
+                  ),
+                  const SizedBox(height: 8),
+                ],
+              ),
+            ),
+          if (drugInfo != null)
+            Card(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10.0),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Padding(
+                    padding: EdgeInsets.fromLTRB(16, 12, 16, 0),
+                    child: Text(
+                      'ข้อมูลยา',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  if (drugInfo.genericName != null &&
+                      drugInfo.genericName!.isNotEmpty)
+                    _buildListItem('ชื่อสามัญ', drugInfo.genericName!),
+                  if (drugInfo.drugType != null &&
+                      drugInfo.drugType!.isNotEmpty)
+                    _buildListItem('ประเภทยา', drugInfo.drugType!),
+                  if (drugInfo.dosageForm != null &&
+                      drugInfo.dosageForm!.isNotEmpty)
+                    _buildListItem('รูปแบบยา', drugInfo.dosageForm!),
+                  if (drugInfo.strength != null &&
+                      drugInfo.strength!.isNotEmpty)
+                    _buildListItem('ความแรง', drugInfo.strength!),
+                  if (drugInfo.indication != null &&
+                      drugInfo.indication!.isNotEmpty)
+                    _buildListItem('ข้อบ่งใช้', drugInfo.indication!),
+                  if (drugInfo.dosage != null && drugInfo.dosage!.isNotEmpty)
+                    _buildListItem('ขนาดยา', drugInfo.dosage!),
+                  if (drugInfo.sideEffects != null &&
+                      drugInfo.sideEffects!.isNotEmpty)
+                    _buildListItem('ผลข้างเคียง', drugInfo.sideEffects!),
+                  if (drugInfo.contraindications != null &&
+                      drugInfo.contraindications!.isNotEmpty)
+                    _buildListItem('ข้อห้ามใช้', drugInfo.contraindications!),
+                  if (drugInfo.storageCondition != null &&
+                      drugInfo.storageCondition!.isNotEmpty)
+                    _buildListItem(
+                        'เงื่อนไขการเก็บรักษา', drugInfo.storageCondition!),
+                  if (drugInfo.manufacturer != null &&
+                      drugInfo.manufacturer!.isNotEmpty)
+                    _buildListItem('ผู้ผลิต', drugInfo.manufacturer!),
+                  if (drugInfo.registrationNo != null &&
+                      drugInfo.registrationNo!.isNotEmpty)
+                    _buildListItem('เลขทะเบียน', drugInfo.registrationNo!),
+                  if (drugInfo.isControlled != null)
+                    _buildListItem(
+                        'ยาควบคุม', drugInfo.isControlled! ? 'ใช่' : 'ไม่ใช่'),
+                  const SizedBox(height: 8),
+                ],
+              ),
+            ),
         ],
       ),
     );
@@ -458,7 +582,8 @@ class _ProductDetailWidgetState extends State<ProductDetailWidget> with TickerPr
       itemBuilder: (context, index) {
         final unit = product.units[index];
         final stock = product.getProductStocksUnit(unit.id);
-        final total = stock.fold(0, (previousValue, element) => previousValue + element.quantity);
+        final total = stock.fold(
+            0, (previousValue, element) => previousValue + element.quantity);
         final price = product.getDefaultPriceUnit(unit.id);
         return Card(
           shape: RoundedRectangleBorder(
@@ -481,7 +606,8 @@ class _ProductDetailWidgetState extends State<ProductDetailWidget> with TickerPr
                   Row(children: [
                     TextButton(
                       onPressed: () {
-                        _showEditStockSequenceDialog(context, stocks: stock, unit: unit);
+                        _showEditStockSequenceDialog(context,
+                            stocks: stock, unit: unit);
                       },
                       child: const Text(
                         'จัดเรียงสต็อก',

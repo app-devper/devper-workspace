@@ -11,6 +11,7 @@ import 'package:pos/container.dart';
 import 'package:pos/domain/model/core/core.dart';
 import 'package:pos/domain/model/product/param.dart';
 import 'package:pos/domain/model/product/product.dart';
+import 'package:pos/domain/model/product/request_drug_info.dart';
 import 'package:pos/presentation/core/core_widget.dart';
 import 'product_edit_state.dart';
 import 'product_edit_view_model.dart';
@@ -36,9 +37,23 @@ class ProductEditPage extends StatefulWidget {
 class _ProductEditPageState extends State<ProductEditPage> {
   final _nameEditingController = TextEditingController();
   final _descriptionEditingController = TextEditingController();
+  final _minStockEditingController = TextEditingController();
+  final _genericNameController = TextEditingController();
+  final _drugTypeController = TextEditingController();
+  final _dosageFormController = TextEditingController();
+  final _strengthController = TextEditingController();
+  final _indicationController = TextEditingController();
+  final _dosageController = TextEditingController();
+  final _sideEffectsController = TextEditingController();
+  final _contraindicationsController = TextEditingController();
+  final _storageConditionController = TextEditingController();
+  final _manufacturerController = TextEditingController();
+  final _registrationNoController = TextEditingController();
+  final _drugRegistrationsController = TextEditingController();
 
   final _nameNode = FocusNode();
   final _descriptionNode = FocusNode();
+  bool _isControlled = false;
 
   late ProductEditViewModel _viewModel;
 
@@ -112,6 +127,23 @@ class _ProductEditPageState extends State<ProductEditPage> {
   void _setupProduct(Product product) {
     _nameEditingController.text = product.name;
     _descriptionEditingController.text = product.description ?? "";
+    _minStockEditingController.text = product.minStock.toString();
+    _drugRegistrationsController.text = product.drugRegistrations.join(', ');
+    final drugInfo = product.drugInfo;
+    if (drugInfo != null) {
+      _genericNameController.text = drugInfo.genericName ?? '';
+      _drugTypeController.text = drugInfo.drugType ?? '';
+      _dosageFormController.text = drugInfo.dosageForm ?? '';
+      _strengthController.text = drugInfo.strength ?? '';
+      _indicationController.text = drugInfo.indication ?? '';
+      _dosageController.text = drugInfo.dosage ?? '';
+      _sideEffectsController.text = drugInfo.sideEffects ?? '';
+      _contraindicationsController.text = drugInfo.contraindications ?? '';
+      _storageConditionController.text = drugInfo.storageCondition ?? '';
+      _manufacturerController.text = drugInfo.manufacturer ?? '';
+      _registrationNoController.text = drugInfo.registrationNo ?? '';
+      _isControlled = drugInfo.isControlled ?? false;
+    }
   }
 
   _buildBody() {
@@ -147,6 +179,96 @@ class _ProductEditPageState extends State<ProductEditPage> {
                   const SizedBox(height: 32),
                   _buildFormInfo(),
                   const SizedBox(height: 8),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Card(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  const Text(
+                    'ข้อมูลสต็อกขั้นต่ำ',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    inputFormatters: [
+                      LengthLimitingTextInputFormatter(10),
+                    ],
+                    controller: _minStockEditingController,
+                    keyboardType: TextInputType.number,
+                    decoration: buildInputDecoration(
+                      labelText: 'สต็อกขั้นต่ำ',
+                      hintText: '0',
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Card(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  const Text(
+                    'ข้อมูลยา',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  _buildDrugInfoForm(),
+                  const SizedBox(height: 8),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Card(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  const Text(
+                    'ทะเบียนยา',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _drugRegistrationsController,
+                    keyboardType: TextInputType.text,
+                    decoration: buildInputDecoration(
+                      labelText: 'ทะเบียนยา (คั่นด้วยเครื่องหมาย ,)',
+                      hintText: 'เช่น KHY9, KHY10',
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -258,7 +380,164 @@ class _ProductEditPageState extends State<ProductEditPage> {
     );
   }
 
+  _buildDrugInfoForm() {
+    return Column(
+      children: <Widget>[
+        TextFormField(
+          controller: _genericNameController,
+          keyboardType: TextInputType.text,
+          decoration: buildInputDecoration(
+            labelText: 'ชื่อสามัญ (Generic Name)',
+            hintText: '',
+          ),
+        ),
+        const SizedBox(height: 16),
+        TextFormField(
+          controller: _drugTypeController,
+          keyboardType: TextInputType.text,
+          decoration: buildInputDecoration(
+            labelText: 'ประเภทยา (Drug Type)',
+            hintText: '',
+          ),
+        ),
+        const SizedBox(height: 16),
+        TextFormField(
+          controller: _dosageFormController,
+          keyboardType: TextInputType.text,
+          decoration: buildInputDecoration(
+            labelText: 'รูปแบบยา (Dosage Form)',
+            hintText: '',
+          ),
+        ),
+        const SizedBox(height: 16),
+        TextFormField(
+          controller: _strengthController,
+          keyboardType: TextInputType.text,
+          decoration: buildInputDecoration(
+            labelText: 'ความแรง (Strength)',
+            hintText: '',
+          ),
+        ),
+        const SizedBox(height: 16),
+        TextFormField(
+          controller: _indicationController,
+          keyboardType: TextInputType.text,
+          decoration: buildInputDecoration(
+            labelText: 'ข้อบ่งใช้ (Indication)',
+            hintText: '',
+          ),
+        ),
+        const SizedBox(height: 16),
+        TextFormField(
+          controller: _dosageController,
+          keyboardType: TextInputType.text,
+          decoration: buildInputDecoration(
+            labelText: 'ขนาดยา (Dosage)',
+            hintText: '',
+          ),
+        ),
+        const SizedBox(height: 16),
+        TextFormField(
+          controller: _sideEffectsController,
+          keyboardType: TextInputType.text,
+          decoration: buildInputDecoration(
+            labelText: 'ผลข้างเคียง (Side Effects)',
+            hintText: '',
+          ),
+        ),
+        const SizedBox(height: 16),
+        TextFormField(
+          controller: _contraindicationsController,
+          keyboardType: TextInputType.text,
+          decoration: buildInputDecoration(
+            labelText: 'ข้อห้ามใช้ (Contraindications)',
+            hintText: '',
+          ),
+        ),
+        const SizedBox(height: 16),
+        TextFormField(
+          controller: _storageConditionController,
+          keyboardType: TextInputType.text,
+          decoration: buildInputDecoration(
+            labelText: 'เงื่อนไขการเก็บรักษา',
+            hintText: '',
+          ),
+        ),
+        const SizedBox(height: 16),
+        TextFormField(
+          controller: _manufacturerController,
+          keyboardType: TextInputType.text,
+          decoration: buildInputDecoration(
+            labelText: 'ผู้ผลิต (Manufacturer)',
+            hintText: '',
+          ),
+        ),
+        const SizedBox(height: 16),
+        TextFormField(
+          controller: _registrationNoController,
+          keyboardType: TextInputType.text,
+          decoration: buildInputDecoration(
+            labelText: 'เลขทะเบียน (Registration No)',
+            hintText: '',
+          ),
+        ),
+        const SizedBox(height: 16),
+        SwitchListTile(
+          contentPadding: EdgeInsets.zero,
+          title: const Text('ยาควบคุม (Controlled)'),
+          value: _isControlled,
+          onChanged: (value) {
+            setState(() {
+              _isControlled = value;
+            });
+          },
+        ),
+      ],
+    );
+  }
+
+  RequestDrugInfo? _getDrugInfo() {
+    final hasData = _genericNameController.text.isNotEmpty ||
+        _drugTypeController.text.isNotEmpty ||
+        _dosageFormController.text.isNotEmpty ||
+        _strengthController.text.isNotEmpty ||
+        _indicationController.text.isNotEmpty ||
+        _dosageController.text.isNotEmpty ||
+        _sideEffectsController.text.isNotEmpty ||
+        _contraindicationsController.text.isNotEmpty ||
+        _storageConditionController.text.isNotEmpty ||
+        _manufacturerController.text.isNotEmpty ||
+        _registrationNoController.text.isNotEmpty ||
+        _isControlled;
+    if (!hasData) return null;
+    return RequestDrugInfo(
+      genericName: _genericNameController.text,
+      drugType: _drugTypeController.text,
+      dosageForm: _dosageFormController.text,
+      strength: _strengthController.text,
+      indication: _indicationController.text,
+      dosage: _dosageController.text,
+      sideEffects: _sideEffectsController.text,
+      contraindications: _contraindicationsController.text,
+      storageCondition: _storageConditionController.text,
+      manufacturer: _manufacturerController.text,
+      registrationNo: _registrationNoController.text,
+      isControlled: _isControlled,
+    );
+  }
+
+  List<String> _getDrugRegistrations() {
+    final text = _drugRegistrationsController.text.trim();
+    if (text.isEmpty) return [];
+    return text
+        .split(',')
+        .map((e) => e.trim())
+        .where((e) => e.isNotEmpty)
+        .toList();
+  }
+
   _getProductParam() {
+    final minStock = int.tryParse(_minStockEditingController.text) ?? 0;
     return ProductParam(
       name: _nameEditingController.text,
       nameEn: null,
@@ -273,6 +552,9 @@ class _ProductEditPageState extends State<ProductEditPage> {
       expireDate: null,
       receiveId: null,
       status: _status?.type ?? "",
+      minStock: minStock,
+      drugInfo: _getDrugInfo(),
+      drugRegistrations: _getDrugRegistrations(),
     );
   }
 

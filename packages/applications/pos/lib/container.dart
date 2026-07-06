@@ -34,6 +34,7 @@ import 'package:pos/presentation/order/main/order_view_model.dart';
 import 'package:pos/presentation/product/add/product_add_view_model.dart';
 import 'package:pos/presentation/product/edit/product_edit_view_model.dart';
 import 'package:pos/presentation/product/expired/products_expired_view_model.dart';
+import 'package:pos/presentation/product/history/product_history_view_model.dart';
 import 'package:pos/presentation/product/lot_edit/product_lot_edit_view_model.dart';
 import 'package:pos/presentation/product/main/product_view_model.dart';
 import 'package:pos/presentation/product/main/products_view_model.dart';
@@ -145,6 +146,11 @@ Future<void> initPos() async {
   );
   sl.registerFactory(
     () => ProductLotEditViewModel(
+      productRepo: sl(),
+    ),
+  );
+  sl.registerFactory(
+    () => ProductHistoryViewModel(
       productRepo: sl(),
     ),
   );

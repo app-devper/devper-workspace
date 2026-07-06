@@ -3,12 +3,13 @@ import 'package:flutter/material.dart';
 
 // Package imports:
 import 'package:common/config/app_config.dart';
+import 'package:common/core/navigation/app_navigator.dart';
 import 'package:common/core/theme/theme.dart';
 import 'package:common/localizations/localizations_delegate.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:um/presentation/constants.dart' as um;
 
 // Project imports:
-import 'package:sm/presentation/constants.dart';
 import 'package:sm/presentation/router.dart';
 
 class DevperSm extends StatefulWidget {
@@ -42,8 +43,9 @@ class _MyAppState extends State<DevperSm> {
       debugShowCheckedModeBanner: false,
       title: 'DevperSM',
       theme: CustomTheme.mainTheme,
+      navigatorKey: appNavigatorKey,
       onGenerateRoute: RouterApp.generateRoute,
-      initialRoute: rootRoute,
+      initialRoute: um.routeSplash,
       locale: _locale,
       supportedLocales: const [
         Locale('th', ''),

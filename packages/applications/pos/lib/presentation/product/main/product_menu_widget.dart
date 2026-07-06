@@ -4,11 +4,13 @@ import 'package:flutter/material.dart';
 class ProductMenuWidget extends StatelessWidget {
   final Function() onAdd;
   final Function() onExport;
+  final Function()? onImportCsv;
 
   const ProductMenuWidget({
     super.key,
     required this.onAdd,
     required this.onExport,
+    this.onImportCsv,
   });
 
   @override
@@ -29,11 +31,22 @@ class ProductMenuWidget extends StatelessWidget {
             onExport();
           },
         ),
+        if (onImportCsv != null)
+          _buildMenuItem(
+            icon: Icons.upload_file,
+            title: 'นำเข้าจาก CSV',
+            onTap: () {
+              onImportCsv!();
+            },
+          ),
       ],
     );
   }
 
-  _buildMenuItem({required IconData icon, required String title, required Null Function() onTap}) {
+  _buildMenuItem(
+      {required IconData icon,
+      required String title,
+      required Null Function() onTap}) {
     return Column(
       children: [
         ListTile(

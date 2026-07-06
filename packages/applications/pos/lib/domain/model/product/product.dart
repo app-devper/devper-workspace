@@ -1,13 +1,23 @@
 // Project imports:
 import 'package:pos/domain/model/core/core.dart';
+import 'request_drug_info.dart';
 
 class Product {
   final String id;
   String name;
   String? nameEn;
   String? description;
+  double price;
+  double costPrice;
+  String unit;
+  int quantity;
+  int soldFirst;
+  String serialNumber;
   String status;
   String category;
+  int minStock;
+  RequestDrugInfo? drugInfo;
+  List<String> drugRegistrations;
   String createdDate;
   List<ProductUnit> units;
   List<ProductPrice> prices;
@@ -18,8 +28,17 @@ class Product {
     required this.name,
     this.nameEn,
     this.description,
+    this.price = 0,
+    this.costPrice = 0,
+    this.unit = '',
+    this.quantity = 0,
+    this.soldFirst = 0,
+    this.serialNumber = '',
     required this.status,
     required this.category,
+    this.minStock = 0,
+    this.drugInfo,
+    this.drugRegistrations = const [],
     required this.createdDate,
     required this.units,
     required this.prices,
@@ -48,11 +67,14 @@ class Product {
   }
 
   int getQuantity() {
-    return stocks.fold(0, (previousValue, stock) => previousValue + stock.quantity);
+    return stocks.fold(
+        0, (previousValue, stock) => previousValue + stock.quantity);
   }
 
   int getQuantityByUnit(String unitId) {
-    return stocks.where((element) => element.unitId == unitId).fold(0, (previousValue, stock) => previousValue + stock.quantity);
+    return stocks
+        .where((element) => element.unitId == unitId)
+        .fold(0, (previousValue, stock) => previousValue + stock.quantity);
   }
 
   List<ProductPrice> getProductPricesUnit(String unitId) {
@@ -60,7 +82,10 @@ class Product {
   }
 
   ProductPrice getDefaultPriceUnit(String unitId) {
-    return prices.where((element) => element.unitId == unitId && element.customerType == "General").first;
+    return prices
+        .where((element) =>
+            element.unitId == unitId && element.customerType == "General")
+        .first;
   }
 
   List<ProductStock> getProductStocksUnit(String unitId) {
@@ -108,15 +133,25 @@ class ProductUnitItem {
       }
     }
     if (prices.isNotEmpty) {
-      final price = prices.where((element) => element.customerType == customerType).firstOrNull;
+      final price = prices
+          .where((element) => element.customerType == customerType)
+          .firstOrNull;
       if (price != null) {
-        return ProductPriceType(stock: stock, type: price.customerType, price: price.price, costPrice: stock != null && stock.costPrice > 0 ? stock.costPrice : unit.costPrice);
+        return ProductPriceType(
+            stock: stock,
+            type: price.customerType,
+            price: price.price,
+            costPrice: stock != null && stock.costPrice > 0
+                ? stock.costPrice
+                : unit.costPrice);
       } else {
         return ProductPriceType(
           stock: stock,
           type: prices.first.customerType,
           price: prices.first.price,
-          costPrice: stock != null && stock.costPrice > 0 ? stock.costPrice : unit.costPrice,
+          costPrice: stock != null && stock.costPrice > 0
+              ? stock.costPrice
+              : unit.costPrice,
         );
       }
     } else {
@@ -124,7 +159,9 @@ class ProductUnitItem {
         stock: stock,
         type: "",
         price: 0,
-        costPrice: stock != null && stock.costPrice > 0 ? stock.costPrice : unit.costPrice,
+        costPrice: stock != null && stock.costPrice > 0
+            ? stock.costPrice
+            : unit.costPrice,
       );
     }
   }
@@ -141,7 +178,8 @@ class ProductUnitItem {
   }
 
   int getQuantity() {
-    return stocks.fold(0, (previousValue, stock) => previousValue + stock.quantity);
+    return stocks.fold(
+        0, (previousValue, stock) => previousValue + stock.quantity);
   }
 
   void updateProductStockSequence(List<ProductStock> items) {

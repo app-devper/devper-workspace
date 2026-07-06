@@ -37,6 +37,7 @@ class _ProductAddPageState extends State<ProductAddPage> {
   final _priceEditingController = TextEditingController();
   final _unitEditingController = TextEditingController();
   final _costPriceEditingController = TextEditingController();
+  final _minStockEditingController = TextEditingController();
 
   final _viewNode = FocusNode();
   final _serialNumberNode = FocusNode();
@@ -383,6 +384,20 @@ class _ProductAddPageState extends State<ProductAddPage> {
                 return null;
               },
             )),
+            const SizedBox(width: 16),
+            Flexible(
+              child: TextFormField(
+                inputFormatters: [
+                  LengthLimitingTextInputFormatter(10),
+                ],
+                controller: _minStockEditingController,
+                keyboardType: TextInputType.number,
+                decoration: buildInputDecoration(
+                  labelText: 'สต็อกขั้นต่ำ',
+                  hintText: '0',
+                ),
+              ),
+            ),
           ],
         ),
       ],
@@ -398,6 +413,7 @@ class _ProductAddPageState extends State<ProductAddPage> {
     if (_costPriceEditingController.text.trim().isNotEmpty) {
       costPrice = double.parse(_costPriceEditingController.text);
     }
+    final minStock = int.tryParse(_minStockEditingController.text) ?? 0;
     return CreateProductParam(
       name: _nameEditingController.text,
       nameEn: null,
@@ -408,6 +424,7 @@ class _ProductAddPageState extends State<ProductAddPage> {
       serialNumber: _serialNumberEditingController.text,
       category: _category?.type ?? "",
       status: _status?.type ?? "",
+      minStock: minStock,
     );
   }
 }

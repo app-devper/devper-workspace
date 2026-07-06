@@ -2,7 +2,9 @@
 import 'dart:convert';
 
 // Package imports:
+import 'package:common/core/network/error_mapper.dart';
 import 'package:common/core/network/exception.dart';
+import 'package:http/http.dart' as http;
 
 // Project imports:
 import 'package:pos/data/datasource/network/pos_service.dart';
@@ -10,6 +12,7 @@ import 'package:pos/data/repositories/product_mapper.dart';
 import 'package:pos/domain/model/core/core.dart';
 import 'package:pos/domain/model/product/param.dart';
 import 'package:pos/domain/model/product/product.dart';
+import 'package:pos/domain/model/product/product_history.dart';
 import 'package:pos/domain/model/product/product_lot.dart';
 import 'package:pos/domain/repositories/product_repository.dart';
 
@@ -25,7 +28,8 @@ class ProductRepositoryImpl implements ProductRepository {
   Future<Product?> getProductByBarcode(String barcode) async {
     if (_products.isNotEmpty) {
       final result = _products.where((product) {
-        return product.status == productStatusActive && product.units.any((unit) => unit.barcode == barcode);
+        return product.status == productStatusActive &&
+            product.units.any((unit) => unit.barcode == barcode);
       }).firstOrNull;
       if (result != null) {
         return result;
@@ -43,7 +47,7 @@ class ProductRepositoryImpl implements ProductRepository {
       _products = result;
       return _products;
     } else {
-      throw HttpException(response);
+      throw toAppException(response);
     }
   }
 
@@ -51,11 +55,7 @@ class ProductRepositoryImpl implements ProductRepository {
   Future<Product> getProductById(String productId) async {
     final mapper = ProductMapper();
     final response = await posService.getProductById(productId);
-    if (response.isSuccessful) {
-      return mapper.toProductDomain(jsonDecode(response.body));
-    } else {
-      throw HttpException(response);
-    }
+    return mapper.toProductDomain(jsonOrThrow(response));
   }
 
   @override
@@ -63,11 +63,7 @@ class ProductRepositoryImpl implements ProductRepository {
     final mapper = ProductMapper();
     final request = mapper.toProductRequest(param);
     final response = await posService.createProductReceive(request);
-    if (response.isSuccessful) {
-      return mapper.toProductDomain(jsonDecode(response.body));
-    } else {
-      throw HttpException(response);
-    }
+    return mapper.toProductDomain(jsonOrThrow(response));
   }
 
   @override
@@ -80,14 +76,15 @@ class ProductRepositoryImpl implements ProductRepository {
       _products.add(product);
       return product;
     } else {
-      throw HttpException(response);
+      throw toAppException(response);
     }
   }
 
   @override
-  Future<Product> updateProductById(String productId, ProductParam param) async {
+  Future<Product> updateProductById(
+      String productId, ProductParam param) async {
     final mapper = ProductMapper();
-    final request = mapper.toProductRequest(param);
+    final request = mapper.toUpdateProductRequest(param);
     final response = await posService.updateProductById(productId, request);
     if (response.isSuccessful) {
       final product = mapper.toProductDomain(jsonDecode(response.body));
@@ -96,7 +93,16 @@ class ProductRepositoryImpl implements ProductRepository {
           element.name = product.name;
           element.nameEn = product.nameEn;
           element.description = product.description;
+          element.price = product.price;
+          element.costPrice = product.costPrice;
+          element.unit = product.unit;
+          element.quantity = product.quantity;
+          element.soldFirst = product.soldFirst;
+          element.serialNumber = product.serialNumber;
           element.category = product.category;
+          element.minStock = product.minStock;
+          element.drugInfo = product.drugInfo;
+          element.drugRegistrations = product.drugRegistrations;
           element.createdDate = product.createdDate;
           element.status = product.status;
           break;
@@ -104,7 +110,7 @@ class ProductRepositoryImpl implements ProductRepository {
       }
       return product;
     } else {
-      throw HttpException(response);
+      throw toAppException(response);
     }
   }
 
@@ -117,7 +123,7 @@ class ProductRepositoryImpl implements ProductRepository {
       _products.removeWhere((element) => element.id == product.id);
       return product;
     } else {
-      throw HttpException(response);
+      throw toAppException(response);
     }
   }
 
@@ -134,11 +140,7 @@ class ProductRepositoryImpl implements ProductRepository {
   Future<String> generateSerialNumber() async {
     final mapper = ProductMapper();
     final response = await posService.generateSerialNumber();
-    if (response.isSuccessful) {
-      return mapper.toSerialNumberDomain(jsonDecode(response.body));
-    } else {
-      throw HttpException(response);
-    }
+    return mapper.toSerialNumberDomain(jsonOrThrow(response));
   }
 
   @override
@@ -155,9 +157,11 @@ class ProductRepositoryImpl implements ProductRepository {
     final mapper = ProductMapper();
     final response = await posService.getProductLotsExpired();
     if (response.isSuccessful) {
-      return mapper.toProductLotsDomain(jsonDecode(response.body));
+      final json = jsonDecode(response.body);
+      final data = json is Map<String, dynamic> ? json['data'] : json;
+      return mapper.toProductLotsDomain(data ?? []);
     } else {
-      throw HttpException(response);
+      throw toAppException(response);
     }
   }
 
@@ -165,40 +169,32 @@ class ProductRepositoryImpl implements ProductRepository {
   Future<ProductLot> getProductLotByLotId(String lotId) async {
     final mapper = ProductMapper();
     final response = await posService.getProductLotById(lotId);
-    if (response.isSuccessful) {
-      return mapper.toProductLotDomain(jsonDecode(response.body));
-    } else {
-      throw HttpException(response);
-    }
+    return mapper.toProductLotDomain(jsonOrThrow(response));
   }
 
   @override
-  Future<ProductLot> updateProductLotQuantityByLotId(String lotId, UpdateProductLotQuantityParam param) async {
+  Future<ProductLot> updateProductLotQuantityByLotId(
+      String lotId, UpdateProductLotQuantityParam param) async {
     final mapper = ProductMapper();
     final request = mapper.toUpdateProductLotQuantityRequest(param);
-    final response = await posService.updateProductLotQuantityById(lotId, request);
-    if (response.isSuccessful) {
-      return mapper.toProductLotDomain(jsonDecode(response.body));
-    } else {
-      throw HttpException(response);
-    }
+    final response =
+        await posService.updateProductLotQuantityById(lotId, request);
+    return mapper.toProductLotDomain(jsonOrThrow(response));
   }
 
   @override
   Future<List<ProductLot>> getProductLots(GetLotsRangeParam param) async {
     final mapper = ProductMapper();
-    final response = await posService.getProductLots(param.startDate, param.endDate);
-    if (response.isSuccessful) {
-      return mapper.toProductLotsDomain(jsonDecode(response.body));
-    } else {
-      throw HttpException(response);
-    }
+    final response =
+        await posService.getProductLots(param.startDate, param.endDate);
+    return mapper.toProductLotsDomain(jsonOrThrow(response));
   }
 
   @override
   Future<ProductPrice> addProductPrice(ProductPriceParam param) async {
     final mapper = ProductMapper();
-    final response = await posService.addProductPrice(mapper.toProductPriceRequest(param));
+    final response =
+        await posService.addProductPrice(mapper.toProductPriceRequest(param));
     if (response.isSuccessful) {
       final price = mapper.toProductPriceDomain(jsonDecode(response.body));
       for (var element in _products) {
@@ -209,14 +205,16 @@ class ProductRepositoryImpl implements ProductRepository {
       }
       return price;
     } else {
-      throw HttpException(response);
+      throw toAppException(response);
     }
   }
 
   @override
-  Future<ProductPrice> updateProductPriceById(String id, ProductPriceParam param) async {
+  Future<ProductPrice> updateProductPriceById(
+      String id, ProductPriceParam param) async {
     final mapper = ProductMapper();
-    final response = await posService.updateProductPriceById(id, mapper.toProductPriceRequest(param));
+    final response = await posService.updateProductPriceById(
+        id, mapper.toProductPriceRequest(param));
     if (response.isSuccessful) {
       final price = mapper.toProductPriceDomain(jsonDecode(response.body));
       for (var element in _products) {
@@ -233,7 +231,7 @@ class ProductRepositoryImpl implements ProductRepository {
       }
       return price;
     } else {
-      throw HttpException(response);
+      throw toAppException(response);
     }
   }
 
@@ -251,12 +249,13 @@ class ProductRepositoryImpl implements ProductRepository {
       }
       return price;
     } else {
-      throw HttpException(response);
+      throw toAppException(response);
     }
   }
 
   @override
-  Future<List<ProductPrice>> getProductPricesByProductId(String productId) async {
+  Future<List<ProductPrice>> getProductPricesByProductId(
+      String productId) async {
     final mapper = ProductMapper();
     final response = await posService.getProductPricesByProductId(productId);
     if (response.isSuccessful) {
@@ -269,14 +268,15 @@ class ProductRepositoryImpl implements ProductRepository {
       }
       return prices;
     } else {
-      throw HttpException(response);
+      throw toAppException(response);
     }
   }
 
   @override
   Future<ProductUnit> addProductUnit(ProductUnitParam param) async {
     final mapper = ProductMapper();
-    final response = await posService.addProductUnit(mapper.toProductUnitRequest(param));
+    final response =
+        await posService.addProductUnit(mapper.toProductUnitRequest(param));
     if (response.isSuccessful) {
       final unit = mapper.toProductUnitDomain(jsonDecode(response.body));
       for (var element in _products) {
@@ -287,14 +287,16 @@ class ProductRepositoryImpl implements ProductRepository {
       }
       return unit;
     } else {
-      throw HttpException(response);
+      throw toAppException(response);
     }
   }
 
   @override
-  Future<ProductUnit> updateProductUnitById(String id, ProductUnitParam param) async {
+  Future<ProductUnit> updateProductUnitById(
+      String id, ProductUnitParam param) async {
     final mapper = ProductMapper();
-    final response = await posService.updateProductUnitById(id, mapper.toProductUnitRequest(param));
+    final response = await posService.updateProductUnitById(
+        id, mapper.toProductUnitRequest(param));
     if (response.isSuccessful) {
       final unit = mapper.toProductUnitDomain(jsonDecode(response.body));
       for (var element in _products) {
@@ -315,7 +317,7 @@ class ProductRepositoryImpl implements ProductRepository {
       }
       return unit;
     } else {
-      throw HttpException(response);
+      throw toAppException(response);
     }
   }
 
@@ -333,7 +335,7 @@ class ProductRepositoryImpl implements ProductRepository {
       }
       return unit;
     } else {
-      throw HttpException(response);
+      throw toAppException(response);
     }
   }
 
@@ -351,14 +353,15 @@ class ProductRepositoryImpl implements ProductRepository {
       }
       return units;
     } else {
-      throw HttpException(response);
+      throw toAppException(response);
     }
   }
 
   @override
   Future<ProductStock> addProductStock(ProductStockParam param) async {
     final mapper = ProductMapper();
-    final response = await posService.addProductStock(mapper.toProductStockRequest(param));
+    final response =
+        await posService.addProductStock(mapper.toProductStockRequest(param));
     if (response.isSuccessful) {
       final stock = mapper.toProductStockDomain(jsonDecode(response.body));
       for (var element in _products) {
@@ -369,14 +372,16 @@ class ProductRepositoryImpl implements ProductRepository {
       }
       return stock;
     } else {
-      throw HttpException(response);
+      throw toAppException(response);
     }
   }
 
   @override
-  Future<ProductStock> updateProductStockById(String id, ProductStockParam param) async {
+  Future<ProductStock> updateProductStockById(
+      String id, ProductStockParam param) async {
     final mapper = ProductMapper();
-    final response = await posService.updateProductStockById(id, mapper.toProductStockRequest(param));
+    final response = await posService.updateProductStockById(
+        id, mapper.toProductStockRequest(param));
     if (response.isSuccessful) {
       final stock = mapper.toProductStockDomain(jsonDecode(response.body));
       for (var element in _products) {
@@ -398,7 +403,7 @@ class ProductRepositoryImpl implements ProductRepository {
       }
       return stock;
     } else {
-      throw HttpException(response);
+      throw toAppException(response);
     }
   }
 
@@ -416,12 +421,13 @@ class ProductRepositoryImpl implements ProductRepository {
       }
       return stock;
     } else {
-      throw HttpException(response);
+      throw toAppException(response);
     }
   }
 
   @override
-  Future<List<ProductStock>> getProductStocksByProductId(String productId) async {
+  Future<List<ProductStock>> getProductStocksByProductId(
+      String productId) async {
     final mapper = ProductMapper();
     final response = await posService.getProductStocksByProductId(productId);
     if (response.isSuccessful) {
@@ -434,14 +440,16 @@ class ProductRepositoryImpl implements ProductRepository {
       }
       return stocks;
     } else {
-      throw HttpException(response);
+      throw toAppException(response);
     }
   }
 
   @override
-  Future<ProductStock> updateProductStockQuantityById(String id, UpdateProductStockQuantityParam param) async {
+  Future<ProductStock> updateProductStockQuantityById(
+      String id, UpdateProductStockQuantityParam param) async {
     final mapper = ProductMapper();
-    final response = await posService.updateProductStockQuantityById(id, mapper.toUpdateProductStockQuantityRequest(param));
+    final response = await posService.updateProductStockQuantityById(
+        id, mapper.toUpdateProductStockQuantityRequest(param));
     if (response.isSuccessful) {
       final stock = mapper.toProductStockDomain(jsonDecode(response.body));
       for (var element in _products) {
@@ -457,14 +465,16 @@ class ProductRepositoryImpl implements ProductRepository {
       }
       return stock;
     } else {
-      throw HttpException(response);
+      throw toAppException(response);
     }
   }
 
   @override
-  Future<List<ProductStock>> updateProductStockSequence(UpdateProductStockSequenceParam param) async {
+  Future<List<ProductStock>> updateProductStockSequence(
+      UpdateProductStockSequenceParam param) async {
     final mapper = ProductMapper();
-    final response = await posService.updateProductStockSequence(mapper.toUpdateProductStockSequenceRequest(param));
+    final response = await posService.updateProductStockSequence(
+        mapper.toUpdateProductStockSequenceRequest(param));
     if (response.isSuccessful) {
       final stocks = mapper.toProductStocksDomain(jsonDecode(response.body));
       for (var element in _products) {
@@ -475,7 +485,7 @@ class ProductRepositoryImpl implements ProductRepository {
       }
       return stocks;
     } else {
-      throw HttpException(response);
+      throw toAppException(response);
     }
   }
 
@@ -498,5 +508,85 @@ class ProductRepositoryImpl implements ProductRepository {
         break;
       }
     }
+  }
+
+  @override
+  Future<ProductLot> createProductLot(CreateProductLotParam param) async {
+    final mapper = ProductMapper();
+    final request = mapper.toCreateProductLotRequest(param);
+    final response = await posService.createProductLot(request);
+    return mapper.toProductLotDomain(jsonOrThrow(response));
+  }
+
+  @override
+  Future<ProductLot> updateProductLotById(
+      String lotId, UpdateProductLotParam param) async {
+    final mapper = ProductMapper();
+    final request = mapper.toUpdateProductLotRequest(param);
+    final response = await posService.updateProductLotById(lotId, request);
+    return mapper.toProductLotDomain(jsonOrThrow(response));
+  }
+
+  @override
+  Future<ProductLot> deleteProductLotById(String lotId) async {
+    final mapper = ProductMapper();
+    final response = await posService.deleteProductLotById(lotId);
+    return mapper.toProductLotDomain(jsonOrThrow(response));
+  }
+
+  @override
+  Future<List<ProductHistory>> getProductHistoriesByProductId(
+      String productId) async {
+    final mapper = ProductMapper();
+    final response = await posService.getProductHistoriesByProductId(productId);
+    return mapper.toProductHistoriesDomain(jsonOrThrow(response));
+  }
+
+  @override
+  Future<List<ProductHistory>> getProductHistoriesByDateRange(
+      String startDate, String endDate) async {
+    final mapper = ProductMapper();
+    final response =
+        await posService.getProductHistoriesByDateRange(startDate, endDate);
+    return mapper.toProductHistoriesDomain(jsonOrThrow(response));
+  }
+
+  @override
+  Future<Product> clearQuantitySoldFirstById(String productId) async {
+    final mapper = ProductMapper();
+    final response = await posService.clearQuantitySoldFirstById(productId);
+    if (response.isSuccessful) {
+      final product = mapper.toProductDomain(jsonDecode(response.body));
+      for (var element in _products) {
+        if (element.id == product.id) {
+          element.soldFirst = product.soldFirst;
+          break;
+        }
+      }
+      return product;
+    } else {
+      throw toAppException(response);
+    }
+  }
+
+  @override
+  Future<List<DrugInteractionResult>> checkDrugInteractions(
+      List<String> productIds) async {
+    final mapper = ProductMapper();
+    final request = mapper.toDrugInteractionCheckRequest(productIds);
+    final response = await posService.checkDrugInteractions(request);
+    if (response.isSuccessful) {
+      final json = jsonDecode(response.body);
+      return mapper.toDrugInteractionResultsDomain(json['interactions'] ?? []);
+    } else {
+      throw toAppException(response);
+    }
+  }
+
+  @override
+  Future<CSVImportResult> importProductCSV(http.MultipartFile file) async {
+    final mapper = ProductMapper();
+    final response = await posService.importProductCSV(file);
+    return mapper.toCSVImportResultDomain(jsonOrThrow(response));
   }
 }
