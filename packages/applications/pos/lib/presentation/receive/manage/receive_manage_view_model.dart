@@ -1,5 +1,5 @@
-// Dart imports:
-import 'dart:async';
+// Flutter imports:
+import 'package:flutter/foundation.dart';
 
 // Package imports:
 import 'package:common/core/error/failure.dart';
@@ -8,7 +8,6 @@ import 'package:common/core/error/failure.dart';
 import 'package:pos/domain/model/receive/param.dart';
 import 'package:pos/domain/model/receive/receive.dart';
 import 'package:pos/domain/model/receive/receive_item.dart';
-import 'package:pos/domain/model/supplier/supplier.dart';
 import 'package:pos/domain/repositories/product_repository.dart';
 import 'package:pos/domain/repositories/receive_repository.dart';
 import 'package:pos/domain/repositories/supplier_repository.dart';
@@ -25,12 +24,12 @@ class ReceiveManageViewModel {
     required this.supplierRepo,
   });
 
-  final _states = StreamController<ReceiveManageState>();
+  final _state = ValueNotifier<ReceiveManageState>(const ReceiveManageState());
 
-  StreamController<ReceiveManageState> get states => _states;
+  ValueListenable<ReceiveManageState> get state => _state;
 
-  void getReceiveById(String? receiveId) async {
-    _onLoading();
+  Future<void> getReceiveById(String? receiveId) async {
+    _state.value = _state.value.copyWith(loading: true, clearError: true);
     try {
       Receive? receive;
       if (receiveId != null) {
@@ -38,124 +37,124 @@ class ReceiveManageViewModel {
         getReceiveItemsById(receiveId);
       }
       final suppliers = await supplierRepo.getLocalSuppliers();
-      _onGetReceive(receive, suppliers);
+      _state.value = _state.value.copyWith(
+        loading: false,
+        receiveLoaded: true,
+        receive: receive,
+        clearReceive: receive == null,
+        receiveSuppliers: suppliers,
+      );
     } on Exception catch (e) {
-      _onError(toFailure(e));
+      _state.value = _state.value.copyWith(loading: false, error: toFailure(e).getMessage());
     }
   }
 
-  void createReceive(ReceiveParam param) async {
-    _onLoading();
+  Future<void> createReceive(ReceiveParam param) async {
+    _state.value = _state.value.copyWith(loading: true, clearError: true, clearCreated: true);
     try {
-      final result = await receiveRepo.createReceive(param);
-      _onCreateReceive(result);
+      final created = await receiveRepo.createReceive(param);
+      _state.value = _state.value.copyWith(loading: false, created: created, receive: created);
     } on Exception catch (e) {
-      _onError(toFailure(e));
+      _state.value = _state.value.copyWith(loading: false, error: toFailure(e).getMessage());
     }
   }
 
-  void updateReceiveById(String receiveId, UpdateReceiveParam param) async {
-    _onLoading();
+  Future<void> updateReceiveById(String receiveId, UpdateReceiveParam param) async {
+    _state.value = _state.value.copyWith(loading: true, clearError: true, clearUpdated: true);
     try {
-      final result = await receiveRepo.updateReceiveById(receiveId, param);
-      _onEditReceive(result);
+      final updated = await receiveRepo.updateReceiveById(receiveId, param);
+      _state.value = _state.value.copyWith(loading: false, updated: updated, receive: updated);
     } on Exception catch (e) {
-      _onError(toFailure(e));
+      _state.value = _state.value.copyWith(loading: false, error: toFailure(e).getMessage());
     }
   }
 
-  void removeReceiveById(String receiveId) async {
-    _onLoading();
+  Future<void> removeReceiveById(String receiveId) async {
+    _state.value = _state.value.copyWith(loading: true, clearError: true, clearRemoved: true);
     try {
-      final result = await receiveRepo.removeReceiveById(receiveId);
-      _onRemoveReceive(result);
+      final removed = await receiveRepo.removeReceiveById(receiveId);
+      _state.value = _state.value.copyWith(loading: false, removed: removed);
     } on Exception catch (e) {
-      _onError(toFailure(e));
+      _state.value = _state.value.copyWith(loading: false, error: toFailure(e).getMessage());
     }
   }
 
-  void removeReceiveItemById(String lotId) async {
-    _onLoading();
+  Future<void> removeReceiveItemById(String lotId) async {
+    _state.value = _state.value.copyWith(loading: true, clearError: true, clearRemovedItem: true);
     try {
-      final result = await receiveRepo.removeReceiveItemByLotId(lotId);
-      _onRemoveReceiveItem(result);
+      final removedItem = await receiveRepo.removeReceiveItemByLotId(lotId);
+      _state.value = _state.value.copyWith(loading: false, removedItem: removedItem);
     } on Exception catch (e) {
-      _onError(toFailure(e));
+      _state.value = _state.value.copyWith(loading: false, error: toFailure(e).getMessage());
     }
   }
 
-  void getReceiveItemsById(String receiveId) async {
+  Future<void> getReceiveItemsById(String receiveId) async {
     try {
       final result = await receiveRepo.getReceiveItemsById(receiveId);
       for (var item in result) {
         item.product = await productRepo.getLocalProductById(item.productId);
       }
-      _onGetReceiveItems(result);
+      _state.value = _state.value.copyWith(
+        itemsLoaded: true,
+        totalCost: _calculateTotalCost(result),
+        items: result,
+      );
     } on Exception catch (_) {}
   }
 
-  void getSuppliers() async {
+  Future<void> getSuppliers() async {
     try {
-      final result = await supplierRepo.getSuppliers();
-      _onGetSuppliers(result);
+      final suppliers = await supplierRepo.getSuppliers();
+      _state.value = _state.value.copyWith(suppliersEvent: suppliers);
     } on Exception catch (_) {}
   }
 
-  _onLoading() {
-    _states.sink.add(LoadingState());
-  }
-
-  _onRemoveReceive(Receive data) {
-    if (!_states.isClosed) {
-      _states.sink.add(RemoveReceiveState(data: data));
+  void consumeError() {
+    if (_state.value.error != null) {
+      _state.value = _state.value.copyWith(clearError: true);
     }
   }
 
-  _onRemoveReceiveItem(ReceiveItem data) {
-    if (!_states.isClosed) {
-      _states.sink.add(RemoveReceiveItemState(data: data));
+  void consumeReceiveLoaded() {
+    if (_state.value.receiveLoaded) {
+      _state.value = _state.value.copyWith(receiveLoaded: false);
     }
   }
 
-  _onGetReceive(Receive? data, List<Supplier> suppliers) {
-    if (!_states.isClosed) {
-      _states.sink.add(GetReceiveState(
-        data: data,
-        suppliers: suppliers,
-      ));
+  void consumeSuppliersEvent() {
+    if (_state.value.suppliersEvent != null) {
+      _state.value = _state.value.copyWith(clearSuppliersEvent: true);
     }
   }
 
-  _onCreateReceive(Receive data) {
-    if (!_states.isClosed) {
-      _states.sink.add(CreateReceiveState(data: data));
+  void consumeItemsLoaded() {
+    if (_state.value.itemsLoaded) {
+      _state.value = _state.value.copyWith(itemsLoaded: false);
     }
   }
 
-  _onEditReceive(Receive data) {
-    if (!_states.isClosed) {
-      _states.sink.add(UpdateReceiveState(data: data));
+  void consumeCreated() {
+    if (_state.value.created != null) {
+      _state.value = _state.value.copyWith(clearCreated: true);
     }
   }
 
-  _onGetReceiveItems(List<ReceiveItem> data) {
-    if (!_states.isClosed) {
-      _states.sink.add(GetReceiveItemsState(
-        totalCost: _calculateTotalCost(data),
-        data: data,
-      ));
+  void consumeUpdated() {
+    if (_state.value.updated != null) {
+      _state.value = _state.value.copyWith(clearUpdated: true);
     }
   }
 
-  _onGetSuppliers(List<Supplier> suppliers) {
-    if (!_states.isClosed) {
-      _states.sink.add(GetSuppliersState(suppliers: suppliers));
+  void consumeRemoved() {
+    if (_state.value.removed != null) {
+      _state.value = _state.value.copyWith(clearRemoved: true);
     }
   }
 
-  _onError(Failure failure) {
-    if (!_states.isClosed) {
-      _states.sink.add(ErrorState(message: failure.getMessage()));
+  void consumeRemovedItem() {
+    if (_state.value.removedItem != null) {
+      _state.value = _state.value.copyWith(clearRemovedItem: true);
     }
   }
 
@@ -169,7 +168,7 @@ class ReceiveManageViewModel {
     return total;
   }
 
-  dispose() {
-    _states.close();
+  void dispose() {
+    _state.dispose();
   }
 }

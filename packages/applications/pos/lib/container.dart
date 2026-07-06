@@ -232,7 +232,6 @@ Future<void> initPos() async {
   sl.registerFactory(
     () => ReceivesViewModel(
       receiveRepo: sl(),
-      supplierRepo: sl(),
     ),
   );
   sl.registerFactory(

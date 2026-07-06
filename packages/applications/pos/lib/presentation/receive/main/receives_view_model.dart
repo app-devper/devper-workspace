@@ -1,5 +1,5 @@
-// Dart imports:
-import 'dart:async';
+// Flutter imports:
+import 'package:flutter/foundation.dart';
 
 // Package imports:
 import 'package:common/core/error/failure.dart';
@@ -8,26 +8,33 @@ import 'package:common/core/error/failure.dart';
 import 'package:pos/domain/model/receive/param.dart';
 import 'package:pos/domain/model/receive/receive.dart';
 import 'package:pos/domain/repositories/receive_repository.dart';
-import 'package:pos/domain/repositories/supplier_repository.dart';
+import 'package:pos/presentation/receive/main/receive_state.dart';
 
 class ReceivesViewModel {
   final ReceiveRepository receiveRepo;
-  final SupplierRepository supplierRepo;
 
   ReceivesViewModel({
     required this.receiveRepo,
-    required this.supplierRepo,
   });
 
-  final _receives = StreamController<List<Receive>>();
+  final _state = ValueNotifier<ReceivesState>(const ReceivesState());
 
-  Stream<List<Receive>> get receives => _receives.stream;
+  ValueListenable<ReceivesState> get state => _state;
 
-  void searchReceive(String s) {
-    getReceives();
+  List<Receive> _all = const [];
+  String _query = '';
+
+  void searchReceive(String query) {
+    _query = query;
+    if (_all.isEmpty && !_state.value.loading) {
+      getReceives();
+    } else {
+      _state.value = _state.value.copyWith(items: _filter(query));
+    }
   }
 
-  void getReceives() async {
+  Future<void> getReceives() async {
+    _state.value = _state.value.copyWith(loading: true, clearError: true);
     try {
       final now = DateTime.now();
       final startDate = DateTime(now.year, now.month, now.day).subtract(const Duration(days: 365));
@@ -35,40 +42,28 @@ class ReceivesViewModel {
         startDate: startDate.toUtc().toIso8601String(),
         endDate: now.toUtc().toIso8601String(),
       );
-      final result = await receiveRepo.getReceives(param);
-      _onListReceive("", result);
+      _all = await receiveRepo.getReceives(param);
+      _state.value = _state.value.copyWith(loading: false, items: _filter(_query));
     } on Exception catch (e) {
-      _onError(toFailure(e));
+      _state.value = _state.value.copyWith(loading: false, error: toFailure(e).getMessage());
     }
   }
 
-  void _onListReceive(String param, List<Receive> data) {
-    if (!_receives.isClosed) {
-      _receives.sink.add(_searchReceive(param, data));
+  List<Receive> _filter(String query) {
+    if (query.isEmpty) {
+      return _all;
     }
+    final lower = query.toLowerCase();
+    return _all.where((item) => item.code.toLowerCase().contains(lower)).toList();
   }
 
-  void _onError(Failure failure) {
-    if (!_receives.isClosed) {
-      _receives.sink.addError(failure.getMessage());
-    }
-  }
-
-  List<Receive> _searchReceive(String param, List<Receive> data) {
-    if (param.isEmpty) {
-      return data;
-    } else {
-      List<Receive> filtered = [];
-      for (var item in data) {
-        if (item.code.toLowerCase().contains(param.toLowerCase())) {
-          filtered.add(item);
-        }
-      }
-      return filtered;
+  void consumeError() {
+    if (_state.value.error != null) {
+      _state.value = _state.value.copyWith(clearError: true);
     }
   }
 
   void dispose() {
-    _receives.close();
+    _state.dispose();
   }
 }

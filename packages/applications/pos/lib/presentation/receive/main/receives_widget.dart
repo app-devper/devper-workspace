@@ -8,6 +8,7 @@ import 'package:common/core/widgets/responsive.dart';
 // Project imports:
 import 'package:pos/container.dart';
 import 'package:pos/domain/model/receive/receive.dart';
+import 'package:pos/presentation/receive/main/receive_state.dart';
 import 'package:pos/presentation/receive/main/receives_view_model.dart';
 import 'package:pos/presentation/theme.dart';
 
@@ -113,13 +114,10 @@ class _ReceivesWidgetState extends State<ReceivesWidget> {
   }
 
   _buildProductList() {
-    return StreamBuilder(
-      stream: _viewModel.receives,
-      builder: (BuildContext context, AsyncSnapshot<List<Receive>> snapshot) {
-        if (snapshot.hasData) {
-          var data = snapshot.data;
-          return _buildReceives(data ?? []);
-        } else {
+    return ValueListenableBuilder<ReceivesState>(
+      valueListenable: _viewModel.state,
+      builder: (BuildContext context, ReceivesState state, _) {
+        if (state.loading && state.items.isEmpty) {
           return const Expanded(
             child: Center(
               child: CircularProgressIndicator(
@@ -130,6 +128,7 @@ class _ReceivesWidgetState extends State<ReceivesWidget> {
             ),
           );
         }
+        return _buildReceives(state.items);
       },
     );
   }
