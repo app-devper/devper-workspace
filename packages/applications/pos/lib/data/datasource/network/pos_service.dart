@@ -465,12 +465,15 @@ class PosService {
   }
 
   // CSV Import
-  Future<http.Response> importProductCSV(http.MultipartFile file) async {
+  Future<http.Response> importProductCSV({
+    required List<int> bytes,
+    required String filename,
+  }) async {
     var url = Uri.parse(
         '${networkConfig.getHostApp()}/api/pos/v1/products/import-csv');
     var request = http.MultipartRequest('POST', url);
     request.headers.addAll(networkConfig.getHeaders(url));
-    request.files.add(file);
+    request.files.add(http.MultipartFile.fromBytes('file', bytes, filename: filename));
     final streamedResponse = await request.send();
     return http.Response.fromStream(streamedResponse);
   }

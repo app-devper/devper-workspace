@@ -4,7 +4,6 @@ import 'dart:convert';
 // Package imports:
 import 'package:common/core/network/error_mapper.dart';
 import 'package:common/core/network/exception.dart';
-import 'package:http/http.dart' as http;
 
 // Project imports:
 import 'package:pos/data/datasource/network/pos_service.dart';
@@ -584,9 +583,12 @@ class ProductRepositoryImpl implements ProductRepository {
   }
 
   @override
-  Future<CSVImportResult> importProductCSV(http.MultipartFile file) async {
+  Future<CSVImportResult> importProductCSV({
+    required List<int> bytes,
+    required String filename,
+  }) async {
     final mapper = ProductMapper();
-    final response = await posService.importProductCSV(file);
+    final response = await posService.importProductCSV(bytes: bytes, filename: filename);
     return mapper.toCSVImportResultDomain(jsonOrThrow(response));
   }
 }

@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:common/core/widgets/responsive.dart';
 import 'package:common/core/widgets/title_bar.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:http/http.dart' as http;
 
 // Project imports:
 import 'package:pos/container.dart';
@@ -206,12 +205,7 @@ class _ProductsPageState extends State<ProductsPage> {
     if (result != null && result.files.isNotEmpty) {
       final file = result.files.first;
       if (file.bytes != null) {
-        final multipartFile = http.MultipartFile.fromBytes(
-          'file',
-          file.bytes!,
-          filename: file.name,
-        );
-        _viewModel.importCSV(multipartFile);
+        _viewModel.importCSV(bytes: file.bytes!, filename: file.name);
       }
     }
   }

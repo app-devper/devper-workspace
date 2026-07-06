@@ -1,6 +1,3 @@
-// Dart imports:
-import 'package:http/http.dart' as http;
-
 // Project imports:
 import 'package:pos/domain/model/product/param.dart';
 import 'package:pos/domain/model/product/product.dart';
@@ -96,5 +93,8 @@ abstract class ProductRepository {
       List<String> productIds);
 
   // CSV Import
-  Future<CSVImportResult> importProductCSV(http.MultipartFile file);
+  Future<CSVImportResult> importProductCSV({
+    required List<int> bytes,
+    required String filename,
+  });
 }
