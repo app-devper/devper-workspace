@@ -1,11 +1,10 @@
-// Dart imports:
-import 'dart:async';
+// Flutter imports:
+import 'package:flutter/foundation.dart';
 
 // Package imports:
 import 'package:common/core/error/failure.dart';
 
 // Project imports:
-import 'package:pos/domain/model/supplier/supplier.dart';
 import 'package:pos/domain/repositories/supplier_repository.dart';
 import 'package:pos/presentation/supplier/main/suppliers_state.dart';
 
@@ -16,45 +15,27 @@ class SuppliersViewModel {
     required this.supplierRepo,
   });
 
-  final _states = StreamController<SuppliersState>();
+  final _state = ValueNotifier<SuppliersState>(const SuppliersState());
 
-  Stream<SuppliersState> get states => _states.stream;
+  ValueListenable<SuppliersState> get state => _state;
 
-  final _suppliers = StreamController<List<Supplier>>();
-
-  Stream<List<Supplier>> get suppliers => _suppliers.stream;
-
-  void getSuppliers() async {
+  Future<void> getSuppliers() async {
+    _state.value = _state.value.copyWith(loading: true, clearError: true);
     try {
-      final result = await supplierRepo.getSuppliers();
-      _onListSuppliers(result);
+      final items = await supplierRepo.getSuppliers();
+      _state.value = _state.value.copyWith(loading: false, items: items);
     } on Exception catch (e) {
-      _onError(toFailure(e));
+      _state.value = _state.value.copyWith(loading: false, error: toFailure(e).getMessage());
     }
   }
 
-  void setSuppliers(List<Supplier> data) {
-    _suppliers.sink.add(data);
-  }
-
-  _onLoading() {
-    _states.sink.add(LoadingState());
-  }
-
-  _onListSuppliers(List<Supplier> data) {
-    if (!_states.isClosed) {
-      _states.sink.add(ListSupplierState(data: data));
+  void consumeError() {
+    if (_state.value.error != null) {
+      _state.value = _state.value.copyWith(clearError: true);
     }
   }
 
-  _onError(Failure failure) {
-    if (!_states.isClosed) {
-      _states.sink.add(ErrorState(message: failure.getMessage()));
-    }
-  }
-
-  dispose() {
-    _states.close();
-    _suppliers.close();
+  void dispose() {
+    _state.dispose();
   }
 }

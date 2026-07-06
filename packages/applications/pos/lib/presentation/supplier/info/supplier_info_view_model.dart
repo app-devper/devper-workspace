@@ -1,12 +1,11 @@
-// Dart imports:
-import 'dart:async';
+// Flutter imports:
+import 'package:flutter/foundation.dart';
 
 // Package imports:
 import 'package:common/core/error/failure.dart';
 
 // Project imports:
 import 'package:pos/domain/model/supplier/param.dart';
-import 'package:pos/domain/model/supplier/supplier.dart';
 import 'package:pos/domain/repositories/supplier_repository.dart';
 import 'package:pos/presentation/supplier/info/supplier_info_state.dart';
 
@@ -17,50 +16,40 @@ class SupplierInfoViewModel {
     required this.supplierRepo,
   });
 
-  final _states = StreamController<SupplierInfoState>();
+  final _state = ValueNotifier<SupplierInfoState>(const SupplierInfoState());
 
-  Stream<SupplierInfoState> get states => _states.stream;
+  ValueListenable<SupplierInfoState> get state => _state;
 
-  void getSupplierInfo() async {
+  Future<void> getSupplierInfo() async {
     try {
-      final result = await supplierRepo.getSupplierInfo();
-      _onGetSupplier(result);
+      final supplier = await supplierRepo.getSupplierInfo();
+      _state.value = _state.value.copyWith(supplier: supplier);
     } on Exception catch (_) {}
   }
 
-  void updateSupplierInfo(SupplierParam param) async {
-    _onLoading();
+  Future<void> updateSupplierInfo(SupplierParam param) async {
+    _state.value = _state.value.copyWith(saving: true, clearError: true, clearUpdated: true);
     try {
-      final result = await supplierRepo.updateSupplierInfo(param);
-      _onUpdateSupplier(result);
+      final updated = await supplierRepo.updateSupplierInfo(param);
+      _state.value = _state.value.copyWith(saving: false, updated: updated);
     } on Exception catch (e) {
-      _onError(toFailure(e));
+      _state.value = _state.value.copyWith(saving: false, error: toFailure(e).getMessage());
     }
   }
 
-  _onLoading() {
-    _states.sink.add(LoadingState());
-  }
-
-  _onGetSupplier(Supplier data) {
-    if (!_states.isClosed) {
-      _states.sink.add(GetSupplierState(data: data));
+  void consumeError() {
+    if (_state.value.error != null) {
+      _state.value = _state.value.copyWith(clearError: true);
     }
   }
 
-  _onUpdateSupplier(Supplier data) {
-    if (!_states.isClosed) {
-      _states.sink.add(UpdateSupplierState(data: data));
+  void consumeUpdated() {
+    if (_state.value.updated != null) {
+      _state.value = _state.value.copyWith(clearUpdated: true);
     }
   }
 
-  _onError(Failure failure) {
-    if (!_states.isClosed) {
-      _states.sink.add(ErrorState(message: failure.getMessage()));
-    }
-  }
-
-  dispose() {
-    _states.close();
+  void dispose() {
+    _state.dispose();
   }
 }

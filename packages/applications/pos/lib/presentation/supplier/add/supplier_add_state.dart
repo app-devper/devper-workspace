@@ -1,18 +1,32 @@
+// Flutter imports:
+import 'package:flutter/foundation.dart';
+
 // Project imports:
 import 'package:pos/domain/model/supplier/supplier.dart';
 
-abstract class SupplierAddState {}
+@immutable
+class SupplierAddState {
+  final bool saving;
+  final String? error;
+  final Supplier? created;
 
-class LoadingState extends SupplierAddState {}
+  const SupplierAddState({
+    this.saving = false,
+    this.error,
+    this.created,
+  });
 
-class CreateSupplierState extends SupplierAddState {
-  final Supplier data;
-
-  CreateSupplierState({required this.data});
-}
-
-class ErrorState extends SupplierAddState {
-  final String message;
-
-  ErrorState({required this.message});
+  SupplierAddState copyWith({
+    bool? saving,
+    String? error,
+    Supplier? created,
+    bool clearError = false,
+    bool clearCreated = false,
+  }) {
+    return SupplierAddState(
+      saving: saving ?? this.saving,
+      error: clearError ? null : (error ?? this.error),
+      created: clearCreated ? null : (created ?? this.created),
+    );
+  }
 }

@@ -1,12 +1,11 @@
-// Dart imports:
-import 'dart:async';
+// Flutter imports:
+import 'package:flutter/foundation.dart';
 
 // Package imports:
 import 'package:common/core/error/failure.dart';
 
 // Project imports:
 import 'package:pos/domain/model/supplier/param.dart';
-import 'package:pos/domain/model/supplier/supplier.dart';
 import 'package:pos/domain/repositories/supplier_repository.dart';
 import 'package:pos/presentation/supplier/edit/supplier_edit_state.dart';
 
@@ -17,66 +16,43 @@ class SupplierEditViewModel {
     required this.supplierRepo,
   });
 
-  final _states = StreamController<SupplierEditState>();
+  final _state = ValueNotifier<SupplierEditState>(const SupplierEditState());
 
-  Stream<SupplierEditState> get states => _states.stream;
+  ValueListenable<SupplierEditState> get state => _state;
 
-  getSupplier(Supplier result) async {
+  Future<void> updateSupplierById(String supplierId, SupplierParam param) async {
+    _state.value = _state.value.copyWith(loading: true, clearError: true, clearUpdated: true);
     try {
-      _onGetSupplier(result);
-    } on Exception catch (_) {
-    }
-  }
-
-  updateSupplierById(String supplierId, SupplierParam param) async {
-    _onLoading();
-    try {
-      final result = await supplierRepo.updateSupplierById(supplierId, param);
-      _onEditSupplier(result);
+      final updated = await supplierRepo.updateSupplierById(supplierId, param);
+      _state.value = _state.value.copyWith(loading: false, updated: updated);
     } on Exception catch (e) {
-      _onError(toFailure(e));
+      _state.value = _state.value.copyWith(loading: false, error: toFailure(e).getMessage());
     }
   }
 
-  removeSupplierById(String supplierId) async {
-    _onLoading();
+  Future<void> removeSupplierById(String supplierId) async {
+    _state.value = _state.value.copyWith(loading: true, clearError: true, clearRemoved: true);
     try {
-      final result = await supplierRepo.removeSupplierById(supplierId);
-      _onRemoveSupplier(result);
+      final removed = await supplierRepo.removeSupplierById(supplierId);
+      _state.value = _state.value.copyWith(loading: false, removed: removed);
     } on Exception catch (e) {
-      _onError(toFailure(e));
+      _state.value = _state.value.copyWith(loading: false, error: toFailure(e).getMessage());
     }
   }
 
-  _onLoading() {
-    _states.sink.add(LoadingState());
-  }
-
-  _onRemoveSupplier(Supplier data) {
-    if (!_states.isClosed) {
-      _states.sink.add(RemoveSupplierState(data: data));
+  void consumeError() {
+    if (_state.value.error != null) {
+      _state.value = _state.value.copyWith(clearError: true);
     }
   }
 
-  _onGetSupplier(Supplier data) {
-    if (!_states.isClosed) {
-      _states.sink.add(GetSupplierState(data: data));
+  void consumeUpdated() {
+    if (_state.value.updated != null) {
+      _state.value = _state.value.copyWith(clearUpdated: true);
     }
   }
 
-  _onEditSupplier(Supplier data) {
-    if (!_states.isClosed) {
-      _states.sink.add(UpdateSupplierState(data: data));
-    }
-  }
-
-  _onError(Failure failure) {
-    if (!_states.isClosed) {
-      _states.sink.add(ErrorState(message: failure.getMessage()));
-    }
-  }
-
-  dispose() {
-    _states.close();
+  void dispose() {
+    _state.dispose();
   }
 }

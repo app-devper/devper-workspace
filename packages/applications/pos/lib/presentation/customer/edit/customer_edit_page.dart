@@ -13,7 +13,6 @@ import 'package:pos/domain/model/customer/customer.dart';
 import 'package:pos/domain/model/customer/param.dart';
 import 'package:pos/presentation/constants.dart';
 import 'package:pos/presentation/core/core_widget.dart';
-import 'package:pos/presentation/customer/edit/customer_edit_state.dart';
 import 'package:pos/presentation/customer/edit/customer_edit_view_model.dart';
 
 class CustomerEditPage extends StatefulWidget {
@@ -52,30 +51,42 @@ class _CustomerEditPageState extends State<CustomerEditPage> {
   ItemType? _customer = customerTypes.first;
   final List<ItemType> _customers = customerTypes;
 
+  bool _loadingShown = false;
+
   @override
   void initState() {
     super.initState();
     _viewModel = sl<CustomerEditViewModel>();
-    _viewModel.states.listen((state) {
-      if (state is ErrorState) {
-        hideLoadingDialog(context);
-        showAlertDialog(context, state.message, () {});
-      } else if (state is LoadingState) {
-        showLoadingDialog(context);
-      } else if (state is UpdateCustomerState) {
-        hideLoadingDialog(context);
-        widget.onEdit();
-      } else if (state is RemoveCustomerState) {
-        hideLoadingDialog(context);
-        widget.onRemove();
-      }
-    });
-
+    _viewModel.state.addListener(_onStateChanged);
     _setupData(widget.customer);
+  }
+
+  void _onStateChanged() {
+    final state = _viewModel.state.value;
+    if (state.loading && !_loadingShown) {
+      _loadingShown = true;
+      showLoadingDialog(context);
+    } else if (!state.loading && _loadingShown) {
+      _loadingShown = false;
+      hideLoadingDialog(context);
+    }
+    if (state.error != null) {
+      showAlertDialog(context, state.error!, () {});
+      _viewModel.consumeError();
+    }
+    if (state.updated != null) {
+      _viewModel.consumeUpdated();
+      widget.onEdit();
+    }
+    if (state.removed != null) {
+      _viewModel.consumeRemoved();
+      widget.onRemove();
+    }
   }
 
   @override
   void dispose() {
+    _viewModel.state.removeListener(_onStateChanged);
     _nameNode.dispose();
     _addressNode.dispose();
     _phoneNode.dispose();

@@ -11,7 +11,6 @@ import 'package:pos/container.dart';
 import 'package:pos/domain/model/core/core.dart';
 import 'package:pos/domain/model/customer/param.dart';
 import 'package:pos/presentation/core/core_widget.dart';
-import 'package:pos/presentation/customer/add/customer_add_state.dart';
 import 'package:pos/presentation/customer/add/customer_add_view_model.dart';
 
 class CustomerAddPage extends StatefulWidget {
@@ -46,25 +45,37 @@ class _CustomerAddPageState extends State<CustomerAddPage> {
   ItemType? _customer = customerTypes.first;
   final List<ItemType> _customers = customerTypes;
 
+  bool _loadingShown = false;
+
   @override
   void initState() {
     super.initState();
     _viewModel = sl<CustomerAddViewModel>();
-    _viewModel.states.listen((state) {
-      if (state is ErrorState) {
-        hideLoadingDialog(context);
-        showAlertDialog(context, state.message, () {});
-      } else if (state is LoadingState) {
-        showLoadingDialog(context);
-      } else if (state is CreateCustomerState) {
-        hideLoadingDialog(context);
-        widget.onAdd();
-      }
-    });
+    _viewModel.state.addListener(_onStateChanged);
+  }
+
+  void _onStateChanged() {
+    final state = _viewModel.state.value;
+    if (state.saving && !_loadingShown) {
+      _loadingShown = true;
+      showLoadingDialog(context);
+    } else if (!state.saving && _loadingShown) {
+      _loadingShown = false;
+      hideLoadingDialog(context);
+    }
+    if (state.error != null) {
+      showAlertDialog(context, state.error!, () {});
+      _viewModel.consumeError();
+    }
+    if (state.created != null) {
+      _viewModel.consumeCreated();
+      widget.onAdd();
+    }
   }
 
   @override
   void dispose() {
+    _viewModel.state.removeListener(_onStateChanged);
     _nameNode.dispose();
     _addressNode.dispose();
     _phoneNode.dispose();

@@ -12,7 +12,6 @@ import 'package:pos/container.dart';
 import 'package:pos/domain/model/supplier/param.dart';
 import 'package:pos/localizations/language/languages.dart';
 import 'package:pos/presentation/constants.dart';
-import 'package:pos/presentation/supplier/info/supplier_info_state.dart';
 import 'package:pos/presentation/supplier/info/supplier_info_view_model.dart';
 
 class SupplierInfoPage extends StatefulWidget {
@@ -39,41 +38,48 @@ class _SupplierInfoPageState extends State<SupplierInfoPage> {
   late CustomSnackBar _snackBar;
   late SupplierInfoViewModel _viewModel;
 
+  bool _loadingShown = false;
+  bool _infoLoaded = false;
+
   @override
   void initState() {
     super.initState();
     _viewModel = sl<SupplierInfoViewModel>();
-    _viewModel.states.listen((state) {
-      if (state is ErrorState) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _snackBar.hideAll();
-          _snackBar.showErrorSnackBar(state.message);
-        });
-        hideLoadingDialog(context);
-      } else if (state is LoadingState) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _snackBar.hideAll();
-        });
-        showLoadingDialog(context);
-      } else if (state is UpdateSupplierState) {
-        hideLoadingDialog(context);
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _snackBar.hideAll();
-          _snackBar.showSnackBar(text: "Update ${state.data.name} success");
-        });
-      } else if (state is GetSupplierState) {
-        _nameEditingController.text = state.data.name;
-        _addressEditingController.text = state.data.address;
-        _phoneEditingController.text = state.data.phone;
-        _taxIdEditingController.text = state.data.taxId;
-      }
-    });
-
+    _viewModel.state.addListener(_onStateChanged);
     _viewModel.getSupplierInfo();
+  }
+
+  void _onStateChanged() {
+    final state = _viewModel.state.value;
+    if (state.supplier != null && !_infoLoaded) {
+      _infoLoaded = true;
+      _nameEditingController.text = state.supplier!.name;
+      _addressEditingController.text = state.supplier!.address;
+      _phoneEditingController.text = state.supplier!.phone;
+      _taxIdEditingController.text = state.supplier!.taxId;
+    }
+    if (state.saving && !_loadingShown) {
+      _loadingShown = true;
+      showLoadingDialog(context);
+    } else if (!state.saving && _loadingShown) {
+      _loadingShown = false;
+      hideLoadingDialog(context);
+    }
+    if (state.error != null) {
+      _snackBar.hideAll();
+      _snackBar.showErrorSnackBar(state.error!);
+      _viewModel.consumeError();
+    }
+    if (state.updated != null) {
+      _snackBar.hideAll();
+      _snackBar.showSnackBar(text: "Update ${state.updated!.name} success");
+      _viewModel.consumeUpdated();
+    }
   }
 
   @override
   void dispose() {
+    _viewModel.state.removeListener(_onStateChanged);
     _viewNode.dispose();
     _nameNode.dispose();
     _addressNode.dispose();

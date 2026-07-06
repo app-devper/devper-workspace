@@ -1,18 +1,32 @@
+// Flutter imports:
+import 'package:flutter/foundation.dart';
+
 // Project imports:
 import 'package:pos/domain/model/customer/customer.dart';
 
-abstract class CustomerAddState {}
+@immutable
+class CustomerAddState {
+  final bool saving;
+  final String? error;
+  final Customer? created;
 
-class LoadingState extends CustomerAddState {}
+  const CustomerAddState({
+    this.saving = false,
+    this.error,
+    this.created,
+  });
 
-class CreateCustomerState extends CustomerAddState {
-  final Customer data;
-
-  CreateCustomerState({required this.data});
-}
-
-class ErrorState extends CustomerAddState {
-  final String message;
-
-  ErrorState({required this.message});
+  CustomerAddState copyWith({
+    bool? saving,
+    String? error,
+    Customer? created,
+    bool clearError = false,
+    bool clearCreated = false,
+  }) {
+    return CustomerAddState(
+      saving: saving ?? this.saving,
+      error: clearError ? null : (error ?? this.error),
+      created: clearCreated ? null : (created ?? this.created),
+    );
+  }
 }

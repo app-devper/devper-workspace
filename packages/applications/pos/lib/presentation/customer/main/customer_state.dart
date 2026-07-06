@@ -1,19 +1,32 @@
+// Flutter imports:
+import 'package:flutter/foundation.dart';
+
 // Project imports:
 import 'package:pos/domain/model/customer/customer.dart';
 
-abstract class CustomerState {
-}
+@immutable
+class CustomerState {
+  final bool loading;
+  final String? error;
+  final Customer? loaded;
 
-class LoadingState extends CustomerState {}
+  const CustomerState({
+    this.loading = false,
+    this.error,
+    this.loaded,
+  });
 
-class GetCustomerState extends CustomerState {
-  final Customer data;
-
-  GetCustomerState({required this.data});
-}
-
-class ErrorState extends CustomerState {
-  final String message;
-
-  ErrorState({required this.message});
+  CustomerState copyWith({
+    bool? loading,
+    String? error,
+    Customer? loaded,
+    bool clearError = false,
+    bool clearLoaded = false,
+  }) {
+    return CustomerState(
+      loading: loading ?? this.loading,
+      error: clearError ? null : (error ?? this.error),
+      loaded: clearLoaded ? null : (loaded ?? this.loaded),
+    );
+  }
 }

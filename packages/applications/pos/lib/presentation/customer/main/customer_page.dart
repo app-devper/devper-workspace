@@ -11,7 +11,6 @@ import 'package:pos/presentation/customer/add/customer_add_page.dart';
 import 'package:pos/presentation/customer/edit/customer_edit_page.dart';
 import 'package:pos/presentation/customer/main/customer_detail_widget.dart';
 import 'package:pos/presentation/customer/main/customer_menu_widget.dart';
-import 'package:pos/presentation/customer/main/customer_state.dart';
 import 'package:pos/presentation/customer/main/customer_view_model.dart';
 import 'package:pos/presentation/customer/main/customers_widget.dart';
 
@@ -32,17 +31,22 @@ class _CustomerPageState extends State<CustomerPage> {
   void initState() {
     super.initState();
     _viewModel = sl<CustomerViewModel>();
-    _viewModel.states.listen((state) {
-      if (state is GetCustomerState) {
-        setState(() {
-          _pageState = InfoPage(data: state.data);
-        });
-      }
-    });
+    _viewModel.state.addListener(_onStateChanged);
+  }
+
+  void _onStateChanged() {
+    final loaded = _viewModel.state.value.loaded;
+    if (loaded != null) {
+      setState(() {
+        _pageState = InfoPage(data: loaded);
+      });
+      _viewModel.consumeLoaded();
+    }
   }
 
   @override
   void dispose() {
+    _viewModel.state.removeListener(_onStateChanged);
     _viewModel.dispose();
     super.dispose();
   }

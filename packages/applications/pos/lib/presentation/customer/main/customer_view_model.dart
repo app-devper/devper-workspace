@@ -1,11 +1,10 @@
-// Dart imports:
-import 'dart:async';
+// Flutter imports:
+import 'package:flutter/foundation.dart';
 
 // Package imports:
 import 'package:common/core/error/failure.dart';
 
 // Project imports:
-import 'package:pos/domain/model/customer/customer.dart';
 import 'package:pos/domain/repositories/customer_repository.dart';
 import 'package:pos/presentation/customer/main/customer_state.dart';
 
@@ -16,42 +15,33 @@ class CustomerViewModel {
     required this.customerRepo,
   });
 
-  final _states = StreamController<CustomerState>();
+  final _state = ValueNotifier<CustomerState>(const CustomerState());
 
-  Stream<CustomerState> get states => _states.stream;
+  ValueListenable<CustomerState> get state => _state;
 
-  final _customers = StreamController<List<Customer>>();
-
-  Stream<List<Customer>> get customers => _customers.stream;
-
-  void getCustomerById(String id) async {
-    _onLoading();
+  Future<void> getCustomerById(String id) async {
+    _state.value = _state.value.copyWith(loading: true, clearError: true, clearLoaded: true);
     try {
-      final result = await customerRepo.getCustomerById(id);
-      _onGetCustomer(result);
+      final loaded = await customerRepo.getCustomerById(id);
+      _state.value = _state.value.copyWith(loading: false, loaded: loaded);
     } on Exception catch (e) {
-      _onError(toFailure(e));
+      _state.value = _state.value.copyWith(loading: false, error: toFailure(e).getMessage());
     }
   }
 
-  _onLoading() {
-    _states.sink.add(LoadingState());
-  }
-
-  void _onGetCustomer(Customer data) {
-    if (!_states.isClosed) {
-      _states.sink.add(GetCustomerState(data: data));
+  void consumeError() {
+    if (_state.value.error != null) {
+      _state.value = _state.value.copyWith(clearError: true);
     }
   }
 
-  _onError(Failure failure) {
-    if (!_states.isClosed) {
-      _states.sink.add(ErrorState(message: failure.getMessage()));
+  void consumeLoaded() {
+    if (_state.value.loaded != null) {
+      _state.value = _state.value.copyWith(clearLoaded: true);
     }
   }
 
-  dispose() {
-    _states.close();
-    _customers.close();
+  void dispose() {
+    _state.dispose();
   }
 }

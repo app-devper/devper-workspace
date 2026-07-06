@@ -8,6 +8,7 @@ import 'package:common/core/widgets/responsive.dart';
 import 'package:pos/container.dart';
 import 'package:pos/domain/model/customer/customer.dart';
 import 'package:pos/localizations/language/languages.dart';
+import 'package:pos/presentation/customer/main/customers_state.dart';
 import 'package:pos/presentation/customer/main/customers_view_model.dart';
 import 'package:pos/presentation/theme.dart';
 
@@ -111,13 +112,10 @@ class _CustomersWidgetState extends State<CustomersWidget> {
   }
 
   _buildCustomerList() {
-    return StreamBuilder(
-      stream: _viewModel.customers,
-      builder: (BuildContext context, AsyncSnapshot<List<Customer>> snapshot) {
-        if (snapshot.hasData) {
-          var data = snapshot.data ?? [];
-          return _buildCustomer(data);
-        } else {
+    return ValueListenableBuilder<CustomersState>(
+      valueListenable: _viewModel.state,
+      builder: (BuildContext context, CustomersState state, _) {
+        if (state.loading && state.items.isEmpty) {
           return const Expanded(
             child: Center(
               child: CircularProgressIndicator(
@@ -128,6 +126,7 @@ class _CustomersWidgetState extends State<CustomersWidget> {
             ),
           );
         }
+        return _buildCustomer(state.items);
       },
     );
   }
