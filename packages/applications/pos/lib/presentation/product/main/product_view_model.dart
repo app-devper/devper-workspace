@@ -3,7 +3,6 @@ import 'dart:async';
 
 // Package imports:
 import 'package:common/core/error/failure.dart';
-import 'package:http/http.dart' as http;
 
 // Project imports:
 import 'package:pos/domain/model/product/product.dart';
@@ -43,10 +42,10 @@ class ProductViewModel {
     } on Exception catch (_) {}
   }
 
-  void importCSV(http.MultipartFile file) async {
+  void importCSV({required List<int> bytes, required String filename}) async {
     _onLoading();
     try {
-      final result = await productRepo.importProductCSV(file);
+      final result = await productRepo.importProductCSV(bytes: bytes, filename: filename);
       _onImportCSV(result);
     } on Exception catch (e) {
       _onError(toFailure(e));
