@@ -1,20 +1,32 @@
+// Flutter imports:
+import 'package:flutter/foundation.dart' hide Category;
+
 // Project imports:
 import 'package:pos/domain/model/category/category.dart';
 
-abstract class CategoryAddState {
-  CategoryAddState();
-}
+@immutable
+class CategoryAddState {
+  final bool saving;
+  final String? error;
+  final Category? created;
 
-class LoadingState extends CategoryAddState {}
+  const CategoryAddState({
+    this.saving = false,
+    this.error,
+    this.created,
+  });
 
-class CreateCategoryState extends CategoryAddState {
-  final Category data;
-
-  CreateCategoryState({required this.data});
-}
-
-class ErrorState extends CategoryAddState {
-  final String message;
-
-  ErrorState({required this.message});
+  CategoryAddState copyWith({
+    bool? saving,
+    String? error,
+    Category? created,
+    bool clearError = false,
+    bool clearCreated = false,
+  }) {
+    return CategoryAddState(
+      saving: saving ?? this.saving,
+      error: clearError ? null : (error ?? this.error),
+      created: clearCreated ? null : (created ?? this.created),
+    );
+  }
 }
