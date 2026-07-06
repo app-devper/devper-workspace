@@ -32,25 +32,24 @@ class _SuppliersPageState extends State<SuppliersPage> {
   void initState() {
     super.initState();
     _viewModel = sl<SuppliersViewModel>();
-    _viewModel.states.listen((state) {
-      if (state is ErrorState) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _snackBar.hideAll();
-          _snackBar.showErrorSnackBar(state.message);
-        });
-      } else if (state is LoadingState) {
-      } else if (state is ListSupplierState) {
-        _viewModel.setSuppliers(state.data);
-      }
-    });
-
+    _viewModel.state.addListener(_onStateChanged);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _viewModel.getSuppliers();
     });
   }
 
+  void _onStateChanged() {
+    final error = _viewModel.state.value.error;
+    if (error != null) {
+      _snackBar.hideAll();
+      _snackBar.showErrorSnackBar(error);
+      _viewModel.consumeError();
+    }
+  }
+
   @override
   void dispose() {
+    _viewModel.state.removeListener(_onStateChanged);
     _viewModel.dispose();
     super.dispose();
   }
@@ -94,13 +93,10 @@ class _SuppliersPageState extends State<SuppliersPage> {
   }
 
   _buildSupplierList() {
-    return StreamBuilder(
-      stream: _viewModel.suppliers,
-      builder: (BuildContext context, AsyncSnapshot<List<Supplier>> snapshot) {
-        if (snapshot.hasData) {
-          var data = snapshot.data ?? [];
-          return _buildCustomer(data);
-        } else {
+    return ValueListenableBuilder<SuppliersState>(
+      valueListenable: _viewModel.state,
+      builder: (BuildContext context, SuppliersState state, _) {
+        if (state.loading && state.items.isEmpty) {
           return const Expanded(
             child: Center(
               child: CircularProgressIndicator(
@@ -111,6 +107,7 @@ class _SuppliersPageState extends State<SuppliersPage> {
             ),
           );
         }
+        return _buildCustomer(state.items);
       },
     );
   }

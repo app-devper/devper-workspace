@@ -2,27 +2,27 @@
 import 'package:flutter/foundation.dart';
 
 // Project imports:
-import 'package:pos/domain/model/supplier/supplier.dart';
+import 'package:pos/domain/model/customer/customer.dart';
 
 @immutable
-class SuppliersState {
-  final List<Supplier> items;
+class CustomersState {
+  final List<Customer> items;
   final bool loading;
   final String? error;
 
-  const SuppliersState({
+  const CustomersState({
     this.items = const [],
     this.loading = false,
     this.error,
   });
 
-  SuppliersState copyWith({
-    List<Supplier>? items,
+  CustomersState copyWith({
+    List<Customer>? items,
     bool? loading,
     String? error,
     bool clearError = false,
   }) {
-    return SuppliersState(
+    return CustomersState(
       items: items ?? this.items,
       loading: loading ?? this.loading,
       error: clearError ? null : (error ?? this.error),

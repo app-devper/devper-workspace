@@ -1,12 +1,11 @@
-// Dart imports:
-import 'dart:async';
+// Flutter imports:
+import 'package:flutter/foundation.dart';
 
 // Package imports:
 import 'package:common/core/error/failure.dart';
 
 // Project imports:
 import 'package:pos/domain/model/supplier/param.dart';
-import 'package:pos/domain/model/supplier/supplier.dart';
 import 'package:pos/domain/repositories/supplier_repository.dart';
 import 'package:pos/presentation/supplier/add/supplier_add_state.dart';
 
@@ -17,37 +16,33 @@ class SupplierAddViewModel {
     required this.supplierRepo,
   });
 
-  final _states = StreamController<SupplierAddState>();
+  final _state = ValueNotifier<SupplierAddState>(const SupplierAddState());
 
-  Stream<SupplierAddState> get states => _states.stream;
+  ValueListenable<SupplierAddState> get state => _state;
 
-  void createSupplier(SupplierParam param) async {
-    _onLoading();
+  Future<void> createSupplier(SupplierParam param) async {
+    _state.value = _state.value.copyWith(saving: true, clearError: true, clearCreated: true);
     try {
-      final result = await supplierRepo.createSupplier(param);
-      _onCreateSupplier(result);
+      final created = await supplierRepo.createSupplier(param);
+      _state.value = _state.value.copyWith(saving: false, created: created);
     } on Exception catch (e) {
-      _onError(toFailure(e));
+      _state.value = _state.value.copyWith(saving: false, error: toFailure(e).getMessage());
     }
   }
 
-  _onLoading() {
-    _states.sink.add(LoadingState());
-  }
-
-  _onCreateSupplier(Supplier data) {
-    if (!_states.isClosed) {
-      _states.sink.add(CreateSupplierState(data: data));
+  void consumeError() {
+    if (_state.value.error != null) {
+      _state.value = _state.value.copyWith(clearError: true);
     }
   }
 
-  _onError(Failure failure) {
-    if (!_states.isClosed) {
-      _states.sink.add(ErrorState(message: failure.getMessage()));
+  void consumeCreated() {
+    if (_state.value.created != null) {
+      _state.value = _state.value.copyWith(clearCreated: true);
     }
   }
 
-  dispose() {
-    _states.close();
+  void dispose() {
+    _state.dispose();
   }
 }

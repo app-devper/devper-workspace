@@ -1,12 +1,12 @@
-// Dart imports:
-import 'dart:async';
+// Flutter imports:
+import 'package:flutter/foundation.dart';
 
 // Package imports:
 import 'package:common/core/error/failure.dart';
 
 // Project imports:
-import 'package:pos/domain/model/customer/customer.dart';
 import 'package:pos/domain/repositories/customer_repository.dart';
+import 'package:pos/presentation/customer/main/customers_state.dart';
 
 class CustomersViewModel {
   final CustomerRepository customerRepo;
@@ -15,32 +15,27 @@ class CustomersViewModel {
     required this.customerRepo,
   });
 
-  final _customers = StreamController<List<Customer>>();
+  final _state = ValueNotifier<CustomersState>(const CustomersState());
 
-  Stream<List<Customer>> get customers => _customers.stream;
+  ValueListenable<CustomersState> get state => _state;
 
-  void getCustomers() async {
+  Future<void> getCustomers() async {
+    _state.value = _state.value.copyWith(loading: true, clearError: true);
     try {
-      final result = await customerRepo.getLocalCustomers();
-      _onListCustomers(result);
+      final items = await customerRepo.getLocalCustomers();
+      _state.value = _state.value.copyWith(loading: false, items: items);
     } on Exception catch (e) {
-      _onError(toFailure(e));
+      _state.value = _state.value.copyWith(loading: false, error: toFailure(e).getMessage());
     }
   }
 
-  _onListCustomers(List<Customer> data) {
-    if (!_customers.isClosed) {
-      _customers.sink.add(data);
+  void consumeError() {
+    if (_state.value.error != null) {
+      _state.value = _state.value.copyWith(clearError: true);
     }
   }
 
-  _onError(Failure failure) {
-    if (!_customers.isClosed) {
-      _customers.sink.addError(failure.getMessage());
-    }
-  }
-
-  dispose() {
-    _customers.close();
+  void dispose() {
+    _state.dispose();
   }
 }
