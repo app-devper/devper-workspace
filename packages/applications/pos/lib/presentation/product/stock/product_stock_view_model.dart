@@ -1,5 +1,5 @@
-// Dart imports:
-import 'dart:async';
+// Flutter imports:
+import 'package:flutter/foundation.dart';
 
 // Package imports:
 import 'package:common/core/error/failure.dart';
@@ -17,85 +17,55 @@ class ProductStockViewModel {
     required this.productRepo,
   });
 
-  final _states = StreamController<ProductStockState>();
+  final _state = ValueNotifier<ProductStockState>(const ProductStockState());
 
-  Stream<ProductStockState> get states => _states.stream;
+  ValueListenable<ProductStockState> get state => _state;
 
-  void addProductStock(ProductStockParam param) async {
-    _onLoading();
+  Future<void> addProductStock(ProductStockParam param) async {
+    await _run(() => productRepo.addProductStock(param));
+  }
+
+  Future<void> updateProductStockById(String id, ProductStockParam param) async {
+    await _run(() => productRepo.updateProductStockById(id, param));
+  }
+
+  Future<void> removeProductStockById(String id) async {
+    await _run(() => productRepo.removeProductStockById(id));
+  }
+
+  Future<void> getProductStocks(String productId) async {
+    _state.value = _state.value.copyWith(loading: true, clearError: true);
     try {
-      final result = await productRepo.addProductStock(param);
-      _onAddProductStock(result);
+      final items = await productRepo.getProductStocksByProductId(productId);
+      _state.value = _state.value.copyWith(loading: false, items: items);
     } on Exception catch (e) {
-      _onError(toFailure(e));
+      _state.value = _state.value.copyWith(loading: false, error: toFailure(e).getMessage());
     }
   }
 
-  void updateProductStockById(String id, ProductStockParam param) async {
-    _onLoading();
+  Future<void> _run(Future<ProductStock> Function() action) async {
+    _state.value = _state.value.copyWith(loading: true, clearError: true, clearCompleted: true);
     try {
-      final result = await productRepo.updateProductStockById(id, param);
-      _onUpdateProductStock(result);
+      final completed = await action();
+      _state.value = _state.value.copyWith(loading: false, completed: completed);
     } on Exception catch (e) {
-      _onError(toFailure(e));
+      _state.value = _state.value.copyWith(loading: false, error: toFailure(e).getMessage());
     }
   }
 
-  void removeProductStockById(String id) async {
-    _onLoading();
-    try {
-      final result = await productRepo.removeProductStockById(id);
-      _onRemoveProductStock(result);
-    } on Exception catch (e) {
-      _onError(toFailure(e));
+  void consumeError() {
+    if (_state.value.error != null) {
+      _state.value = _state.value.copyWith(clearError: true);
     }
   }
 
-  void getProductStocks(String productId) async {
-    _onLoading();
-    try {
-      final result = await productRepo.getProductStocksByProductId(productId);
-      _onGetProductStocks(result);
-    } on Exception catch (e) {
-      _onError(toFailure(e));
+  void consumeCompleted() {
+    if (_state.value.completed != null) {
+      _state.value = _state.value.copyWith(clearCompleted: true);
     }
   }
 
-  _onLoading() {
-    _states.sink.add(LoadingState());
-  }
-
-  _onAddProductStock(ProductStock data) {
-    if (!_states.isClosed) {
-      _states.sink.add(AddProductStockState(data: data));
-    }
-  }
-
-  _onUpdateProductStock(ProductStock data) {
-    if (!_states.isClosed) {
-      _states.sink.add(UpdateProductStockState(data: data));
-    }
-  }
-
-  _onRemoveProductStock(ProductStock data) {
-    if (!_states.isClosed) {
-      _states.sink.add(RemoveProductStockState(data: data));
-    }
-  }
-
-  _onGetProductStocks(List<ProductStock> data) {
-    if (!_states.isClosed) {
-      _states.sink.add(GetProductStocksState(data: data));
-    }
-  }
-
-  _onError(Failure failure) {
-    if (!_states.isClosed) {
-      _states.sink.add(ErrorState(message: failure.getMessage()));
-    }
-  }
-
-  dispose() {
-    _states.close();
+  void dispose() {
+    _state.dispose();
   }
 }

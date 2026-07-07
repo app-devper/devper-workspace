@@ -1,22 +1,40 @@
+// Flutter imports:
+import 'package:flutter/foundation.dart';
+
 // Project imports:
 import 'package:pos/domain/model/product/product_lot.dart';
+import 'package:pos/presentation/product/expired/products_expire_ui_model.dart';
 
-abstract class ProductsExpiredState {}
-
-class LoadingState extends ProductsExpiredState {}
-
-class ListExpiresState extends ProductsExpiredState {
-  final List<ProductLot> data;
+@immutable
+class ProductsExpiredState {
+  final List<ProductLot> items;
   final double totalCost;
+  final List<ListItem> ranges;
+  final bool loading;
+  final String? error;
 
-  ListExpiresState({
-    required this.data,
-    required this.totalCost,
+  const ProductsExpiredState({
+    this.items = const [],
+    this.totalCost = 0,
+    this.ranges = const [],
+    this.loading = false,
+    this.error,
   });
-}
 
-class ErrorState extends ProductsExpiredState {
-  final String message;
-
-  ErrorState({required this.message});
+  ProductsExpiredState copyWith({
+    List<ProductLot>? items,
+    double? totalCost,
+    List<ListItem>? ranges,
+    bool? loading,
+    String? error,
+    bool clearError = false,
+  }) {
+    return ProductsExpiredState(
+      items: items ?? this.items,
+      totalCost: totalCost ?? this.totalCost,
+      ranges: ranges ?? this.ranges,
+      loading: loading ?? this.loading,
+      error: clearError ? null : (error ?? this.error),
+    );
+  }
 }

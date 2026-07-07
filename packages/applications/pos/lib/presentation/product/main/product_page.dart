@@ -14,7 +14,6 @@ import 'package:pos/presentation/product/add/product_add_page.dart';
 import 'package:pos/presentation/product/edit/product_edit_page.dart';
 import 'package:pos/presentation/product/main/product_detail_widget.dart';
 import 'package:pos/presentation/product/main/product_menu_widget.dart';
-import 'package:pos/presentation/product/main/product_state.dart';
 import 'package:pos/presentation/product/main/product_view_model.dart';
 import 'package:pos/presentation/product/main/products_widget.dart';
 
@@ -37,41 +36,48 @@ class _ProductsPageState extends State<ProductsPage> {
   @override
   void initState() {
     _viewModel = sl<ProductViewModel>();
-    _viewModel.states.listen((state) {
-      if (state is ProductInfoState) {
-        setState(() {
-          _pageState = InfoPage(data: state.data);
-        });
-      } else if (state is ImportCSVState) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                'นำเข้าสำเร็จ ${state.data.success} รายการ, ล้มเหลว ${state.data.failed} รายการ',
-              ),
-            ),
-          );
-        }
-      } else if (state is ClearSoldFirstState) {
-        setState(() {
-          _pageState = InfoPage(data: state.data);
-        });
-      } else if (state is ErrorState) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.message),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
-      }
-    });
+    _viewModel.state.addListener(_onStateChanged);
     super.initState();
+  }
+
+  void _onStateChanged() {
+    if (!mounted) {
+      return;
+    }
+    final state = _viewModel.state.value;
+    if (state.loaded != null) {
+      final data = state.loaded!;
+      _viewModel.consumeLoaded();
+      setState(() {
+        _pageState = InfoPage(data: data);
+      });
+    }
+    if (state.importResult != null) {
+      final result = state.importResult!;
+      _viewModel.consumeImportResult();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'นำเข้าสำเร็จ ${result.success} รายการ, ล้มเหลว ${result.failed} รายการ',
+          ),
+        ),
+      );
+    }
+    if (state.error != null) {
+      final message = state.error!;
+      _viewModel.consumeError();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   @override
   void dispose() {
+    _viewModel.state.removeListener(_onStateChanged);
     _viewModel.dispose();
     super.dispose();
   }

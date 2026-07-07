@@ -1,13 +1,11 @@
-// Dart imports:
-import 'dart:async';
+// Flutter imports:
+import 'package:flutter/foundation.dart';
 
 // Package imports:
 import 'package:common/core/error/failure.dart';
 
 // Project imports:
-import 'package:pos/domain/model/category/category.dart';
 import 'package:pos/domain/model/product/param.dart';
-import 'package:pos/domain/model/product/product.dart';
 import 'package:pos/domain/repositories/category_repository.dart';
 import 'package:pos/domain/repositories/product_repository.dart';
 import 'package:pos/presentation/product/edit/product_edit_state.dart';
@@ -21,86 +19,81 @@ class ProductEditViewModel {
     required this.categoryRepo,
   });
 
-  final _states = StreamController<ProductEditState>();
+  final _state = ValueNotifier<ProductEditState>(const ProductEditState());
 
-  Stream<ProductEditState> get states => _states.stream;
+  ValueListenable<ProductEditState> get state => _state;
 
-  void getProductById(String productId) async {
+  Future<void> getProductById(String productId) async {
     try {
-      final result = await productRepo.getLocalProductById(productId);
+      final loaded = await productRepo.getLocalProductById(productId);
       final categories = await categoryRepo.getLocalCategories();
-      _onGetProduct(result!, categories);
-    } on Exception {}
+      if (loaded != null) {
+        _state.value = _state.value.copyWith(loaded: loaded, categories: categories);
+      }
+    } on Exception catch (_) {}
   }
 
-  void updateProductById(String productId, ProductParam param) async {
-    _onLoading();
+  Future<void> updateProductById(String productId, ProductParam param) async {
+    _state.value = _state.value.copyWith(loading: true, clearError: true, clearUpdated: true);
     try {
-      final result = await productRepo.updateProductById(productId, param);
-      _onEditProduct(result);
+      final updated = await productRepo.updateProductById(productId, param);
+      _state.value = _state.value.copyWith(loading: false, updated: updated);
     } on Exception catch (e) {
-      _onError(toFailure(e));
+      _state.value = _state.value.copyWith(loading: false, error: toFailure(e).getMessage());
     }
   }
 
-  void removeProductById(String productId) async {
-    _onLoading();
+  Future<void> removeProductById(String productId) async {
+    _state.value = _state.value.copyWith(loading: true, clearError: true, clearRemoved: true);
     try {
-      final result = await productRepo.removeProductById(productId);
-      _onRemoveProduct(result);
+      final removed = await productRepo.removeProductById(productId);
+      _state.value = _state.value.copyWith(loading: false, removed: removed);
     } on Exception catch (e) {
-      _onError(toFailure(e));
+      _state.value = _state.value.copyWith(loading: false, error: toFailure(e).getMessage());
     }
   }
 
-  void generateSerialNumber() async {
-    _onLoading();
+  Future<void> generateSerialNumber() async {
+    _state.value = _state.value.copyWith(loading: true, clearError: true, clearSerialNumber: true);
     try {
-      final result = await productRepo.generateSerialNumber();
-      _onGenerateSerialNumberSuccess(result);
+      final serialNumber = await productRepo.generateSerialNumber();
+      _state.value = _state.value.copyWith(loading: false, serialNumber: serialNumber);
     } on Exception catch (e) {
-      _onError(toFailure(e));
+      _state.value = _state.value.copyWith(loading: false, error: toFailure(e).getMessage());
     }
   }
 
-  _onLoading() {
-    _states.sink.add(LoadingState());
-  }
-
-  _onRemoveProduct(Product data) {
-    if (!_states.isClosed) {
-      _states.sink.add(RemoveProductState(data: data));
+  void consumeError() {
+    if (_state.value.error != null) {
+      _state.value = _state.value.copyWith(clearError: true);
     }
   }
 
-  _onGetProduct(Product data, List<Category> categories) {
-    if (!_states.isClosed) {
-      _states.sink.add(GetProductState(
-        data: data,
-        categories: categories,
-      ));
+  void consumeLoaded() {
+    if (_state.value.loaded != null) {
+      _state.value = _state.value.copyWith(clearLoaded: true);
     }
   }
 
-  _onEditProduct(Product data) {
-    if (!_states.isClosed) {
-      _states.sink.add(UpdateProductState(data: data));
+  void consumeUpdated() {
+    if (_state.value.updated != null) {
+      _state.value = _state.value.copyWith(clearUpdated: true);
     }
   }
 
-  _onGenerateSerialNumberSuccess(String serialNumber) {
-    if (!_states.isClosed) {
-      _states.sink.add(GetSerialNumberState(serialNumber: serialNumber));
+  void consumeRemoved() {
+    if (_state.value.removed != null) {
+      _state.value = _state.value.copyWith(clearRemoved: true);
     }
   }
 
-  _onError(Failure failure) {
-    if (!_states.isClosed) {
-      _states.sink.add(ErrorState(message: failure.getMessage()));
+  void consumeSerialNumber() {
+    if (_state.value.serialNumber != null) {
+      _state.value = _state.value.copyWith(clearSerialNumber: true);
     }
   }
 
-  dispose() {
-    _states.close();
+  void dispose() {
+    _state.dispose();
   }
 }

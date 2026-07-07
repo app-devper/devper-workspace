@@ -11,7 +11,6 @@ import 'package:pos/domain/model/core/core.dart';
 import 'package:pos/domain/model/product/param.dart';
 import 'package:pos/domain/model/product/product.dart';
 import 'package:pos/presentation/core/core_widget.dart';
-import 'package:pos/presentation/product/price/product_price_state.dart';
 import 'package:pos/presentation/product/price/product_price_view_model.dart';
 
 class ProductPriceWidget extends StatefulWidget {
@@ -41,29 +40,34 @@ class _ProductPriceWidgetState extends State<ProductPriceWidget> {
 
   late ProductPriceViewModel _viewModel;
 
+  bool _loadingShown = false;
+
+  void _onStateChanged() {
+    final state = _viewModel.state.value;
+    if (state.loading && !_loadingShown) {
+      _loadingShown = true;
+      showLoadingDialog(context);
+    } else if (!state.loading && _loadingShown) {
+      _loadingShown = false;
+      hideLoadingDialog(context);
+    }
+    if (state.error != null) {
+      final message = state.error!;
+      _viewModel.consumeError();
+      showAlertDialog(context, message, () {});
+    }
+    if (state.completed != null) {
+      final data = state.completed!;
+      _viewModel.consumeCompleted();
+      Navigator.of(context).pop();
+      widget.onComplete(data);
+    }
+  }
+
   @override
   void initState() {
     _viewModel = sl<ProductPriceViewModel>();
-    _viewModel.states.listen((event) {
-      if (event is LoadingState) {
-        showLoadingDialog(context);
-      } else if (event is ErrorState) {
-        hideLoadingDialog(context);
-        showAlertDialog(context, event.message, () {});
-      } else if (event is AddProductPriceState) {
-        hideLoadingDialog(context);
-        Navigator.of(context).pop();
-        widget.onComplete(event.data);
-      } else if (event is UpdateProductPriceState) {
-        hideLoadingDialog(context);
-        Navigator.of(context).pop();
-        widget.onComplete(event.data);
-      } else if (event is RemoveProductPriceState) {
-        hideLoadingDialog(context);
-        Navigator.of(context).pop();
-        widget.onComplete(event.data);
-      }
-    });
+    _viewModel.state.addListener(_onStateChanged);
     if (widget.price != null) {
       _priceController.text = widget.price!.price.toString();
       setState(() {
@@ -75,6 +79,7 @@ class _ProductPriceWidgetState extends State<ProductPriceWidget> {
 
   @override
   void dispose() {
+    _viewModel.state.removeListener(_onStateChanged);
     _priceController.dispose();
     _priceFocus.dispose();
 

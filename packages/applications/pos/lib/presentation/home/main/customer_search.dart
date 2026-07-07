@@ -80,15 +80,10 @@ class _CustomerSearchState extends State<CustomerSearch> {
         ),
         const Divider(height: 1),
         Expanded(
-          child: StreamBuilder<List<Customer>>(
-            stream: _viewModel.customerItems,
-            builder: (context, snapshot) {
-              if (snapshot.hasError) {
-                return Center(
-                  child: Text('Error: ${snapshot.error}'),
-                );
-              }
-              if (!snapshot.hasData) {
+          child: ValueListenableBuilder<List<Customer>?>(
+            valueListenable: _viewModel.items,
+            builder: (context, items, _) {
+              if (items == null) {
                 return const Center(
                   child: CircularProgressIndicator(
                     strokeWidth: 6,
@@ -97,7 +92,6 @@ class _CustomerSearchState extends State<CustomerSearch> {
                   ),
                 );
               }
-              final items = snapshot.data!;
               return ListView.builder(
                 shrinkWrap: true,
                 itemBuilder: (context, i) => ListTile(

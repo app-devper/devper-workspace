@@ -13,7 +13,6 @@ import 'package:pos/domain/model/product/param.dart';
 import 'package:pos/domain/model/product/product.dart';
 import 'package:pos/domain/model/product/request_drug_info.dart';
 import 'package:pos/presentation/core/core_widget.dart';
-import 'product_edit_state.dart';
 import 'product_edit_view_model.dart';
 
 class ProductEditPage extends StatefulWidget {
@@ -63,38 +62,54 @@ class _ProductEditPageState extends State<ProductEditPage> {
   ItemType? _status;
   final List<ItemType> _productStatus = productStatus;
 
+  bool _loadingShown = false;
+
   @override
   void initState() {
     super.initState();
     _viewModel = sl<ProductEditViewModel>();
-    _viewModel.states.listen((state) {
-      if (state is ErrorState) {
-        hideLoadingDialog(context);
-      } else if (state is LoadingState) {
-        showLoadingDialog(context);
-      } else if (state is GetProductState) {
-        setState(() {
-          _category = findCategoryType(state.data.category);
-          _status = findProductStatus(state.data.status);
-        });
-        _setupProduct(state.data);
-      } else if (state is UpdateProductState) {
-        hideLoadingDialog(context);
-        widget.onEdit();
-      } else if (state is RemoveProductState) {
-        hideLoadingDialog(context);
-        widget.onRemove();
-      } else if (state is GetSerialNumberState) {
-        hideLoadingDialog(context);
-      }
-    });
-
+    _viewModel.state.addListener(_onStateChanged);
     _viewModel.getProductById(widget.product.id);
     _setupProduct(widget.product);
   }
 
+  void _onStateChanged() {
+    final state = _viewModel.state.value;
+    if (state.loading && !_loadingShown) {
+      _loadingShown = true;
+      showLoadingDialog(context);
+    } else if (!state.loading && _loadingShown) {
+      _loadingShown = false;
+      hideLoadingDialog(context);
+    }
+    if (state.error != null) {
+      _viewModel.consumeError();
+    }
+    if (state.loaded != null) {
+      final data = state.loaded!;
+      _viewModel.consumeLoaded();
+      setState(() {
+        _category = findCategoryType(data.category);
+        _status = findProductStatus(data.status);
+      });
+      _setupProduct(data);
+    }
+    if (state.updated != null) {
+      _viewModel.consumeUpdated();
+      widget.onEdit();
+    }
+    if (state.removed != null) {
+      _viewModel.consumeRemoved();
+      widget.onRemove();
+    }
+    if (state.serialNumber != null) {
+      _viewModel.consumeSerialNumber();
+    }
+  }
+
   @override
   void dispose() {
+    _viewModel.state.removeListener(_onStateChanged);
     _nameNode.dispose();
     _descriptionNode.dispose();
 

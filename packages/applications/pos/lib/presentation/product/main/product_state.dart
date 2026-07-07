@@ -1,35 +1,38 @@
+// Flutter imports:
+import 'package:flutter/foundation.dart';
+
 // Project imports:
 import 'package:pos/domain/model/product/product.dart';
 import 'package:pos/domain/model/product/product_history.dart';
 
-abstract class ProductState {}
+@immutable
+class ProductState {
+  final bool loading;
+  final String? error;
+  final Product? loaded;
+  final CSVImportResult? importResult;
 
-class InitState extends ProductState {}
-
-class LoadingState extends ProductState {}
-
-class ProductInfoState extends ProductState {
-  final Product data;
-
-  ProductInfoState({
-    required this.data,
+  const ProductState({
+    this.loading = false,
+    this.error,
+    this.loaded,
+    this.importResult,
   });
-}
 
-class ImportCSVState extends ProductState {
-  final CSVImportResult data;
-
-  ImportCSVState({required this.data});
-}
-
-class ClearSoldFirstState extends ProductState {
-  final Product data;
-
-  ClearSoldFirstState({required this.data});
-}
-
-class ErrorState extends ProductState {
-  final String message;
-
-  ErrorState({required this.message});
+  ProductState copyWith({
+    bool? loading,
+    String? error,
+    Product? loaded,
+    CSVImportResult? importResult,
+    bool clearError = false,
+    bool clearLoaded = false,
+    bool clearImportResult = false,
+  }) {
+    return ProductState(
+      loading: loading ?? this.loading,
+      error: clearError ? null : (error ?? this.error),
+      loaded: clearLoaded ? null : (loaded ?? this.loaded),
+      importResult: clearImportResult ? null : (importResult ?? this.importResult),
+    );
+  }
 }

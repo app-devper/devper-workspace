@@ -1,12 +1,11 @@
-// Dart imports:
-import 'dart:async';
+// Flutter imports:
+import 'package:flutter/foundation.dart';
 
 // Package imports:
 import 'package:common/core/error/failure.dart';
 
 // Project imports:
 import 'package:pos/domain/model/product/param.dart';
-import 'package:pos/domain/model/product/product.dart';
 import 'package:pos/domain/repositories/product_repository.dart';
 import 'package:pos/presentation/product/stock/product_stock_sequence_state.dart';
 
@@ -17,37 +16,33 @@ class ProductStockSequenceViewModel {
     required this.productRepo,
   });
 
-  final _states = StreamController<ProductStockSequenceState>();
+  final _state = ValueNotifier<ProductStockSequenceState>(const ProductStockSequenceState());
 
-  Stream<ProductStockSequenceState> get states => _states.stream;
+  ValueListenable<ProductStockSequenceState> get state => _state;
 
-  void updateProductStockSequenceById(UpdateProductStockSequenceParam param) async {
-    _onLoading();
+  Future<void> updateProductStockSequenceById(UpdateProductStockSequenceParam param) async {
+    _state.value = _state.value.copyWith(loading: true, clearError: true, clearUpdated: true);
     try {
-      final result = await productRepo.updateProductStockSequence(param);
-      _onUpdateProductSequence(result);
+      final updated = await productRepo.updateProductStockSequence(param);
+      _state.value = _state.value.copyWith(loading: false, updated: updated);
     } on Exception catch (e) {
-      _onError(toFailure(e));
+      _state.value = _state.value.copyWith(loading: false, error: toFailure(e).getMessage());
     }
   }
 
-  _onLoading() {
-    _states.sink.add(LoadingState());
-  }
-
-  _onUpdateProductSequence(List<ProductStock> data) {
-    if (!_states.isClosed) {
-      _states.sink.add(UpdateProductSequenceState(data: data));
+  void consumeError() {
+    if (_state.value.error != null) {
+      _state.value = _state.value.copyWith(clearError: true);
     }
   }
 
-  _onError(Failure failure) {
-    if (!_states.isClosed) {
-      _states.sink.add(ErrorState(message: failure.getMessage()));
+  void consumeUpdated() {
+    if (_state.value.updated != null) {
+      _state.value = _state.value.copyWith(clearUpdated: true);
     }
   }
 
-  dispose() {
-    _states.close();
+  void dispose() {
+    _state.dispose();
   }
 }

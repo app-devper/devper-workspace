@@ -5,32 +5,27 @@ import 'package:flutter/foundation.dart';
 import 'package:pos/domain/model/product/product.dart';
 
 @immutable
-class ProductStockState {
+class ProductsState {
+  final List<Product> items;
   final bool loading;
   final String? error;
-  final List<ProductStock> items;
-  final ProductStock? completed;
 
-  const ProductStockState({
+  const ProductsState({
+    this.items = const [],
     this.loading = false,
     this.error,
-    this.items = const [],
-    this.completed,
   });
 
-  ProductStockState copyWith({
+  ProductsState copyWith({
+    List<Product>? items,
     bool? loading,
     String? error,
-    List<ProductStock>? items,
-    ProductStock? completed,
     bool clearError = false,
-    bool clearCompleted = false,
   }) {
-    return ProductStockState(
+    return ProductsState(
+      items: items ?? this.items,
       loading: loading ?? this.loading,
       error: clearError ? null : (error ?? this.error),
-      items: items ?? this.items,
-      completed: clearCompleted ? null : (completed ?? this.completed),
     );
   }
 }

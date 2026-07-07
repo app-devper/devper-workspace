@@ -1,5 +1,5 @@
-// Dart imports:
-import 'dart:async';
+// Flutter imports:
+import 'package:flutter/foundation.dart';
 
 // Package imports:
 import 'package:common/core/error/failure.dart';
@@ -17,85 +17,55 @@ class ProductPriceViewModel {
     required this.productRepo,
   });
 
-  final _states = StreamController<ProductPriceState>();
+  final _state = ValueNotifier<ProductPriceState>(const ProductPriceState());
 
-  Stream<ProductPriceState> get states => _states.stream;
+  ValueListenable<ProductPriceState> get state => _state;
 
-  void addProductPrice(ProductPriceParam param) async {
-    _onLoading();
+  Future<void> addProductPrice(ProductPriceParam param) async {
+    await _run(() => productRepo.addProductPrice(param));
+  }
+
+  Future<void> updateProductPriceById(String id, ProductPriceParam param) async {
+    await _run(() => productRepo.updateProductPriceById(id, param));
+  }
+
+  Future<void> removeProductPriceById(String id) async {
+    await _run(() => productRepo.removeProductPriceById(id));
+  }
+
+  Future<void> getProductPrice(String productId) async {
+    _state.value = _state.value.copyWith(loading: true, clearError: true);
     try {
-      final result = await productRepo.addProductPrice(param);
-      _onAddProductPrice(result);
+      final items = await productRepo.getProductPricesByProductId(productId);
+      _state.value = _state.value.copyWith(loading: false, items: items);
     } on Exception catch (e) {
-      _onError(toFailure(e));
+      _state.value = _state.value.copyWith(loading: false, error: toFailure(e).getMessage());
     }
   }
 
-  void updateProductPriceById(String id, ProductPriceParam param) async {
-    _onLoading();
+  Future<void> _run(Future<ProductPrice> Function() action) async {
+    _state.value = _state.value.copyWith(loading: true, clearError: true, clearCompleted: true);
     try {
-      final result = await productRepo.updateProductPriceById(id, param);
-      _onUpdateProductPrice(result);
+      final completed = await action();
+      _state.value = _state.value.copyWith(loading: false, completed: completed);
     } on Exception catch (e) {
-      _onError(toFailure(e));
+      _state.value = _state.value.copyWith(loading: false, error: toFailure(e).getMessage());
     }
   }
 
-  void removeProductPriceById(String id) async {
-    _onLoading();
-    try {
-      final result = await productRepo.removeProductPriceById(id);
-      _onRemoveProductPrice(result);
-    } on Exception catch (e) {
-      _onError(toFailure(e));
+  void consumeError() {
+    if (_state.value.error != null) {
+      _state.value = _state.value.copyWith(clearError: true);
     }
   }
 
-  void getProductPrice(String productId) async {
-    _onLoading();
-    try {
-      final result = await productRepo.getProductPricesByProductId(productId);
-      _onGetProductPrice(result);
-    } on Exception catch (e) {
-      _onError(toFailure(e));
+  void consumeCompleted() {
+    if (_state.value.completed != null) {
+      _state.value = _state.value.copyWith(clearCompleted: true);
     }
   }
 
-  _onLoading() {
-    _states.sink.add(LoadingState());
-  }
-
-  _onAddProductPrice(ProductPrice data) {
-    if (!_states.isClosed) {
-      _states.sink.add(AddProductPriceState(data: data));
-    }
-  }
-
-  _onUpdateProductPrice(ProductPrice data) {
-    if (!_states.isClosed) {
-      _states.sink.add(UpdateProductPriceState(data: data));
-    }
-  }
-
-  _onRemoveProductPrice(ProductPrice data) {
-    if (!_states.isClosed) {
-      _states.sink.add(RemoveProductPriceState(data: data));
-    }
-  }
-
-  _onGetProductPrice(List<ProductPrice> data) {
-    if (!_states.isClosed) {
-      _states.sink.add(GetProductPricesState(data: data));
-    }
-  }
-
-  _onError(Failure failure) {
-    if (!_states.isClosed) {
-      _states.sink.add(ErrorState(message: failure.getMessage()));
-    }
-  }
-
-  dispose() {
-    _states.close();
+  void dispose() {
+    _state.dispose();
   }
 }

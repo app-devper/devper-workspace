@@ -14,7 +14,6 @@ import 'package:pos/container.dart';
 import 'package:pos/domain/model/product/param.dart';
 import 'package:pos/domain/model/product/product.dart';
 import 'package:pos/presentation/core/core_widget.dart';
-import 'package:pos/presentation/product/stock/product_stock_state.dart';
 import 'package:pos/presentation/product/stock/product_stock_view_model.dart';
 
 class ProductStockWidget extends StatefulWidget {
@@ -52,29 +51,34 @@ class _ProductStockWidgetState extends State<ProductStockWidget> {
 
   late ProductStockViewModel _viewModel;
 
+  bool _loadingShown = false;
+
+  void _onStateChanged() {
+    final state = _viewModel.state.value;
+    if (state.loading && !_loadingShown) {
+      _loadingShown = true;
+      showLoadingDialog(context);
+    } else if (!state.loading && _loadingShown) {
+      _loadingShown = false;
+      hideLoadingDialog(context);
+    }
+    if (state.error != null) {
+      final message = state.error!;
+      _viewModel.consumeError();
+      showAlertDialog(context, message, () {});
+    }
+    if (state.completed != null) {
+      final data = state.completed!;
+      _viewModel.consumeCompleted();
+      Navigator.of(context).pop();
+      widget.onComplete(data);
+    }
+  }
+
   @override
   void initState() {
     _viewModel = sl<ProductStockViewModel>();
-    _viewModel.states.listen((state) {
-      if (state is LoadingState) {
-        showLoadingDialog(context);
-      } else if (state is ErrorState) {
-        hideLoadingDialog(context);
-        showAlertDialog(context, state.message, () {});
-      } else if (state is AddProductStockState) {
-        hideLoadingDialog(context);
-        Navigator.of(context).pop();
-        widget.onComplete(state.data);
-      } else if (state is UpdateProductStockState) {
-        hideLoadingDialog(context);
-        Navigator.of(context).pop();
-        widget.onComplete(state.data);
-      } else if (state is RemoveProductStockState) {
-        hideLoadingDialog(context);
-        Navigator.of(context).pop();
-        widget.onComplete(state.data);
-      }
-    });
+    _viewModel.state.addListener(_onStateChanged);
     if (widget.stock != null) {
       _importController.text = widget.stock!.import.toString();
       _importDateController.text = widget.stock!.importDate.formatDate();
@@ -94,6 +98,7 @@ class _ProductStockWidgetState extends State<ProductStockWidget> {
 
   @override
   void dispose() {
+    _viewModel.state.removeListener(_onStateChanged);
     _importController.dispose();
     _importFocus.dispose();
     _priceController.dispose();

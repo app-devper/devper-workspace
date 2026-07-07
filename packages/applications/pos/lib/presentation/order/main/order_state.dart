@@ -1,52 +1,68 @@
+// Flutter imports:
+import 'package:flutter/foundation.dart';
+
 // Project imports:
-import 'package:pos/domain/model/order/order_item.dart';
 import 'package:pos/domain/model/order/order_summary.dart';
 import 'order_ui_model.dart';
 
-abstract class OrderState {}
+@immutable
+class OrderRangeSelection {
+  final Range range;
+  final DateTime startDate;
+  final DateTime endDate;
 
-class LoadingState extends OrderState {}
-
-class InitState extends OrderState {}
-
-class LoggedState extends OrderState {
-  final bool isAdmin;
-
-  LoggedState(this.isAdmin);
+  const OrderRangeSelection({
+    required this.range,
+    required this.startDate,
+    required this.endDate,
+  });
 }
 
-class OrderItemState extends OrderState {
-  final List<OrderItem> orderItem;
-
-  OrderItemState(this.orderItem);
-}
-
-class OrderRangeState extends OrderState {
-  Range range;
-  DateTime startDate;
-  DateTime endDate;
-
-  OrderRangeState(
-    this.range,
-    this.startDate,
-    this.endDate,
-  );
-}
-
-class OrderSummaryState extends OrderState {
-  final List<OrderSummary> orders;
+@immutable
+class OrderState {
+  final List<ListItem> ranges;
+  final List<OrderSummary>? orders;
   final double totalCost;
   final double total;
+  final bool? logged;
+  final bool initialized;
+  final OrderRangeSelection? rangeSelection;
+  final String? error;
 
-  OrderSummaryState(
+  const OrderState({
+    this.ranges = const [],
     this.orders,
-    this.totalCost,
-    this.total,
-  );
-}
+    this.totalCost = 0,
+    this.total = 0,
+    this.logged,
+    this.initialized = false,
+    this.rangeSelection,
+    this.error,
+  });
 
-class ErrorState extends OrderState {
-  final String message;
-
-  ErrorState(this.message);
+  OrderState copyWith({
+    List<ListItem>? ranges,
+    List<OrderSummary>? orders,
+    double? totalCost,
+    double? total,
+    bool? logged,
+    bool? initialized,
+    OrderRangeSelection? rangeSelection,
+    String? error,
+    bool clearLogged = false,
+    bool clearInitialized = false,
+    bool clearRangeSelection = false,
+    bool clearError = false,
+  }) {
+    return OrderState(
+      ranges: ranges ?? this.ranges,
+      orders: orders ?? this.orders,
+      totalCost: totalCost ?? this.totalCost,
+      total: total ?? this.total,
+      logged: clearLogged ? null : (logged ?? this.logged),
+      initialized: clearInitialized ? false : (initialized ?? this.initialized),
+      rangeSelection: clearRangeSelection ? null : (rangeSelection ?? this.rangeSelection),
+      error: clearError ? null : (error ?? this.error),
+    );
+  }
 }

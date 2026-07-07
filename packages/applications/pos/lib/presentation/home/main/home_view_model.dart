@@ -1,5 +1,5 @@
-// Dart imports:
-import 'dart:async';
+// Flutter imports:
+import 'package:flutter/foundation.dart';
 
 // Package imports:
 import 'package:um/domain/repositories/login_repository.dart';
@@ -14,45 +14,43 @@ class HomeViewModel {
     required this.loginRepo,
   });
 
-  final _states = StreamController<HomeState>();
+  final _state = ValueNotifier<HomeState>(const HomeState());
 
-  Stream<HomeState> get states => _states.stream;
+  ValueListenable<HomeState> get state => _state;
 
-  void prepareData() async {
-    getRole();
+  Future<void> prepareData() async {
+    await getRole();
   }
 
-  void getRole() async {
+  Future<void> getRole() async {
     try {
-      final result = await loginRepo.getRole();
-      _onCheckLoginSuccess(result == "ADMIN");
+      final role = await loginRepo.getRole();
+      _state.value = _state.value.copyWith(isAdmin: role == "ADMIN");
     } on Exception catch (_) {
-      _onCheckLoginSuccess(false);
+      _state.value = _state.value.copyWith(isAdmin: false);
     }
   }
 
-  void logout() async {
+  Future<void> logout() async {
     try {
-      final result = await loginRepo.logoutUser();
-      _onLogoutSuccess(result);
-    } on Exception catch (_) {
-      _onLogoutSuccess(true);
+      await loginRepo.logoutUser();
+    } on Exception catch (_) {}
+    _state.value = _state.value.copyWith(loggedOut: true);
+  }
+
+  void consumeIsAdmin() {
+    if (_state.value.isAdmin != null) {
+      _state.value = _state.value.copyWith(clearIsAdmin: true);
     }
   }
 
-  _onLoading() {
-    _states.sink.add(LoadingState());
+  void consumeLoggedOut() {
+    if (_state.value.loggedOut) {
+      _state.value = _state.value.copyWith(clearLoggedOut: true);
+    }
   }
 
-  _onCheckLoginSuccess(bool isLogin) {
-    _states.sink.add((CheckRoleState(isLogin)));
-  }
-
-  _onLogoutSuccess(bool data) {
-    _states.sink.add((LogoutState()));
-  }
-
-  dispose() {
-    _states.close();
+  void dispose() {
+    _state.dispose();
   }
 }

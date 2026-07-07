@@ -1,18 +1,32 @@
+// Flutter imports:
+import 'package:flutter/foundation.dart';
+
 // Project imports:
 import 'package:pos/domain/model/product/product.dart';
 
-abstract class ProductStockSequenceState {}
+@immutable
+class ProductStockSequenceState {
+  final bool loading;
+  final String? error;
+  final List<ProductStock>? updated;
 
-class LoadingState extends ProductStockSequenceState {}
+  const ProductStockSequenceState({
+    this.loading = false,
+    this.error,
+    this.updated,
+  });
 
-class UpdateProductSequenceState extends ProductStockSequenceState {
-  final List<ProductStock> data;
-
-  UpdateProductSequenceState({required this.data});
-}
-
-class ErrorState extends ProductStockSequenceState {
-  final String message;
-
-  ErrorState({required this.message});
+  ProductStockSequenceState copyWith({
+    bool? loading,
+    String? error,
+    List<ProductStock>? updated,
+    bool clearError = false,
+    bool clearUpdated = false,
+  }) {
+    return ProductStockSequenceState(
+      loading: loading ?? this.loading,
+      error: clearError ? null : (error ?? this.error),
+      updated: clearUpdated ? null : (updated ?? this.updated),
+    );
+  }
 }

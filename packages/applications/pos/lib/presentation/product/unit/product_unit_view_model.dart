@@ -1,5 +1,5 @@
-// Dart imports:
-import 'dart:async';
+// Flutter imports:
+import 'package:flutter/foundation.dart';
 
 // Package imports:
 import 'package:common/core/error/failure.dart';
@@ -17,82 +17,55 @@ class ProductUnitViewModel {
     required this.productRepo,
   });
 
-  final _states = StreamController<ProductUnitState>();
+  final _state = ValueNotifier<ProductUnitState>(const ProductUnitState());
 
-  Stream<ProductUnitState> get states => _states.stream;
+  ValueListenable<ProductUnitState> get state => _state;
 
-  void addProductUnit(ProductUnitParam param) async {
-    _onLoading();
+  Future<void> addProductUnit(ProductUnitParam param) async {
+    await _run(() => productRepo.addProductUnit(param));
+  }
+
+  Future<void> updateProductUnitById(String id, ProductUnitParam param) async {
+    await _run(() => productRepo.updateProductUnitById(id, param));
+  }
+
+  Future<void> removeProductUnitById(String id) async {
+    await _run(() => productRepo.removeProductUnitById(id));
+  }
+
+  Future<void> getProductUnit(String productId) async {
+    _state.value = _state.value.copyWith(loading: true, clearError: true);
     try {
-      final result = await productRepo.addProductUnit(param);
-      _onAddProductUnit(result);
+      final items = await productRepo.getProductUnitsByProductId(productId);
+      _state.value = _state.value.copyWith(loading: false, items: items);
     } on Exception catch (e) {
-      _onError(toFailure(e));
+      _state.value = _state.value.copyWith(loading: false, error: toFailure(e).getMessage());
     }
   }
 
-  void updateProductUnitById(String id, ProductUnitParam param) async {
-    _onLoading();
+  Future<void> _run(Future<ProductUnit> Function() action) async {
+    _state.value = _state.value.copyWith(loading: true, clearError: true, clearCompleted: true);
     try {
-      final result = await productRepo.updateProductUnitById(id, param);
-      _onUpdateProductUnit(result);
+      final completed = await action();
+      _state.value = _state.value.copyWith(loading: false, completed: completed);
     } on Exception catch (e) {
-      _onError(toFailure(e));
+      _state.value = _state.value.copyWith(loading: false, error: toFailure(e).getMessage());
     }
   }
 
-  void removeProductUnitById(String id) async {
-    _onLoading();
-    try {
-      final result = await productRepo.removeProductUnitById(id);
-      _onRemoveProductUnit(result);
-    } on Exception catch (e) {
-      _onError(toFailure(e));
+  void consumeError() {
+    if (_state.value.error != null) {
+      _state.value = _state.value.copyWith(clearError: true);
     }
   }
 
-  void getProductUnit(String productId) async {
-    _onLoading();
-    try {
-      final result = await productRepo.getProductUnitsByProductId(productId);
-      _onGetProductUnit(result);
-    } on Exception catch (e) {
-      _onError(toFailure(e));
+  void consumeCompleted() {
+    if (_state.value.completed != null) {
+      _state.value = _state.value.copyWith(clearCompleted: true);
     }
   }
 
-  _onLoading() {
-    _states.sink.add(LoadingState());
+  void dispose() {
+    _state.dispose();
   }
-
-  _onAddProductUnit(ProductUnit data) {
-    if (!_states.isClosed) {
-      _states.sink.add(AddProductUnitState(data: data));
-    }
-  }
-
-  _onUpdateProductUnit(ProductUnit data) {
-    if (!_states.isClosed) {
-      _states.sink.add(UpdateProductUnitState(data: data));
-    }
-  }
-
-  _onRemoveProductUnit(ProductUnit data) {
-    if (!_states.isClosed) {
-      _states.sink.add(RemoveProductUnitState(data: data));
-    }
-  }
-
-  _onGetProductUnit(List<ProductUnit> data) {
-    if (!_states.isClosed) {
-      _states.sink.add(GetProductUnitsState(data: data));
-    }
-  }
-
-  _onError(Failure failure) {
-    if (!_states.isClosed) {
-      _states.sink.add(ErrorState(message: failure.getMessage()));
-    }
-  }
-
 }

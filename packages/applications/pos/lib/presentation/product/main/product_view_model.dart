@@ -1,12 +1,10 @@
-// Dart imports:
-import 'dart:async';
+// Flutter imports:
+import 'package:flutter/foundation.dart';
 
 // Package imports:
 import 'package:common/core/error/failure.dart';
 
 // Project imports:
-import 'package:pos/domain/model/product/product.dart';
-import 'package:pos/domain/model/product/product_history.dart';
 import 'package:pos/domain/repositories/product_repository.dart';
 import 'package:pos/presentation/order/core/export_csv.dart';
 import 'package:pos/presentation/product/main/product_state.dart';
@@ -18,87 +16,69 @@ class ProductViewModel {
     required this.productRepo,
   });
 
-  final _states = StreamController<ProductState>();
+  final _state = ValueNotifier<ProductState>(const ProductState());
 
-  Stream<ProductState> get states => _states.stream;
+  ValueListenable<ProductState> get state => _state;
 
-  void getProduct(String productId) async {
+  Future<void> getProduct(String productId) async {
     try {
       final data = await productRepo.getLocalProductById(productId);
       if (data == null) {
-        _onError(Failure(errorCode: "A-000", error: "Product not found"));
+        _state.value = _state.value.copyWith(error: "Product not found");
       } else {
-        _onGetProduct(data);
+        _state.value = _state.value.copyWith(loaded: data);
       }
-    } on Failure catch (e) {
-      _onError(e);
+    } on Exception catch (e) {
+      _state.value = _state.value.copyWith(error: toFailure(e).getMessage());
     }
   }
 
-  void exportProducts() async {
+  Future<void> exportProducts() async {
     try {
       final result = await productRepo.getLocalProducts();
       ExportCsv.downloadProducts(result);
     } on Exception catch (_) {}
   }
 
-  void importCSV({required List<int> bytes, required String filename}) async {
-    _onLoading();
+  Future<void> importCSV({required List<int> bytes, required String filename}) async {
+    _state.value = _state.value.copyWith(loading: true, clearError: true, clearImportResult: true);
     try {
       final result = await productRepo.importProductCSV(bytes: bytes, filename: filename);
-      _onImportCSV(result);
+      _state.value = _state.value.copyWith(loading: false, importResult: result);
     } on Exception catch (e) {
-      _onError(toFailure(e));
+      _state.value = _state.value.copyWith(loading: false, error: toFailure(e).getMessage());
     }
   }
 
-  void clearSoldFirst(String productId) async {
-    _onLoading();
+  Future<void> clearSoldFirst(String productId) async {
+    _state.value = _state.value.copyWith(loading: true, clearError: true, clearLoaded: true);
     try {
       final result = await productRepo.clearQuantitySoldFirstById(productId);
-      _onClearSoldFirst(result);
+      _state.value = _state.value.copyWith(loading: false, loaded: result);
     } on Exception catch (e) {
-      _onError(toFailure(e));
+      _state.value = _state.value.copyWith(loading: false, error: toFailure(e).getMessage());
     }
   }
 
-  getInit() {
-    if (!_states.isClosed) {
-      _states.sink.add(InitState());
+  void consumeError() {
+    if (_state.value.error != null) {
+      _state.value = _state.value.copyWith(clearError: true);
     }
   }
 
-  _onLoading() {
-    if (!_states.isClosed) {
-      _states.sink.add(LoadingState());
+  void consumeLoaded() {
+    if (_state.value.loaded != null) {
+      _state.value = _state.value.copyWith(clearLoaded: true);
     }
   }
 
-  _onGetProduct(Product data) {
-    if (!_states.isClosed) {
-      _states.sink.add(ProductInfoState(data: data));
+  void consumeImportResult() {
+    if (_state.value.importResult != null) {
+      _state.value = _state.value.copyWith(clearImportResult: true);
     }
   }
 
-  _onImportCSV(CSVImportResult data) {
-    if (!_states.isClosed) {
-      _states.sink.add(ImportCSVState(data: data));
-    }
-  }
-
-  _onClearSoldFirst(Product data) {
-    if (!_states.isClosed) {
-      _states.sink.add(ClearSoldFirstState(data: data));
-    }
-  }
-
-  _onError(Failure failure) {
-    if (!_states.isClosed) {
-      _states.sink.add(ErrorState(message: failure.getMessage()));
-    }
-  }
-
-  dispose() {
-    _states.close();
+  void dispose() {
+    _state.dispose();
   }
 }

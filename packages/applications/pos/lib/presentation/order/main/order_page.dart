@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 // Package imports:
-import 'package:common/core/ext/widget_ext.dart';
 import 'package:common/core/widgets/appbar_widget.dart';
 import 'package:common/core/widgets/custom_snack_bar.dart';
 import 'package:intl/intl.dart';
@@ -56,47 +55,56 @@ class _OrderPageState extends State<OrderPage> {
   void initState() {
     super.initState();
     _viewModel = sl<OrderViewModel>();
-    _viewModel.states.stream.listen((state) {
-      if (state is ErrorState) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _snackBar.hideAll();
-          _snackBar.showErrorSnackBar(state.message);
-        });
-      } else if (state is LoadingState) {
-        showLoadingDialog(context);
-      } else if (state is OrderSummaryState) {
-        setState(() {
-          _totalCost = state.totalCost;
-          _total = state.total;
-        });
-      } else if (state is LoggedState) {
-        setState(() {
-          _isAdmin = state.isAdmin;
-        });
-        _viewModel.initData();
-      } else if (state is OrderRangeState) {
-        if (state.range == Range.dateRange) {
-          _selectRangeDate(state.startDate, state.range);
-        } else if (state.range == Range.date) {
-          _selectDate(_startDate, state.range);
-        } else {
-          setState(() {
-            _startDate = state.startDate;
-            _endDate = state.endDate;
-            _value = state.range;
-          });
-          _viewModel.getOrderItem(_choices[_defaultChoiceIndex], _getOrderRangeParam());
-        }
-      } else if (state is InitState) {
-        _viewModel.selectRange(_value);
-      }
-    });
-
+    _viewModel.state.addListener(_onStateChanged);
     _viewModel.checkLogin();
+  }
+
+  void _onStateChanged() {
+    final state = _viewModel.state.value;
+    if (state.error != null) {
+      final message = state.error!;
+      _viewModel.consumeError();
+      _snackBar.hideAll();
+      _snackBar.showErrorSnackBar(message);
+    }
+    setState(() {
+      _totalCost = state.totalCost;
+      _total = state.total;
+    });
+    if (state.logged != null) {
+      final isAdmin = state.logged!;
+      _viewModel.consumeLogged();
+      setState(() {
+        _isAdmin = isAdmin;
+      });
+      _viewModel.initData();
+    }
+    if (state.initialized) {
+      _viewModel.consumeInitialized();
+      _viewModel.selectRange(_value);
+    }
+    final selection = state.rangeSelection;
+    if (selection != null) {
+      _viewModel.consumeRangeSelection();
+      if (selection.range == Range.dateRange) {
+        _selectRangeDate(selection.startDate, selection.range);
+      } else if (selection.range == Range.date) {
+        _selectDate(_startDate, selection.range);
+      } else {
+        setState(() {
+          _startDate = selection.startDate;
+          _endDate = selection.endDate;
+          _value = selection.range;
+        });
+        _viewModel.getOrderItem(_choices[_defaultChoiceIndex], _getOrderRangeParam());
+      }
+    }
   }
 
   @override
   void dispose() {
+    _viewModel.state.removeListener(_onStateChanged);
+    _viewModel.dispose();
     _viewNode.dispose();
     super.dispose();
   }
@@ -137,11 +145,11 @@ class _OrderPageState extends State<OrderPage> {
   }
 
   _buildDropdown(BuildContext context) {
-    return StreamBuilder(
-      stream: _viewModel.dropdownItem.stream,
-      builder: (BuildContext context, AsyncSnapshot<List<ListItem>> snapshot) {
-        if (snapshot.hasData && _isAdmin) {
-          var data = snapshot.data ?? [];
+    return ValueListenableBuilder<OrderState>(
+      valueListenable: _viewModel.state,
+      builder: (BuildContext context, OrderState state, _) {
+        final data = state.ranges;
+        if (data.isNotEmpty && _isAdmin) {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: <Widget>[
@@ -263,11 +271,11 @@ class _OrderPageState extends State<OrderPage> {
   }
 
   _buildOrderList() {
-    return StreamBuilder(
-      stream: _viewModel.orders.stream,
-      builder: (BuildContext context, AsyncSnapshot<List<OrderSummary>> snapshot) {
-        if (snapshot.hasData) {
-          var orders = snapshot.data ?? [];
+    return ValueListenableBuilder<OrderState>(
+      valueListenable: _viewModel.state,
+      builder: (BuildContext context, OrderState state, _) {
+        final orders = state.orders;
+        if (orders != null) {
           return Expanded(
             child: ListView.builder(
               itemCount: orders.length,

@@ -1,45 +1,36 @@
+// Flutter imports:
+import 'package:flutter/foundation.dart';
+
 // Project imports:
 import 'package:pos/domain/model/product/product.dart';
 
-abstract class ProductPriceState {}
+@immutable
+class ProductPriceState {
+  final bool loading;
+  final String? error;
+  final List<ProductPrice> items;
+  final ProductPrice? completed;
 
-class LoadingState extends ProductPriceState {}
-
-class AddProductPriceState extends ProductPriceState {
-  final ProductPrice data;
-
-  AddProductPriceState({
-    required this.data,
+  const ProductPriceState({
+    this.loading = false,
+    this.error,
+    this.items = const [],
+    this.completed,
   });
+
+  ProductPriceState copyWith({
+    bool? loading,
+    String? error,
+    List<ProductPrice>? items,
+    ProductPrice? completed,
+    bool clearError = false,
+    bool clearCompleted = false,
+  }) {
+    return ProductPriceState(
+      loading: loading ?? this.loading,
+      error: clearError ? null : (error ?? this.error),
+      items: items ?? this.items,
+      completed: clearCompleted ? null : (completed ?? this.completed),
+    );
+  }
 }
-
-class UpdateProductPriceState extends ProductPriceState {
-  final ProductPrice data;
-
-  UpdateProductPriceState({
-    required this.data,
-  });
-}
-
-class RemoveProductPriceState extends ProductPriceState {
-  final ProductPrice data;
-
-  RemoveProductPriceState({
-    required this.data,
-  });
-}
-
-class GetProductPricesState extends ProductPriceState {
-  final List<ProductPrice> data;
-
-  GetProductPricesState({
-    required this.data,
-  });
-}
-
-class ErrorState extends ProductPriceState {
-  final String message;
-
-  ErrorState({required this.message});
-}
-

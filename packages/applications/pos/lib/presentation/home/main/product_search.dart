@@ -90,15 +90,10 @@ class _ProductSearchState extends State<ProductSearch> {
             ),
             const Divider(height: 1),
             Expanded(
-              child: StreamBuilder<List<ProductUnitItem>>(
-                stream: _viewModel.productItems,
-                builder: (context, snapshot) {
-                  if (snapshot.hasError) {
-                    return Center(
-                      child: Text('Error: ${snapshot.error}'),
-                    );
-                  }
-                  if (!snapshot.hasData) {
+              child: ValueListenableBuilder<List<ProductUnitItem>?>(
+                valueListenable: _viewModel.items,
+                builder: (context, items, _) {
+                  if (items == null) {
                     return const Center(
                       child: CircularProgressIndicator(
                         strokeWidth: 6,
@@ -107,7 +102,6 @@ class _ProductSearchState extends State<ProductSearch> {
                       ),
                     );
                   }
-                  final items = snapshot.data!;
                   return GridView.builder(
                     padding: const EdgeInsets.all(8),
                     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
