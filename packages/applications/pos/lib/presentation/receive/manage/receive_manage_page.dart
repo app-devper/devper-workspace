@@ -18,7 +18,6 @@ import 'package:pos/domain/model/supplier/supplier.dart';
 import 'package:pos/localizations/language/languages.dart';
 import 'package:pos/presentation/constants.dart';
 import 'package:pos/presentation/product/argument.dart';
-import 'receive_manage_state.dart';
 import 'receive_manage_view_model.dart';
 
 class ReceiveManagePage extends StatefulWidget {
@@ -49,84 +48,90 @@ class _ReceiveManagePageState extends State<ReceiveManagePage> {
   List<ReceiveItem> _receiveItems = [];
 
   double _totalCost = 0;
+  bool _loadingShown = false;
 
   @override
   void initState() {
     super.initState();
     _viewModel = sl<ReceiveManageViewModel>();
-    _viewModel.states.stream.listen((state) {
-      if (state is ErrorState) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _snackBar.hideAll();
-          _snackBar.showErrorSnackBar(state.message);
-        });
-        hideLoadingDialog(context);
-      } else if (state is LoadingState) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _snackBar.hideAll();
-        });
-        showLoadingDialog(context);
-      } else if (state is GetReceiveState) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _snackBar.hideAll();
-        });
-        hideLoadingDialog(context);
-        setState(() {
-          _receive = state.data;
-          _suppliers = state.suppliers;
-          _supplier = _suppliers.where((item) => item.id == state.data?.supplierId).firstOrNull;
-        });
-        _referenceEditingController.text = state.data?.reference ?? "";
-      } else if (state is UpdateReceiveState) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _snackBar.hideAll();
-          _snackBar.showSnackBar(text: "Update success");
-        });
-        hideLoadingDialog(context);
-        setState(() {
-          _receive = state.data;
-        });
-      } else if (state is CreateReceiveState) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _snackBar.hideAll();
-          _snackBar.showSnackBar(text: "Add success");
-        });
-        hideLoadingDialog(context);
-        setState(() {
-          _receive = state.data;
-        });
-      } else if (state is RemoveReceiveState) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _snackBar.hideAll();
-        });
-        hideLoadingDialog(context);
-        Navigator.pop(context, state.data);
-      } else if (state is RemoveReceiveItemState) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _snackBar.hideAll();
-        });
-        hideLoadingDialog(context);
-        _viewModel.getReceiveItemsById(state.data.receiveId);
-      } else if (state is GetReceiveItemsState) {
-        setState(() {
-          _totalCost = state.totalCost;
-          _receiveItems = state.data;
-        });
-      } else if (state is GetSuppliersState) {
-        setState(() {
-          _suppliers = state.suppliers;
-          _supplier = _suppliers.where((item) => item.id == _supplier?.id).firstOrNull;
-        });
-      }
-    });
-
+    _viewModel.state.addListener(_onStateChanged);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _viewModel.getReceiveById(widget.receiveId);
     });
   }
 
+  void _onStateChanged() {
+    final state = _viewModel.state.value;
+    if (state.loading && !_loadingShown) {
+      _loadingShown = true;
+      showLoadingDialog(context);
+    } else if (!state.loading && _loadingShown) {
+      _loadingShown = false;
+      hideLoadingDialog(context);
+    }
+    if (state.error != null) {
+      _snackBar.hideAll();
+      _snackBar.showErrorSnackBar(state.error!);
+      _viewModel.consumeError();
+    }
+    if (state.receiveLoaded) {
+      _viewModel.consumeReceiveLoaded();
+      setState(() {
+        _receive = state.receive;
+        _suppliers = state.receiveSuppliers;
+        _supplier = _suppliers.where((item) => item.id == state.receive?.supplierId).firstOrNull;
+      });
+      _referenceEditingController.text = state.receive?.reference ?? "";
+    }
+    if (state.suppliersEvent != null) {
+      final suppliers = state.suppliersEvent!;
+      _viewModel.consumeSuppliersEvent();
+      setState(() {
+        _suppliers = suppliers;
+        _supplier = _suppliers.where((item) => item.id == _supplier?.id).firstOrNull;
+      });
+    }
+    if (state.itemsLoaded) {
+      _viewModel.consumeItemsLoaded();
+      setState(() {
+        _totalCost = state.totalCost;
+        _receiveItems = state.items;
+      });
+    }
+    if (state.created != null) {
+      final data = state.created!;
+      _viewModel.consumeCreated();
+      _snackBar.hideAll();
+      _snackBar.showSnackBar(text: "Add success");
+      setState(() {
+        _receive = data;
+      });
+    }
+    if (state.updated != null) {
+      final data = state.updated!;
+      _viewModel.consumeUpdated();
+      _snackBar.hideAll();
+      _snackBar.showSnackBar(text: "Update success");
+      setState(() {
+        _receive = data;
+      });
+    }
+    if (state.removed != null) {
+      final data = state.removed!;
+      _viewModel.consumeRemoved();
+      Navigator.pop(context, data);
+      return;
+    }
+    if (state.removedItem != null) {
+      final receiveId = state.removedItem!.receiveId;
+      _viewModel.consumeRemovedItem();
+      _viewModel.getReceiveItemsById(receiveId);
+    }
+  }
+
   @override
   void dispose() {
+    _viewModel.state.removeListener(_onStateChanged);
     _referenceNode.dispose();
     _viewNode.dispose();
 

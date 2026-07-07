@@ -1,22 +1,31 @@
+// Flutter imports:
+import 'package:flutter/foundation.dart';
+
 // Project imports:
 import 'package:pos/domain/model/receive/receive.dart';
 
-abstract class ReceivesState {}
+@immutable
+class ReceivesState {
+  final List<Receive> items;
+  final bool loading;
+  final String? error;
 
-class LoadingState extends ReceivesState {}
-
-class ListReceiveState extends ReceivesState {
-  final List<Receive> data;
-  final double totalCost;
-
-  ListReceiveState({
-    required this.data,
-    required this.totalCost,
+  const ReceivesState({
+    this.items = const [],
+    this.loading = false,
+    this.error,
   });
-}
 
-class ErrorState extends ReceivesState {
-  final String message;
-
-  ErrorState({required this.message});
+  ReceivesState copyWith({
+    List<Receive>? items,
+    bool? loading,
+    String? error,
+    bool clearError = false,
+  }) {
+    return ReceivesState(
+      items: items ?? this.items,
+      loading: loading ?? this.loading,
+      error: clearError ? null : (error ?? this.error),
+    );
+  }
 }

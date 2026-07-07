@@ -1,66 +1,83 @@
+// Flutter imports:
+import 'package:flutter/foundation.dart';
+
 // Project imports:
 import 'package:pos/domain/model/receive/receive.dart';
 import 'package:pos/domain/model/receive/receive_item.dart';
 import 'package:pos/domain/model/supplier/supplier.dart';
 
-abstract class ReceiveManageState {}
+@immutable
+class ReceiveManageState {
+  final bool loading;
+  final String? error;
 
-class LoadingState extends ReceiveManageState {}
+  final bool receiveLoaded;
+  final Receive? receive;
+  final List<Supplier> receiveSuppliers;
 
-class GetReceiveState extends ReceiveManageState {
-  final Receive? data;
-  final List<Supplier> suppliers;
+  final List<Supplier>? suppliersEvent;
 
-  GetReceiveState({
-    required this.data,
-    required this.suppliers,
-  });
-}
-
-class GetSuppliersState extends ReceiveManageState {
-  final List<Supplier> suppliers;
-
-  GetSuppliersState({
-    required this.suppliers,
-  });
-}
-
-class CreateReceiveState extends ReceiveManageState {
-  final Receive data;
-
-  CreateReceiveState({required this.data});
-}
-
-class UpdateReceiveState extends ReceiveManageState {
-  final Receive data;
-
-  UpdateReceiveState({required this.data});
-}
-
-class RemoveReceiveState extends ReceiveManageState {
-  final Receive data;
-
-  RemoveReceiveState({required this.data});
-}
-
-class RemoveReceiveItemState extends ReceiveManageState {
-  final ReceiveItem data;
-
-  RemoveReceiveItemState({required this.data});
-}
-
-class GetReceiveItemsState extends ReceiveManageState {
+  final bool itemsLoaded;
   final double totalCost;
-  final List<ReceiveItem> data;
+  final List<ReceiveItem> items;
 
-  GetReceiveItemsState({
-    required this.totalCost,
-    required this.data,
+  final Receive? created;
+  final Receive? updated;
+  final Receive? removed;
+  final ReceiveItem? removedItem;
+
+  const ReceiveManageState({
+    this.loading = false,
+    this.error,
+    this.receiveLoaded = false,
+    this.receive,
+    this.receiveSuppliers = const [],
+    this.suppliersEvent,
+    this.itemsLoaded = false,
+    this.totalCost = 0,
+    this.items = const [],
+    this.created,
+    this.updated,
+    this.removed,
+    this.removedItem,
   });
-}
 
-class ErrorState extends ReceiveManageState {
-  final String message;
-
-  ErrorState({required this.message});
+  ReceiveManageState copyWith({
+    bool? loading,
+    String? error,
+    bool? receiveLoaded,
+    Receive? receive,
+    List<Supplier>? receiveSuppliers,
+    List<Supplier>? suppliersEvent,
+    bool? itemsLoaded,
+    double? totalCost,
+    List<ReceiveItem>? items,
+    Receive? created,
+    Receive? updated,
+    Receive? removed,
+    ReceiveItem? removedItem,
+    bool clearError = false,
+    bool clearReceive = false,
+    bool clearSuppliersEvent = false,
+    bool clearCreated = false,
+    bool clearUpdated = false,
+    bool clearRemoved = false,
+    bool clearRemovedItem = false,
+  }) {
+    return ReceiveManageState(
+      loading: loading ?? this.loading,
+      error: clearError ? null : (error ?? this.error),
+      receiveLoaded: receiveLoaded ?? this.receiveLoaded,
+      receive: clearReceive ? null : (receive ?? this.receive),
+      receiveSuppliers: receiveSuppliers ?? this.receiveSuppliers,
+      suppliersEvent: clearSuppliersEvent ? null : (suppliersEvent ?? this.suppliersEvent),
+      itemsLoaded: itemsLoaded ?? this.itemsLoaded,
+      totalCost: totalCost ?? this.totalCost,
+      items: items ?? this.items,
+      created: clearCreated ? null : (created ?? this.created),
+      updated: clearUpdated ? null : (updated ?? this.updated),
+      removed: clearRemoved ? null : (removed ?? this.removed),
+      removedItem: clearRemovedItem ? null : (removedItem ?? this.removedItem),
+    );
+  }
 }
