@@ -7,7 +7,6 @@ import 'package:um/presentation/constants.dart';
 // Project imports:
 import 'package:pos/container.dart';
 import 'package:pos/localizations/language/languages.dart';
-import 'package:pos/presentation/home/main/home_state.dart';
 import 'package:pos/presentation/home/main/home_view_model.dart';
 import 'package:pos/presentation/home/main/home_widget.dart';
 import 'package:pos/presentation/home/main/menu_event.dart';
@@ -37,21 +36,29 @@ class _HomeMenuState extends State<HomeMenu> {
   @override
   void initState() {
     _viewModel = sl<HomeViewModel>();
+    _viewModel.state.addListener(_onStateChanged);
     _viewModel.prepareData();
-    _viewModel.states.listen((event) {
-      if (event is CheckRoleState) {
-        setState(() {
-          _isAdmin = event.isAdmin;
-        });
-      } else if (event is LogoutState) {
-        Navigator.popAndPushNamed(context, routeLogin);
-      }
-    });
     super.initState();
+  }
+
+  void _onStateChanged() {
+    final state = _viewModel.state.value;
+    if (state.isAdmin != null) {
+      final isAdmin = state.isAdmin!;
+      _viewModel.consumeIsAdmin();
+      setState(() {
+        _isAdmin = isAdmin;
+      });
+    }
+    if (state.loggedOut) {
+      _viewModel.consumeLoggedOut();
+      Navigator.popAndPushNamed(context, routeLogin);
+    }
   }
 
   @override
   void dispose() {
+    _viewModel.state.removeListener(_onStateChanged);
     _viewModel.dispose();
     super.dispose();
   }

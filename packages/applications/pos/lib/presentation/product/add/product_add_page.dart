@@ -11,7 +11,6 @@ import 'package:pos/container.dart';
 import 'package:pos/domain/model/core/core.dart';
 import 'package:pos/domain/model/product/param.dart';
 import 'package:pos/presentation/core/core_widget.dart';
-import 'product_add_state.dart';
 import 'product_add_view_model.dart';
 
 class ProductAddPage extends StatefulWidget {
@@ -55,31 +54,45 @@ class _ProductAddPageState extends State<ProductAddPage> {
   ItemType? _status;
   final List<ItemType> _productStatus = productStatus;
 
+  bool _loadingShown = false;
+
   @override
   void initState() {
     super.initState();
     _viewModel = sl<ProductAddViewModel>();
-    _viewModel.states.stream.listen((state) {
-      if (state is ErrorState) {
-        hideLoadingDialog(context);
-        showAlertDialog(context, state.message, () {});
-      } else if (state is LoadingState) {
-        showLoadingDialog(context);
-      } else if (state is CreateProductState) {
-        hideLoadingDialog(context);
-        widget.onAdd();
-      } else if (state is GetSerialNumberState) {
-        hideLoadingDialog(context);
-        _serialNumberEditingController.text = state.serialNumber;
-        FocusScope.of(context).requestFocus(_serialNumberNode);
-      }
-    });
-
+    _viewModel.state.addListener(_onStateChanged);
     _viewModel.getCategories();
+  }
+
+  void _onStateChanged() {
+    final state = _viewModel.state.value;
+    if (state.saving && !_loadingShown) {
+      _loadingShown = true;
+      showLoadingDialog(context);
+    } else if (!state.saving && _loadingShown) {
+      _loadingShown = false;
+      hideLoadingDialog(context);
+    }
+    if (state.error != null) {
+      final message = state.error!;
+      _viewModel.consumeError();
+      showAlertDialog(context, message, () {});
+    }
+    if (state.created != null) {
+      _viewModel.consumeCreated();
+      widget.onAdd();
+    }
+    if (state.serialNumber != null) {
+      final serialNumber = state.serialNumber!;
+      _viewModel.consumeSerialNumber();
+      _serialNumberEditingController.text = serialNumber;
+      FocusScope.of(context).requestFocus(_serialNumberNode);
+    }
   }
 
   @override
   void dispose() {
+    _viewModel.state.removeListener(_onStateChanged);
     _viewNode.dispose();
     _serialNumberNode.dispose();
     _nameNode.dispose();

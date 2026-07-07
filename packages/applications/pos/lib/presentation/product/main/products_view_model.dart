@@ -1,5 +1,5 @@
-// Dart imports:
-import 'dart:async';
+// Flutter imports:
+import 'package:flutter/foundation.dart';
 
 // Package imports:
 import 'package:common/core/error/failure.dart';
@@ -7,6 +7,7 @@ import 'package:common/core/error/failure.dart';
 // Project imports:
 import 'package:pos/domain/model/product/product.dart';
 import 'package:pos/domain/repositories/product_repository.dart';
+import 'package:pos/presentation/product/main/products_state.dart';
 
 class ProductsViewModel {
   final ProductRepository productRepo;
@@ -15,52 +16,42 @@ class ProductsViewModel {
     required this.productRepo,
   });
 
-  final _products = StreamController<List<Product>>();
+  final _state = ValueNotifier<ProductsState>(const ProductsState());
 
-  Stream<List<Product>> get products => _products.stream;
+  ValueListenable<ProductsState> get state => _state;
 
-  void searchProduct(String text, bool sortBalance) async {
+  Future<void> searchProduct(String text, bool sortBalance) async {
     try {
-      final result = await productRepo.getLocalProducts();
-      _onListProducts(text, result, sortBalance);
-    } on Exception catch (e) {
-      _onError(toFailure(e));
-    }
-  }
-
-  _onListProducts(String text, List<Product> data, bool sortBalance) {
-    if (!_products.isClosed) {
-      List<Product> items = [];
-      items.addAll(data);
-      final result = _searchProduct(text, items);
+      final data = await productRepo.getLocalProducts();
+      final result = _searchProduct(text, List<Product>.of(data));
       if (sortBalance) {
         result.sort((a, b) => a.getQuantity().compareTo(b.getQuantity()));
       }
-      _products.sink.add(result);
+      _state.value = _state.value.copyWith(loading: false, items: result, clearError: true);
+    } on Exception catch (e) {
+      _state.value = _state.value.copyWith(loading: false, error: toFailure(e).getMessage());
     }
-  }
-
-  _onError(Failure failure) {
-    if (!_products.isClosed) {
-      _products.sink.addError(failure.getMessage());
-    }
-  }
-
-  dispose() {
-    _products.close();
   }
 
   List<Product> _searchProduct(String param, List<Product> data) {
     if (param.isEmpty) {
       return data;
-    } else {
-      List<Product> filtered = [];
-      for (var item in data) {
-        if (item.name.toLowerCase().contains(param.toLowerCase()) || item.units.any((element) => element.barcode.contains(param))) {
-          filtered.add(item);
-        }
-      }
-      return filtered;
     }
+    final lower = param.toLowerCase();
+    return data
+        .where((item) =>
+            item.name.toLowerCase().contains(lower) ||
+            item.units.any((element) => element.barcode.contains(param)))
+        .toList();
+  }
+
+  void consumeError() {
+    if (_state.value.error != null) {
+      _state.value = _state.value.copyWith(clearError: true);
+    }
+  }
+
+  void dispose() {
+    _state.dispose();
   }
 }

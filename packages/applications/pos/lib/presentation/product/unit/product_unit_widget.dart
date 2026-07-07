@@ -12,7 +12,6 @@ import 'package:pos/domain/model/product/param.dart';
 import 'package:pos/domain/model/product/product.dart';
 import 'package:pos/presentation/core/core_widget.dart';
 import 'package:pos/presentation/core/dialog_widget.dart';
-import 'package:pos/presentation/product/unit/product_unit_state.dart';
 import 'package:pos/presentation/product/unit/product_unit_view_model.dart';
 import 'package:pos/presentation/product/unit/product_volume_unit_widget.dart';
 
@@ -48,29 +47,34 @@ class _ProductUnitWidgetState extends State<ProductUnitWidget> {
 
   late ProductUnitViewModel _viewModel;
 
+  bool _loadingShown = false;
+
+  void _onStateChanged() {
+    final state = _viewModel.state.value;
+    if (state.loading && !_loadingShown) {
+      _loadingShown = true;
+      showLoadingDialog(context);
+    } else if (!state.loading && _loadingShown) {
+      _loadingShown = false;
+      hideLoadingDialog(context);
+    }
+    if (state.error != null) {
+      final message = state.error!;
+      _viewModel.consumeError();
+      showAlertDialog(context, message, () {});
+    }
+    if (state.completed != null) {
+      final data = state.completed!;
+      _viewModel.consumeCompleted();
+      Navigator.of(context).pop();
+      widget.onComplete(data);
+    }
+  }
+
   @override
   void initState() {
     _viewModel = sl<ProductUnitViewModel>();
-    _viewModel.states.listen((event) {
-      if (event is LoadingState) {
-        showLoadingDialog(context);
-      } else if (event is ErrorState) {
-        hideLoadingDialog(context);
-        showAlertDialog(context, event.message, () {});
-      } else if (event is AddProductUnitState) {
-        hideLoadingDialog(context);
-        Navigator.of(context).pop();
-        widget.onComplete(event.data);
-      } else if (event is UpdateProductUnitState) {
-        hideLoadingDialog(context);
-        Navigator.of(context).pop();
-        widget.onComplete(event.data);
-      } else if (event is RemoveProductUnitState) {
-        hideLoadingDialog(context);
-        Navigator.of(context).pop();
-        widget.onComplete(event.data);
-      }
-    });
+    _viewModel.state.addListener(_onStateChanged);
     if (widget.unit != null) {
       _sizeController.text = widget.unit!.size.toString();
       _unitController.text = widget.unit!.unit;
@@ -90,6 +94,8 @@ class _ProductUnitWidgetState extends State<ProductUnitWidget> {
 
   @override
   void dispose() {
+    _viewModel.state.removeListener(_onStateChanged);
+    _viewModel.dispose();
     _unitController.dispose();
     _unitFocus.dispose();
     _sizeController.dispose();

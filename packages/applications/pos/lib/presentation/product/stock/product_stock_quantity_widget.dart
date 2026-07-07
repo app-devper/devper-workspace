@@ -10,7 +10,6 @@ import 'package:pos/container.dart';
 import 'package:pos/domain/model/product/param.dart';
 import 'package:pos/domain/model/product/product.dart';
 import 'package:pos/presentation/core/decimal_input.dart';
-import 'package:pos/presentation/product/stock/product_stock_quantity_state.dart';
 import 'package:pos/presentation/product/stock/product_stock_quantity_view_model.dart';
 
 class ProductStockQuantityWidget extends StatefulWidget {
@@ -32,27 +31,40 @@ class _ProductStockQuantityWidgetState extends State<ProductStockQuantityWidget>
 
   late ProductStockQuantityViewModel _viewModel;
 
+  bool _loadingShown = false;
+
+  void _onStateChanged() {
+    final state = _viewModel.state.value;
+    if (state.loading && !_loadingShown) {
+      _loadingShown = true;
+      showLoadingDialog(context);
+    } else if (!state.loading && _loadingShown) {
+      _loadingShown = false;
+      hideLoadingDialog(context);
+    }
+    if (state.error != null) {
+      final message = state.error!;
+      _viewModel.consumeError();
+      showAlertDialog(context, message, () {});
+    }
+    if (state.updated != null) {
+      final data = state.updated!;
+      _viewModel.consumeUpdated();
+      Navigator.pop(context);
+      widget.onComplete(data);
+    }
+  }
+
   @override
   void initState() {
     _viewModel = sl<ProductStockQuantityViewModel>();
-    _viewModel.states.listen((state) {
-      if (state is LoadingState) {
-        showLoadingDialog(context);
-      } else if (state is ErrorState) {
-        hideLoadingDialog(context);
-        showAlertDialog(context, state.message, () {});
-      } else if (state is UpdateProductStockState) {
-        hideLoadingDialog(context);
-        Navigator.pop(context);
-        widget.onComplete(state.data);
-      }
-    });
-
+    _viewModel.state.addListener(_onStateChanged);
     super.initState();
   }
 
   @override
   void dispose() {
+    _viewModel.state.removeListener(_onStateChanged);
     _viewModel.dispose();
     super.dispose();
   }

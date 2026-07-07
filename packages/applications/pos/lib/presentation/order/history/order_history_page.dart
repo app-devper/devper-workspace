@@ -15,7 +15,6 @@ import 'package:pos/localizations/language/languages.dart';
 import 'package:pos/presentation/constants.dart';
 import 'package:pos/presentation/order/core/export_csv.dart';
 import 'package:pos/presentation/theme.dart';
-import 'order_history_state.dart';
 import 'order_history_view_model.dart';
 
 class OrderHistoryPage extends StatefulWidget {
@@ -42,38 +41,42 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
   bool isAdmin = true;
   List<OrderItemDetail> orderItems = [];
 
+  bool _loadingShown = false;
+
   @override
   void initState() {
     super.initState();
     _viewModel = sl<OrderHistoryViewModel>();
-    _viewModel.states.stream.listen((state) {
-      if (state is ErrorState) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _snackBar.hideAll();
-          _snackBar.showErrorSnackBar(state.message);
-        });
-      } else if (state is LoadingState) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _snackBar.hideAll();
-          _snackBar.showLoadingSnackBar();
-        });
-      } else if (state is OrderItemState) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _snackBar.hideAll();
-        });
-        setState(() {
-          orderItems = state.items;
-        });
-      }
-    });
-
+    _viewModel.state.addListener(_onStateChanged);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _viewModel.getOrderItemByProductId(widget.product.id);
     });
   }
 
+  void _onStateChanged() {
+    final state = _viewModel.state.value;
+    if (state.loading && !_loadingShown) {
+      _loadingShown = true;
+      _snackBar.hideAll();
+      _snackBar.showLoadingSnackBar();
+    } else if (!state.loading && _loadingShown) {
+      _loadingShown = false;
+      _snackBar.hideAll();
+    }
+    if (state.error != null) {
+      final message = state.error!;
+      _viewModel.consumeError();
+      _snackBar.hideAll();
+      _snackBar.showErrorSnackBar(message);
+    }
+    setState(() {
+      orderItems = state.items;
+    });
+  }
+
   @override
   void dispose() {
+    _viewModel.state.removeListener(_onStateChanged);
     _viewModel.dispose();
     super.dispose();
   }

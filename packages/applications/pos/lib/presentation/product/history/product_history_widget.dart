@@ -25,32 +25,11 @@ class ProductHistoryWidget extends StatefulWidget {
 
 class _ProductHistoryWidgetState extends State<ProductHistoryWidget> {
   late ProductHistoryViewModel _viewModel;
-  List<ProductHistory> _histories = [];
-  bool _isLoading = true;
-  String? _error;
 
   @override
   void initState() {
     super.initState();
     _viewModel = sl<ProductHistoryViewModel>();
-    _viewModel.states.listen((state) {
-      if (state is LoadingState) {
-        setState(() {
-          _isLoading = true;
-          _error = null;
-        });
-      } else if (state is ListHistoryState) {
-        setState(() {
-          _isLoading = false;
-          _histories = state.data;
-        });
-      } else if (state is ErrorState) {
-        setState(() {
-          _isLoading = false;
-          _error = state.message;
-        });
-      }
-    });
     _viewModel.getHistoriesByProductId(widget.productId);
   }
 
@@ -62,55 +41,60 @@ class _ProductHistoryWidgetState extends State<ProductHistoryWidget> {
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(
-          strokeWidth: 4,
-          color: CustomColor.primary,
-          strokeCap: StrokeCap.round,
-        ),
-      );
-    }
-    if (_error != null) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              _error!,
-              style: const TextStyle(color: Colors.red),
+    return ValueListenableBuilder<ProductHistoryState>(
+      valueListenable: _viewModel.state,
+      builder: (BuildContext context, ProductHistoryState state, _) {
+        if (state.loading) {
+          return const Center(
+            child: CircularProgressIndicator(
+              strokeWidth: 4,
+              color: CustomColor.primary,
+              strokeCap: StrokeCap.round,
             ),
-            const SizedBox(height: 8),
-            TextButton(
-              onPressed: () {
-                _viewModel.getHistoriesByProductId(widget.productId);
-              },
-              child: const Text('ลองอีกครั้ง'),
+          );
+        }
+        if (state.error != null) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  state.error!,
+                  style: const TextStyle(color: Colors.red),
+                ),
+                const SizedBox(height: 8),
+                TextButton(
+                  onPressed: () {
+                    _viewModel.getHistoriesByProductId(widget.productId);
+                  },
+                  child: const Text('ลองอีกครั้ง'),
+                ),
+              ],
             ),
-          ],
-        ),
-      );
-    }
-    if (_histories.isEmpty) {
-      return const Center(
-        child: Text(
-          'ไม่มีประวัติ',
-          style: TextStyle(
-            fontSize: 16,
-            color: Colors.grey,
-          ),
-        ),
-      );
-    }
-    return _buildHistoryList();
+          );
+        }
+        if (state.items.isEmpty) {
+          return const Center(
+            child: Text(
+              'ไม่มีประวัติ',
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.grey,
+              ),
+            ),
+          );
+        }
+        return _buildHistoryList(state.items);
+      },
+    );
   }
 
-  Widget _buildHistoryList() {
+  Widget _buildHistoryList(List<ProductHistory> items) {
     return ListView.builder(
       padding: const EdgeInsets.all(0),
-      itemCount: _histories.length,
+      itemCount: items.length,
       itemBuilder: (context, index) {
-        final history = _histories[index];
+        final history = items[index];
         return Card(
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10.0),

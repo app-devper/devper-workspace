@@ -8,6 +8,7 @@ import 'package:common/core/widgets/responsive.dart';
 import 'package:pos/container.dart';
 import 'package:pos/domain/model/product/product.dart';
 import 'package:pos/presentation/theme.dart';
+import 'products_state.dart';
 import 'products_view_model.dart';
 
 class ProductsWidget extends StatefulWidget {
@@ -126,13 +127,10 @@ class _ProductsWidgetState extends State<ProductsWidget> {
   }
 
   _buildProductList() {
-    return StreamBuilder(
-      stream: _viewModel.products,
-      builder: (BuildContext context, AsyncSnapshot<List<Product>> snapshot) {
-        if (snapshot.hasData) {
-          var data = snapshot.data;
-          return _buildProducts(data ?? []);
-        } else {
+    return ValueListenableBuilder<ProductsState>(
+      valueListenable: _viewModel.state,
+      builder: (BuildContext context, ProductsState state, _) {
+        if (state.loading && state.items.isEmpty) {
           return const Expanded(
             child: Center(
               child: CircularProgressIndicator(
@@ -143,6 +141,7 @@ class _ProductsWidgetState extends State<ProductsWidget> {
             ),
           );
         }
+        return _buildProducts(state.items);
       },
     );
   }

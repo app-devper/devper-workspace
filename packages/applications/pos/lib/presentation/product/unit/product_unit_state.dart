@@ -1,44 +1,36 @@
+// Flutter imports:
+import 'package:flutter/foundation.dart';
+
 // Project imports:
 import 'package:pos/domain/model/product/product.dart';
 
-abstract class ProductUnitState {}
+@immutable
+class ProductUnitState {
+  final bool loading;
+  final String? error;
+  final List<ProductUnit> items;
+  final ProductUnit? completed;
 
-class LoadingState extends ProductUnitState {}
-
-class GetProductUnitsState extends ProductUnitState {
-  final List<ProductUnit> data;
-
-  GetProductUnitsState({
-    required this.data,
+  const ProductUnitState({
+    this.loading = false,
+    this.error,
+    this.items = const [],
+    this.completed,
   });
-}
 
-class AddProductUnitState extends ProductUnitState {
-  final ProductUnit data;
-
-  AddProductUnitState({
-    required this.data,
-  });
-}
-
-class UpdateProductUnitState extends ProductUnitState {
-  final ProductUnit data;
-
-  UpdateProductUnitState({
-    required this.data,
-  });
-}
-
-class RemoveProductUnitState extends ProductUnitState {
-  final ProductUnit data;
-
-  RemoveProductUnitState({
-    required this.data,
-  });
-}
-
-class ErrorState extends ProductUnitState {
-  final String message;
-
-  ErrorState({required this.message});
+  ProductUnitState copyWith({
+    bool? loading,
+    String? error,
+    List<ProductUnit>? items,
+    ProductUnit? completed,
+    bool clearError = false,
+    bool clearCompleted = false,
+  }) {
+    return ProductUnitState(
+      loading: loading ?? this.loading,
+      error: clearError ? null : (error ?? this.error),
+      items: items ?? this.items,
+      completed: clearCompleted ? null : (completed ?? this.completed),
+    );
+  }
 }

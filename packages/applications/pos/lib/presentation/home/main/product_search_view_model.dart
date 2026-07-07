@@ -1,5 +1,5 @@
-// Dart imports:
-import 'dart:async';
+// Flutter imports:
+import 'package:flutter/foundation.dart';
 
 // Project imports:
 import 'package:pos/domain/model/core/core.dart';
@@ -13,17 +13,17 @@ class ProductSearchViewModel {
     required this.productRepo,
   });
 
-  final _productItems = StreamController<List<ProductUnitItem>>();
+  final _items = ValueNotifier<List<ProductUnitItem>?>(null);
 
-  Stream<List<ProductUnitItem>> get productItems => _productItems.stream;
+  ValueListenable<List<ProductUnitItem>?> get items => _items;
 
   final List<ProductUnitItem> _products = [];
 
-  void prepareData() async {
-    getProducts();
+  Future<void> prepareData() async {
+    await getProducts();
   }
 
-  void getProducts() async {
+  Future<void> getProducts() async {
     try {
       _products.clear();
       final products = await productRepo.getLocalProducts();
@@ -32,31 +32,22 @@ class ProductSearchViewModel {
           _products.addAll(item.toProductItems());
         }
       }
-      _onSearchProductSuccess(_products);
+      _items.value = List<ProductUnitItem>.of(_products);
     } on Exception catch (_) {}
   }
 
   void searchProduct(String text) {
     if (text.isEmpty) {
-      _onSearchProductSuccess(_products);
+      _items.value = List<ProductUnitItem>.of(_products);
     } else {
-      List<ProductUnitItem> filtered = [];
-      for (var item in _products) {
-        if (item.name.toLowerCase().contains(text.toLowerCase()) || item.unit.barcode.contains(text)) {
-          filtered.add(item);
-        }
-      }
-      _onSearchProductSuccess(filtered);
+      final lower = text.toLowerCase();
+      _items.value = _products
+          .where((item) => item.name.toLowerCase().contains(lower) || item.unit.barcode.contains(text))
+          .toList();
     }
   }
 
-  void _onSearchProductSuccess(List<ProductUnitItem> result) {
-    if (!_productItems.isClosed) {
-      _productItems.sink.add(result);
-    }
-  }
-
-  dispose() {
-    _productItems.close();
+  void dispose() {
+    _items.dispose();
   }
 }

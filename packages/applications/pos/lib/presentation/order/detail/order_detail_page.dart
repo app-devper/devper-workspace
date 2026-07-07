@@ -23,7 +23,6 @@ import 'package:pos/presentation/order/argument.dart';
 import 'package:pos/presentation/order/core/export_pdf.dart';
 import 'package:pos/presentation/product/argument.dart';
 import 'package:pos/presentation/theme.dart';
-import 'order_detail_state.dart';
 import 'order_detail_view_model.dart';
 
 class OrderDetailPage extends StatefulWidget {
@@ -57,63 +56,77 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
 
   bool isAdmin = false;
 
+  bool _loadingShown = false;
+
   @override
   void initState() {
     super.initState();
     _viewModel = sl<OrderDetailViewModel>();
-    _viewModel.states.stream.listen((state) {
-      if (state is ErrorState) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _snackBar.hideAll();
-          _snackBar.showErrorSnackBar(state.message);
-        });
-      } else if (state is LoadingState) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _snackBar.hideAll();
-          _snackBar.showLoadingSnackBar();
-        });
-      } else if (state is OrderState) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _snackBar.hideAll();
-        });
-        setState(() {
-          order = state.order;
-          orderItem = state.order.items;
-        });
-      } else if (state is RemoveOrderState) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _snackBar.hideAll();
-        });
-        Navigator.pop(context, state.order);
-      } else if (state is RemoveOrderItemState) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _snackBar.hideAll();
-        });
-        _viewModel.getOrderById(widget.orderId);
-      } else if (state is LoggedState) {
-        setState(() {
-          isAdmin = state.isAdmin;
-        });
-      } else if (state is UpdateTotalCostState) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _snackBar.hideAll();
-        });
-        _viewModel.getOrderById(widget.orderId);
-      } else if (state is GetSupplierState) {
-        _showCustomerDialog(state.supplier, state.customer);
-      } else if (state is GetSupplierErrorState) {
-        _nextToSupplier(context);
-      }
-    });
-
+    _viewModel.state.addListener(_onStateChanged);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _viewModel.checkLogin();
       _viewModel.getOrderById(widget.orderId);
     });
   }
 
+  void _onStateChanged() {
+    final state = _viewModel.state.value;
+    if (state.loading && !_loadingShown) {
+      _loadingShown = true;
+      _snackBar.hideAll();
+      _snackBar.showLoadingSnackBar();
+    } else if (!state.loading && _loadingShown) {
+      _loadingShown = false;
+      _snackBar.hideAll();
+    }
+    if (state.error != null) {
+      final message = state.error!;
+      _viewModel.consumeError();
+      _snackBar.hideAll();
+      _snackBar.showErrorSnackBar(message);
+    }
+    if (state.logged != null) {
+      final value = state.logged!;
+      _viewModel.consumeLogged();
+      setState(() {
+        isAdmin = value;
+      });
+    }
+    if (state.loaded != null) {
+      final data = state.loaded!;
+      _viewModel.consumeLoaded();
+      setState(() {
+        order = data;
+        orderItem = data.items;
+      });
+    }
+    if (state.removedOrder != null) {
+      final data = state.removedOrder!;
+      _viewModel.consumeRemovedOrder();
+      Navigator.pop(context, data);
+    }
+    if (state.removedItem != null) {
+      _viewModel.consumeRemovedItem();
+      _viewModel.getOrderById(widget.orderId);
+    }
+    if (state.totalCostUpdated) {
+      _viewModel.consumeTotalCostUpdated();
+      _viewModel.getOrderById(widget.orderId);
+    }
+    if (state.supplierResult != null) {
+      final result = state.supplierResult!;
+      _viewModel.consumeSupplierResult();
+      _showCustomerDialog(result.supplier, result.customer);
+    }
+    if (state.supplierError != null) {
+      _viewModel.consumeSupplierError();
+      _nextToSupplier(context);
+    }
+  }
+
   @override
   void dispose() {
+    _viewModel.state.removeListener(_onStateChanged);
     _viewModel.dispose();
 
     _nameNode.dispose();

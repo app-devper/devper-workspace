@@ -15,7 +15,6 @@ import 'package:common/core/widgets/title_bar.dart';
 import 'package:pos/container.dart';
 import 'package:pos/domain/model/product/param.dart';
 import 'package:pos/domain/model/product/product.dart';
-import 'package:pos/presentation/product/stock/product_stock_sequence_state.dart';
 import 'package:pos/presentation/product/stock/product_stock_sequence_view_model.dart';
 
 class ProductStockSequenceWidget extends StatefulWidget {
@@ -38,24 +37,44 @@ class _ProductStockSequenceWidgetState extends State<ProductStockSequenceWidget>
   List<ProductStock> _items = [];
   late ProductStockSequenceViewModel _viewModel;
 
+  bool _loadingShown = false;
+
+  void _onStateChanged() {
+    final state = _viewModel.state.value;
+    if (state.loading && !_loadingShown) {
+      _loadingShown = true;
+      showLoadingDialog(context);
+    } else if (!state.loading && _loadingShown) {
+      _loadingShown = false;
+      hideLoadingDialog(context);
+    }
+    if (state.error != null) {
+      final message = state.error!;
+      _viewModel.consumeError();
+      showAlertDialog(context, message, () {});
+    }
+    if (state.updated != null) {
+      final data = state.updated!;
+      _viewModel.consumeUpdated();
+      Navigator.pop(context);
+      widget.onComplete(data);
+    }
+  }
+
   @override
   void initState() {
     _viewModel = sl<ProductStockSequenceViewModel>();
-    _viewModel.states.listen((state) {
-      if (state is LoadingState) {
-        showLoadingDialog(context);
-      } else if (state is ErrorState) {
-        hideLoadingDialog(context);
-        showAlertDialog(context, state.message, () {});
-      } else if (state is UpdateProductSequenceState) {
-        hideLoadingDialog(context);
-        Navigator.pop(context);
-        widget.onComplete(state.data);
-      }
-    });
+    _viewModel.state.addListener(_onStateChanged);
     _items = widget.stocks;
     _items.sort((a, b) => a.sequence.compareTo(b.sequence));
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    _viewModel.state.removeListener(_onStateChanged);
+    _viewModel.dispose();
+    super.dispose();
   }
 
   @override

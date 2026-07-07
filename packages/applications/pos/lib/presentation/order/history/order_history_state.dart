@@ -1,18 +1,31 @@
+// Flutter imports:
+import 'package:flutter/foundation.dart';
+
 // Project imports:
 import 'package:pos/domain/model/order/order_item_detail.dart';
 
-abstract class OrderHistoryState {}
-
-class LoadingState extends OrderHistoryState {}
-
-class OrderItemState extends OrderHistoryState {
+@immutable
+class OrderHistoryState {
   final List<OrderItemDetail> items;
+  final bool loading;
+  final String? error;
 
-  OrderItemState(this.items);
-}
+  const OrderHistoryState({
+    this.items = const [],
+    this.loading = false,
+    this.error,
+  });
 
-class ErrorState extends OrderHistoryState {
-  final String message;
-
-  ErrorState(this.message);
+  OrderHistoryState copyWith({
+    List<OrderItemDetail>? items,
+    bool? loading,
+    String? error,
+    bool clearError = false,
+  }) {
+    return OrderHistoryState(
+      items: items ?? this.items,
+      loading: loading ?? this.loading,
+      error: clearError ? null : (error ?? this.error),
+    );
+  }
 }

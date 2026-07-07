@@ -31,37 +31,31 @@ class _ProductsExpiredPageState extends State<ProductsExpiredPage> {
   late CustomSnackBar _snackBar;
   late ProductsExpiredViewModel _viewModel;
 
-  double _totalCost = 0;
-
   Range _value = Range.before180Days;
 
   @override
   void initState() {
     super.initState();
     _viewModel = sl<ProductsExpiredViewModel>();
-    _viewModel.states.listen((state) {
-      if (state is ErrorState) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _snackBar.hideAll();
-          _snackBar.showErrorSnackBar(state.message);
-        });
-      } else if (state is LoadingState) {
-      } else if (state is ListExpiresState) {
-        _viewModel.setProductLots(state.data);
-        setState(() {
-          _totalCost = state.totalCost;
-        });
-      }
-    });
-
+    _viewModel.state.addListener(_onStateChanged);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _viewModel.initData();
       _viewModel.selectRange(_value);
     });
   }
 
+  void _onStateChanged() {
+    final error = _viewModel.state.value.error;
+    if (error != null) {
+      _snackBar.hideAll();
+      _snackBar.showErrorSnackBar(error);
+      _viewModel.consumeError();
+    }
+  }
+
   @override
   void dispose() {
+    _viewModel.state.removeListener(_onStateChanged);
     _viewModel.dispose();
     super.dispose();
   }
@@ -106,11 +100,11 @@ class _ProductsExpiredPageState extends State<ProductsExpiredPage> {
   }
 
   _buildDropdown() {
-    return StreamBuilder(
-      stream: _viewModel.dropdownItem.stream,
-      builder: (BuildContext context, AsyncSnapshot<List<ListItem>> snapshot) {
-        if (snapshot.hasData) {
-          var data = snapshot.data ?? [];
+    return ValueListenableBuilder<ProductsExpiredState>(
+      valueListenable: _viewModel.state,
+      builder: (BuildContext context, ProductsExpiredState state, _) {
+        final data = state.ranges;
+        if (data.isNotEmpty) {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: <Widget>[
@@ -155,13 +149,10 @@ class _ProductsExpiredPageState extends State<ProductsExpiredPage> {
   }
 
   _buildReceiveList() {
-    return StreamBuilder(
-      stream: _viewModel.lots,
-      builder: (BuildContext context, AsyncSnapshot<List<ProductLot>> snapshot) {
-        if (snapshot.hasData) {
-          var data = snapshot.data ?? [];
-          return _buildProductLots(data);
-        } else {
+    return ValueListenableBuilder<ProductsExpiredState>(
+      valueListenable: _viewModel.state,
+      builder: (BuildContext context, ProductsExpiredState state, _) {
+        if (state.loading && state.items.isEmpty) {
           return const Expanded(
             child: Center(
               child: CircularProgressIndicator(
@@ -172,6 +163,7 @@ class _ProductsExpiredPageState extends State<ProductsExpiredPage> {
             ),
           );
         }
+        return _buildProductLots(state.items);
       },
     );
   }
@@ -205,8 +197,13 @@ class _ProductsExpiredPageState extends State<ProductsExpiredPage> {
           const Text(
             'Total Cost',
           ),
-          Text(
-            '฿ ${_format.format(_totalCost)}',
+          ValueListenableBuilder<ProductsExpiredState>(
+            valueListenable: _viewModel.state,
+            builder: (BuildContext context, ProductsExpiredState state, _) {
+              return Text(
+                '฿ ${_format.format(state.totalCost)}',
+              );
+            },
           ),
         ],
       ),

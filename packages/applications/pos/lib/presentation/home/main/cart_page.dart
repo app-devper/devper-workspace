@@ -24,7 +24,6 @@ import 'package:pos/presentation/home/main/payment_screen.dart';
 import 'package:pos/presentation/home/main/product_search.dart';
 import 'package:pos/presentation/theme.dart';
 import 'cart_view_model.dart';
-import 'home_state.dart';
 
 class CartPage extends StatefulWidget {
   const CartPage({super.key});
@@ -44,63 +43,70 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
 
   DateTime currentDate = getCurrentDate();
 
+  bool _loadingShown = false;
+  bool _orderSavingShown = false;
+
   @override
   void initState() {
     WidgetsBinding.instance.addObserver(this);
     super.initState();
     _viewModel = sl<CartViewModel>();
-    _viewModel.states.listen((state) {
-      if (state is ErrorState) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _snackBar.hideAll();
-          _snackBar.showErrorSnackBar(state.message);
-        });
-      } else if (state is LoadingState) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _snackBar.hideAll();
-          _snackBar.showLoadingSnackBar();
-        });
-      } else if (state is OrderItemState) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _snackBar.hideAll();
-        });
-        setState(() {
-          _orderItems = state.orderItems;
-        });
-      } else if (state is OrderLoadingState) {
-        showLoadingDialog(context);
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _snackBar.hideAll();
-        });
-      } else if (state is OrderResultState) {
-        hideLoadingDialog(context);
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _snackBar.hideAll();
-          _snackBar.showSnackBar(text: "Order success");
-        });
-        _viewModel.clearCart();
-        _viewModel.prepareData();
-        if (_alertKey.currentContext != null) {
-          Navigator.of(context).pop();
-        }
-      } else if (state is OrderErrorState) {
-        hideLoadingDialog(context);
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _snackBar.hideAll();
-          _snackBar.showErrorSnackBar(state.message);
-        });
-      }
-    });
-
+    _viewModel.state.addListener(_onStateChanged);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _viewModel.prepareData();
     });
   }
 
+  void _onStateChanged() {
+    final state = _viewModel.state.value;
+    if (state.loading && !_loadingShown) {
+      _loadingShown = true;
+      _snackBar.hideAll();
+      _snackBar.showLoadingSnackBar();
+    } else if (!state.loading && _loadingShown) {
+      _loadingShown = false;
+      _snackBar.hideAll();
+    }
+    if (state.orderSaving && !_orderSavingShown) {
+      _orderSavingShown = true;
+      showLoadingDialog(context);
+    } else if (!state.orderSaving && _orderSavingShown) {
+      _orderSavingShown = false;
+      hideLoadingDialog(context);
+    }
+    if (state.error != null) {
+      final message = state.error!;
+      _viewModel.consumeError();
+      _snackBar.hideAll();
+      _snackBar.showErrorSnackBar(message);
+    }
+    if (state.orderItems != null) {
+      setState(() {
+        _orderItems = state.orderItems!;
+      });
+    }
+    if (state.orderResult != null) {
+      _viewModel.consumeOrderResult();
+      _snackBar.hideAll();
+      _snackBar.showSnackBar(text: "Order success");
+      _viewModel.clearCart();
+      _viewModel.prepareData();
+      if (_alertKey.currentContext != null) {
+        Navigator.of(context).pop();
+      }
+    }
+    if (state.orderError != null) {
+      final message = state.orderError!;
+      _viewModel.consumeOrderError();
+      _snackBar.hideAll();
+      _snackBar.showErrorSnackBar(message);
+    }
+  }
+
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-
+    _viewModel.state.removeListener(_onStateChanged);
     _viewModel.dispose();
     super.dispose();
   }

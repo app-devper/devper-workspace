@@ -1,5 +1,5 @@
-// Dart imports:
-import 'dart:async';
+// Flutter imports:
+import 'package:flutter/foundation.dart';
 
 // Package imports:
 import 'package:common/core/error/failure.dart';
@@ -17,51 +17,44 @@ class ProductLotEditViewModel {
     required this.productRepo,
   });
 
-  final _states = StreamController<ProductLotEditState>();
+  final _state = ValueNotifier<ProductLotEditState>(const ProductLotEditState());
 
-  Stream<ProductLotEditState> get states => _states.stream;
+  ValueListenable<ProductLotEditState> get state => _state;
 
-  void getProductLot(ProductLot lot) async {
-    try {
-      _onGetProductLot(lot);
-    } on Exception catch (_) {
-    }
+  void getProductLot(ProductLot lot) {
+    _state.value = _state.value.copyWith(loaded: lot);
   }
 
-  void updateProductLot(String lotId, UpdateProductLotQuantityParam param) async {
-    _onLoading();
+  Future<void> updateProductLot(String lotId, UpdateProductLotQuantityParam param) async {
+    _state.value = _state.value.copyWith(loading: true, clearError: true, clearUpdated: true);
     try {
-      final result = await productRepo.updateProductLotQuantityByLotId(lotId, param);
-      result.product = await productRepo.getLocalProductById(result.productId);
-      _onUpdateProductLot(result);
+      final updated = await productRepo.updateProductLotQuantityByLotId(lotId, param);
+      updated.product = await productRepo.getLocalProductById(updated.productId);
+      _state.value = _state.value.copyWith(loading: false, updated: updated);
     } on Exception catch (e) {
-      _onError(toFailure(e));
+      _state.value = _state.value.copyWith(loading: false, error: toFailure(e).getMessage());
     }
   }
 
-  _onLoading() {
-    _states.sink.add(LoadingState());
-  }
-
-  _onGetProductLot(ProductLot data) {
-    if (!_states.isClosed) {
-      _states.sink.add(GetProductLotState(data: data));
+  void consumeError() {
+    if (_state.value.error != null) {
+      _state.value = _state.value.copyWith(clearError: true);
     }
   }
 
-  _onUpdateProductLot(ProductLot data) {
-    if (!_states.isClosed) {
-      _states.sink.add(UpdateProductLotState(data: data));
+  void consumeLoaded() {
+    if (_state.value.loaded != null) {
+      _state.value = _state.value.copyWith(clearLoaded: true);
     }
   }
 
-  _onError(Failure failure) {
-    if (!_states.isClosed) {
-      _states.sink.add(ErrorState(message: failure.getMessage()));
+  void consumeUpdated() {
+    if (_state.value.updated != null) {
+      _state.value = _state.value.copyWith(clearUpdated: true);
     }
   }
 
-  dispose() {
-    _states.close();
+  void dispose() {
+    _state.dispose();
   }
 }

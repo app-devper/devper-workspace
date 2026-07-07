@@ -1,5 +1,4 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:pos/presentation/home/main/home_state.dart';
 import 'package:pos/presentation/home/main/home_view_model.dart';
 import 'package:um/domain/entities/auth/login.dart';
 import 'package:um/domain/entities/auth/param.dart';
@@ -40,34 +39,37 @@ class FakeLoginRepository implements LoginRepository {
 }
 
 void main() {
-  test('getRole emits CheckRoleState true for ADMIN', () async {
+  test('getRole sets isAdmin true for ADMIN', () async {
     final vm = HomeViewModel(loginRepo: FakeLoginRepository(role: 'ADMIN'));
 
-    expectLater(
-      vm.states,
-      emits(isA<CheckRoleState>().having((s) => s.isAdmin, 'isAdmin', isTrue)),
-    );
-    vm.getRole();
+    await vm.getRole();
+
+    expect(vm.state.value.isAdmin, isTrue);
+
+    vm.consumeIsAdmin();
+
+    expect(vm.state.value.isAdmin, isNull);
   });
 
-  test('getRole emits CheckRoleState false for USER', () async {
+  test('getRole sets isAdmin false for USER', () async {
     final vm = HomeViewModel(loginRepo: FakeLoginRepository(role: 'USER'));
 
-    expectLater(
-      vm.states,
-      emits(isA<CheckRoleState>().having((s) => s.isAdmin, 'isAdmin', isFalse)),
-    );
-    vm.getRole();
+    await vm.getRole();
+
+    expect(vm.state.value.isAdmin, isFalse);
   });
 
-  test('logout emits LogoutState even when the repository fails', () async {
+  test('logout sets loggedOut even when the repository fails', () async {
     final repo = FakeLoginRepository(logoutThrows: true);
     final vm = HomeViewModel(loginRepo: repo);
 
-    expectLater(vm.states, emits(isA<LogoutState>()));
-    vm.logout();
+    await vm.logout();
 
-    await Future<void>.delayed(Duration.zero);
     expect(repo.logoutCalls, 1);
+    expect(vm.state.value.loggedOut, isTrue);
+
+    vm.consumeLoggedOut();
+
+    expect(vm.state.value.loggedOut, isFalse);
   });
 }

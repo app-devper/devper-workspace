@@ -1,5 +1,5 @@
-// Dart imports:
-import 'dart:async';
+// Flutter imports:
+import 'package:flutter/foundation.dart';
 
 // Project imports:
 import 'package:pos/domain/model/customer/customer.dart';
@@ -12,40 +12,31 @@ class CustomerSearchViewModel {
     required this.customerRepo,
   });
 
-  final _customerItems = StreamController<List<Customer>>();
+  final _items = ValueNotifier<List<Customer>?>(null);
 
-  Stream<List<Customer>> get customerItems => _customerItems.stream;
+  ValueListenable<List<Customer>?> get items => _items;
 
   List<Customer> _customers = [];
 
-  void getCacheCustomers() async {
+  Future<void> getCacheCustomers() async {
     try {
       _customers = await customerRepo.getLocalCustomers();
-      _onSearchCustomerSuccess(_customers);
+      _items.value = _customers;
     } on Exception catch (_) {}
   }
 
   void searchCustomer(String term) {
     if (term.isEmpty) {
-      _onSearchCustomerSuccess(_customers);
+      _items.value = _customers;
     } else {
-      List<Customer> filtered = [];
-      for (var item in _customers) {
-        if (item.name.toLowerCase().contains(term.toLowerCase()) || item.phone.contains(term)) {
-          filtered.add(item);
-        }
-      }
-      _onSearchCustomerSuccess(filtered);
+      final lower = term.toLowerCase();
+      _items.value = _customers
+          .where((item) => item.name.toLowerCase().contains(lower) || item.phone.contains(term))
+          .toList();
     }
   }
 
-  void _onSearchCustomerSuccess(List<Customer> customers) {
-    if (!_customerItems.isClosed) {
-      _customerItems.sink.add(customers);
-    }
-  }
-
-  dispose() {
-    _customerItems.close();
+  void dispose() {
+    _items.dispose();
   }
 }

@@ -1,48 +1,25 @@
-// Project imports:
-import 'package:pos/domain/model/customer/customer.dart';
-import 'package:pos/domain/model/order/order.dart';
-import 'package:pos/domain/model/order/order_item.dart';
+// Flutter imports:
+import 'package:flutter/foundation.dart';
 
-abstract class HomeState {}
+@immutable
+class HomeState {
+  final bool? isAdmin;
+  final bool loggedOut;
 
-class LoadingState extends HomeState {}
+  const HomeState({
+    this.isAdmin,
+    this.loggedOut = false,
+  });
 
-class CheckRoleState extends HomeState {
-  final bool isAdmin;
-
-  CheckRoleState(this.isAdmin);
+  HomeState copyWith({
+    bool? isAdmin,
+    bool? loggedOut,
+    bool clearIsAdmin = false,
+    bool clearLoggedOut = false,
+  }) {
+    return HomeState(
+      isAdmin: clearIsAdmin ? null : (isAdmin ?? this.isAdmin),
+      loggedOut: clearLoggedOut ? false : (loggedOut ?? this.loggedOut),
+    );
+  }
 }
-
-class OrderItemState extends HomeState {
-  final List<OrderItem> orderItems;
-
-  OrderItemState(this.orderItems);
-}
-
-class OrderLoadingState extends HomeState {}
-
-class OrderResultState extends HomeState {
-  final OrderResult order;
-
-  OrderResultState(this.order);
-}
-
-class OrderErrorState extends HomeState {
-  final String message;
-
-  OrderErrorState(this.message);
-}
-
-class CustomersState extends HomeState {
-  final List<Customer> customers;
-
-  CustomersState(this.customers);
-}
-
-class ErrorState extends HomeState {
-  final String message;
-
-  ErrorState(this.message);
-}
-
-class LogoutState extends HomeState {}
