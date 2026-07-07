@@ -43,7 +43,6 @@ import 'package:pos/presentation/product/stock/product_stock_quantity_view_model
 import 'package:pos/presentation/product/stock/product_stock_sequence_view_model.dart';
 import 'package:pos/presentation/product/stock/product_stock_view_model.dart';
 import 'package:pos/presentation/product/unit/product_unit_view_model.dart';
-import 'package:pos/presentation/receive/add/receive_add_view_model.dart';
 import 'package:pos/presentation/receive/main/receives_view_model.dart';
 import 'package:pos/presentation/receive/manage/receive_manage_view_model.dart';
 import 'package:pos/presentation/supplier/add/supplier_add_view_model.dart';
@@ -232,12 +231,6 @@ Future<void> initPos() async {
   sl.registerFactory(
     () => ReceivesViewModel(
       receiveRepo: sl(),
-    ),
-  );
-  sl.registerFactory(
-    () => ReceiveAddViewModel(
-      receiveRepo: sl(),
-      categoryRepo: sl(),
     ),
   );
   sl.registerFactory(
