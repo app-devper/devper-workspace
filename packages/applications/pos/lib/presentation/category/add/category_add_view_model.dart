@@ -6,14 +6,14 @@ import 'package:common/core/error/failure.dart';
 
 // Project imports:
 import 'package:pos/domain/model/category/param.dart';
-import 'package:pos/domain/repositories/category_repository.dart';
+import 'package:pos/domain/usecase/category/create_category_use_case.dart';
 import 'category_add_state.dart';
 
 class CategoryAddViewModel {
-  final CategoryRepository categoryRepo;
+  final CreateCategoryUseCase createCategoryUseCase;
 
   CategoryAddViewModel({
-    required this.categoryRepo,
+    required this.createCategoryUseCase,
   });
 
   final _state = ValueNotifier<CategoryAddState>(const CategoryAddState());
@@ -23,7 +23,7 @@ class CategoryAddViewModel {
   Future<void> createCategory(CategoryParam param) async {
     _state.value = _state.value.copyWith(saving: true, clearError: true, clearCreated: true);
     try {
-      final created = await categoryRepo.createCategory(param);
+      final created = await createCategoryUseCase(param);
       _state.value = _state.value.copyWith(saving: false, created: created);
     } on Exception catch (e) {
       _state.value = _state.value.copyWith(saving: false, error: toFailure(e).getMessage());

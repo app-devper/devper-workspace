@@ -6,14 +6,20 @@ import 'package:common/core/error/failure.dart';
 
 // Project imports:
 import 'package:pos/domain/model/category/param.dart';
-import 'package:pos/domain/repositories/category_repository.dart';
+import 'package:pos/domain/usecase/category/get_category_by_id_use_case.dart';
+import 'package:pos/domain/usecase/category/remove_category_by_id_use_case.dart';
+import 'package:pos/domain/usecase/category/update_category_by_id_use_case.dart';
 import 'category_edit_state.dart';
 
 class CategoryEditViewModel {
-  final CategoryRepository categoryRepo;
+  final GetCategoryByIdUseCase getCategoryByIdUseCase;
+  final UpdateCategoryByIdUseCase updateCategoryByIdUseCase;
+  final RemoveCategoryByIdUseCase removeCategoryByIdUseCase;
 
   CategoryEditViewModel({
-    required this.categoryRepo,
+    required this.getCategoryByIdUseCase,
+    required this.updateCategoryByIdUseCase,
+    required this.removeCategoryByIdUseCase,
   });
 
   final _state = ValueNotifier<CategoryEditState>(const CategoryEditState());
@@ -22,7 +28,7 @@ class CategoryEditViewModel {
 
   Future<void> getCategoryById(String categoryId) async {
     try {
-      await categoryRepo.getCategoryById(categoryId);
+      await getCategoryByIdUseCase(categoryId);
     } on Exception catch (e) {
       _state.value = _state.value.copyWith(error: toFailure(e).getMessage());
     }
@@ -31,7 +37,9 @@ class CategoryEditViewModel {
   Future<void> updateCategoryById(String categoryId, CategoryParam param) async {
     _state.value = _state.value.copyWith(loading: true, clearError: true, clearUpdated: true);
     try {
-      final updated = await categoryRepo.updateCategoryById(categoryId, param);
+      final updated = await updateCategoryByIdUseCase(
+        CategoryUpdateParam(categoryId: categoryId, param: param),
+      );
       _state.value = _state.value.copyWith(loading: false, updated: updated);
     } on Exception catch (e) {
       _state.value = _state.value.copyWith(loading: false, error: toFailure(e).getMessage());
@@ -41,7 +49,7 @@ class CategoryEditViewModel {
   Future<void> removeCategoryById(String categoryId) async {
     _state.value = _state.value.copyWith(loading: true, clearError: true, clearRemoved: true);
     try {
-      final removed = await categoryRepo.removeCategoryById(categoryId);
+      final removed = await removeCategoryByIdUseCase(categoryId);
       _state.value = _state.value.copyWith(loading: false, removed: removed);
     } on Exception catch (e) {
       _state.value = _state.value.copyWith(loading: false, error: toFailure(e).getMessage());
