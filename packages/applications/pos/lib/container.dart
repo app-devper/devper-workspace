@@ -26,7 +26,16 @@ import 'package:pos/domain/usecase/customer/get_customer_by_id_use_case.dart';
 import 'package:pos/domain/usecase/customer/get_local_customers_use_case.dart';
 import 'package:pos/domain/usecase/customer/remove_customer_by_id_use_case.dart';
 import 'package:pos/domain/usecase/customer/update_customer_by_id_use_case.dart';
+import 'package:pos/domain/usecase/product/get_local_product_by_id_use_case.dart';
+import 'package:pos/domain/usecase/receive/create_receive_use_case.dart';
+import 'package:pos/domain/usecase/receive/get_receive_by_id_use_case.dart';
+import 'package:pos/domain/usecase/receive/get_receive_items_by_id_use_case.dart';
+import 'package:pos/domain/usecase/receive/get_receives_use_case.dart';
+import 'package:pos/domain/usecase/receive/remove_receive_by_id_use_case.dart';
+import 'package:pos/domain/usecase/receive/remove_receive_item_by_lot_id_use_case.dart';
+import 'package:pos/domain/usecase/receive/update_receive_by_id_use_case.dart';
 import 'package:pos/domain/usecase/supplier/create_supplier_use_case.dart';
+import 'package:pos/domain/usecase/supplier/get_local_suppliers_use_case.dart';
 import 'package:pos/domain/usecase/supplier/get_supplier_info_use_case.dart';
 import 'package:pos/domain/usecase/supplier/get_suppliers_use_case.dart';
 import 'package:pos/domain/usecase/supplier/remove_supplier_by_id_use_case.dart';
@@ -253,14 +262,20 @@ Future<void> initPos() async {
   );
   sl.registerFactory(
     () => ReceivesViewModel(
-      receiveRepo: sl(),
+      getReceivesUseCase: sl(),
     ),
   );
   sl.registerFactory(
     () => ReceiveManageViewModel(
-      receiveRepo: sl(),
-      supplierRepo: sl(),
-      productRepo: sl(),
+      getReceiveByIdUseCase: sl(),
+      createReceiveUseCase: sl(),
+      updateReceiveByIdUseCase: sl(),
+      removeReceiveByIdUseCase: sl(),
+      getReceiveItemsByIdUseCase: sl(),
+      removeReceiveItemByLotIdUseCase: sl(),
+      getLocalSuppliersUseCase: sl(),
+      getSuppliersUseCase: sl(),
+      getLocalProductByIdUseCase: sl(),
     ),
   );
 
@@ -323,6 +338,53 @@ Future<void> initPos() async {
   sl.registerFactory(
     () => RemoveSupplierByIdUseCase(
       supplierRepo: sl(),
+    ),
+  );
+  sl.registerFactory(
+    () => GetLocalSuppliersUseCase(
+      supplierRepo: sl(),
+    ),
+  );
+
+  sl.registerFactory(
+    () => GetReceivesUseCase(
+      receiveRepo: sl(),
+    ),
+  );
+  sl.registerFactory(
+    () => GetReceiveByIdUseCase(
+      receiveRepo: sl(),
+    ),
+  );
+  sl.registerFactory(
+    () => CreateReceiveUseCase(
+      receiveRepo: sl(),
+    ),
+  );
+  sl.registerFactory(
+    () => UpdateReceiveByIdUseCase(
+      receiveRepo: sl(),
+    ),
+  );
+  sl.registerFactory(
+    () => RemoveReceiveByIdUseCase(
+      receiveRepo: sl(),
+    ),
+  );
+  sl.registerFactory(
+    () => GetReceiveItemsByIdUseCase(
+      receiveRepo: sl(),
+    ),
+  );
+  sl.registerFactory(
+    () => RemoveReceiveItemByLotIdUseCase(
+      receiveRepo: sl(),
+    ),
+  );
+
+  sl.registerFactory(
+    () => GetLocalProductByIdUseCase(
+      productRepo: sl(),
     ),
   );
 

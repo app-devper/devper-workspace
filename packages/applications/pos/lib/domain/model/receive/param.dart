@@ -20,6 +20,16 @@ class UpdateReceiveParam {
   });
 }
 
+class ReceiveUpdateParam {
+  final String receiveId;
+  final UpdateReceiveParam param;
+
+  ReceiveUpdateParam({
+    required this.receiveId,
+    required this.param,
+  });
+}
+
 class GetReceivesRangeParam {
   final String startDate;
   final String endDate;
