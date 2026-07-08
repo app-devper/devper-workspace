@@ -7,6 +7,15 @@ import 'package:pos/domain/model/supplier/supplier.dart';
 import 'package:pos/domain/repositories/product_repository.dart';
 import 'package:pos/domain/repositories/receive_repository.dart';
 import 'package:pos/domain/repositories/supplier_repository.dart';
+import 'package:pos/domain/usecase/product/get_local_product_by_id_use_case.dart';
+import 'package:pos/domain/usecase/receive/create_receive_use_case.dart';
+import 'package:pos/domain/usecase/receive/get_receive_by_id_use_case.dart';
+import 'package:pos/domain/usecase/receive/get_receive_items_by_id_use_case.dart';
+import 'package:pos/domain/usecase/receive/remove_receive_by_id_use_case.dart';
+import 'package:pos/domain/usecase/receive/remove_receive_item_by_lot_id_use_case.dart';
+import 'package:pos/domain/usecase/receive/update_receive_by_id_use_case.dart';
+import 'package:pos/domain/usecase/supplier/get_local_suppliers_use_case.dart';
+import 'package:pos/domain/usecase/supplier/get_suppliers_use_case.dart';
 import 'package:pos/presentation/receive/manage/receive_manage_view_model.dart';
 
 class FakeReceiveRepository implements ReceiveRepository {
@@ -82,10 +91,20 @@ ReceiveManageViewModel buildViewModel({
   List<Supplier> suppliers = const [],
   Object? throws,
 }) {
+  final ProductRepository productRepo = FakeProductRepository();
+  final SupplierRepository supplierRepo = FakeSupplierRepository(suppliers: suppliers);
+  final ReceiveRepository receiveRepo =
+      FakeReceiveRepository(receive: receive, items: items, throws: throws);
   return ReceiveManageViewModel(
-    productRepo: FakeProductRepository(),
-    supplierRepo: FakeSupplierRepository(suppliers: suppliers),
-    receiveRepo: FakeReceiveRepository(receive: receive, items: items, throws: throws),
+    getReceiveByIdUseCase: GetReceiveByIdUseCase(receiveRepo: receiveRepo),
+    createReceiveUseCase: CreateReceiveUseCase(receiveRepo: receiveRepo),
+    updateReceiveByIdUseCase: UpdateReceiveByIdUseCase(receiveRepo: receiveRepo),
+    removeReceiveByIdUseCase: RemoveReceiveByIdUseCase(receiveRepo: receiveRepo),
+    getReceiveItemsByIdUseCase: GetReceiveItemsByIdUseCase(receiveRepo: receiveRepo),
+    removeReceiveItemByLotIdUseCase: RemoveReceiveItemByLotIdUseCase(receiveRepo: receiveRepo),
+    getLocalSuppliersUseCase: GetLocalSuppliersUseCase(supplierRepo: supplierRepo),
+    getSuppliersUseCase: GetSuppliersUseCase(supplierRepo: supplierRepo),
+    getLocalProductByIdUseCase: GetLocalProductByIdUseCase(productRepo: productRepo),
   );
 }
 

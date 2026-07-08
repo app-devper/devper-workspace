@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:pos/domain/model/receive/param.dart';
 import 'package:pos/domain/model/receive/receive.dart';
 import 'package:pos/domain/repositories/receive_repository.dart';
+import 'package:pos/domain/usecase/receive/get_receives_use_case.dart';
 import 'package:pos/presentation/receive/main/receives_view_model.dart';
 
 class FakeReceiveRepository implements ReceiveRepository {
@@ -28,10 +29,16 @@ Receive buildReceive(String id, String code) {
   return Receive(id: id, supplierId: 's1', code: code, reference: '', totalCost: 0, createdDate: '');
 }
 
+ReceivesViewModel buildViewModel(ReceiveRepository repo) {
+  return ReceivesViewModel(
+    getReceivesUseCase: GetReceivesUseCase(receiveRepo: repo),
+  );
+}
+
 void main() {
   test('getReceives populates items and clears loading', () async {
-    final vm = ReceivesViewModel(
-      receiveRepo: FakeReceiveRepository(receives: [buildReceive('1', 'RC-1'), buildReceive('2', 'RC-2')]),
+    final vm = buildViewModel(
+      FakeReceiveRepository(receives: [buildReceive('1', 'RC-1'), buildReceive('2', 'RC-2')]),
     );
 
     await vm.getReceives();
@@ -42,9 +49,7 @@ void main() {
   });
 
   test('searchReceive triggers the initial load when nothing is cached', () async {
-    final vm = ReceivesViewModel(
-      receiveRepo: FakeReceiveRepository(receives: [buildReceive('1', 'RC-1')]),
-    );
+    final vm = buildViewModel(FakeReceiveRepository(receives: [buildReceive('1', 'RC-1')]));
 
     vm.searchReceive('');
     await Future<void>.delayed(Duration.zero);
@@ -53,8 +58,8 @@ void main() {
   });
 
   test('searchReceive filters the cached list by code', () async {
-    final vm = ReceivesViewModel(
-      receiveRepo: FakeReceiveRepository(receives: [buildReceive('1', 'ABC'), buildReceive('2', 'XYZ')]),
+    final vm = buildViewModel(
+      FakeReceiveRepository(receives: [buildReceive('1', 'ABC'), buildReceive('2', 'XYZ')]),
     );
 
     await vm.getReceives();
@@ -65,8 +70,8 @@ void main() {
   });
 
   test('getReceives maps a typed exception to state.error', () async {
-    final vm = ReceivesViewModel(
-      receiveRepo: FakeReceiveRepository(throws: const NetworkException(message: 'offline')),
+    final vm = buildViewModel(
+      FakeReceiveRepository(throws: const NetworkException(message: 'offline')),
     );
 
     await vm.getReceives();
