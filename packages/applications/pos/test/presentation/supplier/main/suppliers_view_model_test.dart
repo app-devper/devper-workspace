@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:pos/domain/model/supplier/param.dart';
 import 'package:pos/domain/model/supplier/supplier.dart';
 import 'package:pos/domain/repositories/supplier_repository.dart';
+import 'package:pos/domain/usecase/supplier/get_suppliers_use_case.dart';
 import 'package:pos/presentation/supplier/main/suppliers_view_model.dart';
 
 class FakeSupplierRepository implements SupplierRepository {
@@ -49,10 +50,16 @@ Supplier buildSupplier(String id) {
   return Supplier(id: id, name: 'name-$id', address: '', phone: '', taxId: '');
 }
 
+SuppliersViewModel buildViewModel(SupplierRepository repo) {
+  return SuppliersViewModel(
+    getSuppliersUseCase: GetSuppliersUseCase(supplierRepo: repo),
+  );
+}
+
 void main() {
   test('getSuppliers populates items and clears loading', () async {
-    final vm = SuppliersViewModel(
-      supplierRepo: FakeSupplierRepository(suppliers: [buildSupplier('1'), buildSupplier('2')]),
+    final vm = buildViewModel(
+      FakeSupplierRepository(suppliers: [buildSupplier('1'), buildSupplier('2')]),
     );
 
     await vm.getSuppliers();
@@ -63,8 +70,8 @@ void main() {
   });
 
   test('getSuppliers maps a typed exception to state.error', () async {
-    final vm = SuppliersViewModel(
-      supplierRepo: FakeSupplierRepository(throws: const NetworkException(message: 'offline')),
+    final vm = buildViewModel(
+      FakeSupplierRepository(throws: const NetworkException(message: 'offline')),
     );
 
     await vm.getSuppliers();
@@ -75,8 +82,8 @@ void main() {
   });
 
   test('consumeError clears the error', () async {
-    final vm = SuppliersViewModel(
-      supplierRepo: FakeSupplierRepository(throws: const NetworkException(message: 'offline')),
+    final vm = buildViewModel(
+      FakeSupplierRepository(throws: const NetworkException(message: 'offline')),
     );
 
     await vm.getSuppliers();
