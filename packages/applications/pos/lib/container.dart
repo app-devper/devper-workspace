@@ -15,6 +15,12 @@ import 'package:pos/domain/repositories/order_repository.dart';
 import 'package:pos/domain/repositories/product_repository.dart';
 import 'package:pos/domain/repositories/receive_repository.dart';
 import 'package:pos/domain/repositories/supplier_repository.dart';
+import 'package:pos/domain/usecase/category/create_category_use_case.dart';
+import 'package:pos/domain/usecase/category/get_categories_use_case.dart';
+import 'package:pos/domain/usecase/category/get_category_by_id_use_case.dart';
+import 'package:pos/domain/usecase/category/remove_category_by_id_use_case.dart';
+import 'package:pos/domain/usecase/category/update_category_by_id_use_case.dart';
+import 'package:pos/domain/usecase/category/update_default_category_by_id_use_case.dart';
 import 'package:pos/presentation/category/add/category_add_view_model.dart';
 import 'package:pos/presentation/category/edit/category_edit_view_model.dart';
 import 'package:pos/presentation/category/main/category_view_model.dart';
@@ -175,17 +181,20 @@ Future<void> initPos() async {
   );
   sl.registerFactory(
     () => CategoryViewModel(
-      categoryRepo: sl(),
+      getCategoriesUseCase: sl(),
+      updateDefaultCategoryByIdUseCase: sl(),
     ),
   );
   sl.registerFactory(
     () => CategoryAddViewModel(
-      categoryRepo: sl(),
+      createCategoryUseCase: sl(),
     ),
   );
   sl.registerFactory(
     () => CategoryEditViewModel(
-      categoryRepo: sl(),
+      getCategoryByIdUseCase: sl(),
+      updateCategoryByIdUseCase: sl(),
+      removeCategoryByIdUseCase: sl(),
     ),
   );
   sl.registerFactory(
@@ -238,6 +247,37 @@ Future<void> initPos() async {
       receiveRepo: sl(),
       supplierRepo: sl(),
       productRepo: sl(),
+    ),
+  );
+
+  sl.registerFactory(
+    () => GetCategoriesUseCase(
+      categoryRepo: sl(),
+    ),
+  );
+  sl.registerFactory(
+    () => CreateCategoryUseCase(
+      categoryRepo: sl(),
+    ),
+  );
+  sl.registerFactory(
+    () => GetCategoryByIdUseCase(
+      categoryRepo: sl(),
+    ),
+  );
+  sl.registerFactory(
+    () => UpdateCategoryByIdUseCase(
+      categoryRepo: sl(),
+    ),
+  );
+  sl.registerFactory(
+    () => RemoveCategoryByIdUseCase(
+      categoryRepo: sl(),
+    ),
+  );
+  sl.registerFactory(
+    () => UpdateDefaultCategoryByIdUseCase(
+      categoryRepo: sl(),
     ),
   );
 

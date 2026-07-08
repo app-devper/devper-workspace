@@ -3,6 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:pos/domain/model/category/category.dart';
 import 'package:pos/domain/model/category/param.dart';
 import 'package:pos/domain/repositories/category_repository.dart';
+import 'package:pos/domain/usecase/category/get_categories_use_case.dart';
+import 'package:pos/domain/usecase/category/update_default_category_by_id_use_case.dart';
 import 'package:pos/presentation/category/main/category_view_model.dart';
 
 class FakeCategoryRepository implements CategoryRepository {
@@ -61,9 +63,16 @@ Category buildCategory(String id) {
   );
 }
 
+CategoryViewModel buildViewModel(CategoryRepository repo) {
+  return CategoryViewModel(
+    getCategoriesUseCase: GetCategoriesUseCase(categoryRepo: repo),
+    updateDefaultCategoryByIdUseCase: UpdateDefaultCategoryByIdUseCase(categoryRepo: repo),
+  );
+}
+
 void main() {
   test('initial state is empty and not loading', () {
-    final vm = CategoryViewModel(categoryRepo: FakeCategoryRepository());
+    final vm = buildViewModel(FakeCategoryRepository());
 
     expect(vm.state.value.items, isEmpty);
     expect(vm.state.value.loading, isFalse);
@@ -71,8 +80,8 @@ void main() {
   });
 
   test('getCategories populates items and clears loading', () async {
-    final vm = CategoryViewModel(
-      categoryRepo: FakeCategoryRepository(categories: [buildCategory('1'), buildCategory('2')]),
+    final vm = buildViewModel(
+      FakeCategoryRepository(categories: [buildCategory('1'), buildCategory('2')]),
     );
 
     await vm.getCategories();
@@ -83,8 +92,8 @@ void main() {
   });
 
   test('getCategories maps a typed exception to state.error', () async {
-    final vm = CategoryViewModel(
-      categoryRepo: FakeCategoryRepository(throws: const NetworkException(message: 'offline')),
+    final vm = buildViewModel(
+      FakeCategoryRepository(throws: const NetworkException(message: 'offline')),
     );
 
     await vm.getCategories();
@@ -95,8 +104,8 @@ void main() {
   });
 
   test('consumeError clears the error', () async {
-    final vm = CategoryViewModel(
-      categoryRepo: FakeCategoryRepository(throws: const NetworkException(message: 'offline')),
+    final vm = buildViewModel(
+      FakeCategoryRepository(throws: const NetworkException(message: 'offline')),
     );
 
     await vm.getCategories();
@@ -109,7 +118,7 @@ void main() {
 
   test('updateDefaultCategoryById reloads the list on success', () async {
     final repo = FakeCategoryRepository(categories: [buildCategory('1')]);
-    final vm = CategoryViewModel(categoryRepo: repo);
+    final vm = buildViewModel(repo);
 
     await vm.updateDefaultCategoryById('1');
 
@@ -119,8 +128,8 @@ void main() {
   });
 
   test('state notifies listeners on change', () async {
-    final vm = CategoryViewModel(
-      categoryRepo: FakeCategoryRepository(categories: [buildCategory('1')]),
+    final vm = buildViewModel(
+      FakeCategoryRepository(categories: [buildCategory('1')]),
     );
     var notifications = 0;
     vm.state.addListener(() => notifications = notifications + 1);

@@ -5,14 +5,17 @@ import 'package:flutter/foundation.dart';
 import 'package:common/core/error/failure.dart';
 
 // Project imports:
-import 'package:pos/domain/repositories/category_repository.dart';
+import 'package:pos/domain/usecase/category/get_categories_use_case.dart';
+import 'package:pos/domain/usecase/category/update_default_category_by_id_use_case.dart';
 import 'category_state.dart';
 
 class CategoryViewModel {
-  final CategoryRepository categoryRepo;
+  final GetCategoriesUseCase getCategoriesUseCase;
+  final UpdateDefaultCategoryByIdUseCase updateDefaultCategoryByIdUseCase;
 
   CategoryViewModel({
-    required this.categoryRepo,
+    required this.getCategoriesUseCase,
+    required this.updateDefaultCategoryByIdUseCase,
   });
 
   final _state = ValueNotifier<CategoryState>(const CategoryState());
@@ -22,7 +25,7 @@ class CategoryViewModel {
   Future<void> getCategories() async {
     _state.value = _state.value.copyWith(loading: true, clearError: true);
     try {
-      final items = await categoryRepo.getCategories();
+      final items = await getCategoriesUseCase();
       _state.value = _state.value.copyWith(loading: false, items: items);
     } on Exception catch (e) {
       _state.value = _state.value.copyWith(loading: false, error: toFailure(e).getMessage());
@@ -32,7 +35,7 @@ class CategoryViewModel {
   Future<void> updateDefaultCategoryById(String categoryId) async {
     _state.value = _state.value.copyWith(loading: true, clearError: true);
     try {
-      await categoryRepo.updateDefaultCategoryById(categoryId);
+      await updateDefaultCategoryByIdUseCase(categoryId);
       await getCategories();
     } on Exception catch (e) {
       _state.value = _state.value.copyWith(loading: false, error: toFailure(e).getMessage());
