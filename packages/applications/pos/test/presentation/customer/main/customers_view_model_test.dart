@@ -3,6 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:pos/domain/model/customer/customer.dart';
 import 'package:pos/domain/model/customer/param.dart';
 import 'package:pos/domain/repositories/customer_repository.dart';
+import 'package:pos/domain/usecase/customer/get_customer_by_id_use_case.dart';
+import 'package:pos/domain/usecase/customer/get_local_customers_use_case.dart';
 import 'package:pos/presentation/customer/main/customer_view_model.dart';
 import 'package:pos/presentation/customer/main/customers_view_model.dart';
 
@@ -60,12 +62,22 @@ Customer buildCustomer(String id) {
   );
 }
 
+CustomersViewModel buildCustomersViewModel(CustomerRepository repo) {
+  return CustomersViewModel(
+    getLocalCustomersUseCase: GetLocalCustomersUseCase(customerRepo: repo),
+  );
+}
+
+CustomerViewModel buildCustomerViewModel(CustomerRepository repo) {
+  return CustomerViewModel(
+    getCustomerByIdUseCase: GetCustomerByIdUseCase(customerRepo: repo),
+  );
+}
+
 void main() {
   group('CustomersViewModel', () {
     test('getCustomers populates items from the local cache', () async {
-      final vm = CustomersViewModel(
-        customerRepo: FakeCustomerRepository(customers: [buildCustomer('1')]),
-      );
+      final vm = buildCustomersViewModel(FakeCustomerRepository(customers: [buildCustomer('1')]));
 
       await vm.getCustomers();
 
@@ -75,8 +87,8 @@ void main() {
     });
 
     test('getCustomers maps a typed exception to state.error', () async {
-      final vm = CustomersViewModel(
-        customerRepo: FakeCustomerRepository(throws: const NetworkException(message: 'offline')),
+      final vm = buildCustomersViewModel(
+        FakeCustomerRepository(throws: const NetworkException(message: 'offline')),
       );
 
       await vm.getCustomers();
@@ -88,9 +100,7 @@ void main() {
 
   group('CustomerViewModel', () {
     test('getCustomerById sets the loaded customer once', () async {
-      final vm = CustomerViewModel(
-        customerRepo: FakeCustomerRepository(byId: buildCustomer('7')),
-      );
+      final vm = buildCustomerViewModel(FakeCustomerRepository(byId: buildCustomer('7')));
 
       await vm.getCustomerById('7');
 
@@ -103,8 +113,8 @@ void main() {
     });
 
     test('getCustomerById maps a typed exception to state.error', () async {
-      final vm = CustomerViewModel(
-        customerRepo: FakeCustomerRepository(throws: const NotFoundException(message: 'missing')),
+      final vm = buildCustomerViewModel(
+        FakeCustomerRepository(throws: const NotFoundException(message: 'missing')),
       );
 
       await vm.getCustomerById('x');

@@ -21,6 +21,17 @@ import 'package:pos/domain/usecase/category/get_category_by_id_use_case.dart';
 import 'package:pos/domain/usecase/category/remove_category_by_id_use_case.dart';
 import 'package:pos/domain/usecase/category/update_category_by_id_use_case.dart';
 import 'package:pos/domain/usecase/category/update_default_category_by_id_use_case.dart';
+import 'package:pos/domain/usecase/customer/create_customer_use_case.dart';
+import 'package:pos/domain/usecase/customer/get_customer_by_id_use_case.dart';
+import 'package:pos/domain/usecase/customer/get_local_customers_use_case.dart';
+import 'package:pos/domain/usecase/customer/remove_customer_by_id_use_case.dart';
+import 'package:pos/domain/usecase/customer/update_customer_by_id_use_case.dart';
+import 'package:pos/domain/usecase/supplier/create_supplier_use_case.dart';
+import 'package:pos/domain/usecase/supplier/get_supplier_info_use_case.dart';
+import 'package:pos/domain/usecase/supplier/get_suppliers_use_case.dart';
+import 'package:pos/domain/usecase/supplier/remove_supplier_by_id_use_case.dart';
+import 'package:pos/domain/usecase/supplier/update_supplier_by_id_use_case.dart';
+import 'package:pos/domain/usecase/supplier/update_supplier_info_use_case.dart';
 import 'package:pos/presentation/category/add/category_add_view_model.dart';
 import 'package:pos/presentation/category/edit/category_edit_view_model.dart';
 import 'package:pos/presentation/category/main/category_view_model.dart';
@@ -87,7 +98,7 @@ Future<void> initPos() async {
 
   sl.registerFactory(
     () => CustomersViewModel(
-      customerRepo: sl(),
+      getLocalCustomersUseCase: sl(),
     ),
   );
 
@@ -204,37 +215,40 @@ Future<void> initPos() async {
   );
   sl.registerFactory(
     () => CustomerViewModel(
-      customerRepo: sl(),
+      getCustomerByIdUseCase: sl(),
     ),
   );
   sl.registerFactory(
     () => CustomerAddViewModel(
-      customerRepo: sl(),
+      createCustomerUseCase: sl(),
     ),
   );
   sl.registerFactory(
     () => CustomerEditViewModel(
-      customerRepo: sl(),
+      updateCustomerByIdUseCase: sl(),
+      removeCustomerByIdUseCase: sl(),
     ),
   );
   sl.registerFactory(
     () => SupplierInfoViewModel(
-      supplierRepo: sl(),
+      getSupplierInfoUseCase: sl(),
+      updateSupplierInfoUseCase: sl(),
     ),
   );
   sl.registerFactory(
     () => SupplierAddViewModel(
-      supplierRepo: sl(),
+      createSupplierUseCase: sl(),
     ),
   );
   sl.registerFactory(
     () => SupplierEditViewModel(
-      supplierRepo: sl(),
+      updateSupplierByIdUseCase: sl(),
+      removeSupplierByIdUseCase: sl(),
     ),
   );
   sl.registerFactory(
     () => SuppliersViewModel(
-      supplierRepo: sl(),
+      getSuppliersUseCase: sl(),
     ),
   );
   sl.registerFactory(
@@ -278,6 +292,63 @@ Future<void> initPos() async {
   sl.registerFactory(
     () => UpdateDefaultCategoryByIdUseCase(
       categoryRepo: sl(),
+    ),
+  );
+
+  sl.registerFactory(
+    () => GetSuppliersUseCase(
+      supplierRepo: sl(),
+    ),
+  );
+  sl.registerFactory(
+    () => CreateSupplierUseCase(
+      supplierRepo: sl(),
+    ),
+  );
+  sl.registerFactory(
+    () => GetSupplierInfoUseCase(
+      supplierRepo: sl(),
+    ),
+  );
+  sl.registerFactory(
+    () => UpdateSupplierInfoUseCase(
+      supplierRepo: sl(),
+    ),
+  );
+  sl.registerFactory(
+    () => UpdateSupplierByIdUseCase(
+      supplierRepo: sl(),
+    ),
+  );
+  sl.registerFactory(
+    () => RemoveSupplierByIdUseCase(
+      supplierRepo: sl(),
+    ),
+  );
+
+  sl.registerFactory(
+    () => CreateCustomerUseCase(
+      customerRepo: sl(),
+    ),
+  );
+  sl.registerFactory(
+    () => GetLocalCustomersUseCase(
+      customerRepo: sl(),
+    ),
+  );
+  sl.registerFactory(
+    () => GetCustomerByIdUseCase(
+      customerRepo: sl(),
+    ),
+  );
+  sl.registerFactory(
+    () => UpdateCustomerByIdUseCase(
+      customerRepo: sl(),
+    ),
+  );
+  sl.registerFactory(
+    () => RemoveCustomerByIdUseCase(
+      customerRepo: sl(),
     ),
   );
 

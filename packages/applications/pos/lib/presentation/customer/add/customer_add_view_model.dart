@@ -6,14 +6,14 @@ import 'package:common/core/error/failure.dart';
 
 // Project imports:
 import 'package:pos/domain/model/customer/param.dart';
-import 'package:pos/domain/repositories/customer_repository.dart';
+import 'package:pos/domain/usecase/customer/create_customer_use_case.dart';
 import 'package:pos/presentation/customer/add/customer_add_state.dart';
 
 class CustomerAddViewModel {
-  final CustomerRepository customerRepo;
+  final CreateCustomerUseCase createCustomerUseCase;
 
   CustomerAddViewModel({
-    required this.customerRepo,
+    required this.createCustomerUseCase,
   });
 
   final _state = ValueNotifier<CustomerAddState>(const CustomerAddState());
@@ -23,7 +23,7 @@ class CustomerAddViewModel {
   Future<void> createCustomer(CustomerParam param) async {
     _state.value = _state.value.copyWith(saving: true, clearError: true, clearCreated: true);
     try {
-      final created = await customerRepo.createCustomer(param);
+      final created = await createCustomerUseCase(param);
       _state.value = _state.value.copyWith(saving: false, created: created);
     } on Exception catch (e) {
       _state.value = _state.value.copyWith(saving: false, error: toFailure(e).getMessage());

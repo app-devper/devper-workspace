@@ -6,14 +6,14 @@ import 'package:common/core/error/failure.dart';
 
 // Project imports:
 import 'package:pos/domain/model/supplier/param.dart';
-import 'package:pos/domain/repositories/supplier_repository.dart';
+import 'package:pos/domain/usecase/supplier/create_supplier_use_case.dart';
 import 'package:pos/presentation/supplier/add/supplier_add_state.dart';
 
 class SupplierAddViewModel {
-  final SupplierRepository supplierRepo;
+  final CreateSupplierUseCase createSupplierUseCase;
 
   SupplierAddViewModel({
-    required this.supplierRepo,
+    required this.createSupplierUseCase,
   });
 
   final _state = ValueNotifier<SupplierAddState>(const SupplierAddState());
@@ -23,7 +23,7 @@ class SupplierAddViewModel {
   Future<void> createSupplier(SupplierParam param) async {
     _state.value = _state.value.copyWith(saving: true, clearError: true, clearCreated: true);
     try {
-      final created = await supplierRepo.createSupplier(param);
+      final created = await createSupplierUseCase(param);
       _state.value = _state.value.copyWith(saving: false, created: created);
     } on Exception catch (e) {
       _state.value = _state.value.copyWith(saving: false, error: toFailure(e).getMessage());

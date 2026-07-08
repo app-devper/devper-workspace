@@ -6,14 +6,17 @@ import 'package:common/core/error/failure.dart';
 
 // Project imports:
 import 'package:pos/domain/model/supplier/param.dart';
-import 'package:pos/domain/repositories/supplier_repository.dart';
+import 'package:pos/domain/usecase/supplier/remove_supplier_by_id_use_case.dart';
+import 'package:pos/domain/usecase/supplier/update_supplier_by_id_use_case.dart';
 import 'package:pos/presentation/supplier/edit/supplier_edit_state.dart';
 
 class SupplierEditViewModel {
-  final SupplierRepository supplierRepo;
+  final UpdateSupplierByIdUseCase updateSupplierByIdUseCase;
+  final RemoveSupplierByIdUseCase removeSupplierByIdUseCase;
 
   SupplierEditViewModel({
-    required this.supplierRepo,
+    required this.updateSupplierByIdUseCase,
+    required this.removeSupplierByIdUseCase,
   });
 
   final _state = ValueNotifier<SupplierEditState>(const SupplierEditState());
@@ -23,7 +26,9 @@ class SupplierEditViewModel {
   Future<void> updateSupplierById(String supplierId, SupplierParam param) async {
     _state.value = _state.value.copyWith(loading: true, clearError: true, clearUpdated: true);
     try {
-      final updated = await supplierRepo.updateSupplierById(supplierId, param);
+      final updated = await updateSupplierByIdUseCase(
+        SupplierUpdateParam(supplierId: supplierId, param: param),
+      );
       _state.value = _state.value.copyWith(loading: false, updated: updated);
     } on Exception catch (e) {
       _state.value = _state.value.copyWith(loading: false, error: toFailure(e).getMessage());
@@ -33,7 +38,7 @@ class SupplierEditViewModel {
   Future<void> removeSupplierById(String supplierId) async {
     _state.value = _state.value.copyWith(loading: true, clearError: true, clearRemoved: true);
     try {
-      final removed = await supplierRepo.removeSupplierById(supplierId);
+      final removed = await removeSupplierByIdUseCase(supplierId);
       _state.value = _state.value.copyWith(loading: false, removed: removed);
     } on Exception catch (e) {
       _state.value = _state.value.copyWith(loading: false, error: toFailure(e).getMessage());
