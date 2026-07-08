@@ -7,14 +7,17 @@ import 'package:common/core/error/failure.dart';
 // Project imports:
 import 'package:pos/domain/model/product/param.dart';
 import 'package:pos/domain/model/product/product_lot.dart';
-import 'package:pos/domain/repositories/product_repository.dart';
+import 'package:pos/domain/usecase/product/get_local_product_by_id_use_case.dart';
+import 'package:pos/domain/usecase/product/update_product_lot_quantity_by_lot_id_use_case.dart';
 import 'package:pos/presentation/product/lot_edit/product_lot_edit_state.dart';
 
 class ProductLotEditViewModel {
-  final ProductRepository productRepo;
+  final UpdateProductLotQuantityByLotIdUseCase updateProductLotQuantityByLotIdUseCase;
+  final GetLocalProductByIdUseCase getLocalProductByIdUseCase;
 
   ProductLotEditViewModel({
-    required this.productRepo,
+    required this.updateProductLotQuantityByLotIdUseCase,
+    required this.getLocalProductByIdUseCase,
   });
 
   final _state = ValueNotifier<ProductLotEditState>(const ProductLotEditState());
@@ -28,8 +31,10 @@ class ProductLotEditViewModel {
   Future<void> updateProductLot(String lotId, UpdateProductLotQuantityParam param) async {
     _state.value = _state.value.copyWith(loading: true, clearError: true, clearUpdated: true);
     try {
-      final updated = await productRepo.updateProductLotQuantityByLotId(lotId, param);
-      updated.product = await productRepo.getLocalProductById(updated.productId);
+      final updated = await updateProductLotQuantityByLotIdUseCase(
+        ProductLotQuantityUpdateParam(lotId: lotId, param: param),
+      );
+      updated.product = await getLocalProductByIdUseCase(updated.productId);
       _state.value = _state.value.copyWith(loading: false, updated: updated);
     } on Exception catch (e) {
       _state.value = _state.value.copyWith(loading: false, error: toFailure(e).getMessage());

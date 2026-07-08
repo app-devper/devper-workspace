@@ -2,6 +2,7 @@ import 'package:common/core/error/exception.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pos/domain/model/product/product.dart';
 import 'package:pos/domain/repositories/product_repository.dart';
+import 'package:pos/domain/usecase/product/get_local_products_use_case.dart';
 import 'package:pos/presentation/product/main/products_view_model.dart';
 
 class FakeProductRepository implements ProductRepository {
@@ -54,10 +55,16 @@ Product buildProduct(String id, String name, {int quantity = 0, String barcode =
   );
 }
 
+ProductsViewModel buildViewModel(ProductRepository repo) {
+  return ProductsViewModel(
+    getLocalProductsUseCase: GetLocalProductsUseCase(productRepo: repo),
+  );
+}
+
 void main() {
   test('searchProduct with empty text returns all products', () async {
-    final vm = ProductsViewModel(
-      productRepo: FakeProductRepository(products: [
+    final vm = buildViewModel(
+      FakeProductRepository(products: [
         buildProduct('1', 'พาราเซตามอล'),
         buildProduct('2', 'แอสไพริน'),
       ]),
@@ -70,8 +77,8 @@ void main() {
   });
 
   test('searchProduct filters by name or barcode', () async {
-    final vm = ProductsViewModel(
-      productRepo: FakeProductRepository(products: [
+    final vm = buildViewModel(
+      FakeProductRepository(products: [
         buildProduct('1', 'พาราเซตามอล', barcode: '885001'),
         buildProduct('2', 'แอสไพริน', barcode: '885002'),
       ]),
@@ -85,8 +92,8 @@ void main() {
   });
 
   test('searchProduct maps a typed exception to state.error', () async {
-    final vm = ProductsViewModel(
-      productRepo: FakeProductRepository(throws: const NetworkException(message: 'offline')),
+    final vm = buildViewModel(
+      FakeProductRepository(throws: const NetworkException(message: 'offline')),
     );
 
     await vm.searchProduct('', false);
