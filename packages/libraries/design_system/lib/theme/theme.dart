@@ -10,10 +10,23 @@ class CustomTheme {
         primaryColor: CustomColor.primary,
         primaryColorDark: Colors.cyan[600],
         fontFamily: 'Roboto',
-        useMaterial3: false,
+        useMaterial3: true,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: CustomColor.primary,
+          brightness: Brightness.light,
+          error: CustomColor.error,
+        ),
+        scaffoldBackgroundColor: CustomColor.backgroundBase,
         buttonTheme: const ButtonThemeData(
           alignedDropdown: true,
           padding: EdgeInsets.symmetric(horizontal: 0),
+        ),
+        appBarTheme: const AppBarTheme(
+          elevation: 0,
+          scrolledUnderElevation: 0,
+          backgroundColor: CustomColor.white,
+          foregroundColor: CustomColor.fontBlack,
+          centerTitle: true,
         ),
         textTheme: const TextTheme(
           displayLarge: TextStyle(fontSize: 40.0, fontWeight: FontWeight.bold, color: CustomColor.fontBlack),
