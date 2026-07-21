@@ -33,6 +33,12 @@ import 'package:pos/domain/usecase/customer/get_customer_by_id_use_case.dart';
 import 'package:pos/domain/usecase/customer/get_local_customers_use_case.dart';
 import 'package:pos/domain/usecase/customer/remove_customer_by_id_use_case.dart';
 import 'package:pos/domain/usecase/customer/update_customer_by_id_use_case.dart';
+import 'package:pos/domain/usecase/order/create_order_use_case.dart';
+import 'package:pos/domain/usecase/order/get_order_by_id_use_case.dart';
+import 'package:pos/domain/usecase/order/get_order_item_by_product_id_use_case.dart';
+import 'package:pos/domain/usecase/order/get_order_range_use_case.dart';
+import 'package:pos/domain/usecase/order/remove_order_by_id_use_case.dart';
+import 'package:pos/domain/usecase/order/remove_order_item_by_id_use_case.dart';
 import 'package:pos/domain/usecase/product/add_product_price_use_case.dart';
 import 'package:pos/domain/usecase/product/add_product_stock_use_case.dart';
 import 'package:pos/domain/usecase/product/add_product_unit_use_case.dart';
@@ -41,6 +47,7 @@ import 'package:pos/domain/usecase/product/clear_quantity_sold_first_by_id_use_c
 import 'package:pos/domain/usecase/product/generate_serial_number_use_case.dart';
 import 'package:pos/domain/usecase/product/get_local_product_by_id_use_case.dart';
 import 'package:pos/domain/usecase/product/get_local_products_use_case.dart';
+import 'package:pos/domain/usecase/product/get_product_by_barcode_use_case.dart';
 import 'package:pos/domain/usecase/product/get_product_histories_by_product_id_use_case.dart';
 import 'package:pos/domain/usecase/product/get_product_lots_use_case.dart';
 import 'package:pos/domain/usecase/product/get_product_prices_by_product_id_use_case.dart';
@@ -57,6 +64,7 @@ import 'package:pos/domain/usecase/product/update_product_price_by_id_use_case.d
 import 'package:pos/domain/usecase/product/update_product_stock_by_id_use_case.dart';
 import 'package:pos/domain/usecase/product/update_product_stock_quantity_by_id_use_case.dart';
 import 'package:pos/domain/usecase/product/update_product_stock_sequence_use_case.dart';
+import 'package:pos/domain/usecase/product/update_product_stock_use_case.dart';
 import 'package:pos/domain/usecase/product/update_product_unit_by_id_use_case.dart';
 import 'package:pos/domain/usecase/product_return/create_product_return_use_case.dart';
 import 'package:pos/domain/usecase/product_return/get_product_returns_by_order_id_use_case.dart';
@@ -138,15 +146,15 @@ Future<void> initPos() async {
   sl.registerFactory(
     () => CartViewModel(
       cartStore: sl(),
-      orderRepo: sl(),
-      productRepo: sl(),
-      categoryRepo: sl(),
+      createOrderUseCase: sl(),
+      getProductByBarcodeUseCase: sl(),
+      updateProductStockUseCase: sl(),
     ),
   );
 
   sl.registerFactory(
     () => CustomerSearchViewModel(
-      customerRepo: sl(),
+      getLocalCustomersUseCase: sl(),
     ),
   );
 
@@ -158,7 +166,7 @@ Future<void> initPos() async {
 
   sl.registerFactory(
     () => ProductSearchViewModel(
-      productRepo: sl(),
+      getLocalProductsUseCase: sl(),
     ),
   );
 
@@ -248,20 +256,22 @@ Future<void> initPos() async {
   sl.registerFactory(
     () => OrderViewModel(
       loginRepo: sl(),
-      orderRepo: sl(),
+      getOrderRangeUseCase: sl(),
     ),
   );
   sl.registerFactory(
     () => OrderDetailViewModel(
       loginRepo: sl(),
-      orderRepo: sl(),
-      supplierRepo: sl(),
-      customerRepo: sl(),
+      getOrderByIdUseCase: sl(),
+      removeOrderByIdUseCase: sl(),
+      removeOrderItemByIdUseCase: sl(),
+      getSupplierInfoUseCase: sl(),
+      getLocalCustomersUseCase: sl(),
     ),
   );
   sl.registerFactory(
     () => OrderHistoryViewModel(
-      orderRepo: sl(),
+      getOrderItemByProductIdUseCase: sl(),
     ),
   );
   sl.registerFactory(
@@ -284,7 +294,7 @@ Future<void> initPos() async {
   );
   sl.registerFactory(
     () => ScannerViewModel(
-      productRepo: sl(),
+      getProductByBarcodeUseCase: sl(),
     ),
   );
   sl.registerFactory(
@@ -520,12 +530,53 @@ Future<void> initPos() async {
   );
 
   sl.registerFactory(
+    () => CreateOrderUseCase(
+      orderRepo: sl(),
+    ),
+  );
+  sl.registerFactory(
+    () => GetOrderRangeUseCase(
+      orderRepo: sl(),
+    ),
+  );
+  sl.registerFactory(
+    () => GetOrderByIdUseCase(
+      orderRepo: sl(),
+    ),
+  );
+  sl.registerFactory(
+    () => GetOrderItemByProductIdUseCase(
+      orderRepo: sl(),
+    ),
+  );
+  sl.registerFactory(
+    () => RemoveOrderByIdUseCase(
+      orderRepo: sl(),
+    ),
+  );
+  sl.registerFactory(
+    () => RemoveOrderItemByIdUseCase(
+      orderRepo: sl(),
+    ),
+  );
+
+  sl.registerFactory(
     () => GetLocalProductByIdUseCase(
       productRepo: sl(),
     ),
   );
   sl.registerFactory(
     () => GetLocalProductsUseCase(
+      productRepo: sl(),
+    ),
+  );
+  sl.registerFactory(
+    () => GetProductByBarcodeUseCase(
+      productRepo: sl(),
+    ),
+  );
+  sl.registerFactory(
+    () => UpdateProductStockUseCase(
       productRepo: sl(),
     ),
   );

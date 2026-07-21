@@ -8,23 +8,23 @@ import 'package:common/core/error/failure.dart';
 import 'package:pos/domain/model/core/core.dart';
 import 'package:pos/domain/model/order/order_item.dart';
 import 'package:pos/domain/model/order/param.dart';
-import 'package:pos/domain/repositories/category_repository.dart';
-import 'package:pos/domain/repositories/order_repository.dart';
-import 'package:pos/domain/repositories/product_repository.dart';
+import 'package:pos/domain/usecase/order/create_order_use_case.dart';
+import 'package:pos/domain/usecase/product/get_product_by_barcode_use_case.dart';
+import 'package:pos/domain/usecase/product/update_product_stock_use_case.dart';
 import 'package:pos/presentation/home/main/cart_store.dart';
 import 'cart_state.dart';
 
 class CartViewModel {
-  final OrderRepository orderRepo;
-  final ProductRepository productRepo;
-  final CategoryRepository categoryRepo;
+  final CreateOrderUseCase createOrderUseCase;
+  final GetProductByBarcodeUseCase getProductByBarcodeUseCase;
+  final UpdateProductStockUseCase updateProductStockUseCase;
   final CartStore cartStore;
 
   CartViewModel({
     required this.cartStore,
-    required this.orderRepo,
-    required this.productRepo,
-    required this.categoryRepo,
+    required this.createOrderUseCase,
+    required this.getProductByBarcodeUseCase,
+    required this.updateProductStockUseCase,
   });
 
   final _state = ValueNotifier<CartState>(const CartState());
@@ -42,7 +42,7 @@ class CartViewModel {
       if (data != null) {
         data.plusAmount();
       } else {
-        final result = await productRepo.getProductByBarcode(serialNumber);
+        final result = await getProductByBarcodeUseCase(serialNumber);
         if (result == null) {
           _state.value = _state.value.copyWith(loading: false, error: "ไม่พบสินค้า");
           return;
@@ -64,9 +64,9 @@ class CartViewModel {
   Future<void> createOrder(CreateOrderParam param) async {
     _state.value = _state.value.copyWith(orderSaving: true, clearOrderError: true, clearOrderResult: true);
     try {
-      final result = await orderRepo.createOrder(param);
+      final result = await createOrderUseCase(param);
       for (var element in result.stocks) {
-        await productRepo.updateProductStock(element);
+        await updateProductStockUseCase(element);
       }
       _state.value = _state.value.copyWith(orderSaving: false, orderResult: result);
     } on Exception catch (e) {
