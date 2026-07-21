@@ -10,11 +10,13 @@ showRightDialog(BuildContext context, {required WidgetBuilder builder}) {
     barrierDismissible: true,
     context: context,
     builder: (BuildContext context) {
+      final screenWidth = MediaQuery.of(context).size.width;
+      final panelWidth = screenWidth < 360 ? screenWidth : 360.0;
       return Align(
         alignment: Alignment.centerRight,
         child: Material(
           child: SizedBox(
-            width: 360,
+            width: panelWidth,
             height: double.infinity,
             child: builder(context),
           ),
@@ -36,6 +38,15 @@ showCenterDialog({
   showDialog(
     context: context,
     builder: (BuildContext dialogContext) {
+      // Callers pass fixed pixel sizes (often minWidth == maxWidth), which is fine on
+      // desktop but forces an exact size regardless of how small the viewport is on a
+      // phone. Clamp against 90% of the actual screen so the dialog never demands more
+      // room than is available, instead of overflowing off both edges.
+      final screenSize = MediaQuery.of(dialogContext).size;
+      final resolvedMaxWidth = maxWidth > screenSize.width * 0.9 ? screenSize.width * 0.9 : maxWidth;
+      final resolvedMaxHeight = maxHeight > screenSize.height * 0.9 ? screenSize.height * 0.9 : maxHeight;
+      final resolvedMinWidth = minWidth > resolvedMaxWidth ? resolvedMaxWidth : minWidth;
+      final resolvedMinHeight = minHeight > resolvedMaxHeight ? resolvedMaxHeight : minHeight;
       return Scaffold(
         key: alertKey,
         backgroundColor: Colors.transparent,
@@ -50,10 +61,10 @@ showCenterDialog({
                 borderRadius: BorderRadius.circular(14),
                 child: ConstrainedBox(
                   constraints: BoxConstraints(
-                    minWidth: minWidth,
-                    minHeight: minHeight,
-                    maxWidth: maxWidth,
-                    maxHeight: maxHeight,
+                    minWidth: resolvedMinWidth,
+                    minHeight: resolvedMinHeight,
+                    maxWidth: resolvedMaxWidth,
+                    maxHeight: resolvedMaxHeight,
                   ),
                   child: builder(dialogContext),
                 ),
