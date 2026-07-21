@@ -97,6 +97,15 @@ class LanguageTh extends Languages {
   String get productLotEditTitle => "แก้ไขล็อตสินค้า";
 
   @override
+  String get stockCountsTitle => "นับสต็อก";
+
+  @override
+  String get stockCountManageTitle => "รายละเอียดการนับสต็อก";
+
+  @override
+  String get stockCountCreateTitle => "นับสต็อกใหม่";
+
+  @override
   String get supplierAddTitle => "เพิ่มร้านค้า";
 
   @override

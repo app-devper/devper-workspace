@@ -159,10 +159,12 @@ class CartOrderItem extends StatelessWidget {
   final String unit;
   final String priceDetail;
   final double discount;
+  final bool allowOversell;
   final Function onRemove;
   final Function onAdd;
   final Function onEdit;
   final Function onEditPrice;
+  final Function onToggleOversell;
 
   const CartOrderItem({
     super.key,
@@ -172,10 +174,12 @@ class CartOrderItem extends StatelessWidget {
     required this.unit,
     required this.discount,
     required this.priceDetail,
+    required this.allowOversell,
     required this.onRemove,
     required this.onAdd,
     required this.onEdit,
     required this.onEditPrice,
+    required this.onToggleOversell,
   });
 
   @override
@@ -253,10 +257,33 @@ class CartOrderItem extends StatelessWidget {
             ),
           ),
           trailing: SizedBox(
-            width: 200,
+            width: 236,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
+                SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: Tooltip(
+                    message: allowOversell ? "อนุญาตขายเกินสต็อกแล้ว" : "อนุญาตขายเกินสต็อก",
+                    child: GestureDetector(
+                      onTap: () {
+                        onToggleOversell.call();
+                      },
+                      child: Ink(
+                        decoration: ShapeDecoration(
+                          color: allowOversell ? Colors.orange[50] : Colors.grey[100],
+                          shape: const CircleBorder(),
+                        ),
+                        child: Icon(
+                          allowOversell ? Icons.check_box : Icons.check_box_outline_blank,
+                          color: allowOversell ? Colors.orange : Colors.grey,
+                          size: 18,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
                 SizedBox(
                   width: 24,
                   height: 24,

@@ -408,6 +408,10 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
             unit: content.unit,
             discount: content.discount,
             priceDetail: content.getPriceDetail(),
+            allowOversell: content.allowOversell,
+            onToggleOversell: () {
+              _viewModel.toggleAllowOversell(index, _orderItems);
+            },
             onRemove: () {
               _viewModel.minusItem(index, _orderItems);
             },

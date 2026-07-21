@@ -486,4 +486,52 @@ class PosService {
         body: updateProductStockSequenceRequest,
         headers: networkConfig.getHeaders(url));
   }
+
+  // Stock Adjustment Api
+  Future<http.Response> createStockAdjustment(String jsonBody) {
+    var url = Uri.parse(
+        '${networkConfig.getHostApp()}/api/pos/v1/stock-adjustments');
+    return client.post(url,
+        body: jsonBody, headers: networkConfig.getHeaders(url));
+  }
+
+  Future<http.Response> getStockAdjustmentsByProductId(String productId) {
+    var url = Uri.parse(
+        '${networkConfig.getHostApp()}/api/pos/v1/stock-adjustments/product/$productId');
+    return client.get(url, headers: networkConfig.getHeaders(url));
+  }
+
+  // Stock Count Api
+  Future<http.Response> createStockCount(String jsonBody) {
+    var url =
+        Uri.parse('${networkConfig.getHostApp()}/api/pos/v1/stock-counts');
+    return client.post(url,
+        body: jsonBody, headers: networkConfig.getHeaders(url));
+  }
+
+  Future<http.Response> getStockCounts() {
+    var url =
+        Uri.parse('${networkConfig.getHostApp()}/api/pos/v1/stock-counts');
+    return client.get(url, headers: networkConfig.getHeaders(url));
+  }
+
+  Future<http.Response> getStockCountById(String stockCountId) {
+    var url = Uri.parse(
+        '${networkConfig.getHostApp()}/api/pos/v1/stock-counts/$stockCountId');
+    return client.get(url, headers: networkConfig.getHeaders(url));
+  }
+
+  // Product Return Api
+  Future<http.Response> createProductReturn(String jsonBody) {
+    var url = Uri.parse(
+        '${networkConfig.getHostApp()}/api/pos/v1/product-returns');
+    return client.post(url,
+        body: jsonBody, headers: networkConfig.getHeaders(url));
+  }
+
+  Future<http.Response> getProductReturnsByOrderId(String orderId) {
+    var url = Uri.parse(
+        '${networkConfig.getHostApp()}/api/pos/v1/product-returns/order/$orderId');
+    return client.get(url, headers: networkConfig.getHeaders(url));
+  }
 }

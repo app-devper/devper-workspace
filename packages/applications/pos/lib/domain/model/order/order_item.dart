@@ -17,6 +17,7 @@ class OrderItem {
   );
   String unit = "";
   double discount = 0;
+  bool allowOversell = false;
 
   OrderItem({
     required this.product,
@@ -53,6 +54,10 @@ class OrderItem {
       return;
     }
     quantity -= 1;
+  }
+
+  toggleAllowOversell() {
+    allowOversell = !allowOversell;
   }
 
   double amountPriceWithDiscount() {
@@ -117,6 +122,18 @@ class OrderItem {
           findProductStockOrder(productStockOrder, remainQuantity);
         }
       }
+    } else if (allowOversell && productStockOrder.isNotEmpty && productStockOrder.last.stockId.isNotEmpty) {
+      // No stock left anywhere, but this line already touched a real lot: fold the
+      // shortfall onto that lot so the backend's oversell/reconciliation path (keyed
+      // off a non-empty stockId) applies, instead of silently routing it to the
+      // unguarded "sold first" bucket (stockId "").
+      final last = productStockOrder.removeLast();
+      productStockOrder.add(
+        ProductStockOrder(
+          stockId: last.stockId,
+          quantity: last.quantity + quantity,
+        ),
+      );
     } else {
       productStockOrder.add(
         ProductStockOrder(
