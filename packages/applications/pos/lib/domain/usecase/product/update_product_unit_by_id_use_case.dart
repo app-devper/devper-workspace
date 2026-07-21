@@ -12,5 +12,5 @@ class UpdateProductUnitByIdUseCase extends BaseUseCaseParam<ProductUnitUpdatePar
   UpdateProductUnitByIdUseCase({required this.productRepo});
 
   @override
-  Future<ProductUnit> call(ProductUnitUpdateParam param) => productRepo.updateProductUnitById(param.id, param.param);
+  Future<ProductUnit> call(ProductUnitUpdateParam param) => productRepo.updateProductUnitById(param.unitId, param.param);
 }

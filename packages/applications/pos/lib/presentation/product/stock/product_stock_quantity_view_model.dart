@@ -24,7 +24,7 @@ class ProductStockQuantityViewModel {
     _state.value = _state.value.copyWith(loading: true, clearError: true, clearUpdated: true);
     try {
       final updated = await updateProductStockQuantityByIdUseCase(
-        ProductStockQuantityUpdateParam(id: id, param: param),
+        ProductStockQuantityUpdateParam(stockId: id, param: param),
       );
       _state.value = _state.value.copyWith(loading: false, updated: updated);
     } on Exception catch (e) {

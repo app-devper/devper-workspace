@@ -12,5 +12,5 @@ class UpdateProductPriceByIdUseCase extends BaseUseCaseParam<ProductPriceUpdateP
   UpdateProductPriceByIdUseCase({required this.productRepo});
 
   @override
-  Future<ProductPrice> call(ProductPriceUpdateParam param) => productRepo.updateProductPriceById(param.id, param.param);
+  Future<ProductPrice> call(ProductPriceUpdateParam param) => productRepo.updateProductPriceById(param.priceId, param.param);
 }

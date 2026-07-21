@@ -35,7 +35,7 @@ class ProductStockViewModel {
   }
 
   Future<void> updateProductStockById(String id, ProductStockParam param) async {
-    await _run(() => updateProductStockByIdUseCase(ProductStockUpdateParam(id: id, param: param)));
+    await _run(() => updateProductStockByIdUseCase(ProductStockUpdateParam(stockId: id, param: param)));
   }
 
   Future<void> removeProductStockById(String id) async {
