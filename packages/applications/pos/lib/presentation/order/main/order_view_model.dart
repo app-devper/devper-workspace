@@ -8,17 +8,17 @@ import 'package:um/domain/repositories/login_repository.dart';
 // Project imports:
 import 'package:pos/domain/model/order/order_summary.dart';
 import 'package:pos/domain/model/order/param.dart';
-import 'package:pos/domain/repositories/order_repository.dart';
+import 'package:pos/domain/usecase/order/get_order_range_use_case.dart';
 import 'order_state.dart';
 import 'order_ui_model.dart';
 
 class OrderViewModel {
-  final OrderRepository orderRepo;
+  final GetOrderRangeUseCase getOrderRangeUseCase;
   final LoginRepository loginRepo;
 
   OrderViewModel({
     required this.loginRepo,
-    required this.orderRepo,
+    required this.getOrderRangeUseCase,
   });
 
   final _state = ValueNotifier<OrderState>(const OrderState());
@@ -27,7 +27,7 @@ class OrderViewModel {
 
   Future<void> getOrderItem(String type, GetOrderRangeParam param) async {
     try {
-      final result = await orderRepo.getOrderRange(param);
+      final result = await getOrderRangeUseCase(param);
       final orders = _filterOrders(type, result);
       double total = 0;
       double totalCost = 0;

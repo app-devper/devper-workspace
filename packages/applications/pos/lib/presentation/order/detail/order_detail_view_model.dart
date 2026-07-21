@@ -7,22 +7,28 @@ import 'package:um/domain/repositories/login_repository.dart';
 
 // Project imports:
 import 'package:pos/domain/model/customer/customer.dart';
-import 'package:pos/domain/repositories/customer_repository.dart';
-import 'package:pos/domain/repositories/order_repository.dart';
-import 'package:pos/domain/repositories/supplier_repository.dart';
+import 'package:pos/domain/usecase/customer/get_local_customers_use_case.dart';
+import 'package:pos/domain/usecase/order/get_order_by_id_use_case.dart';
+import 'package:pos/domain/usecase/order/remove_order_by_id_use_case.dart';
+import 'package:pos/domain/usecase/order/remove_order_item_by_id_use_case.dart';
+import 'package:pos/domain/usecase/supplier/get_supplier_info_use_case.dart';
 import 'order_detail_state.dart';
 
 class OrderDetailViewModel {
-  final OrderRepository orderRepo;
+  final GetOrderByIdUseCase getOrderByIdUseCase;
+  final RemoveOrderByIdUseCase removeOrderByIdUseCase;
+  final RemoveOrderItemByIdUseCase removeOrderItemByIdUseCase;
   final LoginRepository loginRepo;
-  final SupplierRepository supplierRepo;
-  final CustomerRepository customerRepo;
+  final GetSupplierInfoUseCase getSupplierInfoUseCase;
+  final GetLocalCustomersUseCase getLocalCustomersUseCase;
 
   OrderDetailViewModel({
-    required this.orderRepo,
+    required this.getOrderByIdUseCase,
+    required this.removeOrderByIdUseCase,
+    required this.removeOrderItemByIdUseCase,
     required this.loginRepo,
-    required this.supplierRepo,
-    required this.customerRepo,
+    required this.getSupplierInfoUseCase,
+    required this.getLocalCustomersUseCase,
   });
 
   final _state = ValueNotifier<OrderDetailState>(const OrderDetailState());
@@ -41,7 +47,7 @@ class OrderDetailViewModel {
   Future<void> getOrderById(String orderId) async {
     _state.value = _state.value.copyWith(loading: true, clearError: true);
     try {
-      final loaded = await orderRepo.getOrderById(orderId);
+      final loaded = await getOrderByIdUseCase(orderId);
       _state.value = _state.value.copyWith(loading: false, loaded: loaded);
     } on Exception catch (e) {
       _state.value = _state.value.copyWith(loading: false, error: toFailure(e).getMessage());
@@ -51,7 +57,7 @@ class OrderDetailViewModel {
   Future<void> removeOrderById(String orderId) async {
     _state.value = _state.value.copyWith(loading: true, clearError: true, clearRemovedOrder: true);
     try {
-      final removed = await orderRepo.removeOrderById(orderId);
+      final removed = await removeOrderByIdUseCase(orderId);
       _state.value = _state.value.copyWith(loading: false, removedOrder: removed);
     } on Exception catch (e) {
       _state.value = _state.value.copyWith(loading: false, error: toFailure(e).getMessage());
@@ -61,7 +67,7 @@ class OrderDetailViewModel {
   Future<void> removeOrderItem(String id) async {
     _state.value = _state.value.copyWith(loading: true, clearError: true, clearRemovedItem: true);
     try {
-      final removed = await orderRepo.removeOrderItemById(id);
+      final removed = await removeOrderItemByIdUseCase(id);
       _state.value = _state.value.copyWith(loading: false, removedItem: removed);
     } on Exception catch (e) {
       _state.value = _state.value.copyWith(loading: false, error: toFailure(e).getMessage());
@@ -75,11 +81,11 @@ class OrderDetailViewModel {
   Future<void> getSupplier(String customerCode) async {
     Customer? customer;
     try {
-      final result = await customerRepo.getLocalCustomers();
+      final result = await getLocalCustomersUseCase();
       customer = result.where((element) => element.code == customerCode).firstOrNull;
     } on Exception catch (_) {}
     try {
-      final supplier = await supplierRepo.getSupplierInfo();
+      final supplier = await getSupplierInfoUseCase();
       _state.value = _state.value.copyWith(
         supplierResult: SupplierResult(supplier: supplier, customer: customer),
       );

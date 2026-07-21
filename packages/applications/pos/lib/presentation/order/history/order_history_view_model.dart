@@ -5,14 +5,14 @@ import 'package:flutter/foundation.dart';
 import 'package:common/core/error/failure.dart';
 
 // Project imports:
-import 'package:pos/domain/repositories/order_repository.dart';
+import 'package:pos/domain/usecase/order/get_order_item_by_product_id_use_case.dart';
 import 'order_history_state.dart';
 
 class OrderHistoryViewModel {
-  final OrderRepository orderRepo;
+  final GetOrderItemByProductIdUseCase getOrderItemByProductIdUseCase;
 
   OrderHistoryViewModel({
-    required this.orderRepo,
+    required this.getOrderItemByProductIdUseCase,
   });
 
   final _state = ValueNotifier<OrderHistoryState>(const OrderHistoryState());
@@ -22,7 +22,7 @@ class OrderHistoryViewModel {
   Future<void> getOrderItemByProductId(String productId) async {
     _state.value = _state.value.copyWith(loading: true, clearError: true);
     try {
-      final items = await orderRepo.getOrderItemByProductId(productId);
+      final items = await getOrderItemByProductIdUseCase(productId);
       _state.value = _state.value.copyWith(loading: false, items: items);
     } on Exception catch (e) {
       _state.value = _state.value.copyWith(loading: false, error: toFailure(e).getMessage());

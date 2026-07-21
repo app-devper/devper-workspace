@@ -4,13 +4,13 @@ import 'package:flutter/foundation.dart';
 // Project imports:
 import 'package:pos/domain/model/core/core.dart';
 import 'package:pos/domain/model/product/product.dart';
-import 'package:pos/domain/repositories/product_repository.dart';
+import 'package:pos/domain/usecase/product/get_local_products_use_case.dart';
 
 class ProductSearchViewModel {
-  final ProductRepository productRepo;
+  final GetLocalProductsUseCase getLocalProductsUseCase;
 
   ProductSearchViewModel({
-    required this.productRepo,
+    required this.getLocalProductsUseCase,
   });
 
   final _items = ValueNotifier<List<ProductUnitItem>?>(null);
@@ -26,7 +26,7 @@ class ProductSearchViewModel {
   Future<void> getProducts() async {
     try {
       _products.clear();
-      final products = await productRepo.getLocalProducts();
+      final products = await getLocalProductsUseCase();
       for (var item in products) {
         if (item.status == productStatusActive) {
           _products.addAll(item.toProductItems());
