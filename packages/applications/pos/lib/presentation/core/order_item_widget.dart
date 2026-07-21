@@ -8,6 +8,7 @@ import 'package:common/core/ext/number_ext.dart';
 // Project imports:
 import 'package:pos/domain/model/order/order_item.dart';
 import 'package:pos/domain/model/product/product.dart';
+import 'package:design_system/widgets/dialogs.dart';
 import 'package:pos/presentation/core/dialog_widget.dart';
 import 'package:pos/presentation/product/stock/product_stock_sequence_widget.dart';
 

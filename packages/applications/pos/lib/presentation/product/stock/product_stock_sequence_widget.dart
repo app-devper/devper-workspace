@@ -8,8 +8,8 @@ import 'package:flutter/material.dart';
 import 'package:common/core/ext/date_ext.dart';
 import 'package:common/core/ext/number_ext.dart';
 import 'package:common/core/ext/widget_ext.dart';
-import 'package:common/core/theme/theme.dart';
-import 'package:common/core/widgets/title_bar.dart';
+import 'package:design_system/theme/color.dart';
+import 'package:design_system/widgets/title_bar.dart';
 
 // Project imports:
 import 'package:pos/container.dart';

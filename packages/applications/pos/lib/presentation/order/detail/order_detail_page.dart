@@ -5,8 +5,9 @@ import 'package:flutter/services.dart';
 
 // Package imports:
 import 'package:common/core/ext/widget_ext.dart';
-import 'package:common/core/widgets/appbar_widget.dart';
-import 'package:common/core/widgets/custom_snack_bar.dart';
+import 'package:design_system/widgets/app_bar.dart';
+import 'package:design_system/widgets/snack_bar.dart';
+import 'package:design_system/widgets/status_badge.dart';
 import 'package:intl/intl.dart';
 
 // Project imports:
@@ -19,10 +20,13 @@ import 'package:pos/domain/model/receipt/receipt.dart';
 import 'package:pos/domain/model/supplier/supplier.dart';
 import 'package:pos/localizations/language/languages.dart';
 import 'package:pos/presentation/constants.dart';
+import 'package:design_system/widgets/dialogs.dart';
 import 'package:pos/presentation/order/argument.dart';
 import 'package:pos/presentation/order/core/export_pdf.dart';
+import 'package:pos/presentation/order/return/product_return_widget.dart';
+import 'package:pos/presentation/order/return/product_returns_history_widget.dart';
 import 'package:pos/presentation/product/argument.dart';
-import 'package:pos/presentation/theme.dart';
+import 'package:design_system/theme/color.dart';
 import 'order_detail_view_model.dart';
 
 class OrderDetailPage extends StatefulWidget {
@@ -173,6 +177,13 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
         IconButton(
           splashRadius: 20,
           onPressed: () {
+            _showProductReturnsHistoryDialog(context);
+          },
+          icon: const Icon(Icons.assignment_return),
+        ),
+        IconButton(
+          splashRadius: 20,
+          onPressed: () {
             _showRemoveOrderConfirm(context);
           },
           icon: const Icon(Icons.delete),
@@ -258,10 +269,24 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
     );
   }
 
+  Widget _buildQuantityColumn(OrderItemDetail content) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: <Widget>[
+        Text('${content.quantity}'),
+        if (content.oversoldQty > 0)
+          StatusBadge(label: 'เกิน ${content.oversoldQty}', color: Colors.orange),
+        if (content.returnedQty > 0)
+          StatusBadge(label: 'คืน ${content.returnedQty}', color: Colors.grey),
+      ],
+    );
+  }
+
   Widget _buildListMenu(BuildContext context, OrderItemDetail content) {
     if (isAdmin) {
       return SizedBox(
-          width: 90,
+          width: 130,
           height: 50,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -278,15 +303,18 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                 },
                 child: const Icon(Icons.history),
               ),
-              Text(
-                '${content.quantity}',
-              ),
+              if (content.quantity - content.returnedQty > 0)
+                InkWell(
+                  onTap: () {
+                    _showProductReturnDialog(context, content);
+                  },
+                  child: const Icon(Icons.keyboard_return),
+                ),
+              _buildQuantityColumn(content),
             ],
           ));
     } else {
-      return Text(
-        '${content.quantity}',
-      );
+      return _buildQuantityColumn(content);
     }
   }
 
@@ -399,6 +427,33 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
         _viewModel.getOrderById(widget.orderId);
       }
     }
+  }
+
+  void _showProductReturnDialog(BuildContext context, OrderItemDetail content) {
+    showCenterDialog(
+      minWidth: 360,
+      minHeight: 560,
+      maxHeight: 560,
+      maxWidth: 360,
+      context: context,
+      builder: (context) => ProductReturnWidget(
+        orderId: widget.orderId,
+        orderItemId: content.id,
+        productName: content.product?.name ?? "",
+        price: content.price,
+        maxReturnable: content.quantity - content.returnedQty,
+        onComplete: () {
+          _viewModel.getOrderById(widget.orderId);
+        },
+      ),
+    );
+  }
+
+  void _showProductReturnsHistoryDialog(BuildContext context) {
+    showCenterDialog(
+      context: context,
+      builder: (context) => ProductReturnsHistoryWidget(orderId: widget.orderId),
+    );
   }
 
   _generateReceipt(Supplier supplier) async {

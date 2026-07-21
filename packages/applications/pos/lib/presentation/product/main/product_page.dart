@@ -2,14 +2,14 @@
 import 'package:flutter/material.dart';
 
 // Package imports:
-import 'package:common/core/widgets/responsive.dart';
-import 'package:common/core/widgets/title_bar.dart';
+import 'package:design_system/widgets/responsive.dart';
+import 'package:design_system/widgets/title_bar.dart';
 import 'package:file_picker/file_picker.dart';
 
 // Project imports:
 import 'package:pos/container.dart';
 import 'package:pos/domain/model/product/product.dart';
-import 'package:pos/presentation/core/dialog_widget.dart';
+import 'package:design_system/widgets/dialogs.dart';
 import 'package:pos/presentation/product/add/product_add_page.dart';
 import 'package:pos/presentation/product/edit/product_edit_page.dart';
 import 'package:pos/presentation/product/main/product_detail_widget.dart';

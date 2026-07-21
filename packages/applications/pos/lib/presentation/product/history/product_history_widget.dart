@@ -9,7 +9,8 @@ import 'package:pos/container.dart';
 import 'package:pos/domain/model/product/product_history.dart';
 import 'package:pos/presentation/product/history/product_history_state.dart';
 import 'package:pos/presentation/product/history/product_history_view_model.dart';
-import 'package:pos/presentation/theme.dart';
+import 'package:design_system/theme/color.dart';
+import 'package:design_system/widgets/status_badge.dart';
 
 class ProductHistoryWidget extends StatefulWidget {
   final String productId;
@@ -107,23 +108,9 @@ class _ProductHistoryWidgetState extends State<ProductHistoryWidget> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: _getTypeColor(history.type).withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Text(
-                        _getTypeLabel(history.type),
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: _getTypeColor(history.type),
-                        ),
-                      ),
+                    StatusBadge(
+                      label: _getTypeLabel(history.type),
+                      color: _getTypeColor(history.type),
                     ),
                     Text(
                       history.getCreatedDate(),

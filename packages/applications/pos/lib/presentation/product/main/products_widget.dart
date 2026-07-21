@@ -2,12 +2,12 @@
 import 'package:flutter/material.dart';
 
 // Package imports:
-import 'package:common/core/widgets/responsive.dart';
+import 'package:design_system/widgets/responsive.dart';
 
 // Project imports:
 import 'package:pos/container.dart';
 import 'package:pos/domain/model/product/product.dart';
-import 'package:pos/presentation/theme.dart';
+import 'package:design_system/theme/color.dart';
 import 'products_state.dart';
 import 'products_view_model.dart';
 

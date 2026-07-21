@@ -2,7 +2,8 @@
 import 'package:flutter/material.dart';
 
 // Project imports:
-import 'package:common/core/theme/theme.dart';
+import 'package:design_system/theme/color.dart';
+import 'package:design_system/theme/theme.dart';
 import 'package:common/localizations/localizations.dart';
 
 // Package imports:

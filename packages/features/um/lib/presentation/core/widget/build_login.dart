@@ -2,8 +2,8 @@
 import 'package:flutter/material.dart';
 
 // Package imports:
-import 'package:common/core/theme/theme.dart';
-import 'package:common/core/widgets/button_widget.dart';
+import 'package:design_system/theme/theme.dart';
+import 'package:design_system/widgets/buttons.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 
 // Project imports:

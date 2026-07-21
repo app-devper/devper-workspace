@@ -7,22 +7,23 @@ import 'package:flutter/material.dart';
 import 'package:common/core/ext/date_ext.dart';
 import 'package:common/core/ext/number_ext.dart';
 import 'package:common/core/ext/widget_ext.dart';
-import 'package:common/core/widgets/custom_snack_bar.dart';
-import 'package:common/core/widgets/responsive.dart';
-import 'package:common/core/widgets/title_bar.dart';
+import 'package:design_system/widgets/snack_bar.dart';
+import 'package:design_system/widgets/responsive.dart';
+import 'package:design_system/widgets/title_bar.dart';
 
 // Project imports:
 import 'package:pos/container.dart';
 import 'package:pos/domain/model/customer/customer.dart';
 import 'package:pos/domain/model/order/order_item.dart';
 import 'package:pos/domain/model/order/param.dart';
+import 'package:design_system/widgets/dialogs.dart';
 import 'package:pos/presentation/core/dialog_widget.dart';
 import 'package:pos/presentation/customer/add/customer_add_page.dart';
 import 'package:pos/presentation/home/main/cart_widget.dart';
 import 'package:pos/presentation/home/main/customer_search.dart';
 import 'package:pos/presentation/home/main/payment_screen.dart';
 import 'package:pos/presentation/home/main/product_search.dart';
-import 'package:pos/presentation/theme.dart';
+import 'package:design_system/theme/color.dart';
 import 'cart_view_model.dart';
 
 class CartPage extends StatefulWidget {
@@ -408,6 +409,10 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
             unit: content.unit,
             discount: content.discount,
             priceDetail: content.getPriceDetail(),
+            allowOversell: content.allowOversell,
+            onToggleOversell: () {
+              _viewModel.toggleAllowOversell(index, _orderItems);
+            },
             onRemove: () {
               _viewModel.minusItem(index, _orderItems);
             },

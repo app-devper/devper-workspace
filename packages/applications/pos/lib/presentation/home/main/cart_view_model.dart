@@ -92,6 +92,11 @@ class CartViewModel {
     _emitOrderItems(orderItem);
   }
 
+  void toggleAllowOversell(int index, List<OrderItem> orderItem) {
+    orderItem[index].toggleAllowOversell();
+    _emitOrderItems(orderItem);
+  }
+
   void selectCart(int index) {
     cartStore.cartIndex = index;
     if (cartStore.cart[index] == null) {

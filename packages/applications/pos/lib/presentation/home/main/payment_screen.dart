@@ -3,10 +3,10 @@ import 'package:flutter/material.dart';
 
 // Package imports:
 import 'package:common/core/ext/number_ext.dart';
-import 'package:common/core/widgets/input_number.dart';
+import 'package:design_system/widgets/input_number.dart';
 
 // Project imports:
-import 'package:pos/presentation/theme.dart';
+import 'package:design_system/theme/color.dart';
 
 class PaymentScreen extends StatefulWidget {
   final double amount;

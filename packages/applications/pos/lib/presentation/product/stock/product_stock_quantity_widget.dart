@@ -3,13 +3,13 @@ import 'package:flutter/material.dart';
 
 // Package imports:
 import 'package:common/core/ext/widget_ext.dart';
-import 'package:common/core/widgets/title_bar.dart';
+import 'package:design_system/widgets/decimal_input.dart';
+import 'package:design_system/widgets/title_bar.dart';
 
 // Project imports:
 import 'package:pos/container.dart';
 import 'package:pos/domain/model/product/param.dart';
 import 'package:pos/domain/model/product/product.dart';
-import 'package:pos/presentation/core/decimal_input.dart';
 import 'package:pos/presentation/product/stock/product_stock_quantity_view_model.dart';
 
 class ProductStockQuantityWidget extends StatefulWidget {

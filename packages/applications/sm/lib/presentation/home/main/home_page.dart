@@ -4,8 +4,9 @@ import 'package:flutter/services.dart';
 
 // Package imports:
 import 'package:common/config/app_config.dart';
-import 'package:common/core/theme/theme.dart';
-import 'package:common/core/widgets/custom_snack_bar.dart';
+import 'package:design_system/theme/color.dart';
+import 'package:design_system/theme/theme.dart';
+import 'package:design_system/widgets/snack_bar.dart';
 import 'package:um/presentation/constants.dart';
 
 // Project imports:

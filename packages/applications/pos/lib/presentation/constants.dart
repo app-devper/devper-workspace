@@ -31,3 +31,6 @@ const String CUSTOMER_EDIT_ROUTE = '/customer-edit';
 
 const String RECEIVE_MANAGE_ROUTE = '/receive-manage';
 const String RECEIVES_ROUTE = '/receives';
+
+const String STOCK_COUNTS_ROUTE = '/stock-counts';
+const String STOCK_COUNT_MANAGE_ROUTE = '/stock-count-manage';

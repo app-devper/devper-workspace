@@ -1,5 +1,5 @@
 import 'package:common/config/app_config.dart';
-import 'package:common/core/theme/theme.dart';
+import 'package:design_system/theme/theme.dart';
 import 'package:common/localizations/localizations_delegate.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';

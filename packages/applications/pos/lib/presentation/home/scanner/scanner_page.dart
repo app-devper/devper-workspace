@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 
 // Package imports:
 import 'package:common/core/ext/widget_ext.dart';
-import 'package:common/core/widgets/appbar_widget.dart';
-import 'package:common/core/widgets/custom_snack_bar.dart';
+import 'package:design_system/widgets/app_bar.dart';
+import 'package:design_system/widgets/snack_bar.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 
 // Project imports:
@@ -102,10 +102,8 @@ class _ScannerPageState extends State<ScannerPage> {
   }
 
   Widget _buildQrView(BuildContext context) {
-    var scanArea = (MediaQuery.of(context).size.width < 850 ||
-            MediaQuery.of(context).size.width < 850)
-        ? 300.0
-        : 600.0;
+    final screenSize = MediaQuery.of(context).size;
+    var scanArea = (screenSize.width < 850 || screenSize.height < 850) ? 300.0 : 600.0;
     return QRView(
       key: _qrKey,
       onQRViewCreated: (ctrl) => _onQRViewCreated(context, ctrl),
