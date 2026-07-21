@@ -5,14 +5,14 @@ import 'package:flutter/foundation.dart';
 import 'package:common/core/error/failure.dart';
 
 // Project imports:
-import 'package:pos/domain/repositories/product_repository.dart';
+import 'package:pos/domain/usecase/product/get_product_histories_by_product_id_use_case.dart';
 import 'package:pos/presentation/product/history/product_history_state.dart';
 
 class ProductHistoryViewModel {
-  final ProductRepository productRepo;
+  final GetProductHistoriesByProductIdUseCase getProductHistoriesByProductIdUseCase;
 
   ProductHistoryViewModel({
-    required this.productRepo,
+    required this.getProductHistoriesByProductIdUseCase,
   });
 
   final _state = ValueNotifier<ProductHistoryState>(const ProductHistoryState());
@@ -22,7 +22,7 @@ class ProductHistoryViewModel {
   Future<void> getHistoriesByProductId(String productId) async {
     _state.value = _state.value.copyWith(loading: true, clearError: true);
     try {
-      final items = await productRepo.getProductHistoriesByProductId(productId);
+      final items = await getProductHistoriesByProductIdUseCase(productId);
       _state.value = _state.value.copyWith(loading: false, items: items);
     } on Exception catch (e) {
       _state.value = _state.value.copyWith(loading: false, error: toFailure(e).getMessage());

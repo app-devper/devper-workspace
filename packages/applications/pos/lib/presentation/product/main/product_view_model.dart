@@ -5,15 +5,25 @@ import 'package:flutter/foundation.dart';
 import 'package:common/core/error/failure.dart';
 
 // Project imports:
-import 'package:pos/domain/repositories/product_repository.dart';
+import 'package:pos/domain/model/product/param.dart';
+import 'package:pos/domain/usecase/product/clear_quantity_sold_first_by_id_use_case.dart';
+import 'package:pos/domain/usecase/product/get_local_product_by_id_use_case.dart';
+import 'package:pos/domain/usecase/product/get_local_products_use_case.dart';
+import 'package:pos/domain/usecase/product/import_product_csv_use_case.dart';
 import 'package:pos/presentation/order/core/export_csv.dart';
 import 'package:pos/presentation/product/main/product_state.dart';
 
 class ProductViewModel {
-  final ProductRepository productRepo;
+  final GetLocalProductByIdUseCase getLocalProductByIdUseCase;
+  final GetLocalProductsUseCase getLocalProductsUseCase;
+  final ImportProductCSVUseCase importProductCSVUseCase;
+  final ClearQuantitySoldFirstByIdUseCase clearQuantitySoldFirstByIdUseCase;
 
   ProductViewModel({
-    required this.productRepo,
+    required this.getLocalProductByIdUseCase,
+    required this.getLocalProductsUseCase,
+    required this.importProductCSVUseCase,
+    required this.clearQuantitySoldFirstByIdUseCase,
   });
 
   final _state = ValueNotifier<ProductState>(const ProductState());
@@ -22,7 +32,7 @@ class ProductViewModel {
 
   Future<void> getProduct(String productId) async {
     try {
-      final data = await productRepo.getLocalProductById(productId);
+      final data = await getLocalProductByIdUseCase(productId);
       if (data == null) {
         _state.value = _state.value.copyWith(error: "Product not found");
       } else {
@@ -35,7 +45,7 @@ class ProductViewModel {
 
   Future<void> exportProducts() async {
     try {
-      final result = await productRepo.getLocalProducts();
+      final result = await getLocalProductsUseCase();
       ExportCsv.downloadProducts(result);
     } on Exception catch (_) {}
   }
@@ -43,7 +53,9 @@ class ProductViewModel {
   Future<void> importCSV({required List<int> bytes, required String filename}) async {
     _state.value = _state.value.copyWith(loading: true, clearError: true, clearImportResult: true);
     try {
-      final result = await productRepo.importProductCSV(bytes: bytes, filename: filename);
+      final result = await importProductCSVUseCase(
+        ImportProductCSVParam(bytes: bytes, filename: filename),
+      );
       _state.value = _state.value.copyWith(loading: false, importResult: result);
     } on Exception catch (e) {
       _state.value = _state.value.copyWith(loading: false, error: toFailure(e).getMessage());
@@ -53,7 +65,7 @@ class ProductViewModel {
   Future<void> clearSoldFirst(String productId) async {
     _state.value = _state.value.copyWith(loading: true, clearError: true, clearLoaded: true);
     try {
-      final result = await productRepo.clearQuantitySoldFirstById(productId);
+      final result = await clearQuantitySoldFirstByIdUseCase(productId);
       _state.value = _state.value.copyWith(loading: false, loaded: result);
     } on Exception catch (e) {
       _state.value = _state.value.copyWith(loading: false, error: toFailure(e).getMessage());

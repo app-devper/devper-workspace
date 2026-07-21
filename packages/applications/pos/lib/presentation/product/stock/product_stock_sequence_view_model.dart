@@ -6,14 +6,14 @@ import 'package:common/core/error/failure.dart';
 
 // Project imports:
 import 'package:pos/domain/model/product/param.dart';
-import 'package:pos/domain/repositories/product_repository.dart';
+import 'package:pos/domain/usecase/product/update_product_stock_sequence_use_case.dart';
 import 'package:pos/presentation/product/stock/product_stock_sequence_state.dart';
 
 class ProductStockSequenceViewModel {
-  final ProductRepository productRepo;
+  final UpdateProductStockSequenceUseCase updateProductStockSequenceUseCase;
 
   ProductStockSequenceViewModel({
-    required this.productRepo,
+    required this.updateProductStockSequenceUseCase,
   });
 
   final _state = ValueNotifier<ProductStockSequenceState>(const ProductStockSequenceState());
@@ -23,7 +23,7 @@ class ProductStockSequenceViewModel {
   Future<void> updateProductStockSequenceById(UpdateProductStockSequenceParam param) async {
     _state.value = _state.value.copyWith(loading: true, clearError: true, clearUpdated: true);
     try {
-      final updated = await productRepo.updateProductStockSequence(param);
+      final updated = await updateProductStockSequenceUseCase(param);
       _state.value = _state.value.copyWith(loading: false, updated: updated);
     } on Exception catch (e) {
       _state.value = _state.value.copyWith(loading: false, error: toFailure(e).getMessage());

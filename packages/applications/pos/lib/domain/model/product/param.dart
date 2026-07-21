@@ -223,3 +223,73 @@ class ProductStockSequenceParam {
     required this.sequence,
   });
 }
+
+class ProductUpdateParam {
+  final String productId;
+  final ProductParam param;
+
+  ProductUpdateParam({
+    required this.productId,
+    required this.param,
+  });
+}
+
+class ProductUnitUpdateParam {
+  final String id;
+  final ProductUnitParam param;
+
+  ProductUnitUpdateParam({
+    required this.id,
+    required this.param,
+  });
+}
+
+class ProductPriceUpdateParam {
+  final String id;
+  final ProductPriceParam param;
+
+  ProductPriceUpdateParam({
+    required this.id,
+    required this.param,
+  });
+}
+
+class ProductStockUpdateParam {
+  final String id;
+  final ProductStockParam param;
+
+  ProductStockUpdateParam({
+    required this.id,
+    required this.param,
+  });
+}
+
+class ProductStockQuantityUpdateParam {
+  final String id;
+  final UpdateProductStockQuantityParam param;
+
+  ProductStockQuantityUpdateParam({
+    required this.id,
+    required this.param,
+  });
+}
+
+class ProductLotQuantityUpdateParam {
+  final String lotId;
+  final UpdateProductLotQuantityParam param;
+
+  ProductLotQuantityUpdateParam({
+    required this.lotId,
+    required this.param,
+  });
+}
+
+class ImportProductCSVParam {
+  final List<int> bytes;
+  final String filename;
+
+  ImportProductCSVParam({
+    required this.bytes,
+    required this.filename,
+  });
+}

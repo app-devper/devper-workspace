@@ -6,17 +6,26 @@ import 'package:common/core/error/failure.dart';
 
 // Project imports:
 import 'package:pos/domain/model/product/param.dart';
-import 'package:pos/domain/repositories/category_repository.dart';
-import 'package:pos/domain/repositories/product_repository.dart';
+import 'package:pos/domain/usecase/category/get_local_categories_use_case.dart';
+import 'package:pos/domain/usecase/product/add_product_use_case.dart';
+import 'package:pos/domain/usecase/product/generate_serial_number_use_case.dart';
+import 'package:pos/domain/usecase/product/get_product_prices_by_product_id_use_case.dart';
+import 'package:pos/domain/usecase/product/get_product_units_by_product_id_use_case.dart';
 import 'package:pos/presentation/product/add/product_add_state.dart';
 
 class ProductAddViewModel {
-  final ProductRepository productRepo;
-  final CategoryRepository categoryRepo;
+  final GetLocalCategoriesUseCase getLocalCategoriesUseCase;
+  final GenerateSerialNumberUseCase generateSerialNumberUseCase;
+  final AddProductUseCase addProductUseCase;
+  final GetProductUnitsByProductIdUseCase getProductUnitsByProductIdUseCase;
+  final GetProductPricesByProductIdUseCase getProductPricesByProductIdUseCase;
 
   ProductAddViewModel({
-    required this.productRepo,
-    required this.categoryRepo,
+    required this.getLocalCategoriesUseCase,
+    required this.generateSerialNumberUseCase,
+    required this.addProductUseCase,
+    required this.getProductUnitsByProductIdUseCase,
+    required this.getProductPricesByProductIdUseCase,
   });
 
   final _state = ValueNotifier<ProductAddState>(const ProductAddState());
@@ -25,7 +34,7 @@ class ProductAddViewModel {
 
   Future<void> getCategories() async {
     try {
-      final categories = await categoryRepo.getLocalCategories();
+      final categories = await getLocalCategoriesUseCase();
       _state.value = _state.value.copyWith(categories: categories);
     } on Exception catch (_) {}
   }
@@ -33,7 +42,7 @@ class ProductAddViewModel {
   Future<void> generateSerialNumber() async {
     _state.value = _state.value.copyWith(saving: true, clearError: true, clearSerialNumber: true);
     try {
-      final serialNumber = await productRepo.generateSerialNumber();
+      final serialNumber = await generateSerialNumberUseCase();
       _state.value = _state.value.copyWith(saving: false, serialNumber: serialNumber);
     } on Exception catch (e) {
       _state.value = _state.value.copyWith(saving: false, error: toFailure(e).getMessage());
@@ -43,9 +52,9 @@ class ProductAddViewModel {
   Future<void> addProduct(CreateProductParam param) async {
     _state.value = _state.value.copyWith(saving: true, clearError: true, clearCreated: true);
     try {
-      final created = await productRepo.addProduct(param);
-      await productRepo.getProductUnitsByProductId(created.id);
-      await productRepo.getProductPricesByProductId(created.id);
+      final created = await addProductUseCase(param);
+      await getProductUnitsByProductIdUseCase(created.id);
+      await getProductPricesByProductIdUseCase(created.id);
       _state.value = _state.value.copyWith(saving: false, created: created);
     } on Exception catch (e) {
       _state.value = _state.value.copyWith(saving: false, error: toFailure(e).getMessage());
