@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 // Project imports:
 import 'package:design_system/theme/color.dart';
+import 'package:design_system/theme/radius.dart';
 
 class ButtonWidget extends StatelessWidget {
   final String text;
@@ -16,10 +17,11 @@ class ButtonWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ElevatedButton(
-      style: ElevatedButton.styleFrom(
+    return FilledButton(
+      style: FilledButton.styleFrom(
         backgroundColor: CustomColor.primary,
         minimumSize: const Size.fromHeight(50),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
       ),
       onPressed: onClicked,
       child: FittedBox(
@@ -44,10 +46,11 @@ class ButtonIconWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ElevatedButton(
-      style: ElevatedButton.styleFrom(
+    return FilledButton(
+      style: FilledButton.styleFrom(
         backgroundColor: CustomColor.primary,
         minimumSize: const Size.fromHeight(50),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
       ),
       onPressed: onClicked,
       child: FittedBox(
@@ -69,11 +72,12 @@ class ButtonPrimary extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ElevatedButton(
-      style: ElevatedButton.styleFrom(
+    return FilledButton(
+      style: FilledButton.styleFrom(
         backgroundColor: CustomColor.primary,
         minimumSize: const Size.fromHeight(40),
         splashFactory: NoSplash.splashFactory,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
       ),
       onPressed: onClicked,
       child: FittedBox(
@@ -106,6 +110,7 @@ class ButtonSecondary extends StatelessWidget {
       style: TextButton.styleFrom(
         splashFactory: NoSplash.splashFactory,
         minimumSize: const Size.fromHeight(40),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
       ),
       onPressed: onClicked,
       child: Text(
