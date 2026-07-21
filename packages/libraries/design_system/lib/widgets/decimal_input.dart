@@ -2,8 +2,10 @@
 import 'package:flutter/material.dart';
 
 // Package imports:
-import 'package:common/core/ext/number_ext.dart';
-import 'package:common/core/widgets/input_number.dart';
+import 'package:intl/intl.dart';
+
+// Project imports:
+import 'package:design_system/widgets/input_number.dart';
 
 class DecimalInput extends StatefulWidget {
   final String title;
@@ -62,6 +64,10 @@ class _DecimalInputState extends State<DecimalInput> {
     );
   }
 
+  String _formatDecimal(double value) {
+    return NumberFormat("#,##0", "en_US").format(value);
+  }
+
   _getNumberFormat(String value) {
     if (value.isEmpty) {
       return "";
@@ -74,10 +80,10 @@ class _DecimalInputState extends State<DecimalInput> {
       if (split[0] == "") {
         return '.${split[1]}';
       } else {
-        return '${formatDecimal(double.parse(split[0]))}.${split[1]}';
+        return '${_formatDecimal(double.parse(split[0]))}.${split[1]}';
       }
     }
-    return formatDecimal(double.parse(value));
+    return _formatDecimal(double.parse(value));
   }
 
   Widget _buildInputSection(String title, String amount) {

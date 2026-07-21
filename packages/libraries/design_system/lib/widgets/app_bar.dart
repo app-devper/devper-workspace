@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 
 // Project imports:
-import 'package:common/core/theme/theme.dart';
+import 'package:design_system/theme/color.dart';
 
 buildAppBar(String title, {List<Widget>? actions}) {
   return AppBar(

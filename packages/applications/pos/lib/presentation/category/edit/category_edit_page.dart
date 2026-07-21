@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 
 // Package imports:
 import 'package:common/core/ext/widget_ext.dart';
-import 'package:common/core/widgets/appbar_widget.dart';
-import 'package:common/core/widgets/button_widget.dart';
-import 'package:common/core/widgets/custom_snack_bar.dart';
+import 'package:design_system/widgets/app_bar.dart';
+import 'package:design_system/widgets/buttons.dart';
+import 'package:design_system/widgets/snack_bar.dart';
 
 // Project imports:
 import 'package:pos/container.dart';
@@ -13,7 +13,7 @@ import 'package:pos/domain/model/category/category.dart';
 import 'package:pos/domain/model/category/param.dart';
 import 'package:pos/localizations/language/languages.dart';
 import 'package:pos/presentation/constants.dart';
-import 'package:pos/presentation/theme.dart';
+import 'package:design_system/theme/color.dart';
 import 'category_edit_view_model.dart';
 
 class CategoryEditPage extends StatefulWidget {

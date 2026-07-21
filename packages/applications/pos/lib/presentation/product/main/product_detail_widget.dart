@@ -4,12 +4,12 @@ import 'package:flutter/material.dart';
 // Package imports:
 import 'package:common/core/ext/date_ext.dart';
 import 'package:common/core/ext/number_ext.dart';
-import 'package:common/core/widgets/title_bar.dart';
+import 'package:design_system/widgets/title_bar.dart';
 
 // Project imports:
 import 'package:pos/domain/model/core/core.dart';
 import 'package:pos/domain/model/product/product.dart';
-import 'package:pos/presentation/core/dialog_widget.dart';
+import 'package:design_system/widgets/dialogs.dart';
 import 'package:pos/presentation/product/history/product_history_widget.dart';
 import 'package:pos/presentation/product/price/product_price_widget.dart';
 import 'package:pos/presentation/product/stock/product_stock_quantity_widget.dart';
@@ -18,7 +18,7 @@ import 'package:pos/presentation/product/stock/product_stock_widget.dart';
 import 'package:pos/presentation/product/stock/stock_adjustment_history_widget.dart';
 import 'package:pos/presentation/product/stock/stock_adjustment_widget.dart';
 import 'package:pos/presentation/product/unit/product_unit_widget.dart';
-import 'package:pos/presentation/theme.dart';
+import 'package:design_system/theme/color.dart';
 
 class ProductDetailWidget extends StatefulWidget {
   final Product product;

@@ -4,7 +4,7 @@ import 'package:flutter/services.dart';
 
 // Package imports:
 import 'package:common/core/ext/widget_ext.dart';
-import 'package:common/core/widgets/title_bar.dart';
+import 'package:design_system/widgets/title_bar.dart';
 
 // Project imports:
 import 'package:pos/container.dart';

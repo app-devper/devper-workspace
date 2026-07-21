@@ -2,8 +2,8 @@
 import 'package:flutter/material.dart';
 
 // Package imports:
-import 'package:common/core/widgets/appbar_widget.dart';
-import 'package:common/core/widgets/custom_snack_bar.dart';
+import 'package:design_system/widgets/app_bar.dart';
+import 'package:design_system/widgets/snack_bar.dart';
 
 // Project imports:
 import 'package:pos/container.dart';
@@ -13,7 +13,7 @@ import 'package:pos/presentation/constants.dart';
 import 'package:pos/presentation/supplier/argument.dart';
 import 'package:pos/presentation/supplier/main/suppliers_state.dart';
 import 'package:pos/presentation/supplier/main/suppliers_view_model.dart';
-import 'package:pos/presentation/theme.dart';
+import 'package:design_system/theme/color.dart';
 
 class SuppliersPage extends StatefulWidget {
   const SuppliersPage({super.key});

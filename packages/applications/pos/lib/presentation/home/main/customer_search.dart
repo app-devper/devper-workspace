@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 
 // Package imports:
-import 'package:common/core/theme/theme.dart';
+import 'package:design_system/theme/color.dart';
 
 // Project imports:
 import 'package:pos/container.dart';

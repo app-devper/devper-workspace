@@ -6,7 +6,8 @@ import 'package:pos/container.dart';
 import 'package:pos/domain/model/stock_adjustment/stock_adjustment.dart';
 import 'package:pos/presentation/product/stock/stock_adjustment_history_state.dart';
 import 'package:pos/presentation/product/stock/stock_adjustment_history_view_model.dart';
-import 'package:pos/presentation/theme.dart';
+import 'package:design_system/theme/color.dart';
+import 'package:design_system/widgets/status_badge.dart';
 
 class StockAdjustmentHistoryWidget extends StatefulWidget {
   final String productId;
@@ -105,23 +106,9 @@ class _StockAdjustmentHistoryWidgetState extends State<StockAdjustmentHistoryWid
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: (isIncrease ? Colors.green : Colors.red).withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Text(
-                        adjustment.reason,
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: isIncrease ? Colors.green : Colors.red,
-                        ),
-                      ),
+                    StatusBadge(
+                      label: adjustment.reason,
+                      color: isIncrease ? Colors.green : Colors.red,
                     ),
                     Text(
                       adjustment.getCreatedDate(),

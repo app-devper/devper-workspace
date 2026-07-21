@@ -5,8 +5,9 @@ import 'package:flutter/services.dart';
 
 // Package imports:
 import 'package:common/core/ext/widget_ext.dart';
-import 'package:common/core/widgets/appbar_widget.dart';
-import 'package:common/core/widgets/custom_snack_bar.dart';
+import 'package:design_system/widgets/app_bar.dart';
+import 'package:design_system/widgets/snack_bar.dart';
+import 'package:design_system/widgets/status_badge.dart';
 import 'package:intl/intl.dart';
 
 // Project imports:
@@ -19,13 +20,13 @@ import 'package:pos/domain/model/receipt/receipt.dart';
 import 'package:pos/domain/model/supplier/supplier.dart';
 import 'package:pos/localizations/language/languages.dart';
 import 'package:pos/presentation/constants.dart';
-import 'package:pos/presentation/core/dialog_widget.dart';
+import 'package:design_system/widgets/dialogs.dart';
 import 'package:pos/presentation/order/argument.dart';
 import 'package:pos/presentation/order/core/export_pdf.dart';
 import 'package:pos/presentation/order/return/product_return_widget.dart';
 import 'package:pos/presentation/order/return/product_returns_history_widget.dart';
 import 'package:pos/presentation/product/argument.dart';
-import 'package:pos/presentation/theme.dart';
+import 'package:design_system/theme/color.dart';
 import 'order_detail_view_model.dart';
 
 class OrderDetailPage extends StatefulWidget {
@@ -275,15 +276,9 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
       children: <Widget>[
         Text('${content.quantity}'),
         if (content.oversoldQty > 0)
-          Text(
-            'เกิน ${content.oversoldQty}',
-            style: const TextStyle(fontSize: 10, color: Colors.orange),
-          ),
+          StatusBadge(label: 'เกิน ${content.oversoldQty}', color: Colors.orange),
         if (content.returnedQty > 0)
-          Text(
-            'คืน ${content.returnedQty}',
-            style: const TextStyle(fontSize: 10, color: Colors.grey),
-          ),
+          StatusBadge(label: 'คืน ${content.returnedQty}', color: Colors.grey),
       ],
     );
   }

@@ -13,7 +13,7 @@ import 'package:um/presentation/constants.dart' as um;
 import 'package:pos/localizations/locale_constant.dart';
 import 'package:pos/localizations/localizations_delegate.dart';
 import 'router.dart';
-import 'theme.dart';
+import 'package:design_system/theme/theme.dart';
 
 class DevperPos extends StatefulWidget {
   const DevperPos({super.key});
@@ -54,7 +54,7 @@ class _MyAppState extends State<DevperPos> {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'DevperPOS',
-      theme: CustomTheme.mainTheme(context),
+      theme: CustomTheme.mainTheme,
       navigatorKey: appNavigatorKey,
       onGenerateRoute: RouterApp.generateRoute,
       initialRoute: um.routeSplash,

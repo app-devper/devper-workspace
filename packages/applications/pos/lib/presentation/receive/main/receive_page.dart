@@ -1,11 +1,11 @@
 // Flutter imports:
-import 'package:common/core/widgets/responsive.dart';
-import 'package:common/core/widgets/title_bar.dart';
+import 'package:design_system/widgets/responsive.dart';
+import 'package:design_system/widgets/title_bar.dart';
 import 'package:flutter/material.dart';
 
 // Project imports:
 import 'package:pos/presentation/constants.dart';
-import 'package:pos/presentation/core/dialog_widget.dart';
+import 'package:design_system/widgets/dialogs.dart';
 import 'package:pos/presentation/receive/main/receive_menu_widget.dart';
 import 'package:pos/presentation/receive/main/receives_widget.dart';
 
