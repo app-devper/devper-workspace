@@ -35,7 +35,7 @@ class ProductPriceViewModel {
   }
 
   Future<void> updateProductPriceById(String id, ProductPriceParam param) async {
-    await _run(() => updateProductPriceByIdUseCase(ProductPriceUpdateParam(id: id, param: param)));
+    await _run(() => updateProductPriceByIdUseCase(ProductPriceUpdateParam(priceId: id, param: param)));
   }
 
   Future<void> removeProductPriceById(String id) async {

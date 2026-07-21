@@ -235,41 +235,41 @@ class ProductUpdateParam {
 }
 
 class ProductUnitUpdateParam {
-  final String id;
+  final String unitId;
   final ProductUnitParam param;
 
   ProductUnitUpdateParam({
-    required this.id,
+    required this.unitId,
     required this.param,
   });
 }
 
 class ProductPriceUpdateParam {
-  final String id;
+  final String priceId;
   final ProductPriceParam param;
 
   ProductPriceUpdateParam({
-    required this.id,
+    required this.priceId,
     required this.param,
   });
 }
 
 class ProductStockUpdateParam {
-  final String id;
+  final String stockId;
   final ProductStockParam param;
 
   ProductStockUpdateParam({
-    required this.id,
+    required this.stockId,
     required this.param,
   });
 }
 
 class ProductStockQuantityUpdateParam {
-  final String id;
+  final String stockId;
   final UpdateProductStockQuantityParam param;
 
   ProductStockQuantityUpdateParam({
-    required this.id,
+    required this.stockId,
     required this.param,
   });
 }

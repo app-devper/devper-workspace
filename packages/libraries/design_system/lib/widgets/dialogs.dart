@@ -38,15 +38,11 @@ showCenterDialog({
   showDialog(
     context: context,
     builder: (BuildContext dialogContext) {
-      // Callers pass fixed pixel sizes (often minWidth == maxWidth), which is fine on
-      // desktop but forces an exact size regardless of how small the viewport is on a
-      // phone. Clamp against 90% of the actual screen so the dialog never demands more
-      // room than is available, instead of overflowing off both edges.
       final screenSize = MediaQuery.of(dialogContext).size;
-      final resolvedMaxWidth = maxWidth > screenSize.width * 0.9 ? screenSize.width * 0.9 : maxWidth;
-      final resolvedMaxHeight = maxHeight > screenSize.height * 0.9 ? screenSize.height * 0.9 : maxHeight;
-      final resolvedMinWidth = minWidth > resolvedMaxWidth ? resolvedMaxWidth : minWidth;
-      final resolvedMinHeight = minHeight > resolvedMaxHeight ? resolvedMaxHeight : minHeight;
+      final clampedMaxWidth = _clampToViewport(maxWidth, screenSize.width);
+      final clampedMaxHeight = _clampToViewport(maxHeight, screenSize.height);
+      final clampedMinWidth = minWidth > clampedMaxWidth ? clampedMaxWidth : minWidth;
+      final clampedMinHeight = minHeight > clampedMaxHeight ? clampedMaxHeight : minHeight;
       return Scaffold(
         key: alertKey,
         backgroundColor: Colors.transparent,
@@ -61,10 +57,10 @@ showCenterDialog({
                 borderRadius: BorderRadius.circular(14),
                 child: ConstrainedBox(
                   constraints: BoxConstraints(
-                    minWidth: resolvedMinWidth,
-                    minHeight: resolvedMinHeight,
-                    maxWidth: resolvedMaxWidth,
-                    maxHeight: resolvedMaxHeight,
+                    minWidth: clampedMinWidth,
+                    minHeight: clampedMinHeight,
+                    maxWidth: clampedMaxWidth,
+                    maxHeight: clampedMaxHeight,
                   ),
                   child: builder(dialogContext),
                 ),
@@ -75,6 +71,11 @@ showCenterDialog({
       );
     },
   );
+}
+
+double _clampToViewport(double requested, double viewportExtent) {
+  final maxAllowed = viewportExtent * 0.9;
+  return requested > maxAllowed ? maxAllowed : requested;
 }
 
 showInputNumberDialog(

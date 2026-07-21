@@ -12,5 +12,5 @@ class UpdateProductStockByIdUseCase extends BaseUseCaseParam<ProductStockUpdateP
   UpdateProductStockByIdUseCase({required this.productRepo});
 
   @override
-  Future<ProductStock> call(ProductStockUpdateParam param) => productRepo.updateProductStockById(param.id, param.param);
+  Future<ProductStock> call(ProductStockUpdateParam param) => productRepo.updateProductStockById(param.stockId, param.param);
 }

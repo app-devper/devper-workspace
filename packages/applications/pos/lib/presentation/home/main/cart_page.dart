@@ -454,14 +454,6 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
     return price;
   }
 
-  double _getCostPrice() {
-    double costPrice = 0;
-    for (var x in _orderItems) {
-      costPrice += x.amountCostPrice();
-    }
-    return costPrice;
-  }
-
   _showCustomerDialog() {
     showRightDialog(
       context,

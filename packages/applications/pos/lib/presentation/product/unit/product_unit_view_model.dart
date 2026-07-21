@@ -35,7 +35,7 @@ class ProductUnitViewModel {
   }
 
   Future<void> updateProductUnitById(String id, ProductUnitParam param) async {
-    await _run(() => updateProductUnitByIdUseCase(ProductUnitUpdateParam(id: id, param: param)));
+    await _run(() => updateProductUnitByIdUseCase(ProductUnitUpdateParam(unitId: id, param: param)));
   }
 
   Future<void> removeProductUnitById(String id) async {
