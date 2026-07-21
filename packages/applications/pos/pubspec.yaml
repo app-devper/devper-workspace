@@ -25,6 +25,7 @@ dependencies:
   intl:
   http:
   common:
+  design_system:
   um:
 
 dev_dependencies:

@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 // Package imports:
-import 'package:common/core/widgets/appbar_widget.dart';
-import 'package:common/core/widgets/custom_snack_bar.dart';
+import 'package:design_system/widgets/app_bar.dart';
+import 'package:design_system/widgets/snack_bar.dart';
 import 'package:intl/intl.dart';
 
 // Project imports:
@@ -14,7 +14,7 @@ import 'package:pos/domain/model/product/product.dart';
 import 'package:pos/localizations/language/languages.dart';
 import 'package:pos/presentation/constants.dart';
 import 'package:pos/presentation/order/core/export_csv.dart';
-import 'package:pos/presentation/theme.dart';
+import 'package:design_system/theme/color.dart';
 import 'order_history_view_model.dart';
 
 class OrderHistoryPage extends StatefulWidget {

@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 
 // Project imports:
-import 'package:common/core/theme/theme.dart';
+import 'package:design_system/theme/color.dart';
 
 class ButtonWidget extends StatelessWidget {
   final String text;

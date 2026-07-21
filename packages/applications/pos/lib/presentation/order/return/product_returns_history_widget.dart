@@ -2,14 +2,14 @@
 import 'package:flutter/material.dart';
 
 // Package imports:
-import 'package:common/core/widgets/title_bar.dart';
+import 'package:design_system/widgets/title_bar.dart';
 
 // Project imports:
 import 'package:pos/container.dart';
 import 'package:pos/domain/model/product_return/product_return.dart';
 import 'package:pos/presentation/order/return/product_returns_history_state.dart';
 import 'package:pos/presentation/order/return/product_returns_history_view_model.dart';
-import 'package:pos/presentation/theme.dart';
+import 'package:design_system/theme/color.dart';
 
 class ProductReturnsHistoryWidget extends StatefulWidget {
   final String orderId;

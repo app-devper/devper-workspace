@@ -11,6 +11,7 @@ environment:
 
 workspace:
   - packages/libraries/common
+  - packages/libraries/design_system
   - packages/features/um
   - packages/applications/pos
   - packages/applications/sm

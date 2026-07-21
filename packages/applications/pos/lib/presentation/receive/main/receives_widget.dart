@@ -3,14 +3,14 @@ import 'package:common/core/ext/date_ext.dart';
 import 'package:flutter/material.dart';
 
 // Package imports:
-import 'package:common/core/widgets/responsive.dart';
+import 'package:design_system/widgets/responsive.dart';
 
 // Project imports:
 import 'package:pos/container.dart';
 import 'package:pos/domain/model/receive/receive.dart';
 import 'package:pos/presentation/receive/main/receive_state.dart';
 import 'package:pos/presentation/receive/main/receives_view_model.dart';
-import 'package:pos/presentation/theme.dart';
+import 'package:design_system/theme/color.dart';
 
 class ReceivesWidget extends StatefulWidget {
   final Function(Receive) onSelected;

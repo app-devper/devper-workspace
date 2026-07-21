@@ -2,7 +2,8 @@
 import 'package:flutter/material.dart';
 
 // Project imports:
-import 'package:common/core/theme/theme.dart';
+import 'package:design_system/theme/color.dart';
+import 'package:design_system/theme/theme.dart';
 
 class DropdownInput<T> extends StatelessWidget {
   final String hintText;
@@ -12,7 +13,8 @@ class DropdownInput<T> extends StatelessWidget {
   final void Function(T?) onChanged;
   final bool enable;
 
-  const DropdownInput({super.key,
+  const DropdownInput({
+    super.key,
     this.hintText = '',
     this.options = const [],
     required this.getLabel,

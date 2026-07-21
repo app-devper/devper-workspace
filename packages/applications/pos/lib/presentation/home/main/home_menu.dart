@@ -10,7 +10,7 @@ import 'package:pos/localizations/language/languages.dart';
 import 'package:pos/presentation/home/main/home_view_model.dart';
 import 'package:pos/presentation/home/main/home_widget.dart';
 import 'package:pos/presentation/home/main/menu_event.dart';
-import 'package:pos/presentation/theme.dart';
+import 'package:design_system/theme/color.dart';
 
 class HomeMenu extends StatefulWidget {
   final MenuEvent menuEvent;

@@ -2,14 +2,14 @@
 import 'package:flutter/material.dart';
 
 // Package imports:
-import 'package:common/core/widgets/appbar_widget.dart';
-import 'package:common/core/widgets/custom_snack_bar.dart';
+import 'package:design_system/widgets/app_bar.dart';
+import 'package:design_system/widgets/snack_bar.dart';
 
 // Project imports:
 import 'package:pos/container.dart';
 import 'package:pos/domain/model/stock_count/stock_count.dart';
 import 'package:pos/localizations/language/languages.dart';
-import 'package:pos/presentation/core/dialog_widget.dart';
+import 'package:design_system/widgets/dialogs.dart';
 import 'package:pos/presentation/stock_count/manage/stock_count_item_picker_widget.dart';
 import 'package:pos/presentation/stock_count/manage/stock_count_manage_state.dart';
 import 'package:pos/presentation/stock_count/manage/stock_count_manage_view_model.dart';

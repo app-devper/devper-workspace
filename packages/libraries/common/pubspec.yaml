@@ -16,6 +16,7 @@ dependencies:
   http: ^1.2.1
   logging: ^1.0.2
   intl: any
+  design_system:
 
   flutter_localizations:
     sdk: flutter
