@@ -48,6 +48,13 @@ class HomeDatabasePage extends StatelessWidget {
             onMenuTap(MenuEvent.receive);
           },
         ),
+        _buildMenuItem(
+          icon: Icons.fact_check,
+          title: 'นับสต็อก',
+          onTap: () {
+            _nextToStockCounts(context);
+          },
+        ),
       ],
     );
   }
@@ -71,5 +78,9 @@ class HomeDatabasePage extends StatelessWidget {
 
   _nextToStoreInfo(BuildContext context) {
     Navigator.pushNamed(context, SUPPLIER_ROUTE);
+  }
+
+  _nextToStockCounts(BuildContext context) {
+    Navigator.pushNamed(context, STOCK_COUNTS_ROUTE);
   }
 }

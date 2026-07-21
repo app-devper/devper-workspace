@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 // Project imports:
 import 'package:pos/presentation/home/main/cart_page.dart';
+import 'package:pos/presentation/home/main/home_database_page.dart';
 import 'package:pos/presentation/home/main/home_menu.dart';
 import 'package:pos/presentation/home/main/menu_event.dart';
 import 'package:pos/presentation/product/main/product_page.dart';
@@ -74,8 +75,13 @@ class _HomePageState extends State<HomePage> {
         return const Center(
             child: Text('Receive page is not available on web yet'));
       case MenuEvent.database:
-        return const Center(
-            child: Text('Database page is not available on web yet'));
+        return HomeDatabasePage(
+          onMenuTap: (event) {
+            setState(() {
+              _menuEvent = event;
+            });
+          },
+        );
       case MenuEvent.customer:
         return const Center(
             child: Text('Customer page is not available on web yet'));

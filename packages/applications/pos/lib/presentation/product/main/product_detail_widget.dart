@@ -15,6 +15,8 @@ import 'package:pos/presentation/product/price/product_price_widget.dart';
 import 'package:pos/presentation/product/stock/product_stock_quantity_widget.dart';
 import 'package:pos/presentation/product/stock/product_stock_sequence_widget.dart';
 import 'package:pos/presentation/product/stock/product_stock_widget.dart';
+import 'package:pos/presentation/product/stock/stock_adjustment_history_widget.dart';
+import 'package:pos/presentation/product/stock/stock_adjustment_widget.dart';
 import 'package:pos/presentation/product/unit/product_unit_widget.dart';
 import 'package:pos/presentation/theme.dart';
 
@@ -44,7 +46,7 @@ class _ProductDetailWidgetState extends State<ProductDetailWidget>
 
   @override
   void initState() {
-    _tabController = TabController(length: 5, vsync: this);
+    _tabController = TabController(length: 6, vsync: this);
     super.initState();
   }
 
@@ -112,6 +114,10 @@ class _ProductDetailWidgetState extends State<ProductDetailWidget>
                   height: 36,
                   child: Text('ประวัติ', maxLines: 1),
                 ),
+                Tab(
+                  height: 36,
+                  child: Text('ปรับสต็อก', maxLines: 1),
+                ),
               ],
             ),
           ],
@@ -139,6 +145,12 @@ class _ProductDetailWidgetState extends State<ProductDetailWidget>
               Container(
                 margin: const EdgeInsets.all(8.0),
                 child: ProductHistoryWidget(
+                  productId: widget.product.id,
+                ),
+              ),
+              Container(
+                margin: const EdgeInsets.all(8.0),
+                child: StockAdjustmentHistoryWidget(
                   productId: widget.product.id,
                 ),
               ),
@@ -822,6 +834,27 @@ class _ProductDetailWidgetState extends State<ProductDetailWidget>
                         ),
                       ],
                     ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        const SizedBox(height: 22.0),
+                        ...stock.map(
+                          (e) => SizedBox(
+                            width: 32,
+                            height: 24,
+                            child: IconButton(
+                              padding: EdgeInsets.zero,
+                              splashRadius: 16,
+                              icon: const Icon(Icons.tune, size: 18),
+                              tooltip: 'ปรับสต็อก',
+                              onPressed: () {
+                                _showStockAdjustmentDialog(context, stock: e);
+                              },
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
               ],
@@ -932,6 +965,25 @@ class _ProductDetailWidgetState extends State<ProductDetailWidget>
       builder: (context) => ProductStockQuantityWidget(
         stock: stock,
         onComplete: (stock) {
+          widget.onEdit();
+        },
+      ),
+    );
+  }
+
+  void _showStockAdjustmentDialog(
+    BuildContext context, {
+    required ProductStock stock,
+  }) {
+    showCenterDialog(
+      minWidth: 360,
+      minHeight: 560,
+      maxHeight: 560,
+      maxWidth: 360,
+      context: context,
+      builder: (context) => StockAdjustmentWidget(
+        stock: stock,
+        onComplete: () {
           widget.onEdit();
         },
       ),

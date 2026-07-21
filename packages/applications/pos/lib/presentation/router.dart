@@ -23,6 +23,9 @@ import 'package:pos/presentation/product/main/product_page.dart';
 import 'package:pos/presentation/receive/argument.dart';
 import 'package:pos/presentation/receive/main/receive_page.dart';
 import 'package:pos/presentation/receive/manage/receive_manage_page.dart';
+import 'package:pos/presentation/stock_count/argument.dart';
+import 'package:pos/presentation/stock_count/main/stock_counts_page.dart';
+import 'package:pos/presentation/stock_count/manage/stock_count_manage_page.dart';
 import 'package:pos/presentation/supplier/add/supplier_add_page.dart';
 import 'package:pos/presentation/supplier/argument.dart';
 import 'package:pos/presentation/supplier/edit/supplier_edit_page.dart';
@@ -81,6 +84,12 @@ class RouterApp {
           final args = settings.arguments as ReceiveManageArgument?;
           return MaterialPageRoute(
               builder: (_) => ReceiveManagePage(receiveId: args?.receiveId));
+        case STOCK_COUNTS_ROUTE:
+          return MaterialPageRoute(builder: (_) => const StockCountsPage());
+        case STOCK_COUNT_MANAGE_ROUTE:
+          final args = settings.arguments as StockCountManageArgument?;
+          return MaterialPageRoute(
+              builder: (_) => StockCountManagePage(stockCountId: args?.stockCountId));
         case SCAN_ROUTE:
           return MaterialPageRoute(
             builder: (_) => Scaffold(

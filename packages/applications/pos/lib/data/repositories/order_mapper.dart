@@ -47,6 +47,7 @@ class OrderMapper {
                 'discount': item.discount,
                 'price': item.amountPrice(),
                 'costPrice': item.amountCostPrice(),
+                'allowOversell': item.allowOversell,
               })
           .toList(),
       'amount': param.amount,
@@ -144,6 +145,8 @@ class OrderMapper {
       discount: json["discount"]?.toDouble() ?? 0,
       createdDate: json["createdDate"],
       order: order,
+      oversoldQty: json["oversoldQty"] ?? 0,
+      returnedQty: json["returnedQty"] ?? 0,
     );
   }
 

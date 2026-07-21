@@ -7,6 +7,20 @@ const String customerTypeRegular = "Regular";
 
 const String priceTypeStock = "Stock";
 
+const String stockAdjustmentReasonCount = "นับสต็อก";
+const String stockAdjustmentReasonDamaged = "ยาเสียหาย";
+const String stockAdjustmentReasonExpired = "ยาหมดอายุ";
+const String stockAdjustmentReasonLost = "สูญหาย";
+const String stockAdjustmentReasonOther = "อื่นๆ";
+
+List<String> stockAdjustmentReasons = [
+  stockAdjustmentReasonCount,
+  stockAdjustmentReasonDamaged,
+  stockAdjustmentReasonExpired,
+  stockAdjustmentReasonLost,
+  stockAdjustmentReasonOther,
+];
+
 class ItemType {
   final String name;
   final String type;
