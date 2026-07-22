@@ -257,16 +257,16 @@ class CartOrderItem extends StatelessWidget {
             ),
           ),
           trailing: SizedBox(
-            width: 236,
+            width: 288,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 SizedBox(
-                  width: 24,
-                  height: 24,
+                  width: 36,
+                  height: 36,
                   child: Tooltip(
                     message: allowOversell ? "อนุญาตขายเกินสต็อกแล้ว" : "อนุญาตขายเกินสต็อก",
-                    child: GestureDetector(
+                    child: InkResponse(
                       onTap: () {
                         onToggleOversell.call();
                       },
@@ -284,10 +284,11 @@ class CartOrderItem extends StatelessWidget {
                     ),
                   ),
                 ),
+                const SizedBox(width: 4),
                 SizedBox(
-                  width: 24,
-                  height: 24,
-                  child: GestureDetector(
+                  width: 36,
+                  height: 36,
+                  child: InkResponse(
                     onTap: () {
                       onRemove.call();
                     },
@@ -310,7 +311,8 @@ class CartOrderItem extends StatelessWidget {
                   },
                   child: Container(
                     width: 50,
-                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    height: 36,
+                    alignment: Alignment.center,
                     child: Text(
                       '${quantity}x',
                       textAlign: TextAlign.center,
@@ -324,9 +326,9 @@ class CartOrderItem extends StatelessWidget {
                   ),
                 ),
                 SizedBox(
-                  width: 24,
-                  height: 24,
-                  child: GestureDetector(
+                  width: 36,
+                  height: 36,
+                  child: InkResponse(
                     onTap: () {
                       onAdd.call();
                     },
@@ -343,6 +345,7 @@ class CartOrderItem extends StatelessWidget {
                     ),
                   ),
                 ),
+                const SizedBox(width: 4),
                 getPriceDiscount(),
               ],
             ),

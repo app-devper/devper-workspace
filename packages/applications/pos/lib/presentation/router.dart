@@ -1,4 +1,5 @@
 // Flutter imports:
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 
 // Package imports:
@@ -12,6 +13,7 @@ import 'package:pos/presentation/category/edit/category_edit_page.dart';
 import 'package:pos/presentation/category/main/category_page.dart';
 import 'package:pos/presentation/constants.dart';
 import 'package:pos/presentation/home/main/home_page.dart';
+import 'package:pos/presentation/home/scanner/scanner_page.dart';
 import 'package:pos/presentation/order/argument.dart';
 import 'package:pos/presentation/order/detail/order_detail_page.dart';
 import 'package:pos/presentation/order/history/order_history_page.dart';
@@ -91,16 +93,19 @@ class RouterApp {
           return MaterialPageRoute(
               builder: (_) => StockCountManagePage(stockCountId: args?.stockCountId));
         case SCAN_ROUTE:
-          return MaterialPageRoute(
-            builder: (_) => Scaffold(
-              appBar: AppBar(
-                title: const Text('Scanner'),
+          if (kIsWeb) {
+            return MaterialPageRoute(
+              builder: (_) => Scaffold(
+                appBar: AppBar(
+                  title: const Text('Scanner'),
+                ),
+                body: const Center(
+                  child: Text('Scanner is not available on web'),
+                ),
               ),
-              body: const Center(
-                child: Text('Scanner is not available on web'),
-              ),
-            ),
-          );
+            );
+          }
+          return MaterialPageRoute(builder: (_) => const ScannerPage(mode: "SCAN"));
         case ROOT_ROUTE:
           return RouterUm.generateRoute(
               RouteSettings(name: routeSplash, arguments: settings.arguments));

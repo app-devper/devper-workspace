@@ -1,13 +1,16 @@
 // Flutter imports:
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 
 // Package imports:
 import 'package:design_system/theme/color.dart';
+import 'package:qr_code_scanner/qr_code_scanner.dart';
 
 // Project imports:
 import 'package:pos/container.dart';
 import 'package:pos/domain/model/core/core.dart';
 import 'package:pos/domain/model/product/product.dart';
+import 'package:pos/presentation/constants.dart';
 import 'package:pos/presentation/home/main/cart_widget.dart';
 import 'package:pos/presentation/home/main/product_search_view_model.dart';
 
@@ -68,6 +71,13 @@ class _ProductSearchState extends State<ProductSearch> {
                   contentPadding: const EdgeInsets.all(0),
                   hintText: 'ค้นหาสิ่งที่คุณต้องการ...',
                   prefixIcon: const Icon(Icons.search),
+                  suffixIcon: kIsWeb
+                      ? null
+                      : IconButton(
+                          tooltip: 'สแกนบาร์โค้ด',
+                          icon: const Icon(Icons.qr_code_scanner),
+                          onPressed: () => _scanBarcode(context),
+                        ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
                     borderSide: BorderSide.none,
@@ -131,5 +141,15 @@ class _ProductSearchState extends State<ProductSearch> {
         );
       },
     );
+  }
+
+  Future<void> _scanBarcode(BuildContext context) async {
+    final result = await Navigator.pushNamed(context, SCAN_ROUTE);
+    if (result is Barcode) {
+      final code = result.code;
+      if (code != null && code.isNotEmpty) {
+        widget.onSelected(code);
+      }
+    }
   }
 }
