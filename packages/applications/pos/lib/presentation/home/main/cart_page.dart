@@ -8,7 +8,6 @@ import 'package:common/core/ext/date_ext.dart';
 import 'package:common/core/ext/number_ext.dart';
 import 'package:common/core/ext/widget_ext.dart';
 import 'package:design_system/widgets/snack_bar.dart';
-import 'package:design_system/widgets/responsive.dart';
 import 'package:design_system/widgets/title_bar.dart';
 
 // Project imports:
@@ -43,6 +42,10 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
   Function refreshCustomer = () {};
 
   DateTime currentDate = getCurrentDate();
+
+  String? _patientId;
+  String? _prescriberName;
+  String? _pharmacistName;
 
   bool _loadingShown = false;
   bool _orderSavingShown = false;
@@ -92,6 +95,11 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
       _snackBar.showSnackBar(text: "Order success");
       _viewModel.clearCart();
       _viewModel.prepareData();
+      setState(() {
+        _patientId = null;
+        _prescriberName = null;
+        _pharmacistName = null;
+      });
       if (_alertKey.currentContext != null) {
         Navigator.of(context).pop();
       }
@@ -119,19 +127,50 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
     }
   }
 
+  static const double _tabletBreakpoint = 600;
+  static const double _desktopBreakpoint = 850;
+
   @override
   Widget build(BuildContext context) {
     _snackBar = CustomSnackBar(key: const Key("snackbar"), context: context);
-    return Responsive(
-      mobile: _buildMobile(),
-      desktop: _buildDesktop(),
-    );
+    final width = MediaQuery.of(context).size.width;
+    if (width >= _desktopBreakpoint) {
+      return _buildDesktop();
+    } else if (width >= _tabletBreakpoint) {
+      return _buildTablet();
+    } else {
+      return _buildMobile();
+    }
   }
 
   _buildMobile() {
     return Row(
       children: [
         Expanded(
+          child: _buildCart(showSearchIcon: true),
+        ),
+        Container(width: 1, color: Colors.grey[200]),
+        SizedBox(
+          width: 50,
+          child: _buildCartItem(),
+        ),
+      ],
+    );
+  }
+
+  _buildTablet() {
+    return Row(
+      children: [
+        Expanded(
+          child: ProductSearch(
+            onSelected: (serialNumber) {
+              _viewModel.addOrderItem(serialNumber, _orderItems);
+            },
+          ),
+        ),
+        Container(width: 1, color: Colors.grey[200]),
+        SizedBox(
+          width: 340,
           child: _buildCart(),
         ),
         Container(width: 1, color: Colors.grey[200]),
@@ -167,13 +206,12 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
     );
   }
 
-  _buildCart() {
-    final isMobile = Responsive.isMobile(context);
+  _buildCart({bool showSearchIcon = false}) {
     final showCustomer = _viewModel.cartStore.customer != null;
     return Column(
       children: [
         Row(children: [
-          if (isMobile) ...[
+          if (showSearchIcon) ...[
             const SizedBox(width: 4),
             SizedBox(
               height: 40,
@@ -282,6 +320,27 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
                 ),
           onTap: () {
             _showCustomerDialog();
+          },
+        ),
+        const Divider(height: 1),
+        ListTile(
+          leading: const CircleAvatar(
+            radius: 20,
+            child: Icon(Icons.medical_information_outlined),
+          ),
+          title: const Text(
+            'ข้อมูลยาควบคุม',
+            style: TextStyle(fontSize: 18),
+          ),
+          subtitle: Text(
+            _hasComplianceInfo() ? 'ระบุแล้ว: ${_getComplianceSummary()}' : 'ไม่บังคับ ระบุเมื่อจำเป็น',
+            style: const TextStyle(fontSize: 14),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+          onTap: () {
+            _showComplianceDialog();
           },
         ),
         const Divider(height: 1),
@@ -488,6 +547,84 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
     );
   }
 
+  bool _hasComplianceInfo() {
+    return (_patientId?.isNotEmpty ?? false) || (_prescriberName?.isNotEmpty ?? false) || (_pharmacistName?.isNotEmpty ?? false);
+  }
+
+  String _getComplianceSummary() {
+    final parts = [
+      if (_patientId?.isNotEmpty ?? false) 'ผู้ป่วย: $_patientId',
+      if (_prescriberName?.isNotEmpty ?? false) 'แพทย์: $_prescriberName',
+      if (_pharmacistName?.isNotEmpty ?? false) 'เภสัชกร: $_pharmacistName',
+    ];
+    return parts.join(', ');
+  }
+
+  _showComplianceDialog() {
+    final patientController = TextEditingController(text: _patientId);
+    final prescriberController = TextEditingController(text: _prescriberName);
+    final pharmacistController = TextEditingController(text: _pharmacistName);
+    showCenterDialog(
+      context: context,
+      minWidth: 360,
+      maxWidth: 360,
+      minHeight: 420,
+      maxHeight: 420,
+      builder: (dialogContext) => Column(
+        children: [
+          TitleBar(
+            title: "ข้อมูลยาควบคุม",
+            onBack: () {
+              Navigator.pop(dialogContext);
+            },
+            action: "บันทึก",
+            onAction: () {
+              setState(() {
+                _patientId = patientController.text.trim();
+                _prescriberName = prescriberController.text.trim();
+                _pharmacistName = pharmacistController.text.trim();
+              });
+              Navigator.pop(dialogContext);
+            },
+          ),
+          const Divider(height: 1),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                children: [
+                  TextField(
+                    controller: patientController,
+                    decoration: const InputDecoration(
+                      labelText: 'ชื่อ/รหัสผู้ป่วย',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: prescriberController,
+                    decoration: const InputDecoration(
+                      labelText: 'ชื่อแพทย์ผู้สั่งยา',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: pharmacistController,
+                    decoration: const InputDecoration(
+                      labelText: 'ชื่อเภสัชกรผู้จ่ายยา',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   _showAddCustomerDialog() {
     showCenterDialog(
       context: context,
@@ -569,6 +706,9 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
       payments: [
         OrderPayment(amount: amount, type: typeMode),
       ],
+      patientId: _patientId?.isNotEmpty ?? false ? _patientId : null,
+      prescriberName: _prescriberName?.isNotEmpty ?? false ? _prescriberName : null,
+      pharmacistName: _pharmacistName?.isNotEmpty ?? false ? _pharmacistName : null,
     );
   }
 }
