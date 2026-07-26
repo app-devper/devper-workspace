@@ -137,7 +137,8 @@ Future<void> initPos() async {
 
   sl.registerFactory(
     () => HomeViewModel(
-      loginRepo: sl(),
+      getRoleUseCase: sl(),
+      logoutUseCase: sl(),
     ),
   );
 
@@ -255,13 +256,13 @@ Future<void> initPos() async {
 
   sl.registerFactory(
     () => OrderViewModel(
-      loginRepo: sl(),
+      getRoleUseCase: sl(),
       getOrderRangeUseCase: sl(),
     ),
   );
   sl.registerFactory(
     () => OrderDetailViewModel(
-      loginRepo: sl(),
+      getRoleUseCase: sl(),
       getOrderByIdUseCase: sl(),
       removeOrderByIdUseCase: sl(),
       removeOrderItemByIdUseCase: sl(),
@@ -376,7 +377,7 @@ Future<void> initPos() async {
   );
   sl.registerFactory(
     () => StockCountItemPickerViewModel(
-      productRepo: sl(),
+      getLocalProductsUseCase: sl(),
     ),
   );
   sl.registerFactory(

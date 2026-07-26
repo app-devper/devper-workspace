@@ -14,6 +14,7 @@ import 'package:pos/domain/usecase/order/remove_order_item_by_id_use_case.dart';
 import 'package:pos/domain/usecase/supplier/get_supplier_info_use_case.dart';
 import 'package:pos/presentation/order/detail/order_detail_view_model.dart';
 import 'package:um/domain/repositories/login_repository.dart';
+import 'package:um/domain/usecase/auth/get_role_use_case.dart';
 
 class FakeLoginRepository implements LoginRepository {
   final String role;
@@ -132,7 +133,8 @@ Customer _buildCustomer(String code) {
 }
 
 Supplier _buildSupplier() {
-  return Supplier(id: 's1', name: 'Test Supplier', address: '', phone: '', taxId: '');
+  return Supplier(
+      id: 's1', name: 'Test Supplier', address: '', phone: '', taxId: '');
 }
 
 OrderDetail _buildOrderDetail(String id) {
@@ -157,12 +159,18 @@ OrderDetailViewModel _buildViewModel({
   SupplierRepository? supplierRepo,
 }) {
   return OrderDetailViewModel(
-    loginRepo: loginRepo ?? FakeLoginRepository(),
-    getOrderByIdUseCase: GetOrderByIdUseCase(orderRepo: orderRepo ?? FakeOrderRepository()),
-    removeOrderByIdUseCase: RemoveOrderByIdUseCase(orderRepo: orderRepo ?? FakeOrderRepository()),
-    removeOrderItemByIdUseCase: RemoveOrderItemByIdUseCase(orderRepo: orderRepo ?? FakeOrderRepository()),
-    getSupplierInfoUseCase: GetSupplierInfoUseCase(supplierRepo: supplierRepo ?? FakeSupplierRepository()),
-    getLocalCustomersUseCase: GetLocalCustomersUseCase(customerRepo: customerRepo ?? FakeCustomerRepository()),
+    getRoleUseCase:
+        GetRoleUseCase(loginRepo: loginRepo ?? FakeLoginRepository()),
+    getOrderByIdUseCase:
+        GetOrderByIdUseCase(orderRepo: orderRepo ?? FakeOrderRepository()),
+    removeOrderByIdUseCase:
+        RemoveOrderByIdUseCase(orderRepo: orderRepo ?? FakeOrderRepository()),
+    removeOrderItemByIdUseCase: RemoveOrderItemByIdUseCase(
+        orderRepo: orderRepo ?? FakeOrderRepository()),
+    getSupplierInfoUseCase: GetSupplierInfoUseCase(
+        supplierRepo: supplierRepo ?? FakeSupplierRepository()),
+    getLocalCustomersUseCase: GetLocalCustomersUseCase(
+        customerRepo: customerRepo ?? FakeCustomerRepository()),
   );
 }
 
@@ -186,7 +194,8 @@ void main() {
 
     test('maps a typed exception to state.error', () async {
       final vm = _buildViewModel(
-        loginRepo: FakeLoginRepository(getRoleThrows: const NetworkException(message: 'offline')),
+        loginRepo: FakeLoginRepository(
+            getRoleThrows: const NetworkException(message: 'offline')),
       );
 
       await vm.checkLogin();
@@ -199,7 +208,8 @@ void main() {
   group('getOrderById', () {
     test('populates loaded on success', () async {
       final orderDetail = _buildOrderDetail('order-1');
-      final vm = _buildViewModel(orderRepo: FakeOrderRepository(orderDetail: orderDetail));
+      final vm = _buildViewModel(
+          orderRepo: FakeOrderRepository(orderDetail: orderDetail));
 
       await vm.getOrderById('order-1');
 
@@ -213,7 +223,8 @@ void main() {
 
     test('maps a typed exception to state.error', () async {
       final vm = _buildViewModel(
-        orderRepo: FakeOrderRepository(getByIdThrows: const NetworkException(message: 'offline')),
+        orderRepo: FakeOrderRepository(
+            getByIdThrows: const NetworkException(message: 'offline')),
       );
 
       await vm.getOrderById('order-1');
@@ -226,7 +237,8 @@ void main() {
   group('removeOrderById', () {
     test('sets removedOrder on success', () async {
       final orderDetail = _buildOrderDetail('order-1');
-      final vm = _buildViewModel(orderRepo: FakeOrderRepository(orderDetail: orderDetail));
+      final vm = _buildViewModel(
+          orderRepo: FakeOrderRepository(orderDetail: orderDetail));
 
       await vm.removeOrderById('order-1');
 
@@ -238,7 +250,8 @@ void main() {
 
     test('maps a typed exception to state.error', () async {
       final vm = _buildViewModel(
-        orderRepo: FakeOrderRepository(removeThrows: const NetworkException(message: 'offline')),
+        orderRepo: FakeOrderRepository(
+            removeThrows: const NetworkException(message: 'offline')),
       );
 
       await vm.removeOrderById('order-1');
@@ -259,7 +272,8 @@ void main() {
         createdDate: '2026-01-01T00:00:00.000Z',
         order: null,
       );
-      final vm = _buildViewModel(orderRepo: FakeOrderRepository(removedItem: removedItem));
+      final vm = _buildViewModel(
+          orderRepo: FakeOrderRepository(removedItem: removedItem));
 
       await vm.removeOrderItem('item-1');
 
@@ -271,7 +285,8 @@ void main() {
 
     test('maps a typed exception to state.error', () async {
       final vm = _buildViewModel(
-        orderRepo: FakeOrderRepository(removeItemThrows: const NetworkException(message: 'offline')),
+        orderRepo: FakeOrderRepository(
+            removeItemThrows: const NetworkException(message: 'offline')),
       );
 
       await vm.removeOrderItem('item-1');
@@ -283,7 +298,8 @@ void main() {
   group('getSupplier', () {
     test('resolves both the matching customer and the supplier', () async {
       final vm = _buildViewModel(
-        customerRepo: FakeCustomerRepository(customers: [_buildCustomer('CUST-1'), _buildCustomer('CUST-2')]),
+        customerRepo: FakeCustomerRepository(
+            customers: [_buildCustomer('CUST-1'), _buildCustomer('CUST-2')]),
         supplierRepo: FakeSupplierRepository(supplier: _buildSupplier()),
       );
 
@@ -297,9 +313,11 @@ void main() {
       expect(vm.state.value.supplierResult, isNull);
     });
 
-    test('still resolves the supplier when no customer matches the code', () async {
+    test('still resolves the supplier when no customer matches the code',
+        () async {
       final vm = _buildViewModel(
-        customerRepo: FakeCustomerRepository(customers: [_buildCustomer('OTHER')]),
+        customerRepo:
+            FakeCustomerRepository(customers: [_buildCustomer('OTHER')]),
         supplierRepo: FakeSupplierRepository(supplier: _buildSupplier()),
       );
 
@@ -309,9 +327,11 @@ void main() {
       expect(vm.state.value.supplierResult!.customer, isNull);
     });
 
-    test('still resolves the supplier when the customer lookup throws', () async {
+    test('still resolves the supplier when the customer lookup throws',
+        () async {
       final vm = _buildViewModel(
-        customerRepo: FakeCustomerRepository(throws: const NetworkException(message: 'offline')),
+        customerRepo: FakeCustomerRepository(
+            throws: const NetworkException(message: 'offline')),
         supplierRepo: FakeSupplierRepository(supplier: _buildSupplier()),
       );
 
@@ -322,10 +342,14 @@ void main() {
       expect(vm.state.value.supplierError, isNull);
     });
 
-    test('maps a typed exception from the supplier lookup to state.supplierError', () async {
+    test(
+        'maps a typed exception from the supplier lookup to state.supplierError',
+        () async {
       final vm = _buildViewModel(
-        customerRepo: FakeCustomerRepository(customers: [_buildCustomer('CUST-1')]),
-        supplierRepo: FakeSupplierRepository(throws: const NetworkException(message: 'offline')),
+        customerRepo:
+            FakeCustomerRepository(customers: [_buildCustomer('CUST-1')]),
+        supplierRepo: FakeSupplierRepository(
+            throws: const NetworkException(message: 'offline')),
       );
 
       await vm.getSupplier('CUST-1');
@@ -338,7 +362,8 @@ void main() {
     });
   });
 
-  test('updateTotalCost / consumeTotalCostUpdated toggles the one-shot flag', () {
+  test('updateTotalCost / consumeTotalCostUpdated toggles the one-shot flag',
+      () {
     final vm = _buildViewModel();
 
     vm.updateTotalCost();

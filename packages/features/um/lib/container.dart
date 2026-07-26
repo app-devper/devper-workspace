@@ -23,6 +23,8 @@ import 'package:um/data/repositories/login_repository_impl.dart';
 import 'package:um/data/repositories/user_repository_impl.dart';
 import 'package:um/domain/repositories/login_repository.dart';
 import 'package:um/domain/repositories/user_repository.dart';
+import 'package:um/domain/usecase/auth/get_role_use_case.dart';
+import 'package:um/domain/usecase/auth/logout_use_case.dart';
 import 'package:um/presentation/constants.dart';
 
 final sl = getIt();
@@ -41,7 +43,8 @@ Future<void> initCore(AppConfig config) async {
 
   sl.registerLazySingleton<AppSession>(() => AppSession(sl()));
 
-  sl.registerLazySingleton<NetworkConfig>(() => AppNetworkConfig(appSession: sl()));
+  sl.registerLazySingleton<NetworkConfig>(
+      () => AppNetworkConfig(appSession: sl()));
 
   final client = CustomClient();
   client.addInterceptor(HttpLoggingInterceptor());
@@ -53,7 +56,8 @@ Future<void> initCore(AppConfig config) async {
     ),
   );
 
-  final SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+  final SharedPreferences sharedPreferences =
+      await SharedPreferences.getInstance();
   sl.registerLazySingleton(() => sharedPreferences);
 }
 
@@ -71,6 +75,14 @@ Future<void> initUm() async {
       appSession: sl(),
       keepAliveScheduler: sl(),
     ),
+  );
+
+  sl.registerFactory(
+    () => GetRoleUseCase(loginRepo: sl()),
+  );
+
+  sl.registerFactory(
+    () => LogoutUseCase(loginRepo: sl()),
   );
 
   sl.registerLazySingleton<UserRepository>(

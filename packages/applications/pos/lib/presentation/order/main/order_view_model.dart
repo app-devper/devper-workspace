@@ -3,7 +3,7 @@ import 'package:flutter/foundation.dart';
 
 // Package imports:
 import 'package:common/core/error/failure.dart';
-import 'package:um/domain/repositories/login_repository.dart';
+import 'package:um/domain/usecase/auth/get_role_use_case.dart';
 
 // Project imports:
 import 'package:pos/domain/model/order/order_summary.dart';
@@ -14,10 +14,10 @@ import 'order_ui_model.dart';
 
 class OrderViewModel {
   final GetOrderRangeUseCase getOrderRangeUseCase;
-  final LoginRepository loginRepo;
+  final GetRoleUseCase getRoleUseCase;
 
   OrderViewModel({
-    required this.loginRepo,
+    required this.getRoleUseCase,
     required this.getOrderRangeUseCase,
   });
 
@@ -35,7 +35,8 @@ class OrderViewModel {
         total += x.total;
         totalCost += x.totalCost;
       }
-      _state.value = _state.value.copyWith(orders: orders, total: total, totalCost: totalCost);
+      _state.value = _state.value
+          .copyWith(orders: orders, total: total, totalCost: totalCost);
     } on Exception catch (e) {
       _state.value = _state.value.copyWith(error: toFailure(e).getMessage());
     }
@@ -43,7 +44,7 @@ class OrderViewModel {
 
   Future<void> checkLogin() async {
     try {
-      final role = await loginRepo.getRole();
+      final role = await getRoleUseCase();
       _state.value = _state.value.copyWith(logged: role == "ADMIN");
     } on Exception catch (e) {
       _state.value = _state.value.copyWith(error: toFailure(e).getMessage());
@@ -76,22 +77,27 @@ class OrderViewModel {
       case Range.yesterday:
         selection = OrderRangeSelection(
           range: range,
-          startDate: DateTime(now.year, now.month, now.day).subtract(const Duration(days: 1)),
+          startDate: DateTime(now.year, now.month, now.day)
+              .subtract(const Duration(days: 1)),
           endDate: DateTime(now.year, now.month, now.day),
         );
         break;
       case Range.last7Days:
         selection = OrderRangeSelection(
           range: range,
-          startDate: DateTime(now.year, now.month, now.day).subtract(const Duration(days: 8)),
-          endDate: DateTime(now.year, now.month, now.day).subtract(const Duration(days: 1)),
+          startDate: DateTime(now.year, now.month, now.day)
+              .subtract(const Duration(days: 8)),
+          endDate: DateTime(now.year, now.month, now.day)
+              .subtract(const Duration(days: 1)),
         );
         break;
       case Range.last30Days:
         selection = OrderRangeSelection(
           range: range,
-          startDate: DateTime(now.year, now.month, now.day).subtract(const Duration(days: 31)),
-          endDate: DateTime(now.year, now.month, now.day).subtract(const Duration(days: 1)),
+          startDate: DateTime(now.year, now.month, now.day)
+              .subtract(const Duration(days: 31)),
+          endDate: DateTime(now.year, now.month, now.day)
+              .subtract(const Duration(days: 1)),
         );
         break;
       case Range.currentMonth:
@@ -109,7 +115,8 @@ class OrderViewModel {
         );
         break;
       case Range.dateRange:
-        selection = OrderRangeSelection(range: range, startDate: now, endDate: now);
+        selection =
+            OrderRangeSelection(range: range, startDate: now, endDate: now);
         break;
       case Range.date:
         selection = OrderRangeSelection(

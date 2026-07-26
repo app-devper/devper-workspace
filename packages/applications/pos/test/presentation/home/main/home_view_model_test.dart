@@ -5,6 +5,8 @@ import 'package:um/domain/entities/auth/param.dart';
 import 'package:um/domain/entities/auth/session.dart';
 import 'package:um/domain/entities/auth/system.dart';
 import 'package:um/domain/repositories/login_repository.dart';
+import 'package:um/domain/usecase/auth/get_role_use_case.dart';
+import 'package:um/domain/usecase/auth/logout_use_case.dart';
 
 class FakeLoginRepository implements LoginRepository {
   final String role;
@@ -39,8 +41,15 @@ class FakeLoginRepository implements LoginRepository {
 }
 
 void main() {
+  HomeViewModel buildViewModel(FakeLoginRepository repo) {
+    return HomeViewModel(
+      getRoleUseCase: GetRoleUseCase(loginRepo: repo),
+      logoutUseCase: LogoutUseCase(loginRepo: repo),
+    );
+  }
+
   test('getRole sets isAdmin true for ADMIN', () async {
-    final vm = HomeViewModel(loginRepo: FakeLoginRepository(role: 'ADMIN'));
+    final vm = buildViewModel(FakeLoginRepository(role: 'ADMIN'));
 
     await vm.getRole();
 
@@ -52,7 +61,7 @@ void main() {
   });
 
   test('getRole sets isAdmin false for USER', () async {
-    final vm = HomeViewModel(loginRepo: FakeLoginRepository(role: 'USER'));
+    final vm = buildViewModel(FakeLoginRepository(role: 'USER'));
 
     await vm.getRole();
 
@@ -61,7 +70,7 @@ void main() {
 
   test('logout sets loggedOut even when the repository fails', () async {
     final repo = FakeLoginRepository(logoutThrows: true);
-    final vm = HomeViewModel(loginRepo: repo);
+    final vm = buildViewModel(repo);
 
     await vm.logout();
 
