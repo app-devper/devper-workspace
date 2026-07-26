@@ -129,12 +129,13 @@ class _CategoryPageState extends State<CategoryPage> {
   }
 
   _nextToCategoryEdit(BuildContext context, Category content) async {
-    var _ = await Navigator.pushNamed(context, CATEGORY_EDIT_ROUTE, arguments: CategoryArgument(content));
+    var _ = await Navigator.pushNamed(context, categoryEditRoute,
+        arguments: CategoryArgument(content));
     _viewModel.getCategories();
   }
 
   _nextToCategoryAdd(BuildContext context) async {
-    var _ = await Navigator.pushNamed(context, CATEGORY_ADD_ROUTE);
+    var _ = await Navigator.pushNamed(context, categoryAddRoute);
     _viewModel.getCategories();
   }
 }

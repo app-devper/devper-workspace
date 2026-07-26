@@ -96,7 +96,8 @@ class _OrderPageState extends State<OrderPage> {
           _endDate = selection.endDate;
           _value = selection.range;
         });
-        _viewModel.getOrderItem(_choices[_defaultChoiceIndex], _getOrderRangeParam());
+        _viewModel.getOrderItem(
+            _choices[_defaultChoiceIndex], _getOrderRangeParam());
       }
     }
   }
@@ -117,7 +118,7 @@ class _OrderPageState extends State<OrderPage> {
       child: Scaffold(
         key: _scaffoldKey,
         appBar: buildAppBar(
-            Languages.of(context).ordersTitle,
+          Languages.of(context).ordersTitle,
         ),
         body: AnnotatedRegion<SystemUiOverlayStyle>(
           value: SystemUiOverlayStyle.dark.copyWith(
@@ -194,7 +195,8 @@ class _OrderPageState extends State<OrderPage> {
   _buildMenu(BuildContext context) {
     if (_isAdmin) {
       return Container(
-        padding: const EdgeInsets.only(right: defaultPagePadding, left: defaultPagePadding),
+        padding: const EdgeInsets.only(
+            right: defaultPagePadding, left: defaultPagePadding),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
@@ -209,21 +211,27 @@ class _OrderPageState extends State<OrderPage> {
   }
 
   _buildDate() {
-    if (_value == Range.today || _value == Range.yesterday || _value == Range.date) {
+    if (_value == Range.today ||
+        _value == Range.yesterday ||
+        _value == Range.date) {
       return Row(
         children: <Widget>[
           Text(
             _dateFormat.format(_startDate),
-            style: const TextStyle(fontSize: 14.0, color: CustomColor.fontBlack),
+            style:
+                const TextStyle(fontSize: 14.0, color: CustomColor.fontBlack),
           ),
         ],
       );
-    } else if (_value == Range.currentMonth || _value == Range.month || _value == Range.lastMonth) {
+    } else if (_value == Range.currentMonth ||
+        _value == Range.month ||
+        _value == Range.lastMonth) {
       return Row(
         children: <Widget>[
           Text(
             _mountFormat.format(_startDate),
-            style: const TextStyle(fontSize: 14.0, color: CustomColor.fontBlack),
+            style:
+                const TextStyle(fontSize: 14.0, color: CustomColor.fontBlack),
           ),
         ],
       );
@@ -232,7 +240,8 @@ class _OrderPageState extends State<OrderPage> {
         children: <Widget>[
           Text(
             _dateFormat.format(_startDate),
-            style: const TextStyle(fontSize: 14.0, color: CustomColor.fontBlack),
+            style:
+                const TextStyle(fontSize: 14.0, color: CustomColor.fontBlack),
           ),
           const Text(
             " - ",
@@ -240,7 +249,8 @@ class _OrderPageState extends State<OrderPage> {
           ),
           Text(
             _dateFormat.format(_endDate.subtract(const Duration(days: 1))),
-            style: const TextStyle(fontSize: 14.0, color: CustomColor.fontBlack),
+            style:
+                const TextStyle(fontSize: 14.0, color: CustomColor.fontBlack),
           ),
         ],
       );
@@ -261,7 +271,8 @@ class _OrderPageState extends State<OrderPage> {
             setState(() {
               _defaultChoiceIndex = value ? index : _defaultChoiceIndex;
             });
-            _viewModel.getOrderItem(_choices[_defaultChoiceIndex], _getOrderRangeParam());
+            _viewModel.getOrderItem(
+                _choices[_defaultChoiceIndex], _getOrderRangeParam());
           },
           elevation: 1,
           padding: const EdgeInsets.symmetric(horizontal: 8.0),
@@ -283,9 +294,15 @@ class _OrderPageState extends State<OrderPage> {
                 final item = orders[index];
                 return ListTile(
                   leading: Text("${index + 1}"),
-                  title: Text(item.getCreatedDate() + (item.customerName.isNotEmpty ? " Name: ${item.customerName}" : "")),
+                  title: Text(item.getCreatedDate() +
+                      (item.customerName.isNotEmpty
+                          ? " Name: ${item.customerName}"
+                          : "")),
                   trailing: Text(_format.format(item.total)),
-                  subtitle: _isAdmin ? Text("Cost: ${_format.format(item.totalCost)}  Profit: ${_format.format(item.total - item.totalCost)}") : null,
+                  subtitle: _isAdmin
+                      ? Text(
+                          "Cost: ${_format.format(item.totalCost)}  Profit: ${_format.format(item.total - item.totalCost)}")
+                      : null,
                   onTap: () {
                     _nextToOrderDetail(context, item);
                   },
@@ -387,7 +404,8 @@ class _OrderPageState extends State<OrderPage> {
         _endDate = result.end.add(const Duration(days: 1));
         _value = range;
       });
-      _viewModel.getOrderItem(_choices[_defaultChoiceIndex], _getOrderRangeParam());
+      _viewModel.getOrderItem(
+          _choices[_defaultChoiceIndex], _getOrderRangeParam());
     }
   }
 
@@ -406,7 +424,8 @@ class _OrderPageState extends State<OrderPage> {
         _endDate = result.add(const Duration(days: 1));
         _value = range;
       });
-      _viewModel.getOrderItem(_choices[_defaultChoiceIndex], _getOrderRangeParam());
+      _viewModel.getOrderItem(
+          _choices[_defaultChoiceIndex], _getOrderRangeParam());
     }
   }
 
@@ -418,7 +437,9 @@ class _OrderPageState extends State<OrderPage> {
   }
 
   _nextToOrderDetail(BuildContext context, OrderSummary content) async {
-    var _ = await Navigator.pushNamed(context, ORDER_DETAIL_ROUTE, arguments: OrderArgument(content.id));
-    _viewModel.getOrderItem(_choices[_defaultChoiceIndex], _getOrderRangeParam());
+    var _ = await Navigator.pushNamed(context, orderDetailRoute,
+        arguments: OrderArgument(content.id));
+    _viewModel.getOrderItem(
+        _choices[_defaultChoiceIndex], _getOrderRangeParam());
   }
 }

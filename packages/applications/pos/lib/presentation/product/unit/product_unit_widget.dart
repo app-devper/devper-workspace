@@ -118,7 +118,9 @@ class _ProductUnitWidgetState extends State<ProductUnitWidget> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         TitleBar(
-          title: widget.unit == null ? "เพิ่มหน่วยนับใหม่" : "แก้ไขหน่วยนับ ${widget.unit!.unit}",
+          title: widget.unit == null
+              ? "เพิ่มหน่วยนับใหม่"
+              : "แก้ไขหน่วยนับ ${widget.unit!.unit}",
           onBack: () {
             Navigator.of(context).pop();
           },
@@ -132,7 +134,9 @@ class _ProductUnitWidgetState extends State<ProductUnitWidget> {
                     unit: _unitController.text,
                     size: int.parse(_sizeController.text),
                     costPrice: double.parse(_costPriceController.text),
-                    volume: _volumeController.text.isEmpty ? 0 : double.parse(_volumeController.text),
+                    volume: _volumeController.text.isEmpty
+                        ? 0
+                        : double.parse(_volumeController.text),
                     barcode: _barcodeController.text,
                     productId: widget.unit!.productId,
                     volumeUnit: _volumeUnit,
@@ -144,7 +148,9 @@ class _ProductUnitWidgetState extends State<ProductUnitWidget> {
                     unit: _unitController.text,
                     size: int.parse(_sizeController.text),
                     costPrice: double.parse(_costPriceController.text),
-                    volume: _volumeController.text.isEmpty ? 0 : double.parse(_volumeController.text),
+                    volume: _volumeController.text.isEmpty
+                        ? 0
+                        : double.parse(_volumeController.text),
                     barcode: _barcodeController.text,
                     productId: widget.unit!.productId,
                     volumeUnit: _volumeUnit,
@@ -175,7 +181,7 @@ class _ProductUnitWidgetState extends State<ProductUnitWidget> {
                   'โปรดระบุข้อมูลหน่วยนับของสินค้า',
                   style: TextStyle(
                     fontSize: 16,
-                    color: Colors.black.withOpacity(0.6),
+                    color: Colors.black.withValues(alpha: 0.6),
                   ),
                 ),
                 const SizedBox(height: 32),
@@ -196,7 +202,8 @@ class _ProductUnitWidgetState extends State<ProductUnitWidget> {
                               focusNode: _unitFocus,
                               controller: _unitController,
                               keyboardType: TextInputType.text,
-                              autovalidateMode: AutovalidateMode.onUserInteraction,
+                              autovalidateMode:
+                                  AutovalidateMode.onUserInteraction,
                               decoration: buildInputDecoration(
                                 labelText: 'ชื่อหน่วยนับ',
                                 hintText: 'โปรดระบุชื่อหน่วยนับ',
@@ -218,9 +225,11 @@ class _ProductUnitWidgetState extends State<ProductUnitWidget> {
                               ],
                               focusNode: _sizeFocus,
                               controller: _sizeController,
-                              readOnly: widget.unit != null && widget.unit!.size == 1,
+                              readOnly:
+                                  widget.unit != null && widget.unit!.size == 1,
                               keyboardType: TextInputType.number,
-                              autovalidateMode: AutovalidateMode.onUserInteraction,
+                              autovalidateMode:
+                                  AutovalidateMode.onUserInteraction,
                               decoration: buildInputDecoration(
                                 labelText: 'ขนาดบรรจุ',
                                 hintText: '',
@@ -253,7 +262,8 @@ class _ProductUnitWidgetState extends State<ProductUnitWidget> {
                               focusNode: _costPriceFocus,
                               controller: _costPriceController,
                               keyboardType: TextInputType.number,
-                              autovalidateMode: AutovalidateMode.onUserInteraction,
+                              autovalidateMode:
+                                  AutovalidateMode.onUserInteraction,
                               decoration: buildInputDecoration(
                                 labelText: 'ราคาทุนต่อหน่วย',
                                 hintText: 'โปรดระบุราคาทุนต่อหน่วย',
@@ -281,7 +291,8 @@ class _ProductUnitWidgetState extends State<ProductUnitWidget> {
                               focusNode: _volumeFocus,
                               controller: _volumeController,
                               keyboardType: TextInputType.number,
-                              autovalidateMode: AutovalidateMode.onUserInteraction,
+                              autovalidateMode:
+                                  AutovalidateMode.onUserInteraction,
                               decoration: buildInputDecoration(
                                 labelText: 'ปริมาณหรือน้ำหนัก',
                                 hintText: '',
@@ -295,7 +306,8 @@ class _ProductUnitWidgetState extends State<ProductUnitWidget> {
                                     child: Center(
                                       child: Text(
                                         _volumeUnit,
-                                        style: const TextStyle(color: Colors.blue),
+                                        style:
+                                            const TextStyle(color: Colors.blue),
                                       ),
                                     ),
                                   ),
@@ -328,7 +340,8 @@ class _ProductUnitWidgetState extends State<ProductUnitWidget> {
                             focusNode: _barcodeFocus,
                             controller: _barcodeController,
                             keyboardType: TextInputType.text,
-                            autovalidateMode: AutovalidateMode.onUserInteraction,
+                            autovalidateMode:
+                                AutovalidateMode.onUserInteraction,
                             decoration: buildInputDecoration(
                               labelText: 'บาร์โค้ด',
                               hintText: 'โปรดระบุบาร์โค้ด',
@@ -350,7 +363,8 @@ class _ProductUnitWidgetState extends State<ProductUnitWidget> {
                 widget.unit != null && widget.unit!.size != 1
                     ? TextButton(
                         onPressed: () {
-                          showConfirmDialog(context, 'ยืนยันการลบหน่วยนับ ${widget.unit!.unit}', () {
+                          showConfirmDialog(context,
+                              'ยืนยันการลบหน่วยนับ ${widget.unit!.unit}', () {
                             _viewModel.removeProductUnitById(widget.unit!.id);
                           });
                         },

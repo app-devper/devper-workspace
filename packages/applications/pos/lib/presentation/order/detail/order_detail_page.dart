@@ -276,7 +276,8 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
       children: <Widget>[
         Text('${content.quantity}'),
         if (content.oversoldQty > 0)
-          StatusBadge(label: 'เกิน ${content.oversoldQty}', color: Colors.orange),
+          StatusBadge(
+              label: 'เกิน ${content.oversoldQty}', color: Colors.orange),
         if (content.returnedQty > 0)
           StatusBadge(label: 'คืน ${content.returnedQty}', color: Colors.grey),
       ],
@@ -411,7 +412,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
 
   _nextToProductEdit(BuildContext context, Product? product) async {
     if (product != null) {
-      var result = await Navigator.pushNamed(context, PRODUCT_EDIT_ROUTE,
+      var result = await Navigator.pushNamed(context, productEditRoute,
           arguments: ProductArgument(product));
       if (result != null) {
         _viewModel.getOrderById(widget.orderId);
@@ -421,7 +422,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
 
   _nextToOrderHistory(BuildContext context, Product? product) async {
     if (product != null) {
-      var result = await Navigator.pushNamed(context, ORDER_HISTORY_ROUTE,
+      var result = await Navigator.pushNamed(context, orderHistoryRoute,
           arguments: OrderHistoryArgument(product));
       if (result != null) {
         _viewModel.getOrderById(widget.orderId);
@@ -452,7 +453,8 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
   void _showProductReturnsHistoryDialog(BuildContext context) {
     showCenterDialog(
       context: context,
-      builder: (context) => ProductReturnsHistoryWidget(orderId: widget.orderId),
+      builder: (context) =>
+          ProductReturnsHistoryWidget(orderId: widget.orderId),
     );
   }
 
@@ -475,7 +477,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
   }
 
   _nextToSupplier(BuildContext context) async {
-    var _ = await Navigator.pushNamed(context, SUPPLIER_ROUTE);
+    var _ = await Navigator.pushNamed(context, supplierRoute);
   }
 
   _showCustomerDialog(Supplier supplier, Customer? customer) {

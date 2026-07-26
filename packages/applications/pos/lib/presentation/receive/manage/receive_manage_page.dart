@@ -79,7 +79,9 @@ class _ReceiveManagePageState extends State<ReceiveManagePage> {
       setState(() {
         _receive = state.receive;
         _suppliers = state.receiveSuppliers;
-        _supplier = _suppliers.where((item) => item.id == state.receive?.supplierId).firstOrNull;
+        _supplier = _suppliers
+            .where((item) => item.id == state.receive?.supplierId)
+            .firstOrNull;
       });
       _referenceEditingController.text = state.receive?.reference ?? "";
     }
@@ -88,7 +90,8 @@ class _ReceiveManagePageState extends State<ReceiveManagePage> {
       _viewModel.consumeSuppliersEvent();
       setState(() {
         _suppliers = suppliers;
-        _supplier = _suppliers.where((item) => item.id == _supplier?.id).firstOrNull;
+        _supplier =
+            _suppliers.where((item) => item.id == _supplier?.id).firstOrNull;
       });
     }
     if (state.itemsLoaded) {
@@ -164,7 +167,8 @@ class _ReceiveManagePageState extends State<ReceiveManagePage> {
   }
 
   _buildBody(BuildContext context) {
-    final button = _receive == null ? _buildAddButton() : _buildAddProductButton();
+    final button =
+        _receive == null ? _buildAddButton() : _buildAddProductButton();
     return Container(
       padding: const EdgeInsets.all(defaultPagePadding),
       child: Column(
@@ -251,8 +255,10 @@ class _ReceiveManagePageState extends State<ReceiveManagePage> {
               ),
             ),
             title: Text('Name: ${content.product?.name ?? "-"}'),
-            subtitle: Text('Quantity: ${content.quantity} Cost: ${_format.format(content.costPrice)}'),
-            trailing: Text(_format.format(content.costPrice * content.quantity)),
+            subtitle: Text(
+                'Quantity: ${content.quantity} Cost: ${_format.format(content.costPrice)}'),
+            trailing:
+                Text(_format.format(content.costPrice * content.quantity)),
             onTap: () {},
           );
         },
@@ -303,7 +309,8 @@ class _ReceiveManagePageState extends State<ReceiveManagePage> {
         key: const Key("update"),
         onClicked: () {
           if (_receive != null) {
-            _viewModel.updateReceiveById(_receive!.id, _getUpdateReceiveParam());
+            _viewModel.updateReceiveById(
+                _receive!.id, _getUpdateReceiveParam());
           }
         },
         text: "บันทึก",
@@ -357,12 +364,13 @@ class _ReceiveManagePageState extends State<ReceiveManagePage> {
   }
 
   _nextToProductAdd(BuildContext context, String receiveId) async {
-    var _ = await Navigator.pushNamed(context, PRODUCT_ADD_ROUTE, arguments: ProductAddArgument(receiveId));
+    var _ = await Navigator.pushNamed(context, productAddRoute,
+        arguments: ProductAddArgument(receiveId));
     _viewModel.getReceiveItemsById(receiveId);
   }
 
   _nextToSupplierAdd(BuildContext context) async {
-    var _ = await Navigator.pushNamed(context, SUPPLIER_ADD_ROUTE);
+    var _ = await Navigator.pushNamed(context, supplierAddRoute);
     _viewModel.getSuppliers();
   }
 }

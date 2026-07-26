@@ -40,21 +40,15 @@ class DropdownInput<T> extends StatelessWidget {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(4.0),
-          borderSide: const BorderSide(
-            color: CustomColor.textFieldBackground,
-          ),
+          borderSide: const BorderSide(color: CustomColor.textFieldBackground),
         ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(4.0),
-          borderSide: const BorderSide(
-            color: CustomColor.textFieldBackground,
-          ),
+          borderSide: const BorderSide(color: CustomColor.textFieldBackground),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(4.0),
-          borderSide: const BorderSide(
-            color: CustomColor.textFieldBackground,
-          ),
+          borderSide: const BorderSide(color: CustomColor.textFieldBackground),
         ),
         focusColor: CustomColor.textFieldBackground,
         hoverColor: CustomColor.textFieldBackground,
@@ -62,14 +56,12 @@ class DropdownInput<T> extends StatelessWidget {
         filled: true,
         labelStyle: CustomTheme.mainTheme.textTheme.bodyMedium,
       ),
-      value: value,
+      initialValue: value,
       items: options.map((T value) {
         return DropdownMenuItem<T>(
           alignment: Alignment.centerLeft,
           value: value,
-          child: Text(
-            getLabel(value),
-          ),
+          child: Text(getLabel(value)),
         );
       }).toList(),
       onChanged: (value) {

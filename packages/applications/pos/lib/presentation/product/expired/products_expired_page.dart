@@ -66,7 +66,7 @@ class _ProductsExpiredPageState extends State<ProductsExpiredPage> {
     return Scaffold(
       key: _scaffoldKey,
       appBar: buildAppBar(
-          Languages.of(context).productsExpiredTitle,
+        Languages.of(context).productsExpiredTitle,
       ),
       body: _buildBody(context),
     );
@@ -89,7 +89,8 @@ class _ProductsExpiredPageState extends State<ProductsExpiredPage> {
 
   _buildMenu() {
     return Container(
-      padding: const EdgeInsets.only(right: defaultPagePadding, left: defaultPagePadding),
+      padding: const EdgeInsets.only(
+          right: defaultPagePadding, left: defaultPagePadding),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.end,
         children: <Widget>[
@@ -176,8 +177,10 @@ class _ProductsExpiredPageState extends State<ProductsExpiredPage> {
           final data = items[index];
           return ListTile(
             leading: Text("${index + 1}"),
-            title: Text(data.getExpireDate() + ("  Name: ${data.product?.name ?? "-"}")),
-            subtitle: Text("Lot: ${data.lotNumber}  Quantity: ${data.quantity}  Cost: ${_format.format(data.costPrice)}"),
+            title: Text(data.getExpireDate() +
+                ("  Name: ${data.product?.name ?? "-"}")),
+            subtitle: Text(
+                "Lot: ${data.lotNumber}  Quantity: ${data.quantity}  Cost: ${_format.format(data.costPrice)}"),
             trailing: Text(_format.format(data.costPrice * data.quantity)),
             onTap: () {
               _nextToProductLotEdit(context, data);
@@ -211,7 +214,8 @@ class _ProductsExpiredPageState extends State<ProductsExpiredPage> {
   }
 
   _nextToProductLotEdit(BuildContext context, ProductLot content) async {
-    var _ = await Navigator.pushNamed(context, PRODUCT_LOT_EDIT_ROUTE, arguments: ProductLotArgument(content));
+    var _ = await Navigator.pushNamed(context, productLotEditRoute,
+        arguments: ProductLotArgument(content));
     _viewModel.selectRange(_value);
   }
 }

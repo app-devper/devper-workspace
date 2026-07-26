@@ -154,7 +154,7 @@ class _ProductSearchState extends State<ProductSearch> {
   }
 
   Future<void> _scanBarcode(BuildContext context) async {
-    final result = await Navigator.pushNamed(context, SCAN_ROUTE);
+    final result = await Navigator.pushNamed(context, scanRoute);
     if (result is Barcode) {
       final code = result.code;
       if (code != null && code.isNotEmpty) {

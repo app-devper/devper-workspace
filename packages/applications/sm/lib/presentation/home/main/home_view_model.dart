@@ -31,7 +31,7 @@ class HomeViewModel {
     try {
       final result = await systemRepo.getSystems();
       _onGetSystemSuccess(result);
-    } on Exception catch (e ) {
+    } on Exception catch (e) {
       _onError(toFailure(e));
     }
   }
@@ -48,13 +48,8 @@ class HomeViewModel {
   void logout() async {
     try {
       final _ = await loginRepo.logoutUser();
-    } on Exception catch (_) {
-    }
+    } on Exception catch (_) {}
     _onLogoutSuccess();
-  }
-
-  _onLoading() {
-    _states.sink.add(LoadingState());
   }
 
   _onCheckLoginSuccess(bool isLogin) {

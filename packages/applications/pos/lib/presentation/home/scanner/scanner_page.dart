@@ -103,7 +103,8 @@ class _ScannerPageState extends State<ScannerPage> {
 
   Widget _buildQrView(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
-    var scanArea = (screenSize.width < 850 || screenSize.height < 850) ? 300.0 : 600.0;
+    var scanArea =
+        (screenSize.width < 850 || screenSize.height < 850) ? 300.0 : 600.0;
     return QRView(
       key: _qrKey,
       onQRViewCreated: (ctrl) => _onQRViewCreated(context, ctrl),
@@ -124,6 +125,7 @@ class _ScannerPageState extends State<ScannerPage> {
     controller.scannedDataStream.listen((scanData) {
       if (widget.mode == "SCAN") {
         this.controller?.pauseCamera();
+        if (!context.mounted) return;
         Navigator.of(context).pop(scanData);
       } else {
         this.controller?.pauseCamera();
@@ -139,7 +141,7 @@ class _ScannerPageState extends State<ScannerPage> {
   }
 
   _nextToProductEdit(BuildContext context, Product content) async {
-    var _ = await Navigator.pushNamed(context, PRODUCT_EDIT_ROUTE,
+    var _ = await Navigator.pushNamed(context, productEditRoute,
         arguments: ProductArgument(content));
     controller?.resumeCamera();
   }

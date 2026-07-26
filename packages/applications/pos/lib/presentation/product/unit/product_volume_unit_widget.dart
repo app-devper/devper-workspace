@@ -26,7 +26,8 @@ class _ProductVolumeUnitWidgetState extends State<ProductVolumeUnitWidget> {
 
   @override
   void initState() {
-    final index = volumeUnits.indexWhere((element) => element.type == widget.unit);
+    final index =
+        volumeUnits.indexWhere((element) => element.type == widget.unit);
     if (index != -1) {
       _selectedUnit = index;
     }
@@ -49,14 +50,22 @@ class _ProductVolumeUnitWidgetState extends State<ProductVolumeUnitWidget> {
       ),
       const Divider(height: 1),
       Expanded(
-        child: ListView(
-          children: [
-            for (var unit in volumeUnits)
-              _buildUnitOption(
-                volumeUnits.indexOf(unit),
-                unit.name,
-              )
-          ],
+        child: RadioGroup<int>(
+          groupValue: _selectedUnit,
+          onChanged: (value) {
+            setState(() {
+              _selectedUnit = value ?? _selectedUnit;
+            });
+          },
+          child: ListView(
+            children: [
+              for (var unit in volumeUnits)
+                _buildUnitOption(
+                  volumeUnits.indexOf(unit),
+                  unit.name,
+                )
+            ],
+          ),
         ),
       )
     ]);
@@ -67,8 +76,6 @@ class _ProductVolumeUnitWidgetState extends State<ProductVolumeUnitWidget> {
       title: Text(unitName),
       leading: Radio(
         value: index,
-        groupValue: _selectedUnit,
-        onChanged: (value) {},
       ),
       onTap: () {
         setState(() {

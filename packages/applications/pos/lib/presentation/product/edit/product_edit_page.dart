@@ -188,7 +188,7 @@ class _ProductEditPageState extends State<ProductEditPage> {
                     'โปรดระบุข้อมูลสินค้า',
                     style: TextStyle(
                       fontSize: 16,
-                      color: Colors.black.withOpacity(0.6),
+                      color: Colors.black.withValues(alpha: 0.6),
                     ),
                   ),
                   const SizedBox(height: 32),
@@ -316,7 +316,7 @@ class _ProductEditPageState extends State<ProductEditPage> {
             labelText: 'ประเภทสินค้า',
             hintText: 'โปรดเลือกประเภทสินค้า',
           ),
-          value: _category,
+          initialValue: _category,
           onChanged: (value) {
             setState(() {
               _category = value;
@@ -378,7 +378,7 @@ class _ProductEditPageState extends State<ProductEditPage> {
             labelText: 'การแสดงข้อมูลสินค้า',
             hintText: 'โปรดเลือกการแสดงข้อมูลสินค้า',
           ),
-          value: _status,
+          initialValue: _status,
           onChanged: (value) {
             setState(() {
               _status = value;

@@ -1,36 +1,36 @@
 const double defaultPagePadding = 20;
 
 //routes
-const String ROOT_ROUTE = '/';
-const String HOME_ROUTE = '/home';
+const String rootRoute = '/';
+const String homeRoute = '/home';
 
-const String PRODUCTS_ROUTE = '/products';
-const String PRODUCT_ADD_ROUTE = '/product-add';
-const String PRODUCT_EDIT_ROUTE = '/product-edit';
-const String PRODUCT_EXPIRED_ROUTE = '/product-expired';
-const String PRODUCT_LOT_EDIT_ROUTE = '/product-lot-edit';
+const String productsRoute = '/products';
+const String productAddRoute = '/product-add';
+const String productEditRoute = '/product-edit';
+const String productExpiredRoute = '/product-expired';
+const String productLotEditRoute = '/product-lot-edit';
 
-const String ORDERS_ROUTE = '/orders';
-const String ORDER_DETAIL_ROUTE = '/order-detail';
-const String ORDER_HISTORY_ROUTE = '/order-history';
+const String ordersRoute = '/orders';
+const String orderDetailRoute = '/order-detail';
+const String orderHistoryRoute = '/order-history';
 
-const String SUPPLIER_ROUTE = '/supplier';
-const String SUPPLIERS_ROUTE = '/suppliers';
-const String SUPPLIER_ADD_ROUTE = '/supplier-add';
-const String SUPPLIER_EDIT_ROUTE = '/supplier-edit';
+const String supplierRoute = '/supplier';
+const String suppliersRoute = '/suppliers';
+const String supplierAddRoute = '/supplier-add';
+const String supplierEditRoute = '/supplier-edit';
 
-const String SCAN_ROUTE = '/scan';
+const String scanRoute = '/scan';
 
-const String CATEGORIES_ROUTE = '/categories';
-const String CATEGORY_ADD_ROUTE = '/category-add';
-const String CATEGORY_EDIT_ROUTE = '/category-edit';
+const String categoriesRoute = '/categories';
+const String categoryAddRoute = '/category-add';
+const String categoryEditRoute = '/category-edit';
 
-const String CUSTOMERS_ROUTE = '/customers';
-const String CUSTOMER_ADD_ROUTE = '/customer-add';
-const String CUSTOMER_EDIT_ROUTE = '/customer-edit';
+const String customersRoute = '/customers';
+const String customerAddRoute = '/customer-add';
+const String customerEditRoute = '/customer-edit';
 
-const String RECEIVE_MANAGE_ROUTE = '/receive-manage';
-const String RECEIVES_ROUTE = '/receives';
+const String receiveManageRoute = '/receive-manage';
+const String receivesRoute = '/receives';
 
-const String STOCK_COUNTS_ROUTE = '/stock-counts';
-const String STOCK_COUNT_MANAGE_ROUTE = '/stock-count-manage';
+const String stockCountsRoute = '/stock-counts';
+const String stockCountManageRoute = '/stock-count-manage';

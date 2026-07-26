@@ -43,9 +43,12 @@ class _OrderItemWidgetState extends State<OrderItemWidget> {
   @override
   void initState() {
     _orderItem = widget.orderItem;
-    _quantityController = TextEditingController(text: _orderItem.quantity.toString());
+    _quantityController =
+        TextEditingController(text: _orderItem.quantity.toString());
     _discountPercentController = TextEditingController(
-      text: _orderItem.discount > 0 ? formatDouble(_orderItem.discount * 100 / _orderItem.priceType.price) : "",
+      text: _orderItem.discount > 0
+          ? formatDouble(_orderItem.discount * 100 / _orderItem.priceType.price)
+          : "",
     );
     _discountAmountController = TextEditingController(
       text: _orderItem.discount > 0 ? formatDouble(_orderItem.discount) : "",
@@ -88,13 +91,16 @@ class _OrderItemWidgetState extends State<OrderItemWidget> {
           controller: controller,
           textAlign: TextAlign.end,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))],
+          inputFormatters: [
+            FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))
+          ],
           decoration: InputDecoration(
             isDense: true,
             prefixText: prefixText,
             suffixText: suffixText,
             border: const OutlineInputBorder(),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
           ),
           onChanged: onChanged,
         ),
@@ -106,7 +112,8 @@ class _OrderItemWidgetState extends State<OrderItemWidget> {
 
       getSubtitle(ProductStock stock, ProductUnit unit) {
         if (stock.costPrice > 0 && stock.price > 0) {
-          return Text('C: ฿${formatDouble(stock.costPrice)}, P: ฿${formatDouble(stock.price)}');
+          return Text(
+              'C: ฿${formatDouble(stock.costPrice)}, P: ฿${formatDouble(stock.price)}');
         } else if (stock.costPrice > 0) {
           return Text('C: ฿${formatDouble(stock.costPrice)}');
         } else if (stock.price > 0) {
@@ -163,11 +170,15 @@ class _OrderItemWidgetState extends State<OrderItemWidget> {
             child: DropdownButtonFormField<ProductPrice>(
               isDense: true,
               isExpanded: true,
-              value: _orderItem.product.prices.where((price) => price.customerType == _orderItem.priceType.type).firstOrNull,
+              initialValue: _orderItem.product.prices
+                  .where((price) =>
+                      price.customerType == _orderItem.priceType.type)
+                  .firstOrNull,
               decoration: const InputDecoration(
                 isDense: true,
                 border: OutlineInputBorder(),
-                contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                contentPadding:
+                    EdgeInsets.symmetric(horizontal: 8, vertical: 8),
               ),
               items: _orderItem.product.prices
                   .map((price) => DropdownMenuItem<ProductPrice>(
@@ -198,7 +209,9 @@ class _OrderItemWidgetState extends State<OrderItemWidget> {
             onChanged: (value) {
               setState(() {
                 _orderItem.updateDiscountByPercent(getValue(value));
-                _discountAmountController.text = _orderItem.discount > 0 ? formatDouble(_orderItem.discount) : "";
+                _discountAmountController.text = _orderItem.discount > 0
+                    ? formatDouble(_orderItem.discount)
+                    : "";
               });
             },
           ),
@@ -212,8 +225,10 @@ class _OrderItemWidgetState extends State<OrderItemWidget> {
             onChanged: (value) {
               setState(() {
                 _orderItem.updateDiscount(getValue(value));
-                _discountPercentController.text =
-                    _orderItem.discount > 0 ? formatDouble(_orderItem.discount * 100 / _orderItem.priceType.price) : "";
+                _discountPercentController.text = _orderItem.discount > 0
+                    ? formatDouble(
+                        _orderItem.discount * 100 / _orderItem.priceType.price)
+                    : "";
               });
             },
           ),
@@ -231,7 +246,10 @@ class _OrderItemWidgetState extends State<OrderItemWidget> {
               },
               child: const Text(
                 'ยกเลิกสินค้า',
-                style: TextStyle(color: Colors.red, fontSize: 16, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                    color: Colors.red,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold),
               ),
             ),
           ),

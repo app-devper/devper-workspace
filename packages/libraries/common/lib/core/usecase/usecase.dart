@@ -1,11 +1,10 @@
 // Dart imports:
 import 'dart:async';
 
-abstract class BaseUseCaseParam<Param, Type> {
-  Future<Type> call(Param param);
+abstract class BaseUseCaseParam<Param, Result> {
+  Future<Result> call(Param param);
 }
 
-abstract class BaseUseCase<Type> {
-  Future<Type> call();
+abstract class BaseUseCase<Result> {
+  Future<Result> call();
 }
-

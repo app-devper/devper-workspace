@@ -65,7 +65,7 @@ class _ReceivePageState extends State<ReceivePage> {
   }
 
   _nextToReceiveManage() {
-    Navigator.pushNamed(context, RECEIVE_MANAGE_ROUTE);
+    Navigator.pushNamed(context, receiveManageRoute);
   }
 
   _showProductMenuDialog() {

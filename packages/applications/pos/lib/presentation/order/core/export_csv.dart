@@ -61,7 +61,6 @@ class ExportCsv {
     int index = 0;
     for (int i = 0; i < data.length; i++) {
       for (int j = 0; j < data[i].units.length; j++) {
-        print(data[i].name);
         List<dynamic> row = [];
         row.add(index + 1);
         row.add(data[i].id);

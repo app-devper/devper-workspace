@@ -39,10 +39,12 @@ class UserAddPage extends HookWidget {
             style: CustomTheme.mainTheme.textTheme.headlineSmall,
           ),
         ),
-        body: WillPopScope(
-          onWillPop: () async {
-            Navigator.pop(context, add.value);
-            return false;
+        body: PopScope(
+          canPop: false,
+          onPopInvokedWithResult: (didPop, result) {
+            if (!didPop) {
+              Navigator.pop(context, add.value);
+            }
           },
           child: buildBody(),
         ),

@@ -1,5 +1,4 @@
 // Package imports:
-import 'package:intl/intl.dart';
 
 // Project imports:
 import 'package:pos/domain/model/supplier/supplier.dart';
@@ -22,5 +21,4 @@ class Receive {
     required this.createdDate,
     this.supplier,
   });
-
 }

@@ -113,7 +113,8 @@ class _StockCountsPageState extends State<StockCountsPage> {
               "รายการ: ${content.items.length}, วันที่: ${content.getCreatedDate()}",
               style: const TextStyle(color: Colors.grey, fontSize: 14),
             ),
-            trailing: const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
+            trailing: const Icon(Icons.arrow_forward_ios,
+                size: 16, color: Colors.grey),
             onTap: () {
               _nextToStockCountManage(context, stockCountId: content.id);
             },
@@ -127,7 +128,7 @@ class _StockCountsPageState extends State<StockCountsPage> {
   _nextToStockCountManage(BuildContext context, {String? stockCountId}) async {
     var _ = await Navigator.pushNamed(
       context,
-      STOCK_COUNT_MANAGE_ROUTE,
+      stockCountManageRoute,
       arguments: StockCountManageArgument(stockCountId),
     );
     _viewModel.getStockCounts();
