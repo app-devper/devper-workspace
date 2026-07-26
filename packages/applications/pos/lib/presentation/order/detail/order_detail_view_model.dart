@@ -91,7 +91,9 @@ class OrderDetailViewModel {
       final result = await getLocalCustomersUseCase();
       customer =
           result.where((element) => element.code == customerCode).firstOrNull;
-    } on Exception catch (_) {}
+    } on Exception catch (e) {
+      _state.value = _state.value.copyWith(error: toFailure(e).getMessage());
+    }
     try {
       final supplier = await getSupplierInfoUseCase();
       _state.value = _state.value.copyWith(

@@ -1,9 +1,12 @@
 // Flutter imports:
 import 'package:flutter/foundation.dart';
 
+import 'package:common/core/error/failure.dart';
+
 // Project imports:
 import 'package:pos/domain/model/customer/customer.dart';
 import 'package:pos/domain/usecase/customer/get_local_customers_use_case.dart';
+import 'package:pos/presentation/home/main/customer_search_state.dart';
 
 class CustomerSearchViewModel {
   final GetLocalCustomersUseCase getLocalCustomersUseCase;
@@ -12,31 +15,41 @@ class CustomerSearchViewModel {
     required this.getLocalCustomersUseCase,
   });
 
-  final _items = ValueNotifier<List<Customer>?>(null);
+  final _state =
+      ValueNotifier<CustomerSearchState>(const CustomerSearchState());
 
-  ValueListenable<List<Customer>?> get items => _items;
+  ValueListenable<CustomerSearchState> get state => _state;
 
   List<Customer> _customers = [];
 
   Future<void> getCacheCustomers() async {
+    _state.value = _state.value.copyWith(loading: true, clearError: true);
     try {
       _customers = await getLocalCustomersUseCase();
-      _items.value = _customers;
-    } on Exception catch (_) {}
+      _state.value = _state.value.copyWith(loading: false, items: _customers);
+    } on Exception catch (e) {
+      _state.value = _state.value.copyWith(
+        loading: false,
+        error: toFailure(e).getMessage(),
+      );
+    }
   }
 
   void searchCustomer(String term) {
     if (term.isEmpty) {
-      _items.value = _customers;
+      _state.value = _state.value.copyWith(items: _customers);
     } else {
       final lower = term.toLowerCase();
-      _items.value = _customers
-          .where((item) => item.name.toLowerCase().contains(lower) || item.phone.contains(term))
-          .toList();
+      _state.value = _state.value.copyWith(
+          items: _customers
+              .where((item) =>
+                  item.name.toLowerCase().contains(lower) ||
+                  item.phone.contains(term))
+              .toList());
     }
   }
 
   void dispose() {
-    _items.dispose();
+    _state.dispose();
   }
 }

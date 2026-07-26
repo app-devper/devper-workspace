@@ -8,6 +8,7 @@ import 'package:design_system/theme/color.dart';
 import 'package:pos/container.dart';
 import 'package:pos/domain/model/customer/customer.dart';
 import 'package:pos/presentation/home/main/customer_search_view_model.dart';
+import 'package:pos/presentation/home/main/customer_search_state.dart';
 
 class CustomerSearch extends StatefulWidget {
   final Function(Function) onRefresh;
@@ -80,10 +81,10 @@ class _CustomerSearchState extends State<CustomerSearch> {
         ),
         const Divider(height: 1),
         Expanded(
-          child: ValueListenableBuilder<List<Customer>?>(
-            valueListenable: _viewModel.items,
-            builder: (context, items, _) {
-              if (items == null) {
+          child: ValueListenableBuilder<CustomerSearchState>(
+            valueListenable: _viewModel.state,
+            builder: (context, state, _) {
+              if (state.loading) {
                 return const Center(
                   child: CircularProgressIndicator(
                     strokeWidth: 6,
@@ -92,6 +93,16 @@ class _CustomerSearchState extends State<CustomerSearch> {
                   ),
                 );
               }
+              if (state.error != null) {
+                return Center(
+                  child: TextButton.icon(
+                    onPressed: _viewModel.getCacheCustomers,
+                    icon: const Icon(Icons.refresh),
+                    label: Text(state.error!),
+                  ),
+                );
+              }
+              final items = state.items;
               return ListView.builder(
                 shrinkWrap: true,
                 itemBuilder: (context, i) => ListTile(

@@ -340,6 +340,7 @@ void main() {
       expect(vm.state.value.supplierResult, isNotNull);
       expect(vm.state.value.supplierResult!.customer, isNull);
       expect(vm.state.value.supplierError, isNull);
+      expect(vm.state.value.error, isNotNull);
     });
 
     test(

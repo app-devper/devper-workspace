@@ -1,10 +1,13 @@
 // Flutter imports:
 import 'package:flutter/foundation.dart';
 
+import 'package:common/core/error/failure.dart';
+
 // Project imports:
 import 'package:pos/domain/model/core/core.dart';
 import 'package:pos/domain/model/product/product.dart';
 import 'package:pos/domain/usecase/product/get_local_products_use_case.dart';
+import 'package:pos/presentation/home/main/product_search_state.dart';
 
 class ProductSearchViewModel {
   final GetLocalProductsUseCase getLocalProductsUseCase;
@@ -13,9 +16,9 @@ class ProductSearchViewModel {
     required this.getLocalProductsUseCase,
   });
 
-  final _items = ValueNotifier<List<ProductUnitItem>?>(null);
+  final _state = ValueNotifier<ProductSearchState>(const ProductSearchState());
 
-  ValueListenable<List<ProductUnitItem>?> get items => _items;
+  ValueListenable<ProductSearchState> get state => _state;
 
   final List<ProductUnitItem> _products = [];
 
@@ -24,6 +27,7 @@ class ProductSearchViewModel {
   }
 
   Future<void> getProducts() async {
+    _state.value = _state.value.copyWith(loading: true, clearError: true);
     try {
       _products.clear();
       final products = await getLocalProductsUseCase();
@@ -32,22 +36,34 @@ class ProductSearchViewModel {
           _products.addAll(item.toProductItems());
         }
       }
-      _items.value = List<ProductUnitItem>.of(_products);
-    } on Exception catch (_) {}
+      _state.value = _state.value.copyWith(
+        loading: false,
+        items: List<ProductUnitItem>.of(_products),
+      );
+    } on Exception catch (e) {
+      _state.value = _state.value.copyWith(
+        loading: false,
+        error: toFailure(e).getMessage(),
+      );
+    }
   }
 
   void searchProduct(String text) {
     if (text.isEmpty) {
-      _items.value = List<ProductUnitItem>.of(_products);
+      _state.value =
+          _state.value.copyWith(items: List<ProductUnitItem>.of(_products));
     } else {
       final lower = text.toLowerCase();
-      _items.value = _products
-          .where((item) => item.name.toLowerCase().contains(lower) || item.unit.barcode.contains(text))
-          .toList();
+      _state.value = _state.value.copyWith(
+          items: _products
+              .where((item) =>
+                  item.name.toLowerCase().contains(lower) ||
+                  item.unit.barcode.contains(text))
+              .toList());
     }
   }
 
   void dispose() {
-    _items.dispose();
+    _state.dispose();
   }
 }

@@ -9,10 +9,10 @@ import 'package:qr_code_scanner/qr_code_scanner.dart';
 // Project imports:
 import 'package:pos/container.dart';
 import 'package:pos/domain/model/core/core.dart';
-import 'package:pos/domain/model/product/product.dart';
 import 'package:pos/presentation/constants.dart';
 import 'package:pos/presentation/home/main/cart_widget.dart';
 import 'package:pos/presentation/home/main/product_search_view_model.dart';
+import 'package:pos/presentation/home/main/product_search_state.dart';
 
 class ProductSearch extends StatefulWidget {
   final Function(String) onSelected;
@@ -100,10 +100,10 @@ class _ProductSearchState extends State<ProductSearch> {
             ),
             const Divider(height: 1),
             Expanded(
-              child: ValueListenableBuilder<List<ProductUnitItem>?>(
-                valueListenable: _viewModel.items,
-                builder: (context, items, _) {
-                  if (items == null) {
+              child: ValueListenableBuilder<ProductSearchState>(
+                valueListenable: _viewModel.state,
+                builder: (context, state, _) {
+                  if (state.loading) {
                     return const Center(
                       child: CircularProgressIndicator(
                         strokeWidth: 6,
@@ -112,6 +112,16 @@ class _ProductSearchState extends State<ProductSearch> {
                       ),
                     );
                   }
+                  if (state.error != null) {
+                    return Center(
+                      child: TextButton.icon(
+                        onPressed: _viewModel.getProducts,
+                        icon: const Icon(Icons.refresh),
+                        label: Text(state.error!),
+                      ),
+                    );
+                  }
+                  final items = state.items;
                   return GridView.builder(
                     padding: const EdgeInsets.all(8),
                     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(

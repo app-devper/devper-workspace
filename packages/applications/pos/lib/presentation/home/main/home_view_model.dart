@@ -1,6 +1,8 @@
 // Flutter imports:
 import 'package:flutter/foundation.dart';
 
+import 'package:common/core/error/failure.dart';
+
 // Package imports:
 import 'package:um/domain/usecase/auth/get_role_use_case.dart';
 import 'package:um/domain/usecase/auth/logout_use_case.dart';
@@ -26,18 +28,24 @@ class HomeViewModel {
   }
 
   Future<void> getRole() async {
+    _state.value = _state.value.copyWith(clearError: true);
     try {
       final role = await getRoleUseCase();
       _state.value = _state.value.copyWith(isAdmin: role == "ADMIN");
-    } on Exception catch (_) {
-      _state.value = _state.value.copyWith(isAdmin: false);
+    } on Exception catch (e) {
+      _state.value = _state.value.copyWith(
+        isAdmin: false,
+        error: toFailure(e).getMessage(),
+      );
     }
   }
 
   Future<void> logout() async {
     try {
       await logoutUseCase();
-    } on Exception catch (_) {}
+    } on Exception catch (e) {
+      _state.value = _state.value.copyWith(error: toFailure(e).getMessage());
+    }
     _state.value = _state.value.copyWith(loggedOut: true);
   }
 
@@ -50,6 +58,12 @@ class HomeViewModel {
   void consumeLoggedOut() {
     if (_state.value.loggedOut) {
       _state.value = _state.value.copyWith(clearLoggedOut: true);
+    }
+  }
+
+  void consumeError() {
+    if (_state.value.error != null) {
+      _state.value = _state.value.copyWith(clearError: true);
     }
   }
 

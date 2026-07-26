@@ -76,9 +76,13 @@ void main() {
 
     expect(repo.logoutCalls, 1);
     expect(vm.state.value.loggedOut, isTrue);
+    expect(vm.state.value.error, isNotNull);
 
     vm.consumeLoggedOut();
 
     expect(vm.state.value.loggedOut, isFalse);
+
+    vm.consumeError();
+    expect(vm.state.value.error, isNull);
   });
 }
