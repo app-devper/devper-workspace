@@ -33,31 +33,39 @@ class ProductAddViewModel {
   ValueListenable<ProductAddState> get state => _state;
 
   Future<void> getCategories() async {
+    _state.value = _state.value.copyWith(clearError: true);
     try {
       final categories = await getLocalCategoriesUseCase();
       _state.value = _state.value.copyWith(categories: categories);
-    } on Exception catch (_) {}
+    } on Exception catch (e) {
+      _state.value = _state.value.copyWith(error: toFailure(e).getMessage());
+    }
   }
 
   Future<void> generateSerialNumber() async {
-    _state.value = _state.value.copyWith(saving: true, clearError: true, clearSerialNumber: true);
+    _state.value = _state.value
+        .copyWith(saving: true, clearError: true, clearSerialNumber: true);
     try {
       final serialNumber = await generateSerialNumberUseCase();
-      _state.value = _state.value.copyWith(saving: false, serialNumber: serialNumber);
+      _state.value =
+          _state.value.copyWith(saving: false, serialNumber: serialNumber);
     } on Exception catch (e) {
-      _state.value = _state.value.copyWith(saving: false, error: toFailure(e).getMessage());
+      _state.value = _state.value
+          .copyWith(saving: false, error: toFailure(e).getMessage());
     }
   }
 
   Future<void> addProduct(CreateProductParam param) async {
-    _state.value = _state.value.copyWith(saving: true, clearError: true, clearCreated: true);
+    _state.value = _state.value
+        .copyWith(saving: true, clearError: true, clearCreated: true);
     try {
       final created = await addProductUseCase(param);
       await getProductUnitsByProductIdUseCase(created.id);
       await getProductPricesByProductIdUseCase(created.id);
       _state.value = _state.value.copyWith(saving: false, created: created);
     } on Exception catch (e) {
-      _state.value = _state.value.copyWith(saving: false, error: toFailure(e).getMessage());
+      _state.value = _state.value
+          .copyWith(saving: false, error: toFailure(e).getMessage());
     }
   }
 

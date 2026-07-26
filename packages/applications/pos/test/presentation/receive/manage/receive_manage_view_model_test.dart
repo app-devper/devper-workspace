@@ -28,22 +28,29 @@ class FakeReceiveRepository implements ReceiveRepository {
   Receive get _result => receive ?? buildReceive('r1');
 
   @override
-  Future<Receive> getReceiveById(String receiveId) async => _maybeThrow(_result);
+  Future<Receive> getReceiveById(String receiveId) async =>
+      _maybeThrow(_result);
 
   @override
-  Future<List<ReceiveItem>> getReceiveItemsById(String receiveId) async => items;
+  Future<List<ReceiveItem>> getReceiveItemsById(String receiveId) async =>
+      _maybeThrow(items);
 
   @override
-  Future<Receive> createReceive(ReceiveParam param) async => _maybeThrow(_result);
+  Future<Receive> createReceive(ReceiveParam param) async =>
+      _maybeThrow(_result);
 
   @override
-  Future<Receive> updateReceiveById(String receiveId, UpdateReceiveParam param) async => _maybeThrow(_result);
+  Future<Receive> updateReceiveById(
+          String receiveId, UpdateReceiveParam param) async =>
+      _maybeThrow(_result);
 
   @override
-  Future<Receive> removeReceiveById(String receiveId) async => _maybeThrow(_result);
+  Future<Receive> removeReceiveById(String receiveId) async =>
+      _maybeThrow(_result);
 
   @override
-  Future<ReceiveItem> removeReceiveItemByLotId(String lotId) async => _maybeThrow(buildReceiveItem('r1'));
+  Future<ReceiveItem> removeReceiveItemByLotId(String lotId) async =>
+      _maybeThrow(buildReceiveItem('r1'));
 
   T _maybeThrow<T>(T value) {
     final error = throws;
@@ -59,14 +66,21 @@ class FakeReceiveRepository implements ReceiveRepository {
 
 class FakeSupplierRepository implements SupplierRepository {
   final List<Supplier> suppliers;
+  final Object? throws;
 
-  FakeSupplierRepository({this.suppliers = const []});
+  FakeSupplierRepository({this.suppliers = const [], this.throws});
 
   @override
   Future<List<Supplier>> getLocalSuppliers() async => suppliers;
 
   @override
-  Future<List<Supplier>> getSuppliers() async => suppliers;
+  Future<List<Supplier>> getSuppliers() async {
+    final error = throws;
+    if (error != null) {
+      throw error;
+    }
+    return suppliers;
+  }
 
   @override
   dynamic noSuchMethod(Invocation invocation) => throw UnimplementedError();
@@ -78,11 +92,23 @@ class FakeProductRepository implements ProductRepository {
 }
 
 Receive buildReceive(String id) {
-  return Receive(id: id, supplierId: 's1', code: 'RC-$id', reference: 'ref', totalCost: 0, createdDate: '');
+  return Receive(
+      id: id,
+      supplierId: 's1',
+      code: 'RC-$id',
+      reference: 'ref',
+      totalCost: 0,
+      createdDate: '');
 }
 
 ReceiveItem buildReceiveItem(String receiveId) {
-  return ReceiveItem(id: 'i1', receiveId: receiveId, productId: 'p1', lotId: 'l1', costPrice: 10, quantity: 2);
+  return ReceiveItem(
+      id: 'i1',
+      receiveId: receiveId,
+      productId: 'p1',
+      lotId: 'l1',
+      costPrice: 10,
+      quantity: 2);
 }
 
 ReceiveManageViewModel buildViewModel({
@@ -90,21 +116,31 @@ ReceiveManageViewModel buildViewModel({
   List<ReceiveItem> items = const [],
   List<Supplier> suppliers = const [],
   Object? throws,
+  Object? supplierThrows,
 }) {
   final ProductRepository productRepo = FakeProductRepository();
-  final SupplierRepository supplierRepo = FakeSupplierRepository(suppliers: suppliers);
+  final SupplierRepository supplierRepo = FakeSupplierRepository(
+    suppliers: suppliers,
+    throws: supplierThrows,
+  );
   final ReceiveRepository receiveRepo =
       FakeReceiveRepository(receive: receive, items: items, throws: throws);
   return ReceiveManageViewModel(
     getReceiveByIdUseCase: GetReceiveByIdUseCase(receiveRepo: receiveRepo),
     createReceiveUseCase: CreateReceiveUseCase(receiveRepo: receiveRepo),
-    updateReceiveByIdUseCase: UpdateReceiveByIdUseCase(receiveRepo: receiveRepo),
-    removeReceiveByIdUseCase: RemoveReceiveByIdUseCase(receiveRepo: receiveRepo),
-    getReceiveItemsByIdUseCase: GetReceiveItemsByIdUseCase(receiveRepo: receiveRepo),
-    removeReceiveItemByLotIdUseCase: RemoveReceiveItemByLotIdUseCase(receiveRepo: receiveRepo),
-    getLocalSuppliersUseCase: GetLocalSuppliersUseCase(supplierRepo: supplierRepo),
+    updateReceiveByIdUseCase:
+        UpdateReceiveByIdUseCase(receiveRepo: receiveRepo),
+    removeReceiveByIdUseCase:
+        RemoveReceiveByIdUseCase(receiveRepo: receiveRepo),
+    getReceiveItemsByIdUseCase:
+        GetReceiveItemsByIdUseCase(receiveRepo: receiveRepo),
+    removeReceiveItemByLotIdUseCase:
+        RemoveReceiveItemByLotIdUseCase(receiveRepo: receiveRepo),
+    getLocalSuppliersUseCase:
+        GetLocalSuppliersUseCase(supplierRepo: supplierRepo),
     getSuppliersUseCase: GetSuppliersUseCase(supplierRepo: supplierRepo),
-    getLocalProductByIdUseCase: GetLocalProductByIdUseCase(productRepo: productRepo),
+    getLocalProductByIdUseCase:
+        GetLocalProductByIdUseCase(productRepo: productRepo),
   );
 }
 
@@ -112,7 +148,9 @@ void main() {
   test('getReceiveById loads the receive and suppliers', () async {
     final vm = buildViewModel(
       receive: buildReceive('7'),
-      suppliers: [Supplier(id: 's1', name: 'ACME', address: '', phone: '', taxId: '')],
+      suppliers: [
+        Supplier(id: 's1', name: 'ACME', address: '', phone: '', taxId: '')
+      ],
     );
 
     await vm.getReceiveById('7');
@@ -123,7 +161,8 @@ void main() {
     expect(vm.state.value.receiveSuppliers, hasLength(1));
   });
 
-  test('getReceiveById with a null id marks loaded without a receive', () async {
+  test('getReceiveById with a null id marks loaded without a receive',
+      () async {
     final vm = buildViewModel();
 
     await vm.getReceiveById(null);
@@ -148,7 +187,8 @@ void main() {
   test('updateReceiveById sets the updated one-shot', () async {
     final vm = buildViewModel(receive: buildReceive('9'));
 
-    await vm.updateReceiveById('9', UpdateReceiveParam(supplierId: 's1', reference: 'ref', totalCost: 0));
+    await vm.updateReceiveById('9',
+        UpdateReceiveParam(supplierId: 's1', reference: 'ref', totalCost: 0));
 
     expect(vm.state.value.updated?.id, '9');
   });
@@ -170,10 +210,33 @@ void main() {
   });
 
   test('getReceiveById maps a typed exception to state.error', () async {
-    final vm = buildViewModel(throws: const NetworkException(message: 'offline'));
+    final vm =
+        buildViewModel(throws: const NetworkException(message: 'offline'));
 
     await vm.getReceiveById('7');
 
     expect(vm.state.value.error, isNotNull);
+  });
+
+  test('getReceiveItemsById maps a typed exception to state.error', () async {
+    final vm = buildViewModel(
+      throws: const NetworkException(message: 'offline'),
+    );
+
+    await vm.getReceiveItemsById('7');
+
+    expect(vm.state.value.error, isNotNull);
+    expect(vm.state.value.itemsLoaded, isFalse);
+  });
+
+  test('getSuppliers maps a typed exception to state.error', () async {
+    final vm = buildViewModel(
+      supplierThrows: const NetworkException(message: 'offline'),
+    );
+
+    await vm.getSuppliers();
+
+    expect(vm.state.value.error, isNotNull);
+    expect(vm.state.value.suppliersEvent, isNull);
   });
 }

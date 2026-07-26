@@ -24,19 +24,24 @@ class SupplierInfoViewModel {
   ValueListenable<SupplierInfoState> get state => _state;
 
   Future<void> getSupplierInfo() async {
+    _state.value = _state.value.copyWith(clearError: true);
     try {
       final supplier = await getSupplierInfoUseCase();
       _state.value = _state.value.copyWith(supplier: supplier);
-    } on Exception catch (_) {}
+    } on Exception catch (e) {
+      _state.value = _state.value.copyWith(error: toFailure(e).getMessage());
+    }
   }
 
   Future<void> updateSupplierInfo(SupplierParam param) async {
-    _state.value = _state.value.copyWith(saving: true, clearError: true, clearUpdated: true);
+    _state.value = _state.value
+        .copyWith(saving: true, clearError: true, clearUpdated: true);
     try {
       final updated = await updateSupplierInfoUseCase(param);
       _state.value = _state.value.copyWith(saving: false, updated: updated);
     } on Exception catch (e) {
-      _state.value = _state.value.copyWith(saving: false, error: toFailure(e).getMessage());
+      _state.value = _state.value
+          .copyWith(saving: false, error: toFailure(e).getMessage());
     }
   }
 

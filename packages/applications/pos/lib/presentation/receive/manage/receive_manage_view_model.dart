@@ -63,53 +63,67 @@ class ReceiveManageViewModel {
         receiveSuppliers: suppliers,
       );
     } on Exception catch (e) {
-      _state.value = _state.value.copyWith(loading: false, error: toFailure(e).getMessage());
+      _state.value = _state.value
+          .copyWith(loading: false, error: toFailure(e).getMessage());
     }
   }
 
   Future<void> createReceive(ReceiveParam param) async {
-    _state.value = _state.value.copyWith(loading: true, clearError: true, clearCreated: true);
+    _state.value = _state.value
+        .copyWith(loading: true, clearError: true, clearCreated: true);
     try {
       final created = await createReceiveUseCase(param);
-      _state.value = _state.value.copyWith(loading: false, created: created, receive: created);
+      _state.value = _state.value
+          .copyWith(loading: false, created: created, receive: created);
     } on Exception catch (e) {
-      _state.value = _state.value.copyWith(loading: false, error: toFailure(e).getMessage());
+      _state.value = _state.value
+          .copyWith(loading: false, error: toFailure(e).getMessage());
     }
   }
 
-  Future<void> updateReceiveById(String receiveId, UpdateReceiveParam param) async {
-    _state.value = _state.value.copyWith(loading: true, clearError: true, clearUpdated: true);
+  Future<void> updateReceiveById(
+      String receiveId, UpdateReceiveParam param) async {
+    _state.value = _state.value
+        .copyWith(loading: true, clearError: true, clearUpdated: true);
     try {
       final updated = await updateReceiveByIdUseCase(
         ReceiveUpdateParam(receiveId: receiveId, param: param),
       );
-      _state.value = _state.value.copyWith(loading: false, updated: updated, receive: updated);
+      _state.value = _state.value
+          .copyWith(loading: false, updated: updated, receive: updated);
     } on Exception catch (e) {
-      _state.value = _state.value.copyWith(loading: false, error: toFailure(e).getMessage());
+      _state.value = _state.value
+          .copyWith(loading: false, error: toFailure(e).getMessage());
     }
   }
 
   Future<void> removeReceiveById(String receiveId) async {
-    _state.value = _state.value.copyWith(loading: true, clearError: true, clearRemoved: true);
+    _state.value = _state.value
+        .copyWith(loading: true, clearError: true, clearRemoved: true);
     try {
       final removed = await removeReceiveByIdUseCase(receiveId);
       _state.value = _state.value.copyWith(loading: false, removed: removed);
     } on Exception catch (e) {
-      _state.value = _state.value.copyWith(loading: false, error: toFailure(e).getMessage());
+      _state.value = _state.value
+          .copyWith(loading: false, error: toFailure(e).getMessage());
     }
   }
 
   Future<void> removeReceiveItemById(String lotId) async {
-    _state.value = _state.value.copyWith(loading: true, clearError: true, clearRemovedItem: true);
+    _state.value = _state.value
+        .copyWith(loading: true, clearError: true, clearRemovedItem: true);
     try {
       final removedItem = await removeReceiveItemByLotIdUseCase(lotId);
-      _state.value = _state.value.copyWith(loading: false, removedItem: removedItem);
+      _state.value =
+          _state.value.copyWith(loading: false, removedItem: removedItem);
     } on Exception catch (e) {
-      _state.value = _state.value.copyWith(loading: false, error: toFailure(e).getMessage());
+      _state.value = _state.value
+          .copyWith(loading: false, error: toFailure(e).getMessage());
     }
   }
 
   Future<void> getReceiveItemsById(String receiveId) async {
+    _state.value = _state.value.copyWith(clearError: true);
     try {
       final result = await getReceiveItemsByIdUseCase(receiveId);
       for (var item in result) {
@@ -120,14 +134,19 @@ class ReceiveManageViewModel {
         totalCost: _calculateTotalCost(result),
         items: result,
       );
-    } on Exception catch (_) {}
+    } on Exception catch (e) {
+      _state.value = _state.value.copyWith(error: toFailure(e).getMessage());
+    }
   }
 
   Future<void> getSuppliers() async {
+    _state.value = _state.value.copyWith(clearError: true);
     try {
       final suppliers = await getSuppliersUseCase();
       _state.value = _state.value.copyWith(suppliersEvent: suppliers);
-    } on Exception catch (_) {}
+    } on Exception catch (e) {
+      _state.value = _state.value.copyWith(error: toFailure(e).getMessage());
+    }
   }
 
   void consumeError() {
