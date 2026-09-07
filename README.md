@@ -104,12 +104,18 @@ and `/api/pos/`. `ENV=app` continues to use the Firebase API gateway.
 
 ## Deploy POS to Firebase Hosting: devper
 
-From the repository root:
+There is no deploy pipeline in this repo — hosting deploys are manual, and
+they are cut from `main`, never from a feature branch or `develop`. Land the
+release into `main` first, then:
 
 ```sh
+git checkout main && git pull --ff-only
 cd packages/applications/pos
 firebase deploy --only hosting:devper
 ```
+
+Deploying from anywhere else publishes code that is not on the production
+line, and the next release then silently overwrites it.
 
 The `devper` target maps to site `devper` in Firebase project `devperpos`,
 served at https://devper.web.app.
