@@ -14,6 +14,7 @@ import 'package:sm/container.dart';
 import 'package:sm/domain/model/system/system.dart';
 import 'package:sm/presentation/home/main/home_state.dart';
 import 'package:sm/presentation/home/main/home_view_model.dart';
+import 'package:sm/presentation/home/main/system_form_dialog.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -22,7 +23,7 @@ class HomePage extends StatefulWidget {
   State<StatefulWidget> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
+class _HomePageState extends State<HomePage> {
   final _scaffoldKey = GlobalKey<ScaffoldState>();
 
   late HomeViewModel _viewModel;
@@ -31,48 +32,37 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
   @override
   void initState() {
-    WidgetsBinding.instance.addObserver(this);
     super.initState();
     _viewModel = sl<HomeViewModel>();
     _config = sl<AppConfig>();
-    _viewModel.states.stream.listen((state) {
-      if (state is ErrorState) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _snackBar.hideAll();
-          _snackBar.showErrorSnackBar(state.message);
-        });
-      } else if (state is LoadingState) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _snackBar.hideAll();
-          _snackBar.showLoadingSnackBar();
-        });
-      } else if (state is SystemState) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _snackBar.hideAll();
-          _snackBar.showLoadingSnackBar();
-        });
-      } else if (state is LoggedState) {
-      } else if (state is LogoutState) {
-        if (!mounted) return;
-        Navigator.popAndPushNamed(context, routeLogin);
-      }
-    });
+    _viewModel.state.addListener(_onStateChanged);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _viewModel.getSystems();
     });
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _snackBar = CustomSnackBar(key: const Key("snackbar"), context: context);
+  }
+
+  @override
   void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
+    _viewModel.state.removeListener(_onStateChanged);
     _viewModel.dispose();
     super.dispose();
   }
 
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
-      _viewModel.checkLogin();
+  void _onStateChanged() {
+    final state = _viewModel.state.value;
+    if (state.error != null) {
+      _snackBar.hideAll();
+      _snackBar.showErrorSnackBar(state.error!);
+      _viewModel.consumeError();
+    }
+    if (state.loggedOut && mounted) {
+      Navigator.popAndPushNamed(context, routeLogin);
     }
   }
 
@@ -86,6 +76,11 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         centerTitle: true,
         title: Text(_config.home),
         actions: _buildAction(context),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => _openForm(),
+        tooltip: 'เพิ่มระบบ',
+        child: const Icon(Icons.add),
       ),
       body: AnnotatedRegion<SystemUiOverlayStyle>(
         value: SystemUiOverlayStyle.dark.copyWith(
@@ -102,8 +97,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         icon: const Icon(Icons.more_vert),
         onSelected: (item) => handleClick(item),
         itemBuilder: (context) => [
-          const PopupMenuItem<int>(value: 0, child: Text("User info")),
-          const PopupMenuItem<int>(value: 1, child: Text("Change password")),
+          const PopupMenuItem<int>(value: 0, child: Text("Users")),
+          const PopupMenuItem<int>(value: 1, child: Text("User info")),
+          const PopupMenuItem<int>(value: 2, child: Text("Change password")),
           const PopupMenuItem<int>(value: 3, child: Text('Logout')),
         ],
       ),
@@ -113,9 +109,12 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   void handleClick(int item) {
     switch (item) {
       case 0:
-        Navigator.pushNamed(context, routeUserInfo);
+        Navigator.pushNamed(context, routeUsers);
         break;
       case 1:
+        Navigator.pushNamed(context, routeUserInfo);
+        break;
+      case 2:
         Navigator.pushNamed(context, routeChangePassword);
         break;
       case 3:
@@ -125,47 +124,80 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   }
 
   Widget _buildBody(BuildContext context) {
-    final Size size = MediaQuery.of(context).size;
-    return Container(
-      height: size.height,
-      width: size.width,
-      padding: const EdgeInsets.all(defaultPagePadding),
-      child: Column(
-        children: <Widget>[
-          _buildSystemList(),
-        ],
-      ),
+    return ValueListenableBuilder<HomeState>(
+      valueListenable: _viewModel.state,
+      builder: (context, state, _) {
+        if (state.loading && state.items.isEmpty) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (state.items.isEmpty) {
+          return const Center(child: Text('ยังไม่มีระบบ'));
+        }
+        return Padding(
+          padding: const EdgeInsets.all(defaultPagePadding),
+          child: _buildSystems(state.items),
+        );
+      },
     );
   }
 
-  _buildSystemList() {
-    return StreamBuilder(
-        stream: _viewModel.systems.stream,
-        builder: (BuildContext context, AsyncSnapshot<List<System>> snapshot) {
-          if (snapshot.hasData) {
-            var data = snapshot.data ?? [];
-            return _buildSystems(data);
-          } else {
-            return const Expanded(
-              child: Center(child: CircularProgressIndicator()),
-            );
-          }
-        });
+  Widget _buildSystems(List<System> items) {
+    return ListView.builder(
+      itemCount: items.length,
+      itemBuilder: (context, index) {
+        final content = items[index];
+        return ListTile(
+          title: Text(content.systemCode),
+          subtitle: Text('${content.systemName}\n${content.host}'),
+          isThreeLine: true,
+          trailing: PopupMenuButton<int>(
+            icon: const Icon(Icons.more_horiz),
+            onSelected: (action) {
+              if (action == 0) {
+                _openForm(system: content);
+              } else {
+                _confirmRemove(content);
+              }
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem<int>(value: 0, child: Text('แก้ไข')),
+              const PopupMenuItem<int>(value: 1, child: Text('ลบ')),
+            ],
+          ),
+          onTap: () => _openForm(system: content),
+        );
+      },
+    );
   }
 
-  _buildSystems(List<System> item) {
-    return Expanded(
-      child: ListView.builder(
-        itemCount: item.length,
-        itemBuilder: (context, index) {
-          final content = item[index];
-          return ListTile(
-            title: Text(content.systemCode),
-            subtitle: Text(content.systemName),
-            trailing: Text(content.clientId),
-            onTap: () {},
-          );
-        },
+  void _openForm({System? system}) {
+    showSystemFormDialog(
+      context,
+      system: system,
+      onCreate: _viewModel.createSystem,
+      onUpdate: _viewModel.updateSystemById,
+    );
+  }
+
+  void _confirmRemove(System system) {
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('ลบระบบ'),
+        content: Text('ต้องการลบ ${system.systemCode} ใช่หรือไม่'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('ยกเลิก'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(dialogContext).pop();
+              _viewModel.removeSystemById(system.id);
+            },
+            child: const Text('ลบ'),
+          ),
+        ],
       ),
     );
   }
