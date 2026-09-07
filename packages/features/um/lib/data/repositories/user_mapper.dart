@@ -62,6 +62,12 @@ class UserMapper {
     });
   }
 
+  toSetPasswordRequest(String param) {
+    return jsonEncode({
+      'password': param,
+    });
+  }
+
   toUpdateRoleRequest(String param) {
     return jsonEncode({
       'role': param,

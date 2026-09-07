@@ -1,78 +1,101 @@
-// Dart imports:
-import 'dart:async';
+// Flutter imports:
+import 'package:flutter/foundation.dart';
 
 // Package imports:
 import 'package:common/core/error/failure.dart';
 import 'package:um/domain/repositories/login_repository.dart';
 
 // Project imports:
-import 'package:sm/domain/model/system/system.dart';
-import 'package:sm/domain/repositories/system_repository.dart';
-import 'package:sm/presentation/home/main/home_state.dart';
+import 'package:sm/domain/model/system/param.dart';
+import 'package:sm/domain/usecase/system/create_system_use_case.dart';
+import 'package:sm/domain/usecase/system/get_systems_use_case.dart';
+import 'package:sm/domain/usecase/system/remove_system_by_id_use_case.dart';
+import 'package:sm/domain/usecase/system/update_system_by_id_use_case.dart';
+import 'home_state.dart';
 
 class HomeViewModel {
-  final SystemRepository systemRepo;
+  final GetSystemsUseCase getSystemsUseCase;
+  final CreateSystemUseCase createSystemUseCase;
+  final UpdateSystemByIdUseCase updateSystemByIdUseCase;
+  final RemoveSystemByIdUseCase removeSystemByIdUseCase;
   final LoginRepository loginRepo;
 
   HomeViewModel({
-    required this.systemRepo,
+    required this.getSystemsUseCase,
+    required this.createSystemUseCase,
+    required this.updateSystemByIdUseCase,
+    required this.removeSystemByIdUseCase,
     required this.loginRepo,
   });
 
-  final _states = StreamController<HomeState>();
+  final _state = ValueNotifier<HomeState>(const HomeState());
 
-  StreamController<HomeState> get states => _states;
+  ValueListenable<HomeState> get state => _state;
 
-  final _systems = StreamController<List<System>>();
-
-  StreamController<List<System>> get systems => _systems;
-
-  void getSystems() async {
+  Future<void> loadRole() async {
     try {
-      final result = await systemRepo.getSystems();
-      _onGetSystemSuccess(result);
-    } on Exception catch (e ) {
-      _onError(toFailure(e));
-    }
-  }
-
-  void checkLogin() async {
-    try {
-      final result = await loginRepo.getRole();
-      _onCheckLoginSuccess(result == "ADMIN");
+      _state.value = _state.value.copyWith(role: await loginRepo.getRole());
     } on Exception catch (_) {
-      _onCheckLoginSuccess(false);
+      _state.value = _state.value.copyWith(role: '');
     }
   }
 
-  void logout() async {
+  Future<void> getSystems() async {
+    _state.value = _state.value.copyWith(loading: true, clearError: true);
     try {
-      final _ = await loginRepo.logoutUser();
+      final items = await getSystemsUseCase();
+      _state.value = _state.value.copyWith(loading: false, items: items);
+    } on Exception catch (e) {
+      _state.value = _state.value.copyWith(loading: false, error: toFailure(e).getMessage());
+    }
+  }
+
+  Future<void> createSystem(CreateParam param) async {
+    _state.value = _state.value.copyWith(loading: true, clearError: true);
+    try {
+      await createSystemUseCase(param);
+      await getSystems();
+    } on Exception catch (e) {
+      _state.value = _state.value.copyWith(loading: false, error: toFailure(e).getMessage());
+    }
+  }
+
+  Future<void> updateSystemById(UpdateSystemParam param) async {
+    _state.value = _state.value.copyWith(loading: true, clearError: true);
+    try {
+      await updateSystemByIdUseCase(param);
+      await getSystems();
+    } on Exception catch (e) {
+      _state.value = _state.value.copyWith(loading: false, error: toFailure(e).getMessage());
+    }
+  }
+
+  Future<void> removeSystemById(String systemId) async {
+    _state.value = _state.value.copyWith(loading: true, clearError: true);
+    try {
+      await removeSystemByIdUseCase(systemId);
+      await getSystems();
+    } on Exception catch (e) {
+      _state.value = _state.value.copyWith(loading: false, error: toFailure(e).getMessage());
+    }
+  }
+
+  Future<void> logout() async {
+    try {
+      await loginRepo.logoutUser();
     } on Exception catch (_) {
+      // Log out locally even when the server call fails.
     }
-    _onLogoutSuccess();
+    _state.value = _state.value.copyWith(loggedOut: true);
   }
 
-  _onCheckLoginSuccess(bool isLogin) {
-    _states.sink.add((LoggedState(isLogin)));
-  }
-
-  _onGetSystemSuccess(List<System> data) {
-    _systems.sink.add(data);
-    _states.sink.add((SystemState()));
-  }
-
-  _onLogoutSuccess() {
-    _states.sink.add((LogoutState()));
-  }
-
-  _onError(Failure failure) {
-    if (!_states.isClosed) {
-      _states.sink.add(ErrorState(failure.error));
+  void consumeError() {
+    if (_state.value.error != null) {
+      _state.value = _state.value.copyWith(clearError: true);
     }
   }
 
-  dispose() {
-    _states.close();
+  void dispose() {
+    _state.dispose();
   }
 }

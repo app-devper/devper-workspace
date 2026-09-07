@@ -23,4 +23,6 @@ abstract class UserRepository {
 
   Future<bool> changePassword(ChangePasswordParam param);
 
+  Future<bool> setPasswordById(SetPasswordParam param);
+
 }
