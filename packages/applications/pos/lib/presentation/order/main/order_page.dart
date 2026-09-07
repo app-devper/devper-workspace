@@ -418,7 +418,7 @@ class _OrderPageState extends State<OrderPage> {
   }
 
   _nextToOrderDetail(BuildContext context, OrderSummary content) async {
-    var _ = await Navigator.pushNamed(context, ORDER_DETAIL_ROUTE, arguments: OrderArgument(content.id));
+    var _ = await Navigator.pushNamed(context, orderDetailRoute, arguments: OrderArgument(content.id));
     _viewModel.getOrderItem(_choices[_defaultChoiceIndex], _getOrderRangeParam());
   }
 }

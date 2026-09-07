@@ -30,7 +30,7 @@ class MyApp extends StatelessWidget {
         useMaterial3: false,
         primarySwatch: Colors.blue,
       ),
-      initialRoute: ROOT_ROUTE,
+      initialRoute: rootRoute,
       home: const PaymentHome(),
     );
   }
@@ -40,7 +40,7 @@ class PaymentHome extends StatefulWidget {
   const PaymentHome({super.key});
 
   @override
-  _PaymentHomeState createState() => _PaymentHomeState();
+  State<PaymentHome> createState() => _PaymentHomeState();
 }
 
 class _PaymentHomeState extends State<PaymentHome> {

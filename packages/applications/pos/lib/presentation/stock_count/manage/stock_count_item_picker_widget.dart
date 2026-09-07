@@ -23,7 +23,8 @@ class StockCountItemPickerWidget extends StatefulWidget {
   State<StatefulWidget> createState() => _StockCountItemPickerWidgetState();
 }
 
-class _StockCountItemPickerWidgetState extends State<StockCountItemPickerWidget> {
+class _StockCountItemPickerWidgetState
+    extends State<StockCountItemPickerWidget> {
   final _searchController = TextEditingController();
   late StockCountItemPickerViewModel _viewModel;
 
@@ -87,19 +88,36 @@ class _StockCountItemPickerWidgetState extends State<StockCountItemPickerWidget>
         Expanded(
           child: state.loading
               ? const Center(child: CircularProgressIndicator())
-              : ListView.builder(
-                  itemCount: state.products.length,
-                  itemBuilder: (context, index) {
-                    final product = state.products[index];
-                    return ListTile(
-                      title: Text(product.name),
-                      subtitle: Text('${product.unit.unit}, ${product.stocks.length} ล็อต'),
-                      onTap: () {
-                        _viewModel.selectProduct(product);
-                      },
-                    );
-                  },
-                ),
+              : state.error != null
+                  ? Center(
+                      child: Column(mainAxisSize: MainAxisSize.min, children: [
+                      const Icon(Icons.cloud_off_outlined,
+                          size: 36, color: Colors.blueGrey),
+                      const SizedBox(height: 12),
+                      Text(state.error!, textAlign: TextAlign.center),
+                      const SizedBox(height: 12),
+                      OutlinedButton.icon(
+                          onPressed: _viewModel.getProducts,
+                          icon: const Icon(Icons.refresh),
+                          label: const Text('ลองใหม่')),
+                    ]))
+                  : state.products.isEmpty
+                      ? const Center(
+                          child: Text('ไม่พบสินค้า กรุณาลองคำค้นอื่น'))
+                      : ListView.builder(
+                          itemCount: state.products.length,
+                          itemBuilder: (context, index) {
+                            final product = state.products[index];
+                            return ListTile(
+                              title: Text(product.name),
+                              subtitle: Text(
+                                  '${product.unit.unit}, ${product.stocks.length} ล็อต'),
+                              onTap: () {
+                                _viewModel.selectProduct(product);
+                              },
+                            );
+                          },
+                        ),
         ),
       ],
     );

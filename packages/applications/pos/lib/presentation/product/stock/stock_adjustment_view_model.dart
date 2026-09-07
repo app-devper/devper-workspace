@@ -21,6 +21,7 @@ class StockAdjustmentViewModel {
   ValueListenable<StockAdjustmentState> get state => _state;
 
   Future<void> createStockAdjustment(CreateStockAdjustmentParam param) async {
+    if (_state.value.loading) return;
     _state.value = _state.value.copyWith(loading: true, clearError: true, clearCreated: true);
     try {
       final created = await createStockAdjustmentUseCase(param);

@@ -173,12 +173,13 @@ class _StockCountManagePageState extends State<StockCountManagePage> {
                               children: [
                                 Expanded(
                                   child: TextFormField(
+                                    key: ValueKey(item.stockId),
                                     initialValue: item.counted.toString(),
                                     keyboardType: TextInputType.number,
                                     textAlign: TextAlign.center,
                                     decoration: const InputDecoration(labelText: 'นับได้'),
                                     onChanged: (value) {
-                                      _viewModel.updateCounted(index, int.tryParse(value) ?? 0);
+                                      _viewModel.updateCounted(index, int.tryParse(value) ?? -1);
                                     },
                                   ),
                                 ),

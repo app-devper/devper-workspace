@@ -53,10 +53,6 @@ class HomeViewModel {
     _onLogoutSuccess();
   }
 
-  _onLoading() {
-    _states.sink.add(LoadingState());
-  }
-
   _onCheckLoginSuccess(bool isLogin) {
     _states.sink.add((LoggedState(isLogin)));
   }

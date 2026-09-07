@@ -61,12 +61,6 @@ class PosService {
     return client.delete(url, headers: networkConfig.getHeaders(url));
   }
 
-  Future<http.Response> getProductLotsByProductId(String productId) {
-    var url = Uri.parse(
-        '${networkConfig.getHostApp()}/api/pos/v1/products/$productId/lots');
-    return client.get(url, headers: networkConfig.getHeaders(url));
-  }
-
   Future<http.Response> getProductLotById(String lotId) {
     var url = Uri.parse(
         '${networkConfig.getHostApp()}/api/pos/v1/products/lots/$lotId');
@@ -103,14 +97,6 @@ class PosService {
     var url = Uri.parse(
         '${networkConfig.getHostApp()}/api/pos/v1/products/lots/$lotId');
     return client.delete(url, headers: networkConfig.getHeaders(url));
-  }
-
-  Future<http.Response> updateProductLotQuantityById(
-      String lotId, String jsonBody) {
-    var url = Uri.parse(
-        '${networkConfig.getHostApp()}/api/pos/v1/products/lots/$lotId/quantity');
-    return client.patch(url,
-        body: jsonBody, headers: networkConfig.getHeaders(url));
   }
 
   Future<http.Response> addProductUnit(String jsonBody) {
@@ -423,16 +409,10 @@ class PosService {
         body: jsonBody, headers: networkConfig.getHeaders(url));
   }
 
-  Future<http.Response> getReceiveProductLotsById(String receiveId) {
-    var url = Uri.parse(
-        '${networkConfig.getHostApp()}/api/pos/v1/receives/$receiveId/lots');
-    return client.get(url, headers: networkConfig.getHeaders(url));
-  }
-
-  Future<http.Response> removeReceiveProductLotsByLotId(String lotId) {
-    var url = Uri.parse(
-        '${networkConfig.getHostApp()}/api/pos/v1/receives/lots/$lotId');
-    return client.delete(url, headers: networkConfig.getHeaders(url));
+  Future<http.Response> importReceiveById(String receiveId) {
+    final url = Uri.parse(
+        '${networkConfig.getHostApp()}/api/pos/v1/receives/$receiveId/import');
+    return client.patch(url, headers: networkConfig.getHeaders(url));
   }
 
   // Product History Api
@@ -473,7 +453,8 @@ class PosService {
         '${networkConfig.getHostApp()}/api/pos/v1/products/import-csv');
     var request = http.MultipartRequest('POST', url);
     request.headers.addAll(networkConfig.getHeaders(url));
-    request.files.add(http.MultipartFile.fromBytes('file', bytes, filename: filename));
+    request.files
+        .add(http.MultipartFile.fromBytes('file', bytes, filename: filename));
     final streamedResponse = await request.send();
     return http.Response.fromStream(streamedResponse);
   }
@@ -489,8 +470,8 @@ class PosService {
 
   // Stock Adjustment Api
   Future<http.Response> createStockAdjustment(String jsonBody) {
-    var url = Uri.parse(
-        '${networkConfig.getHostApp()}/api/pos/v1/stock-adjustments');
+    var url =
+        Uri.parse('${networkConfig.getHostApp()}/api/pos/v1/stock-adjustments');
     return client.post(url,
         body: jsonBody, headers: networkConfig.getHeaders(url));
   }
@@ -523,8 +504,8 @@ class PosService {
 
   // Product Return Api
   Future<http.Response> createProductReturn(String jsonBody) {
-    var url = Uri.parse(
-        '${networkConfig.getHostApp()}/api/pos/v1/product-returns');
+    var url =
+        Uri.parse('${networkConfig.getHostApp()}/api/pos/v1/product-returns');
     return client.post(url,
         body: jsonBody, headers: networkConfig.getHeaders(url));
   }

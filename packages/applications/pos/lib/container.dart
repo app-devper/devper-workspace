@@ -47,6 +47,7 @@ import 'package:pos/domain/usecase/product/clear_quantity_sold_first_by_id_use_c
 import 'package:pos/domain/usecase/product/generate_serial_number_use_case.dart';
 import 'package:pos/domain/usecase/product/get_local_product_by_id_use_case.dart';
 import 'package:pos/domain/usecase/product/get_local_products_use_case.dart';
+import 'package:pos/domain/usecase/product/get_products_use_case.dart';
 import 'package:pos/domain/usecase/product/get_product_by_barcode_use_case.dart';
 import 'package:pos/domain/usecase/product/get_product_histories_by_product_id_use_case.dart';
 import 'package:pos/domain/usecase/product/get_product_lots_use_case.dart';
@@ -73,7 +74,7 @@ import 'package:pos/domain/usecase/receive/get_receive_by_id_use_case.dart';
 import 'package:pos/domain/usecase/receive/get_receive_items_by_id_use_case.dart';
 import 'package:pos/domain/usecase/receive/get_receives_use_case.dart';
 import 'package:pos/domain/usecase/receive/remove_receive_by_id_use_case.dart';
-import 'package:pos/domain/usecase/receive/remove_receive_item_by_lot_id_use_case.dart';
+import 'package:pos/domain/usecase/receive/import_receive_use_case.dart';
 import 'package:pos/domain/usecase/receive/update_receive_by_id_use_case.dart';
 import 'package:pos/domain/usecase/stock_adjustment/create_stock_adjustment_use_case.dart';
 import 'package:pos/domain/usecase/stock_adjustment/get_stock_adjustments_by_product_id_use_case.dart';
@@ -347,10 +348,11 @@ Future<void> initPos() async {
       updateReceiveByIdUseCase: sl(),
       removeReceiveByIdUseCase: sl(),
       getReceiveItemsByIdUseCase: sl(),
-      removeReceiveItemByLotIdUseCase: sl(),
+      importReceiveUseCase: sl(),
       getLocalSuppliersUseCase: sl(),
       getSuppliersUseCase: sl(),
       getLocalProductByIdUseCase: sl(),
+      getProductsUseCase: sl(),
     ),
   );
   sl.registerFactory(
@@ -488,13 +490,14 @@ Future<void> initPos() async {
     ),
   );
   sl.registerFactory(
-    () => RemoveReceiveItemByLotIdUseCase(
+    () => ImportReceiveUseCase(
       receiveRepo: sl(),
     ),
   );
 
   sl.registerFactory(
     () => CreateStockAdjustmentUseCase(
+      productRepo: sl(),
       stockAdjustmentRepo: sl(),
     ),
   );
@@ -505,6 +508,7 @@ Future<void> initPos() async {
   );
   sl.registerFactory(
     () => CreateStockCountUseCase(
+      productRepo: sl(),
       stockCountRepo: sl(),
     ),
   );
@@ -520,6 +524,7 @@ Future<void> initPos() async {
   );
   sl.registerFactory(
     () => CreateProductReturnUseCase(
+      productRepo: sl(),
       productReturnRepo: sl(),
     ),
   );
@@ -565,6 +570,7 @@ Future<void> initPos() async {
       productRepo: sl(),
     ),
   );
+  sl.registerFactory(() => GetProductsUseCase(productRepo: sl()));
   sl.registerFactory(
     () => GetLocalProductsUseCase(
       productRepo: sl(),

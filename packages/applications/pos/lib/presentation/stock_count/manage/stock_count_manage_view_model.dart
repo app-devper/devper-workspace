@@ -37,6 +37,10 @@ class StockCountManageViewModel {
   }
 
   void addItem(StockCountItemParam item) {
+    if (_state.value.items.any((existing) => existing.stockId == item.stockId)) {
+      _state.value = _state.value.copyWith(error: "ล็อตนี้อยู่ในรายการตรวจนับแล้ว");
+      return;
+    }
     final items = List<StockCountItemParam>.of(_state.value.items)..add(item);
     _state.value = _state.value.copyWith(items: items);
   }
@@ -61,6 +65,11 @@ class StockCountManageViewModel {
   }
 
   Future<void> createStockCount(String note) async {
+    if (_state.value.loading) return;
+    if (_state.value.items.isEmpty || _state.value.items.any((item) => item.counted < 0)) {
+      _state.value = _state.value.copyWith(error: "โปรดระบุจำนวนตรวจนับเป็นจำนวนเต็มตั้งแต่ 0 ทุกรายการ");
+      return;
+    }
     _state.value = _state.value.copyWith(loading: true, clearError: true, clearCreated: true);
     try {
       final created = await createStockCountUseCase(

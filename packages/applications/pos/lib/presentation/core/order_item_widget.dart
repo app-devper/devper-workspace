@@ -163,7 +163,7 @@ class _OrderItemWidgetState extends State<OrderItemWidget> {
             child: DropdownButtonFormField<ProductPrice>(
               isDense: true,
               isExpanded: true,
-              value: _orderItem.product.prices.where((price) => price.customerType == _orderItem.priceType.type).firstOrNull,
+              initialValue: _orderItem.product.prices.where((price) => price.customerType == _orderItem.priceType.type).firstOrNull,
               decoration: const InputDecoration(
                 isDense: true,
                 border: OutlineInputBorder(),

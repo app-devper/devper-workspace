@@ -158,7 +158,7 @@ class _ProductPriceWidgetState extends State<ProductPriceWidget> {
                   'โปรดระบุข้อมูลราคาขาย "${unit.unit}"',
                   style: TextStyle(
                     fontSize: 16,
-                    color: Colors.black.withOpacity(0.6),
+                    color: Colors.black.withValues(alpha: 0.6),
                   ),
                 ),
                 const SizedBox(height: 32),
@@ -183,7 +183,7 @@ class _ProductPriceWidgetState extends State<ProductPriceWidget> {
                             hintText: 'เลือกประเภทลูกค้า',
                           ),
                           focusColor: Colors.transparent,
-                          value: customerType,
+                          initialValue: customerType,
                           autovalidateMode: AutovalidateMode.onUserInteraction,
                           items: customers.map<DropdownMenuItem<ItemType>>((ItemType value) {
                             return DropdownMenuItem<ItemType>(

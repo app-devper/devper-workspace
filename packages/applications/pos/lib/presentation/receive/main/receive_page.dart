@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 // Project imports:
 import 'package:pos/presentation/constants.dart';
+import 'package:pos/presentation/receive/argument.dart';
 import 'package:design_system/widgets/dialogs.dart';
 import 'package:pos/presentation/receive/main/receive_menu_widget.dart';
 import 'package:pos/presentation/receive/main/receives_widget.dart';
@@ -17,6 +18,7 @@ class ReceivePage extends StatefulWidget {
 }
 
 class _ReceivePageState extends State<ReceivePage> {
+  int _revision = 0;
   @override
   Widget build(BuildContext context) {
     return Responsive(
@@ -31,10 +33,11 @@ class _ReceivePageState extends State<ReceivePage> {
         SizedBox(
           width: 320,
           child: ReceivesWidget(
+            key: ValueKey(_revision),
             onMenu: () {
               _showProductMenuDialog();
             },
-            onSelected: (value) {},
+            onSelected: (value) => _nextToReceiveManage(value.id),
           ),
         ),
         Container(width: 1, color: Colors.grey[200]),
@@ -54,18 +57,21 @@ class _ReceivePageState extends State<ReceivePage> {
       children: [
         Expanded(
           child: ReceivesWidget(
+            key: ValueKey(_revision),
             onMenu: () {
               _showProductMenuDialog();
             },
-            onSelected: (value) {},
+            onSelected: (value) => _nextToReceiveManage(value.id),
           ),
         ),
       ],
     );
   }
 
-  _nextToReceiveManage() {
-    Navigator.pushNamed(context, RECEIVE_MANAGE_ROUTE);
+  Future<void> _nextToReceiveManage([String? receiveId]) async {
+    await Navigator.pushNamed(context, receiveManageRoute,
+        arguments: receiveId == null ? null : ReceiveManageArgument(receiveId));
+    if (mounted) setState(() => _revision++);
   }
 
   _showProductMenuDialog() {

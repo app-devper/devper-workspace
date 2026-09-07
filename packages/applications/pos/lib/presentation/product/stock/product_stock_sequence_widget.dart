@@ -91,8 +91,8 @@ class _ProductStockSequenceWidgetState extends State<ProductStockSequenceWidget>
           final double elevation = lerpDouble(0, 6, animValue)!;
           return Material(
             elevation: elevation,
-            color: Colors.grey.withOpacity(animValue * 0.1),
-            shadowColor: Colors.grey.withOpacity(animValue * 0.1),
+            color: Colors.grey.withValues(alpha: animValue * 0.1),
+            shadowColor: Colors.grey.withValues(alpha: animValue * 0.1),
             child: child,
           );
         },

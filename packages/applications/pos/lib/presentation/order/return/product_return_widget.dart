@@ -35,6 +35,8 @@ class ProductReturnWidget extends StatefulWidget {
 }
 
 class _ProductReturnWidgetState extends State<ProductReturnWidget> {
+  bool _loadingShown = false;
+
   final _formKey = GlobalKey<FormState>();
   final _quantityController = TextEditingController();
   final _refundController = TextEditingController();
@@ -59,9 +61,11 @@ class _ProductReturnWidgetState extends State<ProductReturnWidget> {
 
   void _onStateChanged() {
     final state = _viewModel.state.value;
-    if (state.loading) {
+    if (state.loading && !_loadingShown) {
+      _loadingShown = true;
       showLoadingDialog(context);
-    } else {
+    } else if (!state.loading && _loadingShown) {
+      _loadingShown = false;
       hideLoadingDialog(context);
     }
     if (state.error != null) {
@@ -155,7 +159,7 @@ class _ProductReturnWidgetState extends State<ProductReturnWidget> {
                       hintText: 'โปรดระบุจำนวนเงินคืน',
                     ),
                     validator: (value) {
-                      if (value == null || value.isEmpty || double.tryParse(value) == null) {
+                      if (value == null || value.isEmpty || double.tryParse(value) == null || !double.parse(value).isFinite) {
                         return 'โปรดระบุจำนวนเงินคืน';
                       }
                       if (double.tryParse(value)! < 0) {

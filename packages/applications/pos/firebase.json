@@ -2,7 +2,7 @@
   "hosting": [
     {
       "target": "devper",
-      "public": "build/web",
+      "public": "build/hosting/devper",
       "ignore": [
         "firebase.json",
         "**/.*",
@@ -12,6 +12,20 @@
         {
           "source": "**",
           "destination": "/index.html"
+        }
+      ],
+      "predeploy": [
+        "sh \"$PROJECT_DIR/tool/build_hosting.sh\""
+      ],
+      "headers": [
+        {
+          "source": "**",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "no-cache"
+            }
+          ]
         }
       ]
     },

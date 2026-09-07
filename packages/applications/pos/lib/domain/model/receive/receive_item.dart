@@ -8,15 +8,22 @@ class ReceiveItem {
   final String lotId;
   final double costPrice;
   final int quantity;
+  final String lotNumber;
+  final String expireDate;
+  final String unitId;
+  final int baseQuantity;
   Product? product;
 
-  ReceiveItem({
-    required this.id,
-    required this.receiveId,
-    required this.productId,
-    required this.lotId,
-    required this.costPrice,
-    required this.quantity,
-    this.product
-  });
+  ReceiveItem(
+      {this.id = '',
+      required this.receiveId,
+      required this.productId,
+      this.lotId = '',
+      this.lotNumber = '',
+      this.expireDate = '',
+      this.unitId = '',
+      this.baseQuantity = 0,
+      required this.costPrice,
+      required this.quantity,
+      this.product});
 }

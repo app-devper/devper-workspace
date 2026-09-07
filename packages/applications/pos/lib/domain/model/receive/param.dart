@@ -1,3 +1,5 @@
+import 'receive_item.dart';
+
 class ReceiveParam {
   final String supplierId;
   final String reference;
@@ -12,11 +14,13 @@ class UpdateReceiveParam {
   final String supplierId;
   final String reference;
   final double totalCost;
+  final List<ReceiveItem> items;
 
   UpdateReceiveParam({
     required this.supplierId,
     required this.reference,
     required this.totalCost,
+    required this.items,
   });
 }
 

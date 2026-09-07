@@ -62,7 +62,7 @@ class DropdownInput<T> extends StatelessWidget {
         filled: true,
         labelStyle: CustomTheme.mainTheme.textTheme.bodyMedium,
       ),
-      value: value,
+      initialValue: value,
       items: options.map((T value) {
         return DropdownMenuItem<T>(
           alignment: Alignment.centerLeft,

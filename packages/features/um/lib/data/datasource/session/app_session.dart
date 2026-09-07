@@ -6,7 +6,7 @@ class AppSession {
   String _hostApp = "";
   String _clientId = "";
   String _accessToken = "";
-  // When set from config (dev mode), this takes priority over system endpoint
+  // When set from config, this takes priority over system endpoint
   String _configHostApp = "";
 
   AppSession(AppConfig config) {
@@ -41,7 +41,7 @@ class AppSession {
     _clientId = clientId;
   }
 
-  // If hostApp is pinned in config (dev mode), ignore system endpoint override
+  // If hostApp is pinned in config, ignore system endpoint override
   void setHostApp(String hostApp) {
     if (_configHostApp.isEmpty) {
       _hostApp = hostApp;

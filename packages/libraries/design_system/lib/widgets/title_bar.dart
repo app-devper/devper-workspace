@@ -38,7 +38,7 @@ class TitleBar extends StatelessWidget {
                   size: 16,
                 ),
                 SizedBox(width: 8),
-                Text(
+                Expanded(child: Text(
                   "ปิด",
                   maxLines: 1,
                   style: TextStyle(
@@ -46,7 +46,7 @@ class TitleBar extends StatelessWidget {
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
                   ),
-                ),
+                )),
               ],
             ),
           ),

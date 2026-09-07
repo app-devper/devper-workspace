@@ -40,59 +40,59 @@ class RouterApp {
       return RouterUm.generateRoute(settings);
     } else {
       switch (settings.name) {
-        case HOME_ROUTE:
+        case homeRoute:
           return MaterialPageRoute(builder: (_) => const HomePage());
-        case PRODUCTS_ROUTE:
+        case productsRoute:
           final args = settings.arguments as ProductsArgument?;
           return MaterialPageRoute(
               builder: (_) => ProductsPage(mode: args?.mode));
-        case PRODUCT_EXPIRED_ROUTE:
+        case productExpiredRoute:
           return MaterialPageRoute(builder: (_) => const ProductsExpiredPage());
-        case PRODUCT_LOT_EDIT_ROUTE:
+        case productLotEditRoute:
           final args = settings.arguments as ProductLotArgument;
           return MaterialPageRoute(
               builder: (_) => ProductLotEditPage(productLot: args.productLot));
-        case ORDERS_ROUTE:
+        case ordersRoute:
           return MaterialPageRoute(builder: (_) => const OrderPage());
-        case ORDER_DETAIL_ROUTE:
+        case orderDetailRoute:
           final args = settings.arguments as OrderArgument;
           return MaterialPageRoute(
               builder: (_) => OrderDetailPage(orderId: args.orderId));
-        case ORDER_HISTORY_ROUTE:
+        case orderHistoryRoute:
           final args = settings.arguments as OrderHistoryArgument;
           return MaterialPageRoute(
               builder: (_) => OrderHistoryPage(product: args.product));
-        case CATEGORIES_ROUTE:
+        case categoriesRoute:
           return MaterialPageRoute(builder: (_) => const CategoryPage());
-        case CATEGORY_ADD_ROUTE:
+        case categoryAddRoute:
           return MaterialPageRoute(builder: (_) => const CategoryAddPage());
-        case CATEGORY_EDIT_ROUTE:
+        case categoryEditRoute:
           final args = settings.arguments as CategoryArgument;
           return MaterialPageRoute(
               builder: (_) => CategoryEditPage(category: args.category));
-        case SUPPLIER_ROUTE:
+        case supplierRoute:
           return MaterialPageRoute(builder: (_) => const SupplierInfoPage());
-        case SUPPLIERS_ROUTE:
+        case suppliersRoute:
           return MaterialPageRoute(builder: (_) => const SuppliersPage());
-        case SUPPLIER_ADD_ROUTE:
+        case supplierAddRoute:
           return MaterialPageRoute(builder: (_) => const SupplierAddPage());
-        case SUPPLIER_EDIT_ROUTE:
+        case supplierEditRoute:
           final args = settings.arguments as SupplierArgument;
           return MaterialPageRoute(
               builder: (_) => SupplierEditPage(supplier: args.supplier));
-        case RECEIVES_ROUTE:
+        case receivesRoute:
           return MaterialPageRoute(builder: (_) => const ReceivePage());
-        case RECEIVE_MANAGE_ROUTE:
+        case receiveManageRoute:
           final args = settings.arguments as ReceiveManageArgument?;
           return MaterialPageRoute(
               builder: (_) => ReceiveManagePage(receiveId: args?.receiveId));
-        case STOCK_COUNTS_ROUTE:
+        case stockCountsRoute:
           return MaterialPageRoute(builder: (_) => const StockCountsPage());
-        case STOCK_COUNT_MANAGE_ROUTE:
+        case stockCountManageRoute:
           final args = settings.arguments as StockCountManageArgument?;
           return MaterialPageRoute(
               builder: (_) => StockCountManagePage(stockCountId: args?.stockCountId));
-        case SCAN_ROUTE:
+        case scanRoute:
           if (kIsWeb) {
             return MaterialPageRoute(
               builder: (_) => Scaffold(
@@ -106,7 +106,7 @@ class RouterApp {
             );
           }
           return MaterialPageRoute(builder: (_) => const ScannerPage(mode: "SCAN"));
-        case ROOT_ROUTE:
+        case rootRoute:
           return RouterUm.generateRoute(
               RouteSettings(name: routeSplash, arguments: settings.arguments));
         default:

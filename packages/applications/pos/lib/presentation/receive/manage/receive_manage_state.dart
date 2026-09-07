@@ -17,6 +17,7 @@ class ReceiveManageState {
 
   final List<Supplier>? suppliersEvent;
 
+  final bool itemsReady;
   final bool itemsLoaded;
   final double totalCost;
   final List<ReceiveItem> items;
@@ -34,6 +35,7 @@ class ReceiveManageState {
     this.receiveSuppliers = const [],
     this.suppliersEvent,
     this.itemsLoaded = false,
+    this.itemsReady = false,
     this.totalCost = 0,
     this.items = const [],
     this.created,
@@ -50,6 +52,7 @@ class ReceiveManageState {
     List<Supplier>? receiveSuppliers,
     List<Supplier>? suppliersEvent,
     bool? itemsLoaded,
+    bool? itemsReady,
     double? totalCost,
     List<ReceiveItem>? items,
     Receive? created,
@@ -70,8 +73,10 @@ class ReceiveManageState {
       receiveLoaded: receiveLoaded ?? this.receiveLoaded,
       receive: clearReceive ? null : (receive ?? this.receive),
       receiveSuppliers: receiveSuppliers ?? this.receiveSuppliers,
-      suppliersEvent: clearSuppliersEvent ? null : (suppliersEvent ?? this.suppliersEvent),
+      suppliersEvent:
+          clearSuppliersEvent ? null : (suppliersEvent ?? this.suppliersEvent),
       itemsLoaded: itemsLoaded ?? this.itemsLoaded,
+      itemsReady: itemsReady ?? this.itemsReady,
       totalCost: totalCost ?? this.totalCost,
       items: items ?? this.items,
       created: clearCreated ? null : (created ?? this.created),

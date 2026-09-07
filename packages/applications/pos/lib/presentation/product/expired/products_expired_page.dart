@@ -211,7 +211,7 @@ class _ProductsExpiredPageState extends State<ProductsExpiredPage> {
   }
 
   _nextToProductLotEdit(BuildContext context, ProductLot content) async {
-    var _ = await Navigator.pushNamed(context, PRODUCT_LOT_EDIT_ROUTE, arguments: ProductLotArgument(content));
+    var _ = await Navigator.pushNamed(context, productLotEditRoute, arguments: ProductLotArgument(content));
     _viewModel.selectRange(_value);
   }
 }

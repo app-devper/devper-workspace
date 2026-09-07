@@ -175,7 +175,7 @@ class _ProductUnitWidgetState extends State<ProductUnitWidget> {
                   'โปรดระบุข้อมูลหน่วยนับของสินค้า',
                   style: TextStyle(
                     fontSize: 16,
-                    color: Colors.black.withOpacity(0.6),
+                    color: Colors.black.withValues(alpha: 0.6),
                   ),
                 ),
                 const SizedBox(height: 32),

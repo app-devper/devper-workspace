@@ -14,7 +14,7 @@ dependencies:
   flutter_localizations:
     sdk: flutter
 
-  qr_code_scanner: ^1.0.1
+  qr_code_scanner_plus: 2.1.2
   pdf: ^3.10.7
   path_provider: ^2.0.1
   open_file: ^3.3.2

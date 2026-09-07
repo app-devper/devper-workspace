@@ -6,7 +6,7 @@ import 'package:flutter/services.dart';
 
 class AppConfig {
   final String apiUrl;
-  final String hostApp; // optional override for local dev (bypasses um-api system lookup)
+  final String hostApp; // optional pinned host (takes priority over the UM system host)
   final String logo;
   final String name;
   final String system;

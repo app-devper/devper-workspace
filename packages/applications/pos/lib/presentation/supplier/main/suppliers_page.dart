@@ -131,12 +131,12 @@ class _SuppliersPageState extends State<SuppliersPage> {
   }
 
   _nextToSupplierEdit(BuildContext context, Supplier content) async {
-    var _ = await Navigator.pushNamed(context, SUPPLIER_EDIT_ROUTE, arguments: SupplierArgument(content));
+    var _ = await Navigator.pushNamed(context, supplierEditRoute, arguments: SupplierArgument(content));
     _viewModel.getSuppliers();
   }
 
   _nextToSupplierAdd(BuildContext context) async {
-    var _ = await Navigator.pushNamed(context, SUPPLIER_ADD_ROUTE);
+    var _ = await Navigator.pushNamed(context, supplierAddRoute);
     _viewModel.getSuppliers();
   }
 }

@@ -30,6 +30,8 @@ class StockAdjustmentWidget extends StatefulWidget {
 }
 
 class _StockAdjustmentWidgetState extends State<StockAdjustmentWidget> {
+  bool _loadingShown = false;
+
   final _formKey = GlobalKey<FormState>();
   final _deltaController = TextEditingController();
   final _deltaFocus = FocusNode();
@@ -43,9 +45,11 @@ class _StockAdjustmentWidgetState extends State<StockAdjustmentWidget> {
 
   void _onStateChanged() {
     final state = _viewModel.state.value;
-    if (state.loading) {
+    if (state.loading && !_loadingShown) {
+      _loadingShown = true;
       showLoadingDialog(context);
-    } else {
+    } else if (!state.loading && _loadingShown) {
+      _loadingShown = false;
       hideLoadingDialog(context);
     }
     if (state.error != null) {
