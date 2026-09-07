@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 
 // Package imports:
 import 'package:design_system/theme/color.dart';
-import 'package:qr_code_scanner/qr_code_scanner.dart';
+import 'package:qr_code_scanner_plus/qr_code_scanner_plus.dart';
 
 // Project imports:
 import 'package:pos/container.dart';
@@ -44,6 +44,7 @@ class _ProductSearchState extends State<ProductSearch> {
 
   @override
   void dispose() {
+    _serialNumberEditingController.dispose();
     _serialNumberNode.dispose();
     _viewModel.dispose();
     super.dispose();
@@ -51,7 +52,6 @@ class _ProductSearchState extends State<ProductSearch> {
 
   @override
   Widget build(BuildContext context) {
-    _serialNumberNode.requestFocus();
     return _buildProducts();
   }
 
@@ -65,11 +65,12 @@ class _ProductSearchState extends State<ProductSearch> {
             Container(
               padding: const EdgeInsets.all(8),
               child: TextField(
+                autofocus: true,
                 focusNode: _serialNumberNode,
                 controller: _serialNumberEditingController,
                 decoration: InputDecoration(
                   contentPadding: const EdgeInsets.all(0),
-                  hintText: 'ค้นหาสิ่งที่คุณต้องการ...',
+                  hintText: 'ค้นหาชื่อสินค้า หรือสแกนบาร์โค้ด',
                   prefixIcon: const Icon(Icons.search),
                   suffixIcon: kIsWeb
                       ? null
@@ -112,14 +113,22 @@ class _ProductSearchState extends State<ProductSearch> {
                       ),
                     );
                   }
+                  if (items.isEmpty) {
+                    return const Center(
+                        child: Text(
+                            "ไม่พบสินค้า\nลองค้นหาด้วยชื่อหรือบาร์โค้ดอื่น",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                                color: Color(0xFF687588), height: 1.8)));
+                  }
                   return GridView.builder(
                     padding: const EdgeInsets.all(8),
                     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: countRow,
                       childAspectRatio: 2,
-                      mainAxisExtent: 124,
-                      mainAxisSpacing: 2,
-                      crossAxisSpacing: 2,
+                      mainAxisExtent: 158,
+                      mainAxisSpacing: 8,
+                      crossAxisSpacing: 8,
                     ),
                     shrinkWrap: true,
                     itemBuilder: (context, i) => ProductItem(
@@ -144,7 +153,7 @@ class _ProductSearchState extends State<ProductSearch> {
   }
 
   Future<void> _scanBarcode(BuildContext context) async {
-    final result = await Navigator.pushNamed(context, SCAN_ROUTE);
+    final result = await Navigator.pushNamed(context, scanRoute);
     if (result is Barcode) {
       final code = result.code;
       if (code != null && code.isNotEmpty) {

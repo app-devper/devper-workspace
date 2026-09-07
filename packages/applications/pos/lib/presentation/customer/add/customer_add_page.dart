@@ -136,7 +136,7 @@ class _CustomerAddPageState extends State<CustomerAddPage> {
                     'โปรดระบุข้อมูลลูกค้า',
                     style: TextStyle(
                       fontSize: 16,
-                      color: Colors.black.withOpacity(0.6),
+                      color: Colors.black.withValues(alpha: 0.6),
                     ),
                   ),
                   const SizedBox(height: 32),
@@ -164,7 +164,7 @@ class _CustomerAddPageState extends State<CustomerAddPage> {
               labelText: 'ประเภทลูกค้า',
               hintText: 'โปรดเลือกประเภทลูกค้า',
             ),
-            value: _customer,
+            initialValue: _customer,
             onChanged: (value) {
               setState(() {
                 _customer = value;

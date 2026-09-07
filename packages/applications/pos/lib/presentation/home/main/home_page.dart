@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 
 // Project imports:
 import 'package:pos/presentation/home/main/cart_page.dart';
+import 'package:pos/presentation/receive/main/receive_page.dart';
+import 'package:pos/presentation/order/main/order_page.dart';
+import 'package:pos/presentation/customer/main/customer_page.dart';
 import 'package:pos/presentation/home/main/home_database_page.dart';
 import 'package:pos/presentation/home/main/home_menu.dart';
 import 'package:pos/presentation/home/main/menu_event.dart';
@@ -43,7 +46,7 @@ class _HomePageState extends State<HomePage> {
           child: Row(
             children: [
               SizedBox(
-                width: 60,
+                width: 80,
                 child: HomeMenu(
                   onMenuTap: (event) {
                     setState(() {
@@ -67,13 +70,11 @@ class _HomePageState extends State<HomePage> {
       case MenuEvent.home:
         return const CartPage();
       case MenuEvent.order:
-        return const Center(
-            child: Text('Order page is not available on web yet'));
+        return const OrderPage();
       case MenuEvent.product:
         return const ProductsPage();
       case MenuEvent.receive:
-        return const Center(
-            child: Text('Receive page is not available on web yet'));
+        return const ReceivePage();
       case MenuEvent.database:
         return HomeDatabasePage(
           onMenuTap: (event) {
@@ -83,8 +84,8 @@ class _HomePageState extends State<HomePage> {
           },
         );
       case MenuEvent.customer:
-        return const Center(
-            child: Text('Customer page is not available on web yet'));
+        return CustomerPage(
+            onBack: () => setState(() => _menuEvent = MenuEvent.database));
       case MenuEvent.setting:
         return Container();
     }

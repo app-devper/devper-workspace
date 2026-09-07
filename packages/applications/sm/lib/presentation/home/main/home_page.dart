@@ -53,6 +53,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         });
       } else if (state is LoggedState) {
       } else if (state is LogoutState) {
+        if (!mounted) return;
         Navigator.popAndPushNamed(context, routeLogin);
       }
     });

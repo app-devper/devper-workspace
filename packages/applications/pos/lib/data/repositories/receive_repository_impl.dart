@@ -19,15 +19,14 @@ class ReceiveRepositoryImpl implements ReceiveRepository {
   @override
   Future<Receive> createReceive(ReceiveParam param) async {
     final mapper = ReceiveMapper();
-    final response = await posService.createReceive(mapper.toReceiveRequest(param));
+    final response =
+        await posService.createReceive(mapper.toReceiveRequest(param));
     return mapper.toReceiveDomain(jsonOrThrow(response));
   }
 
   @override
   Future<List<ReceiveItem>> getReceiveItemsById(String receiveId) async {
-    final mapper = ReceiveMapper();
-    final response = await posService.getReceiveProductLotsById(receiveId);
-    return mapper.toReceiveItemsDomain(jsonOrThrow(response));
+    return (await getReceiveById(receiveId)).items;
   }
 
   @override
@@ -40,7 +39,8 @@ class ReceiveRepositoryImpl implements ReceiveRepository {
   @override
   Future<List<Receive>> getReceives(GetReceivesRangeParam param) async {
     final mapper = ReceiveMapper();
-    final response = await posService.getReceives(param.startDate, param.endDate);
+    final response =
+        await posService.getReceives(param.startDate, param.endDate);
     return mapper.toReceivesDomain(jsonOrThrow(response));
   }
 
@@ -52,16 +52,17 @@ class ReceiveRepositoryImpl implements ReceiveRepository {
   }
 
   @override
-  Future<ReceiveItem> removeReceiveItemByLotId(String lotId) async {
-    final mapper = ReceiveMapper();
-    final response = await posService.removeReceiveProductLotsByLotId(lotId);
-    return mapper.toReceiveItemDomain(jsonOrThrow(response));
+  Future<Receive> importReceiveById(String receiveId) async {
+    final response = await posService.importReceiveById(receiveId);
+    return ReceiveMapper().toReceiveDomain(jsonOrThrow(response));
   }
 
   @override
-  Future<Receive> updateReceiveById(String receiveId, UpdateReceiveParam param) async {
+  Future<Receive> updateReceiveById(
+      String receiveId, UpdateReceiveParam param) async {
     final mapper = ReceiveMapper();
-    final response = await posService.updateReceiveById(receiveId, mapper.toUpdateReceiveRequest(param));
+    final response = await posService.updateReceiveById(
+        receiveId, mapper.toUpdateReceiveRequest(param));
     return mapper.toReceiveDomain(jsonOrThrow(response));
   }
 }

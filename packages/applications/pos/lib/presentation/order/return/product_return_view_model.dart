@@ -21,6 +21,7 @@ class ProductReturnViewModel {
   ValueListenable<ProductReturnState> get state => _state;
 
   Future<void> createProductReturn(CreateProductReturnParam param) async {
+    if (_state.value.loading) return;
     _state.value = _state.value.copyWith(loading: true, clearError: true, clearCreated: true);
     try {
       final created = await createProductReturnUseCase(param);

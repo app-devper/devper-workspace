@@ -81,6 +81,7 @@ class _HomeMenuState extends State<HomeMenu> {
                 onTap: () {
                   _showProfileMenu();
                 },
+                label: 'บัญชี',
                 icon: Icons.account_box,
                 defaultColor: CustomColor.primary,
               ),
@@ -91,6 +92,7 @@ class _HomeMenuState extends State<HomeMenu> {
                   onTap: () {
                     widget.onMenuTap(MenuEvent.home);
                   },
+                  label: 'ขายสินค้า',
                   icon: Icons.shopping_cart,
                 ),
                 MenuItem(
@@ -98,6 +100,7 @@ class _HomeMenuState extends State<HomeMenu> {
                   onTap: () {
                     widget.onMenuTap(MenuEvent.order);
                   },
+                  label: 'รายการขาย',
                   icon: Icons.receipt,
                 ),
                 MenuItem(
@@ -105,6 +108,7 @@ class _HomeMenuState extends State<HomeMenu> {
                   onTap: () {
                     widget.onMenuTap(MenuEvent.product);
                   },
+                  label: 'สินค้า',
                   icon: Icons.medical_information,
                 ),
                 MenuItem(
@@ -112,6 +116,7 @@ class _HomeMenuState extends State<HomeMenu> {
                   onTap: () {
                     widget.onMenuTap(MenuEvent.database);
                   },
+                  label: 'จัดการ',
                   icon: Icons.storage,
                 ),
               ] else ...[
@@ -120,6 +125,7 @@ class _HomeMenuState extends State<HomeMenu> {
                   onTap: () {
                     widget.onMenuTap(MenuEvent.home);
                   },
+                  label: 'ขายสินค้า',
                   icon: Icons.shopping_cart,
                 ),
                 MenuItem(
@@ -127,6 +133,7 @@ class _HomeMenuState extends State<HomeMenu> {
                   onTap: () {
                     widget.onMenuTap(MenuEvent.order);
                   },
+                  label: 'รายการขาย',
                   icon: Icons.receipt,
                 ),
               ],
@@ -144,6 +151,7 @@ class _HomeMenuState extends State<HomeMenu> {
               onTap: () {
                 _viewModel.logout();
               },
+              label: 'ออกจากระบบ',
               icon: Icons.logout,
             ),
           ],
@@ -153,10 +161,15 @@ class _HomeMenuState extends State<HomeMenu> {
   }
 
   _showProfileMenu() async {
-    final item = await showMenu(context: context, position: const RelativeRect.fromLTRB(0, 50, 0, 0), items: [
-      PopupMenuItem<int>(value: 0, child: Text(Languages.of(context).userInfoTitle)),
-      PopupMenuItem<int>(value: 1, child: Text(Languages.of(context).changePasswordTitle)),
-    ]);
+    final item = await showMenu(
+        context: context,
+        position: const RelativeRect.fromLTRB(0, 50, 0, 0),
+        items: [
+          PopupMenuItem<int>(
+              value: 0, child: Text(Languages.of(context).userInfoTitle)),
+          PopupMenuItem<int>(
+              value: 1, child: Text(Languages.of(context).changePasswordTitle)),
+        ]);
     _handleClick(item);
   }
 

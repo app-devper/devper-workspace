@@ -42,6 +42,7 @@ class _ReceivesWidgetState extends State<ReceivesWidget> {
 
   @override
   void dispose() {
+    _searchEditingController.dispose();
     _searchNode.dispose();
     _viewNode.dispose();
 
@@ -128,6 +129,16 @@ class _ReceivesWidgetState extends State<ReceivesWidget> {
             ),
           );
         }
+        if (state.error != null) {
+          return Expanded(
+              child: Center(
+                  child: Column(mainAxisSize: MainAxisSize.min, children: [
+            Text(state.error!),
+            TextButton(
+                onPressed: _viewModel.getReceives,
+                child: const Text('ลองอีกครั้ง')),
+          ])));
+        }
         return _buildReceives(state.items);
       },
     );
@@ -143,7 +154,7 @@ class _ReceivesWidgetState extends State<ReceivesWidget> {
             ListTile(
               title: Text(content.code),
               subtitle: Text(
-               "มูลค่า: ฿${content.totalCost.toStringAsFixed(2)}, วันที่: ${content.createdDate.formatDate()}",
+                "มูลค่า: ฿${content.totalCost.toStringAsFixed(2)}, วันที่: ${content.createdDate.formatDate()}",
                 style: const TextStyle(
                   color: Colors.grey,
                   fontSize: 14,

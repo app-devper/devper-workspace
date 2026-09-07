@@ -27,14 +27,17 @@ jobs:
           cache: true
 
       - name: Activate melos
-        run: dart pub global activate melos 8.1.0
+        run: |
+          dart pub global activate melos 8.1.0
+          # The melos scripts shell out to `melos exec`, so the global bin
+          # directory has to be on PATH for every step below.
+          echo "$HOME/.pub-cache/bin" >> "$GITHUB_PATH"
 
       - name: Bootstrap
-        run: dart pub global run melos bootstrap
+        run: melos bootstrap
 
       - name: Analyze
-        continue-on-error: true
-        run: dart pub global run melos run analyze
+        run: melos run analyze
 
       - name: Test
         run: melos exec -c 1 --dir-exists=test -- flutter test

@@ -5,6 +5,8 @@ import 'package:pos/domain/model/product/product_history.dart';
 import 'package:pos/domain/model/product/product_lot.dart';
 
 abstract class ProductRepository {
+  void invalidateProductsCache();
+
   Future<String> generateSerialNumber();
 
   Future<Product?> getProductByBarcode(String barcode);

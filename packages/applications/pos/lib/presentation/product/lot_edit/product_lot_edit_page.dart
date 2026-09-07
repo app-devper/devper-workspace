@@ -107,7 +107,7 @@ class _ProductLotEditPageState extends State<ProductLotEditPage> {
     return Scaffold(
       key: _scaffoldKey,
       appBar: buildAppBar(
-          Languages.of(context).productLotEditTitle,
+        Languages.of(context).productLotEditTitle,
       ),
       body: _buildBody(context),
     );
@@ -197,23 +197,18 @@ class _ProductLotEditPageState extends State<ProductLotEditPage> {
       child: ButtonWidget(
         key: const Key("update"),
         onClicked: () {
+          final quantity = int.tryParse(_quantityEditingController.text.trim());
+          if (quantity == null || quantity < 0) {
+            _snackBar.showErrorSnackBar('ระบุจำนวนเต็มตั้งแต่ 0 ขึ้นไป');
+            return;
+          }
           _viewModel.updateProductLot(
             widget.productLot.id,
-            _getUpdateProductLotQuantityParam(),
+            UpdateProductLotQuantityParam(quantity: quantity),
           );
         },
         text: "Update",
       ),
-    );
-  }
-
-  _getUpdateProductLotQuantityParam() {
-    var quantity = 0;
-    if (_quantityEditingController.text.trim().isNotEmpty) {
-      quantity = int.parse(_quantityEditingController.text);
-    }
-    return UpdateProductLotQuantityParam(
-      quantity: quantity,
     );
   }
 }

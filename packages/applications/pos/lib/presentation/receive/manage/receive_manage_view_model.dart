@@ -9,11 +9,12 @@ import 'package:pos/domain/model/receive/param.dart';
 import 'package:pos/domain/model/receive/receive.dart';
 import 'package:pos/domain/model/receive/receive_item.dart';
 import 'package:pos/domain/usecase/product/get_local_product_by_id_use_case.dart';
+import 'package:pos/domain/usecase/product/get_products_use_case.dart';
 import 'package:pos/domain/usecase/receive/create_receive_use_case.dart';
 import 'package:pos/domain/usecase/receive/get_receive_by_id_use_case.dart';
 import 'package:pos/domain/usecase/receive/get_receive_items_by_id_use_case.dart';
 import 'package:pos/domain/usecase/receive/remove_receive_by_id_use_case.dart';
-import 'package:pos/domain/usecase/receive/remove_receive_item_by_lot_id_use_case.dart';
+import 'package:pos/domain/usecase/receive/import_receive_use_case.dart';
 import 'package:pos/domain/usecase/receive/update_receive_by_id_use_case.dart';
 import 'package:pos/domain/usecase/supplier/get_local_suppliers_use_case.dart';
 import 'package:pos/domain/usecase/supplier/get_suppliers_use_case.dart';
@@ -25,10 +26,11 @@ class ReceiveManageViewModel {
   final UpdateReceiveByIdUseCase updateReceiveByIdUseCase;
   final RemoveReceiveByIdUseCase removeReceiveByIdUseCase;
   final GetReceiveItemsByIdUseCase getReceiveItemsByIdUseCase;
-  final RemoveReceiveItemByLotIdUseCase removeReceiveItemByLotIdUseCase;
+  final ImportReceiveUseCase importReceiveUseCase;
   final GetLocalSuppliersUseCase getLocalSuppliersUseCase;
   final GetSuppliersUseCase getSuppliersUseCase;
   final GetLocalProductByIdUseCase getLocalProductByIdUseCase;
+  final GetProductsUseCase getProductsUseCase;
 
   ReceiveManageViewModel({
     required this.getReceiveByIdUseCase,
@@ -36,10 +38,11 @@ class ReceiveManageViewModel {
     required this.updateReceiveByIdUseCase,
     required this.removeReceiveByIdUseCase,
     required this.getReceiveItemsByIdUseCase,
-    required this.removeReceiveItemByLotIdUseCase,
+    required this.importReceiveUseCase,
     required this.getLocalSuppliersUseCase,
     required this.getSuppliersUseCase,
     required this.getLocalProductByIdUseCase,
+    required this.getProductsUseCase,
   });
 
   final _state = ValueNotifier<ReceiveManageState>(const ReceiveManageState());
@@ -52,7 +55,7 @@ class ReceiveManageViewModel {
       Receive? receive;
       if (receiveId != null) {
         receive = await getReceiveByIdUseCase(receiveId);
-        getReceiveItemsById(receiveId);
+        await getReceiveItemsById(receiveId);
       }
       final suppliers = await getLocalSuppliersUseCase();
       _state.value = _state.value.copyWith(
@@ -63,53 +66,86 @@ class ReceiveManageViewModel {
         receiveSuppliers: suppliers,
       );
     } on Exception catch (e) {
-      _state.value = _state.value.copyWith(loading: false, error: toFailure(e).getMessage());
+      _state.value = _state.value
+          .copyWith(loading: false, error: toFailure(e).getMessage());
     }
   }
 
   Future<void> createReceive(ReceiveParam param) async {
-    _state.value = _state.value.copyWith(loading: true, clearError: true, clearCreated: true);
+    if (_state.value.loading) return;
+    _state.value = _state.value
+        .copyWith(loading: true, clearError: true, clearCreated: true);
     try {
       final created = await createReceiveUseCase(param);
-      _state.value = _state.value.copyWith(loading: false, created: created, receive: created);
+      _state.value = _state.value.copyWith(
+          loading: false, created: created, receive: created, itemsReady: true);
     } on Exception catch (e) {
-      _state.value = _state.value.copyWith(loading: false, error: toFailure(e).getMessage());
+      _state.value = _state.value
+          .copyWith(loading: false, error: toFailure(e).getMessage());
     }
   }
 
-  Future<void> updateReceiveById(String receiveId, UpdateReceiveParam param) async {
-    _state.value = _state.value.copyWith(loading: true, clearError: true, clearUpdated: true);
+  Future<bool> updateReceiveById(
+      String receiveId, UpdateReceiveParam param) async {
+    if (_state.value.loading ||
+        !_state.value.itemsReady ||
+        _state.value.receive?.isImported == true) {
+      return false;
+    }
+    _state.value = _state.value
+        .copyWith(loading: true, clearError: true, clearUpdated: true);
     try {
       final updated = await updateReceiveByIdUseCase(
         ReceiveUpdateParam(receiveId: receiveId, param: param),
       );
-      _state.value = _state.value.copyWith(loading: false, updated: updated, receive: updated);
+      _state.value = _state.value
+          .copyWith(loading: false, updated: updated, receive: updated);
+      await getReceiveItemsById(receiveId);
+      return true;
     } on Exception catch (e) {
-      _state.value = _state.value.copyWith(loading: false, error: toFailure(e).getMessage());
+      _state.value = _state.value
+          .copyWith(loading: false, error: toFailure(e).getMessage());
+      return false;
     }
   }
 
   Future<void> removeReceiveById(String receiveId) async {
-    _state.value = _state.value.copyWith(loading: true, clearError: true, clearRemoved: true);
+    if (_state.value.loading || _state.value.receive?.isImported == true) {
+      return;
+    }
+    _state.value = _state.value
+        .copyWith(loading: true, clearError: true, clearRemoved: true);
     try {
       final removed = await removeReceiveByIdUseCase(receiveId);
       _state.value = _state.value.copyWith(loading: false, removed: removed);
     } on Exception catch (e) {
-      _state.value = _state.value.copyWith(loading: false, error: toFailure(e).getMessage());
+      _state.value = _state.value
+          .copyWith(loading: false, error: toFailure(e).getMessage());
     }
   }
 
-  Future<void> removeReceiveItemById(String lotId) async {
-    _state.value = _state.value.copyWith(loading: true, clearError: true, clearRemovedItem: true);
+  Future<void> importReceive(String receiveId) async {
+    if (_state.value.loading ||
+        !_state.value.itemsReady ||
+        _state.value.receive?.isImported == true) {
+      return;
+    }
+    _state.value = _state.value
+        .copyWith(loading: true, clearError: true, clearUpdated: true);
     try {
-      final removedItem = await removeReceiveItemByLotIdUseCase(lotId);
-      _state.value = _state.value.copyWith(loading: false, removedItem: removedItem);
+      final imported = await importReceiveUseCase(receiveId);
+      _state.value = _state.value
+          .copyWith(loading: false, updated: imported, receive: imported);
+      await getProductsUseCase();
+      await getReceiveItemsById(receiveId);
     } on Exception catch (e) {
-      _state.value = _state.value.copyWith(loading: false, error: toFailure(e).getMessage());
+      _state.value = _state.value
+          .copyWith(loading: false, error: toFailure(e).getMessage());
     }
   }
 
   Future<void> getReceiveItemsById(String receiveId) async {
+    _state.value = _state.value.copyWith(itemsReady: false);
     try {
       final result = await getReceiveItemsByIdUseCase(receiveId);
       for (var item in result) {
@@ -117,17 +153,22 @@ class ReceiveManageViewModel {
       }
       _state.value = _state.value.copyWith(
         itemsLoaded: true,
+        itemsReady: true,
         totalCost: _calculateTotalCost(result),
         items: result,
       );
-    } on Exception catch (_) {}
+    } on Exception catch (e) {
+      _state.value = _state.value.copyWith(error: toFailure(e).getMessage());
+    }
   }
 
   Future<void> getSuppliers() async {
     try {
       final suppliers = await getSuppliersUseCase();
       _state.value = _state.value.copyWith(suppliersEvent: suppliers);
-    } on Exception catch (_) {}
+    } on Exception catch (e) {
+      _state.value = _state.value.copyWith(error: toFailure(e).getMessage());
+    }
   }
 
   void consumeError() {

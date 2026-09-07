@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 // Package imports:
 import 'package:common/core/ext/widget_ext.dart';
+import 'package:common/core/error/failure.dart';
 import 'package:design_system/widgets/app_bar.dart';
 import 'package:design_system/widgets/buttons.dart';
 import 'package:design_system/widgets/snack_bar.dart';
@@ -17,7 +18,8 @@ import 'package:pos/domain/model/receive/receive_item.dart';
 import 'package:pos/domain/model/supplier/supplier.dart';
 import 'package:pos/localizations/language/languages.dart';
 import 'package:pos/presentation/constants.dart';
-import 'package:pos/presentation/product/argument.dart';
+import 'package:pos/domain/usecase/product/get_products_use_case.dart';
+import 'receive_item_dialog.dart';
 import 'receive_manage_view_model.dart';
 
 class ReceiveManagePage extends StatefulWidget {
@@ -79,7 +81,9 @@ class _ReceiveManagePageState extends State<ReceiveManagePage> {
       setState(() {
         _receive = state.receive;
         _suppliers = state.receiveSuppliers;
-        _supplier = _suppliers.where((item) => item.id == state.receive?.supplierId).firstOrNull;
+        _supplier = _suppliers
+            .where((item) => item.id == state.receive?.supplierId)
+            .firstOrNull;
       });
       _referenceEditingController.text = state.receive?.reference ?? "";
     }
@@ -88,7 +92,8 @@ class _ReceiveManagePageState extends State<ReceiveManagePage> {
       _viewModel.consumeSuppliersEvent();
       setState(() {
         _suppliers = suppliers;
-        _supplier = _suppliers.where((item) => item.id == _supplier?.id).firstOrNull;
+        _supplier =
+            _suppliers.where((item) => item.id == _supplier?.id).firstOrNull;
       });
     }
     if (state.itemsLoaded) {
@@ -111,7 +116,8 @@ class _ReceiveManagePageState extends State<ReceiveManagePage> {
       final data = state.updated!;
       _viewModel.consumeUpdated();
       _snackBar.hideAll();
-      _snackBar.showSnackBar(text: "Update success");
+      _snackBar.showSnackBar(
+          text: data.isImported ? "นำเข้าสต็อกสำเร็จ" : "Update success");
       setState(() {
         _receive = data;
       });
@@ -122,16 +128,12 @@ class _ReceiveManagePageState extends State<ReceiveManagePage> {
       Navigator.pop(context, data);
       return;
     }
-    if (state.removedItem != null) {
-      final receiveId = state.removedItem!.receiveId;
-      _viewModel.consumeRemovedItem();
-      _viewModel.getReceiveItemsById(receiveId);
-    }
   }
 
   @override
   void dispose() {
     _viewModel.state.removeListener(_onStateChanged);
+    _referenceEditingController.dispose();
     _referenceNode.dispose();
     _viewNode.dispose();
 
@@ -151,7 +153,7 @@ class _ReceiveManagePageState extends State<ReceiveManagePage> {
           IconButton(
             splashRadius: 20,
             onPressed: () {
-              if (_receive != null) {
+              if (_receive != null && !_receive!.isImported) {
                 _showRemoveAlertDialog(context);
               }
             },
@@ -164,17 +166,40 @@ class _ReceiveManagePageState extends State<ReceiveManagePage> {
   }
 
   _buildBody(BuildContext context) {
-    final button = _receive == null ? _buildAddButton() : _buildAddProductButton();
+    final button =
+        _receive == null ? _buildAddButton() : _buildAddProductButton();
     return Container(
       padding: const EdgeInsets.all(defaultPagePadding),
       child: Column(
         children: <Widget>[
-          _buildForm(context),
+          if (_receive != null && !_viewModel.state.value.itemsReady)
+            TextButton(
+                onPressed: () => _viewModel.getReceiveItemsById(_receive!.id),
+                child: const Text('โหลดรายการอีกครั้ง')),
+          AbsorbPointer(
+              absorbing: _receive?.isImported == true,
+              child: _buildForm(context)),
           const SizedBox(height: 12),
-          button,
+          if (_receive?.isImported == true)
+            const Text('นำเข้าสต็อกแล้ว', key: Key('receive-imported'))
+          else
+            button,
           const SizedBox(height: 12),
           _buildProductLots(),
           _buildTotalCost(),
+          if (_receive != null &&
+              !_receive!.isImported &&
+              _receiveItems.isNotEmpty)
+            TextButton(
+              key: const Key('import-receive'),
+              onPressed: () => showConfirmDialog(
+                  context, 'ยืนยันนำใบรับสินค้าเข้าสต็อก?', () async {
+                final saved = await _viewModel.updateReceiveById(
+                    _receive!.id, _getUpdateReceiveParam());
+                if (saved) await _viewModel.importReceive(_receive!.id);
+              }),
+              child: const Text('นำเข้าสต็อก'),
+            ),
         ],
       ),
     );
@@ -244,15 +269,20 @@ class _ReceiveManagePageState extends State<ReceiveManagePage> {
               width: 50,
               height: 50,
               child: InkWell(
-                child: const Icon(Icons.delete),
+                child: Icon(
+                    _receive?.isImported == true ? Icons.lock : Icons.delete),
                 onTap: () {
-                  _showRemoveItemAlertDialog(context, content.lotId);
+                  if (!_receive!.isImported) {
+                    _showRemoveItemAlertDialog(context, index);
+                  }
                 },
               ),
             ),
             title: Text('Name: ${content.product?.name ?? "-"}'),
-            subtitle: Text('Quantity: ${content.quantity} Cost: ${_format.format(content.costPrice)}'),
-            trailing: Text(_format.format(content.costPrice * content.quantity)),
+            subtitle: Text(
+                'Quantity: ${content.quantity} Cost: ${_format.format(content.costPrice)}'),
+            trailing:
+                Text(_format.format(content.costPrice * content.quantity)),
             onTap: () {},
           );
         },
@@ -274,7 +304,7 @@ class _ReceiveManagePageState extends State<ReceiveManagePage> {
           ),
         ),
         const SizedBox(width: 20),
-        _buildUpdateButton()
+        if (_receive != null && !_receive!.isImported) _buildUpdateButton()
       ],
     );
   }
@@ -303,7 +333,8 @@ class _ReceiveManagePageState extends State<ReceiveManagePage> {
         key: const Key("update"),
         onClicked: () {
           if (_receive != null) {
-            _viewModel.updateReceiveById(_receive!.id, _getUpdateReceiveParam());
+            _viewModel.updateReceiveById(
+                _receive!.id, _getUpdateReceiveParam());
           }
         },
         text: "บันทึก",
@@ -319,7 +350,7 @@ class _ReceiveManagePageState extends State<ReceiveManagePage> {
         key: const Key("product"),
         onClicked: () {
           if (_receive != null) {
-            _nextToProductAdd(context, _receive!.id);
+            _addReceiveItem();
           }
         },
         text: "เพิ่มรายการสินค้า",
@@ -334,11 +365,12 @@ class _ReceiveManagePageState extends State<ReceiveManagePage> {
     );
   }
 
-  _getUpdateReceiveParam() {
+  UpdateReceiveParam _getUpdateReceiveParam({List<ReceiveItem>? items}) {
     return UpdateReceiveParam(
       supplierId: _supplier?.id ?? "",
       reference: _referenceEditingController.text,
       totalCost: _totalCost,
+      items: items ?? _receiveItems,
     );
   }
 
@@ -350,19 +382,36 @@ class _ReceiveManagePageState extends State<ReceiveManagePage> {
     });
   }
 
-  _showRemoveItemAlertDialog(BuildContext context, String lotId) {
+  _showRemoveItemAlertDialog(BuildContext context, int index) {
     showConfirmDialog(context, "ต้องการลบสินค้าใช่หรือไม่", () {
-      _viewModel.removeReceiveItemById(lotId);
+      final items = List<ReceiveItem>.of(_receiveItems)..removeAt(index);
+      _viewModel.updateReceiveById(
+          _receive!.id, _getUpdateReceiveParam(items: items));
     });
   }
 
-  _nextToProductAdd(BuildContext context, String receiveId) async {
-    var _ = await Navigator.pushNamed(context, PRODUCT_ADD_ROUTE, arguments: ProductAddArgument(receiveId));
-    _viewModel.getReceiveItemsById(receiveId);
+  Future<void> _addReceiveItem() async {
+    if (_viewModel.state.value.loading || !_viewModel.state.value.itemsReady) {
+      return;
+    }
+    try {
+      final products = await sl<GetProductsUseCase>()();
+      if (!mounted) return;
+      final item = await showDialog<ReceiveItem>(
+        context: context,
+        builder: (_) =>
+            ReceiveItemDialog(receiveId: _receive!.id, products: products),
+      );
+      if (!mounted || item == null) return;
+      await _viewModel.updateReceiveById(_receive!.id,
+          _getUpdateReceiveParam(items: [..._receiveItems, item]));
+    } on Exception catch (e) {
+      if (mounted) _snackBar.showErrorSnackBar(toFailure(e).getMessage());
+    }
   }
 
   _nextToSupplierAdd(BuildContext context) async {
-    var _ = await Navigator.pushNamed(context, SUPPLIER_ADD_ROUTE);
+    var _ = await Navigator.pushNamed(context, supplierAddRoute);
     _viewModel.getSuppliers();
   }
 }

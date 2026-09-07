@@ -15,10 +15,13 @@ class ProductMapper {
   }
 
   Product toProductDomain(Map<String, dynamic> json) {
-    String? status = json['status'];
-    if (status == null || status == "") {
-      status = "Active";
-    }
+    // API/CSV imports use uppercase; older POS records use title case.
+    final rawStatus = (json['status'] as String?)?.trim() ?? '';
+    final status = switch (rawStatus.toUpperCase()) {
+      '' || 'ACTIVE' => 'Active',
+      'INACTIVE' => 'Inactive',
+      _ => rawStatus,
+    };
     return Product(
       id: json['id'],
       name: json['name'],
@@ -131,7 +134,7 @@ class ProductMapper {
       productId: json['productId'],
       lotNumber: json['lotNumber'],
       expireDate: json['expireDate'],
-      notify: json['notify'],
+      notify: json['notify'] ?? false,
     );
   }
 

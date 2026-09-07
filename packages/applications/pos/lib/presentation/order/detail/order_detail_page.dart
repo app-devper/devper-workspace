@@ -411,7 +411,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
 
   _nextToProductEdit(BuildContext context, Product? product) async {
     if (product != null) {
-      var result = await Navigator.pushNamed(context, PRODUCT_EDIT_ROUTE,
+      var result = await Navigator.pushNamed(context, productEditRoute,
           arguments: ProductArgument(product));
       if (result != null) {
         _viewModel.getOrderById(widget.orderId);
@@ -421,7 +421,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
 
   _nextToOrderHistory(BuildContext context, Product? product) async {
     if (product != null) {
-      var result = await Navigator.pushNamed(context, ORDER_HISTORY_ROUTE,
+      var result = await Navigator.pushNamed(context, orderHistoryRoute,
           arguments: OrderHistoryArgument(product));
       if (result != null) {
         _viewModel.getOrderById(widget.orderId);
@@ -475,7 +475,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
   }
 
   _nextToSupplier(BuildContext context) async {
-    var _ = await Navigator.pushNamed(context, SUPPLIER_ROUTE);
+    var _ = await Navigator.pushNamed(context, supplierRoute);
   }
 
   _showCustomerDialog(Supplier supplier, Customer? customer) {

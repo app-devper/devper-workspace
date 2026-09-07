@@ -14,35 +14,41 @@ class StockCountItemPickerViewModel {
     required this.productRepo,
   });
 
-  final _state = ValueNotifier<StockCountItemPickerState>(const StockCountItemPickerState());
+  final _state = ValueNotifier<StockCountItemPickerState>(
+      const StockCountItemPickerState());
 
   ValueListenable<StockCountItemPickerState> get state => _state;
 
   List<ProductUnitItem> _all = [];
 
   Future<void> getProducts() async {
-    _state.value = _state.value.copyWith(loading: true);
+    _state.value = _state.value.copyWith(loading: true, clearError: true);
     try {
-      final products = await productRepo.getLocalProducts();
+      final products = await productRepo.getProducts();
       _all = [];
       for (var item in products) {
         if (item.status == productStatusActive) {
           _all.addAll(item.toProductItems());
         }
       }
-      _state.value = _state.value.copyWith(loading: false, products: List<ProductUnitItem>.of(_all));
+      _state.value = _state.value
+          .copyWith(loading: false, products: List<ProductUnitItem>.of(_all));
     } on Exception catch (_) {
-      _state.value = _state.value.copyWith(loading: false);
+      _state.value = _state.value
+          .copyWith(loading: false, error: "โหลดสินค้าไม่สำเร็จ กรุณาลองใหม่");
     }
   }
 
   void searchProduct(String text) {
     if (text.isEmpty) {
-      _state.value = _state.value.copyWith(products: List<ProductUnitItem>.of(_all));
+      _state.value =
+          _state.value.copyWith(products: List<ProductUnitItem>.of(_all));
     } else {
       final lower = text.toLowerCase();
       _state.value = _state.value.copyWith(
-        products: _all.where((item) => item.name.toLowerCase().contains(lower)).toList(),
+        products: _all
+            .where((item) => item.name.toLowerCase().contains(lower))
+            .toList(),
       );
     }
   }

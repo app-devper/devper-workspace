@@ -18,6 +18,10 @@ import 'package:pos/domain/repositories/product_repository.dart';
 class ProductRepositoryImpl implements ProductRepository {
   final PosService posService;
   List<Product> _products = [];
+  bool _productsDirty = false;
+
+  @override
+  void invalidateProductsCache() => _productsDirty = true;
 
   ProductRepositoryImpl({
     required this.posService,
@@ -25,6 +29,7 @@ class ProductRepositoryImpl implements ProductRepository {
 
   @override
   Future<Product?> getProductByBarcode(String barcode) async {
+    if (_productsDirty) await getProducts();
     if (_products.isNotEmpty) {
       final result = _products.where((product) {
         return product.status == productStatusActive &&
@@ -44,6 +49,7 @@ class ProductRepositoryImpl implements ProductRepository {
     if (response.isSuccessful) {
       final result = mapper.toProductsDomain(jsonDecode(response.body));
       _products = result;
+      _productsDirty = false;
       return _products;
     } else {
       throw toAppException(response);
@@ -128,7 +134,7 @@ class ProductRepositoryImpl implements ProductRepository {
 
   @override
   Future<List<Product>> getLocalProducts() {
-    if (_products.isEmpty) {
+    if (_productsDirty || _products.isEmpty) {
       return getProducts();
     } else {
       return Future.value(_products);
@@ -144,6 +150,7 @@ class ProductRepositoryImpl implements ProductRepository {
 
   @override
   Future<Product?> getLocalProductById(String productId) async {
+    if (_productsDirty) await getProducts();
     final product = _products.where((item) => item.id == productId).firstOrNull;
     if (product != null) {
       return Future.value(product);
@@ -177,7 +184,8 @@ class ProductRepositoryImpl implements ProductRepository {
     final mapper = ProductMapper();
     final request = mapper.toUpdateProductLotQuantityRequest(param);
     final response =
-        await posService.updateProductLotQuantityById(lotId, request);
+        // Expiry notifications return product stock IDs, not legacy product lot IDs.
+        await posService.updateProductStockQuantityById(lotId, request);
     return mapper.toProductLotDomain(jsonOrThrow(response));
   }
 
@@ -588,7 +596,8 @@ class ProductRepositoryImpl implements ProductRepository {
     required String filename,
   }) async {
     final mapper = ProductMapper();
-    final response = await posService.importProductCSV(bytes: bytes, filename: filename);
+    final response =
+        await posService.importProductCSV(bytes: bytes, filename: filename);
     return mapper.toCSVImportResultDomain(jsonOrThrow(response));
   }
 }

@@ -49,32 +49,35 @@ class _ProductVolumeUnitWidgetState extends State<ProductVolumeUnitWidget> {
       ),
       const Divider(height: 1),
       Expanded(
-        child: ListView(
-          children: [
-            for (var unit in volumeUnits)
-              _buildUnitOption(
-                volumeUnits.indexOf(unit),
-                unit.name,
-              )
-          ],
+        child: RadioGroup<int>(
+          groupValue: _selectedUnit,
+          onChanged: _onUnitSelected,
+          child: ListView(
+            children: [
+              for (var unit in volumeUnits)
+                _buildUnitOption(
+                  volumeUnits.indexOf(unit),
+                  unit.name,
+                )
+            ],
+          ),
         ),
       )
     ]);
   }
 
+  void _onUnitSelected(int? index) {
+    if (index == null) return;
+    setState(() {
+      _selectedUnit = index;
+    });
+  }
+
   Widget _buildUnitOption(int index, String unitName) {
     return ListTile(
       title: Text(unitName),
-      leading: Radio(
-        value: index,
-        groupValue: _selectedUnit,
-        onChanged: (value) {},
-      ),
-      onTap: () {
-        setState(() {
-          _selectedUnit = index;
-        });
-      },
+      leading: Radio<int>(value: index),
+      onTap: () => _onUnitSelected(index),
     );
   }
 }

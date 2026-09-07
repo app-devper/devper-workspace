@@ -24,63 +24,55 @@ class ProductItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        onTap.call();
-      },
-      child: Card(
-        shadowColor: Colors.grey[200],
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Container(
-          padding: const EdgeInsets.all(8.0),
+    final available = quantity > 0;
+    return Card(
+      elevation: 0,
+      color: available ? Colors.white : const Color(0xFFF4F6F8),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(14),
+        side: const BorderSide(color: Color(0xFFE0E6ED)),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: () => onTap.call(),
+        child: Padding(
+          padding: const EdgeInsets.all(14),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 4),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(10),
-                  color: quantity != 0 ? Colors.green : Colors.grey,
-                ),
-                child: Text(
-                  quantity != 0 ? "$quantity${unit != "" ? " $unit" : ""}" : 'หมด',
-                  maxLines: 1,
+              Text(name,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 14,
-                  ),
-                ),
-              ),
-              Text(
-                name,
-                maxLines: 1,
-                style: TextStyle(
-                  color: Colors.grey[800],
-                  fontSize: 16,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                unit,
-                maxLines: 1,
-                style: const TextStyle(
-                  color: Colors.black,
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              Text(
-                "฿${formatDouble(price)}",
-                maxLines: 1,
-                style: const TextStyle(
-                  color: Colors.green,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF243247))),
+              const Spacer(),
+              Text(available ? 'คงเหลือ $quantity $unit' : 'สินค้าหมด',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                      fontSize: 12,
+                      color: available
+                          ? const Color(0xFF28734A)
+                          : const Color(0xFF687588))),
+              const SizedBox(height: 8),
+              Row(children: [
+                Expanded(
+                    child: Text('฿${formatDouble(price)}',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                            fontSize: 21,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF315E90)))),
+                Flexible(
+                    child: Text('/ $unit',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                            fontSize: 12, color: Color(0xFF687588)))),
+              ]),
             ],
           ),
         ),
@@ -265,18 +257,24 @@ class CartOrderItem extends StatelessWidget {
                   width: 36,
                   height: 36,
                   child: Tooltip(
-                    message: allowOversell ? "อนุญาตขายเกินสต็อกแล้ว" : "อนุญาตขายเกินสต็อก",
+                    message: allowOversell
+                        ? "อนุญาตขายเกินสต็อกแล้ว"
+                        : "อนุญาตขายเกินสต็อก",
                     child: InkResponse(
                       onTap: () {
                         onToggleOversell.call();
                       },
                       child: Ink(
                         decoration: ShapeDecoration(
-                          color: allowOversell ? Colors.orange[50] : Colors.grey[100],
+                          color: allowOversell
+                              ? Colors.orange[50]
+                              : Colors.grey[100],
                           shape: const CircleBorder(),
                         ),
                         child: Icon(
-                          allowOversell ? Icons.check_box : Icons.check_box_outline_blank,
+                          allowOversell
+                              ? Icons.check_box
+                              : Icons.check_box_outline_blank,
                           color: allowOversell ? Colors.orange : Colors.grey,
                           size: 18,
                         ),

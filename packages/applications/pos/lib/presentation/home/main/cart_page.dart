@@ -266,7 +266,7 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 14,
-                      height: 0,
+                      height: 1.4,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -333,7 +333,9 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
             style: TextStyle(fontSize: 18),
           ),
           subtitle: Text(
-            _hasComplianceInfo() ? 'ระบุแล้ว: ${_getComplianceSummary()}' : 'ไม่บังคับ ระบุเมื่อจำเป็น',
+            _hasComplianceInfo()
+                ? 'ระบุแล้ว: ${_getComplianceSummary()}'
+                : 'ไม่บังคับ ระบุเมื่อจำเป็น',
             style: const TextStyle(fontSize: 14),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
@@ -375,13 +377,12 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
           child: ElevatedButton(
-            onPressed: () {
-              if (_orderItems.isNotEmpty) {
-                _showPaymentDialog();
-              }
-            },
+            onPressed: _orderItems.isEmpty ? null : _showPaymentDialog,
             style: ElevatedButton.styleFrom(
               backgroundColor: CustomColor.primary,
+              foregroundColor: Colors.white,
+              disabledBackgroundColor: const Color(0xFFE8EDF3),
+              disabledForegroundColor: const Color(0xFF596579),
               minimumSize: const Size(double.infinity, 64),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
@@ -390,14 +391,16 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
             child: Column(
               children: [
                 Text(
-                  "ชำระสินค้า (${_orderItems.length} รายการ)",
+                  _orderItems.isEmpty
+                      ? "เลือกสินค้าเพื่อเริ่มขาย"
+                      : "ชำระเงิน (${_orderItems.length} รายการ)",
                   style: const TextStyle(
                       fontSize: 14, fontWeight: FontWeight.bold),
                 ),
                 Text(
                   '฿${formatDouble(_getPrice())}',
                   style: const TextStyle(
-                    height: 0,
+                    height: 1.4,
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
                   ),
@@ -548,7 +551,9 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
   }
 
   bool _hasComplianceInfo() {
-    return (_patientId?.isNotEmpty ?? false) || (_prescriberName?.isNotEmpty ?? false) || (_pharmacistName?.isNotEmpty ?? false);
+    return (_patientId?.isNotEmpty ?? false) ||
+        (_prescriberName?.isNotEmpty ?? false) ||
+        (_pharmacistName?.isNotEmpty ?? false);
   }
 
   String _getComplianceSummary() {
@@ -707,8 +712,10 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
         OrderPayment(amount: amount, type: typeMode),
       ],
       patientId: _patientId?.isNotEmpty ?? false ? _patientId : null,
-      prescriberName: _prescriberName?.isNotEmpty ?? false ? _prescriberName : null,
-      pharmacistName: _pharmacistName?.isNotEmpty ?? false ? _pharmacistName : null,
+      prescriberName:
+          _prescriberName?.isNotEmpty ?? false ? _prescriberName : null,
+      pharmacistName:
+          _pharmacistName?.isNotEmpty ?? false ? _pharmacistName : null,
     );
   }
 }

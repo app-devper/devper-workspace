@@ -127,7 +127,7 @@ class _StockCountsPageState extends State<StockCountsPage> {
   _nextToStockCountManage(BuildContext context, {String? stockCountId}) async {
     var _ = await Navigator.pushNamed(
       context,
-      STOCK_COUNT_MANAGE_ROUTE,
+      stockCountManageRoute,
       arguments: StockCountManageArgument(stockCountId),
     );
     _viewModel.getStockCounts();
