@@ -37,6 +37,7 @@ class _HomePageState extends State<HomePage> {
     _config = sl<AppConfig>();
     _viewModel.state.addListener(_onStateChanged);
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      _viewModel.loadRole();
       _viewModel.getSystems();
     });
   }
@@ -77,10 +78,15 @@ class _HomePageState extends State<HomePage> {
         title: Text(_config.home),
         actions: _buildAction(context),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _openForm(),
-        tooltip: 'เพิ่มระบบ',
-        child: const Icon(Icons.add),
+      floatingActionButton: ValueListenableBuilder<HomeState>(
+        valueListenable: _viewModel.state,
+        builder: (context, state, _) => state.canManageSystems
+            ? FloatingActionButton(
+                onPressed: () => _openForm(),
+                tooltip: 'เพิ่มระบบ',
+                child: const Icon(Icons.add),
+              )
+            : const SizedBox.shrink(),
       ),
       body: AnnotatedRegion<SystemUiOverlayStyle>(
         value: SystemUiOverlayStyle.dark.copyWith(
@@ -93,15 +99,19 @@ class _HomePageState extends State<HomePage> {
 
   List<Widget> _buildAction(BuildContext context) {
     return [
-      PopupMenuButton<int>(
-        icon: const Icon(Icons.more_vert),
-        onSelected: (item) => handleClick(item),
-        itemBuilder: (context) => [
-          const PopupMenuItem<int>(value: 0, child: Text("Users")),
-          const PopupMenuItem<int>(value: 1, child: Text("User info")),
-          const PopupMenuItem<int>(value: 2, child: Text("Change password")),
-          const PopupMenuItem<int>(value: 3, child: Text('Logout')),
-        ],
+      ValueListenableBuilder<HomeState>(
+        valueListenable: _viewModel.state,
+        builder: (context, state, _) => PopupMenuButton<int>(
+          icon: const Icon(Icons.more_vert),
+          onSelected: (item) => handleClick(item),
+          itemBuilder: (context) => [
+            if (state.canManageUsers)
+              const PopupMenuItem<int>(value: 0, child: Text("Users")),
+            const PopupMenuItem<int>(value: 1, child: Text("User info")),
+            const PopupMenuItem<int>(value: 2, child: Text("Change password")),
+            const PopupMenuItem<int>(value: 3, child: Text('Logout')),
+          ],
+        ),
       ),
     ];
   }
@@ -135,13 +145,13 @@ class _HomePageState extends State<HomePage> {
         }
         return Padding(
           padding: const EdgeInsets.all(defaultPagePadding),
-          child: _buildSystems(state.items),
+          child: _buildSystems(state.items, state.canManageSystems),
         );
       },
     );
   }
 
-  Widget _buildSystems(List<System> items) {
+  Widget _buildSystems(List<System> items, bool canManage) {
     return ListView.builder(
       itemCount: items.length,
       itemBuilder: (context, index) {
@@ -150,21 +160,23 @@ class _HomePageState extends State<HomePage> {
           title: Text(content.systemCode),
           subtitle: Text('${content.systemName}\n${content.host}'),
           isThreeLine: true,
-          trailing: PopupMenuButton<int>(
-            icon: const Icon(Icons.more_horiz),
-            onSelected: (action) {
-              if (action == 0) {
-                _openForm(system: content);
-              } else {
-                _confirmRemove(content);
-              }
-            },
-            itemBuilder: (context) => [
-              const PopupMenuItem<int>(value: 0, child: Text('แก้ไข')),
-              const PopupMenuItem<int>(value: 1, child: Text('ลบ')),
-            ],
-          ),
-          onTap: () => _openForm(system: content),
+          trailing: canManage
+              ? PopupMenuButton<int>(
+                  icon: const Icon(Icons.more_horiz),
+                  onSelected: (action) {
+                    if (action == 0) {
+                      _openForm(system: content);
+                    } else {
+                      _confirmRemove(content);
+                    }
+                  },
+                  itemBuilder: (context) => [
+                    const PopupMenuItem<int>(value: 0, child: Text('แก้ไข')),
+                    const PopupMenuItem<int>(value: 1, child: Text('ลบ')),
+                  ],
+                )
+              : null,
+          onTap: canManage ? () => _openForm(system: content) : null,
         );
       },
     );

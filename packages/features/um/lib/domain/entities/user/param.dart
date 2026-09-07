@@ -71,3 +71,13 @@ class ChangePasswordParam {
     required this.newPassword,
   });
 }
+
+class SetPasswordParam {
+  final String userId;
+  final String password;
+
+  SetPasswordParam({
+    required this.userId,
+    required this.password,
+  });
+}

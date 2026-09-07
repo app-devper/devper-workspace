@@ -10,13 +10,20 @@ class HomeState {
   final bool loading;
   final String? error;
   final bool loggedOut;
+  final String role;
 
   const HomeState({
     this.items = const [],
     this.loading = false,
     this.error,
     this.loggedOut = false,
+    this.role = '',
   });
+
+  /// Mirrors um-web's sidebar gating.
+  bool get canManageUsers => const ['SUPER', 'ADMIN', 'MANAGER'].contains(role);
+
+  bool get canManageSystems => role == 'SUPER';
 
   HomeState copyWith({
     List<System>? items,
@@ -24,12 +31,14 @@ class HomeState {
     String? error,
     bool clearError = false,
     bool? loggedOut,
+    String? role,
   }) {
     return HomeState(
       items: items ?? this.items,
       loading: loading ?? this.loading,
       error: clearError ? null : (error ?? this.error),
       loggedOut: loggedOut ?? this.loggedOut,
+      role: role ?? this.role,
     );
   }
 }

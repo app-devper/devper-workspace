@@ -4,6 +4,7 @@ import 'package:um/domain/entities/auth/login.dart';
 import 'package:um/domain/entities/auth/param.dart';
 import 'package:um/domain/entities/auth/session.dart';
 import 'package:um/domain/entities/auth/system.dart';
+import 'package:um/domain/entities/auth/user_session.dart';
 import 'package:um/domain/repositories/login_repository.dart';
 
 class FakeLoginRepository implements LoginRepository {
@@ -30,6 +31,15 @@ class FakeLoginRepository implements LoginRepository {
 
   @override
   Future<Login> keepAlive() => throw UnimplementedError();
+
+  @override
+  Future<List<UserSession>> getSessions() => throw UnimplementedError();
+
+  @override
+  Future<bool> revokeSessionById(String sessionId) => throw UnimplementedError();
+
+  @override
+  Future<int> revokeOtherSessions() => throw UnimplementedError();
 
   @override
   Future<System> getSystem() => throw UnimplementedError();

@@ -37,6 +37,22 @@ class UmService {
     return _client.get(url, headers: _networkConfig.getHeaders(url));
   }
 
+  Future<http.Response> getSessions() {
+    var url = Uri.parse('${_networkConfig.getHostUm()}/api/um/v1/auth/sessions');
+    return _client.get(url, headers: _networkConfig.getHeaders(url));
+  }
+
+  Future<http.Response> revokeSessionById(String sessionId) {
+    var url = Uri.parse(
+        '${_networkConfig.getHostUm()}/api/um/v1/auth/sessions/$sessionId');
+    return _client.delete(url, headers: _networkConfig.getHeaders(url));
+  }
+
+  Future<http.Response> revokeOtherSessions() {
+    var url = Uri.parse('${_networkConfig.getHostUm()}/api/um/v1/auth/sessions');
+    return _client.delete(url, headers: _networkConfig.getHeaders(url));
+  }
+
   // User
   Future<http.Response> getUserInfo() {
     var url = Uri.parse('${_networkConfig.getHostUm()}/api/um/v1/user/info');
@@ -87,6 +103,13 @@ class UmService {
   Future<http.Response> updateStatusById(String userId, String jsonBody) {
     var url = Uri.parse(
         '${_networkConfig.getHostUm()}/api/um/v1/user/$userId/status');
+    return _client.patch(url,
+        headers: _networkConfig.getHeaders(url), body: jsonBody);
+  }
+
+  Future<http.Response> setPasswordById(String userId, String jsonBody) {
+    var url = Uri.parse(
+        '${_networkConfig.getHostUm()}/api/um/v1/user/$userId/set-password');
     return _client.patch(url,
         headers: _networkConfig.getHeaders(url), body: jsonBody);
   }

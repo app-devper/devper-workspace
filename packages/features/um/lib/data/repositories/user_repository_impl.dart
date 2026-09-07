@@ -56,6 +56,21 @@ class UserRepositoryImpl implements UserRepository {
   }
 
   @override
+  Future<bool> setPasswordById(SetPasswordParam param) async {
+    if (param.password.isEmpty) {
+      throw const ValidationException(message: "Invalid parameter");
+    }
+    var mapper = UserMapper();
+    final response = await _service.setPasswordById(
+        param.userId, mapper.toSetPasswordRequest(param.password));
+    if (response.isSuccessful) {
+      return true;
+    } else {
+      throw toAppException(response);
+    }
+  }
+
+  @override
   Future<User> removeUserById(String userId) async {
     if (userId.isEmpty) {
       throw const ValidationException(message: "Invalid parameter");

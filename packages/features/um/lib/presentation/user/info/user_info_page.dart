@@ -8,10 +8,15 @@ import 'package:design_system/widgets/snack_bar.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 
 // Project imports:
+import 'package:um/domain/entities/auth/user_session.dart';
 import 'package:um/domain/entities/user/user.dart';
+import 'package:um/hooks/use_revoke_other_sessions.dart';
+import 'package:um/hooks/use_revoke_session.dart';
+import 'package:um/hooks/use_sessions.dart';
 import 'package:um/hooks/use_update_user_info.dart';
 import 'package:um/hooks/use_user_info.dart';
 import 'package:um/presentation/constants.dart';
+import 'package:um/presentation/core/widget/build_sessions.dart';
 import 'package:um/presentation/core/widget/build_user.dart';
 
 class UserInfoPage extends HookWidget {
@@ -34,6 +39,41 @@ class UserInfoPage extends HookWidget {
 
     final update = useUpdateUserInfo(context, onSuccess: success);
 
+    // Bumping the key re-runs useSessions so the list reflects a revoke.
+    final sessionsKey = useState(0);
+    final sessions = useSessions([sessionsKey.value]);
+
+    reloadSessions() => sessionsKey.value++;
+
+    final revokeSession = useRevokeSession(context, onSuccess: reloadSessions);
+    final revokeOthers = useRevokeOtherSessions(
+      context,
+      onSuccess: (revoked) {
+        snackBar.hideAll();
+        snackBar.showSnackBar(text: "Signed out $revoked session(s)");
+        reloadSessions();
+      },
+    );
+
+    buildSessionSection() {
+      return FutureBuilder(
+        future: sessions,
+        builder: (BuildContext context, AsyncSnapshot<List<UserSession>> snapshot) {
+          if (snapshot.hasError) {
+            return const SizedBox.shrink();
+          } else if (snapshot.hasData) {
+            return buildSessions(
+              snapshot.requireData,
+              onRevoke: revokeSession,
+              onRevokeOthers: revokeOthers,
+            );
+          } else {
+            return const Center(child: CircularProgressIndicator());
+          }
+        },
+      );
+    }
+
     buildBody() {
       return SingleChildScrollView(
         padding: const EdgeInsets.all(defaultPagePadding),
@@ -43,9 +83,18 @@ class UserInfoPage extends HookWidget {
             if (snapshot.hasError) {
               return Container();
             } else if (snapshot.hasData) {
-              return buildUser(snapshot.requireData, (param) {
-                update(param.userParam);
-              });
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  buildUser(snapshot.requireData, (param) {
+                    update(param.userParam);
+                  }),
+                  const SizedBox(height: 24),
+                  const Divider(),
+                  const SizedBox(height: 8),
+                  buildSessionSection(),
+                ],
+              );
             } else {
               return const Center(
                 child: CircularProgressIndicator(
