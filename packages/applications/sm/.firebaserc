@@ -1,0 +1,14 @@
+{
+  "projects": {
+    "default": "devperpos"
+  },
+  "targets": {
+    "devperpos": {
+      "hosting": {
+        "sm": [
+          "devper-sm"
+        ]
+      }
+    }
+  }
+}
