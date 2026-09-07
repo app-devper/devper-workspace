@@ -1,18 +1,31 @@
+// Flutter imports:
+import 'package:flutter/foundation.dart';
+
 // Project imports:
 import 'package:pos/domain/model/supplier/supplier.dart';
 
-abstract class SuppliersState {}
+@immutable
+class SuppliersState {
+  final List<Supplier> items;
+  final bool loading;
+  final String? error;
 
-class LoadingState extends SuppliersState {}
+  const SuppliersState({
+    this.items = const [],
+    this.loading = false,
+    this.error,
+  });
 
-class ListSupplierState extends SuppliersState {
-  final List<Supplier> data;
-
-  ListSupplierState({required this.data});
-}
-
-class ErrorState extends SuppliersState {
-  final String message;
-
-  ErrorState({required this.message});
+  SuppliersState copyWith({
+    List<Supplier>? items,
+    bool? loading,
+    String? error,
+    bool clearError = false,
+  }) {
+    return SuppliersState(
+      items: items ?? this.items,
+      loading: loading ?? this.loading,
+      error: clearError ? null : (error ?? this.error),
+    );
+  }
 }

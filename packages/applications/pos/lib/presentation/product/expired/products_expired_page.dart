@@ -2,7 +2,8 @@
 import 'package:flutter/material.dart';
 
 // Package imports:
-import 'package:common/core/widgets/custom_snack_bar.dart';
+import 'package:design_system/widgets/app_bar.dart';
+import 'package:design_system/widgets/snack_bar.dart';
 import 'package:intl/intl.dart';
 
 // Project imports:
@@ -13,8 +14,7 @@ import 'package:pos/presentation/constants.dart';
 import 'package:pos/presentation/product/argument.dart';
 import 'package:pos/presentation/product/expired/products_expired_state.dart';
 import 'package:pos/presentation/product/expired/products_expired_view_model.dart';
-import 'package:pos/presentation/theme.dart';
-
+import 'package:design_system/theme/color.dart';
 import 'products_expire_ui_model.dart';
 
 class ProductsExpiredPage extends StatefulWidget {
@@ -31,37 +31,31 @@ class _ProductsExpiredPageState extends State<ProductsExpiredPage> {
   late CustomSnackBar _snackBar;
   late ProductsExpiredViewModel _viewModel;
 
-  double _totalCost = 0;
-
   Range _value = Range.before180Days;
 
   @override
   void initState() {
     super.initState();
     _viewModel = sl<ProductsExpiredViewModel>();
-    _viewModel.states.listen((state) {
-      if (state is ErrorState) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _snackBar.hideAll();
-          _snackBar.showErrorSnackBar(state.message);
-        });
-      } else if (state is LoadingState) {
-      } else if (state is ListExpiresState) {
-        _viewModel.setProductLots(state.data);
-        setState(() {
-          _totalCost = state.totalCost;
-        });
-      }
-    });
-
+    _viewModel.state.addListener(_onStateChanged);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _viewModel.initData();
       _viewModel.selectRange(_value);
     });
   }
 
+  void _onStateChanged() {
+    final error = _viewModel.state.value.error;
+    if (error != null) {
+      _snackBar.hideAll();
+      _snackBar.showErrorSnackBar(error);
+      _viewModel.consumeError();
+    }
+  }
+
   @override
   void dispose() {
+    _viewModel.state.removeListener(_onStateChanged);
     _viewModel.dispose();
     super.dispose();
   }
@@ -71,14 +65,8 @@ class _ProductsExpiredPageState extends State<ProductsExpiredPage> {
     _snackBar = CustomSnackBar(key: const Key("snackbar"), context: context);
     return Scaffold(
       key: _scaffoldKey,
-      appBar: AppBar(
-        iconTheme: CustomTheme.mainTheme.iconTheme,
-        backgroundColor: CustomColor.white,
-        centerTitle: true,
-        title: Text(
+      appBar: buildAppBar(
           Languages.of(context).productsExpiredTitle,
-          style: CustomTheme.mainTheme.textTheme.headlineSmall,
-        ),
       ),
       body: _buildBody(context),
     );
@@ -101,7 +89,7 @@ class _ProductsExpiredPageState extends State<ProductsExpiredPage> {
 
   _buildMenu() {
     return Container(
-      padding: const EdgeInsets.only(right: DEFAULT_PAGE_PADDING, left: DEFAULT_PAGE_PADDING),
+      padding: const EdgeInsets.only(right: defaultPagePadding, left: defaultPagePadding),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.end,
         children: <Widget>[
@@ -112,11 +100,11 @@ class _ProductsExpiredPageState extends State<ProductsExpiredPage> {
   }
 
   _buildDropdown() {
-    return StreamBuilder(
-      stream: _viewModel.dropdownItem.stream,
-      builder: (BuildContext context, AsyncSnapshot<List<ListItem>> snapshot) {
-        if (snapshot.hasData) {
-          var data = snapshot.data ?? [];
+    return ValueListenableBuilder<ProductsExpiredState>(
+      valueListenable: _viewModel.state,
+      builder: (BuildContext context, ProductsExpiredState state, _) {
+        final data = state.ranges;
+        if (data.isNotEmpty) {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: <Widget>[
@@ -161,13 +149,10 @@ class _ProductsExpiredPageState extends State<ProductsExpiredPage> {
   }
 
   _buildReceiveList() {
-    return StreamBuilder(
-      stream: _viewModel.lots,
-      builder: (BuildContext context, AsyncSnapshot<List<ProductLot>> snapshot) {
-        if (snapshot.hasData) {
-          var data = snapshot.data ?? [];
-          return _buildProductLots(data);
-        } else {
+    return ValueListenableBuilder<ProductsExpiredState>(
+      valueListenable: _viewModel.state,
+      builder: (BuildContext context, ProductsExpiredState state, _) {
+        if (state.loading && state.items.isEmpty) {
           return const Expanded(
             child: Center(
               child: CircularProgressIndicator(
@@ -178,6 +163,7 @@ class _ProductsExpiredPageState extends State<ProductsExpiredPage> {
             ),
           );
         }
+        return _buildProductLots(state.items);
       },
     );
   }
@@ -204,17 +190,20 @@ class _ProductsExpiredPageState extends State<ProductsExpiredPage> {
 
   _buildTotalCost() {
     return Container(
-      padding: const EdgeInsets.all(DEFAULT_PAGE_PADDING),
+      padding: const EdgeInsets.all(defaultPagePadding),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[
-          Text(
+          const Text(
             'Total Cost',
-            style: CustomTheme.mainTheme.textTheme.headlineSmall,
           ),
-          Text(
-            '฿ ${_format.format(_totalCost)}',
-            style: CustomTheme.mainTheme.textTheme.headlineSmall,
+          ValueListenableBuilder<ProductsExpiredState>(
+            valueListenable: _viewModel.state,
+            builder: (BuildContext context, ProductsExpiredState state, _) {
+              return Text(
+                '฿ ${_format.format(state.totalCost)}',
+              );
+            },
           ),
         ],
       ),
@@ -222,7 +211,7 @@ class _ProductsExpiredPageState extends State<ProductsExpiredPage> {
   }
 
   _nextToProductLotEdit(BuildContext context, ProductLot content) async {
-    var _ = await Navigator.pushNamed(context, PRODUCT_LOT_EDIT_ROUTE, arguments: ProductLotArgument(content));
+    var _ = await Navigator.pushNamed(context, productLotEditRoute, arguments: ProductLotArgument(content));
     _viewModel.selectRange(_value);
   }
 }

@@ -90,6 +90,15 @@ class LanguageEn extends Languages {
   String get productLotEditTitle => "Edit Lot Number";
 
   @override
+  String get stockCountsTitle => "Stock Count";
+
+  @override
+  String get stockCountManageTitle => "Stock Count Detail";
+
+  @override
+  String get stockCountCreateTitle => "New Stock Count";
+
+  @override
   String get supplierAddTitle => "Add Supplier";
 
   @override

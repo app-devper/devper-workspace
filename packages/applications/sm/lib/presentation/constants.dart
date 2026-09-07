@@ -1,3 +1,3 @@
 //routes
-const String ROOT_ROUTE = '/';
-const String HOME_ROUTE = '/home';
+const String rootRoute = '/';
+const String homeRoute = '/home';

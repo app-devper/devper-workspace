@@ -3,8 +3,9 @@ import 'package:flutter/material.dart';
 
 // Package imports:
 import 'package:common/core/ext/widget_ext.dart';
-import 'package:common/core/widgets/button_widget.dart';
-import 'package:common/core/widgets/custom_snack_bar.dart';
+import 'package:design_system/widgets/app_bar.dart';
+import 'package:design_system/widgets/buttons.dart';
+import 'package:design_system/widgets/snack_bar.dart';
 
 // Project imports:
 import 'package:pos/container.dart';
@@ -12,9 +13,7 @@ import 'package:pos/domain/model/supplier/param.dart';
 import 'package:pos/domain/model/supplier/supplier.dart';
 import 'package:pos/localizations/language/languages.dart';
 import 'package:pos/presentation/constants.dart';
-import 'package:pos/presentation/supplier/edit/supplier_edit_state.dart';
 import 'package:pos/presentation/supplier/edit/supplier_edit_view_model.dart';
-import 'package:pos/presentation/theme.dart';
 
 class SupplierEditPage extends StatefulWidget {
   final Supplier supplier;
@@ -43,43 +42,45 @@ class _SupplierEditPageState extends State<SupplierEditPage> {
 
   late SupplierEditViewModel _viewModel;
 
+  bool _loadingShown = false;
+
   @override
   void initState() {
     super.initState();
     _viewModel = sl<SupplierEditViewModel>();
-    _viewModel.states.listen((state) {
-      if (state is ErrorState) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _snackBar.hideAll();
-          _snackBar.showErrorSnackBar(state.message);
-        });
-        hideLoadingDialog(context);
-      } else if (state is LoadingState) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _snackBar.hideAll();
-        });
-        showLoadingDialog(context);
-      } else if (state is UpdateSupplierState) {
-        hideLoadingDialog(context);
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _snackBar.hideAll();
-          _snackBar.showSnackBar(text: "Update ${state.data.name} success");
-        });
-      } else if (state is RemoveSupplierState) {
-        hideLoadingDialog(context);
-        Navigator.pop(context, state.data);
-      } else if (state is GetSupplierState) {
-        _setupData(state.data);
-      }
-    });
-
+    _viewModel.state.addListener(_onStateChanged);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _viewModel.getSupplier(widget.supplier);
+      _setupData(widget.supplier);
     });
+  }
+
+  void _onStateChanged() {
+    final state = _viewModel.state.value;
+    if (state.loading && !_loadingShown) {
+      _loadingShown = true;
+      showLoadingDialog(context);
+    } else if (!state.loading && _loadingShown) {
+      _loadingShown = false;
+      hideLoadingDialog(context);
+    }
+    if (state.error != null) {
+      _snackBar.hideAll();
+      _snackBar.showErrorSnackBar(state.error!);
+      _viewModel.consumeError();
+    }
+    if (state.updated != null) {
+      _snackBar.hideAll();
+      _snackBar.showSnackBar(text: "Update ${state.updated!.name} success");
+      _viewModel.consumeUpdated();
+    }
+    if (state.removed != null) {
+      Navigator.pop(context, state.removed);
+    }
   }
 
   @override
   void dispose() {
+    _viewModel.state.removeListener(_onStateChanged);
     _viewNode.dispose();
     _nameNode.dispose();
     _addressNode.dispose();
@@ -95,14 +96,8 @@ class _SupplierEditPageState extends State<SupplierEditPage> {
     _snackBar = CustomSnackBar(key: const Key("snackbar"), context: context);
     return Scaffold(
       key: _scaffoldKey,
-      appBar: AppBar(
-        iconTheme: CustomTheme.mainTheme.iconTheme,
-        backgroundColor: CustomColor.white,
-        centerTitle: true,
-        title: Text(
-          Languages.of(context).supplierEditTitle,
-          style: CustomTheme.mainTheme.textTheme.headlineSmall,
-        ),
+      appBar: buildAppBar(
+        Languages.of(context).supplierEditTitle,
         actions: _buildAction(context),
       ),
       body: _buildBody(context),
@@ -130,17 +125,15 @@ class _SupplierEditPageState extends State<SupplierEditPage> {
 
   _buildBody(BuildContext context) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(DEFAULT_PAGE_PADDING),
-      child: Container(
-        child: Column(
-          children: <Widget>[
-            _buildForm(context),
-            const Padding(
-              padding: EdgeInsets.only(top: DEFAULT_PAGE_PADDING),
-            ),
-            _buildUpdateButton(),
-          ],
-        ),
+      padding: const EdgeInsets.all(defaultPagePadding),
+      child: Column(
+        children: <Widget>[
+          _buildForm(context),
+          const Padding(
+            padding: EdgeInsets.only(top: defaultPagePadding),
+          ),
+          _buildUpdateButton(),
+        ],
       ),
     );
   }

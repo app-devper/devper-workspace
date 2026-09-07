@@ -1,8 +1,5 @@
-// Dart imports:
-import 'dart:convert';
-
 // Package imports:
-import 'package:common/core/network/exception.dart';
+import 'package:common/core/network/error_mapper.dart';
 
 // Project imports:
 import 'package:sm/data/datasource/network/sm_service.dart';
@@ -22,59 +19,34 @@ class SystemRepositoryImpl implements SystemRepository {
   Future<System> createSystem(CreateParam param) async {
     var mapper = SystemMapper();
     final response = await service.createSystem(mapper.toCreateSystemRequest(param));
-    if (response.isSuccessful) {
-      final result = mapper.toSystemDomain(jsonDecode(response.body));
-      return result;
-    } else {
-      throw HttpException(response);
-    }
+    return mapper.toSystemDomain(jsonOrThrow(response));
   }
 
   @override
   Future<System> getSystemById(String systemId) async {
     var mapper = SystemMapper();
     final response = await service.getSystemById(systemId);
-    if (response.isSuccessful) {
-      final result = mapper.toSystemDomain(jsonDecode(response.body));
-      return result;
-    } else {
-      throw HttpException(response);
-    }
+    return mapper.toSystemDomain(jsonOrThrow(response));
   }
 
   @override
   Future<List<System>> getSystems() async {
     var mapper = SystemMapper();
     final response = await service.getSystems();
-    if (response.isSuccessful) {
-      final result = mapper.toSystemsDomain(jsonDecode(response.body));
-      return result;
-    } else {
-      throw HttpException(response);
-    }
+    return mapper.toSystemsDomain(jsonOrThrow(response));
   }
 
   @override
   Future<System> removeSystemById(String systemId) async {
     var mapper = SystemMapper();
     final response = await service.removeSystemById(systemId);
-    if (response.isSuccessful) {
-      final result = mapper.toSystemDomain(jsonDecode(response.body));
-      return result;
-    } else {
-      throw HttpException(response);
-    }
+    return mapper.toSystemDomain(jsonOrThrow(response));
   }
 
   @override
   Future<System> updateSystemById(UpdateSystemParam param) async {
     var mapper = SystemMapper();
     final response = await service.updateSystemById(param.systemId, mapper.toUpdateSystemRequest(param));
-    if (response.isSuccessful) {
-      final result = mapper.toSystemDomain(jsonDecode(response.body));
-      return result;
-    } else {
-      throw HttpException(response);
-    }
+    return mapper.toSystemDomain(jsonOrThrow(response));
   }
 }

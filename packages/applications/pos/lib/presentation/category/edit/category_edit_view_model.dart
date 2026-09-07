@@ -1,84 +1,74 @@
-// Dart imports:
-import 'dart:async';
+// Flutter imports:
+import 'package:flutter/foundation.dart';
 
 // Package imports:
 import 'package:common/core/error/failure.dart';
 
 // Project imports:
-import 'package:pos/domain/model/category/category.dart';
 import 'package:pos/domain/model/category/param.dart';
-import 'package:pos/domain/repositories/category_repository.dart';
+import 'package:pos/domain/usecase/category/get_category_by_id_use_case.dart';
+import 'package:pos/domain/usecase/category/remove_category_by_id_use_case.dart';
+import 'package:pos/domain/usecase/category/update_category_by_id_use_case.dart';
 import 'category_edit_state.dart';
 
 class CategoryEditViewModel {
-  final CategoryRepository categoryRepo;
+  final GetCategoryByIdUseCase getCategoryByIdUseCase;
+  final UpdateCategoryByIdUseCase updateCategoryByIdUseCase;
+  final RemoveCategoryByIdUseCase removeCategoryByIdUseCase;
 
   CategoryEditViewModel({
-    required this.categoryRepo,
+    required this.getCategoryByIdUseCase,
+    required this.updateCategoryByIdUseCase,
+    required this.removeCategoryByIdUseCase,
   });
 
-  final _states = StreamController<CategoryEditState>();
+  final _state = ValueNotifier<CategoryEditState>(const CategoryEditState());
 
-  StreamController<CategoryEditState> get states => _states;
+  ValueListenable<CategoryEditState> get state => _state;
 
-  void getCategoryById(String categoryId) async {
+  Future<void> getCategoryById(String categoryId) async {
     try {
-      final result = await categoryRepo.getCategoryById(categoryId);
-      _onGetCategory(result);
+      await getCategoryByIdUseCase(categoryId);
     } on Exception catch (e) {
-      _onError(toFailure(e));
+      _state.value = _state.value.copyWith(error: toFailure(e).getMessage());
     }
   }
 
-  void updateCategoryById(String categoryId, CategoryParam param) async {
-    _onLoading();
+  Future<void> updateCategoryById(String categoryId, CategoryParam param) async {
+    _state.value = _state.value.copyWith(loading: true, clearError: true, clearUpdated: true);
     try {
-      final result = await categoryRepo.updateCategoryById(categoryId, param);
-      _onEditCategory(result);
+      final updated = await updateCategoryByIdUseCase(
+        CategoryUpdateParam(categoryId: categoryId, param: param),
+      );
+      _state.value = _state.value.copyWith(loading: false, updated: updated);
     } on Exception catch (e) {
-      _onError(toFailure(e));
+      _state.value = _state.value.copyWith(loading: false, error: toFailure(e).getMessage());
     }
   }
 
-  void removeCategoryById(String categoryId) async {
-    _onLoading();
+  Future<void> removeCategoryById(String categoryId) async {
+    _state.value = _state.value.copyWith(loading: true, clearError: true, clearRemoved: true);
     try {
-      final result = await categoryRepo.removeCategoryById(categoryId);
-      _onRemoveCategory(result);
+      final removed = await removeCategoryByIdUseCase(categoryId);
+      _state.value = _state.value.copyWith(loading: false, removed: removed);
     } on Exception catch (e) {
-      _onError(toFailure(e));
+      _state.value = _state.value.copyWith(loading: false, error: toFailure(e).getMessage());
     }
   }
 
-  _onLoading() {
-    _states.sink.add(LoadingState());
-  }
-
-  _onRemoveCategory(Category data) {
-    if (!_states.isClosed) {
-      _states.sink.add(RemoveCategoryState(data: data));
+  void consumeError() {
+    if (_state.value.error != null) {
+      _state.value = _state.value.copyWith(clearError: true);
     }
   }
 
-  _onGetCategory(Category data) {
-    if (!_states.isClosed) {
-      _states.sink.add(GetCategoryState(data: data));
+  void consumeUpdated() {
+    if (_state.value.updated != null) {
+      _state.value = _state.value.copyWith(clearUpdated: true);
     }
   }
 
-  _onEditCategory(Category data) {
-    if (!_states.isClosed) {
-      _states.sink.add(UpdateCategoryState(data: data));
-    }
-  }
-
-  _onError(Failure failure) {
-    if (!_states.isClosed) {
-      _states.sink.add(ErrorState(message: failure.getMessage()));
-    }
-  }
-
-  dispose() {
-    _states.close();
+  void dispose() {
+    _state.dispose();
   }
 }

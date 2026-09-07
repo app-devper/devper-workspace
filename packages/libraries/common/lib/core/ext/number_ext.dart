@@ -1,3 +1,6 @@
+// Package imports:
+import 'package:intl/intl.dart';
+
 String formatPrice(double price) => price.toStringAsFixed(2);
 
 String convertAmountToLetter(String number) {
@@ -65,4 +68,14 @@ String convertAmountToLetter(String number) {
   }
 
   return convert;
+}
+
+String formatDouble(double price){
+  final formatter = NumberFormat("#,##0.00", "en_US");
+  return formatter.format(price);
+}
+
+String formatDecimal(double price){
+  final formatter = NumberFormat("#,##0", "en_US");
+  return formatter.format(price);
 }

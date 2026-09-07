@@ -1,0 +1,43 @@
+name: check
+
+on:
+  pull_request:
+  push:
+    branches: [main, develop]
+
+concurrency:
+  group: check-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  analyze-test:
+    name: Analyze + Test (Flutter/melos)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.38.7
+          channel: stable
+          cache: true
+
+      - name: Activate melos
+        run: |
+          dart pub global activate melos 8.1.0
+          # The melos scripts shell out to `melos exec`, so the global bin
+          # directory has to be on PATH for every step below.
+          echo "$HOME/.pub-cache/bin" >> "$GITHUB_PATH"
+
+      - name: Bootstrap
+        run: melos bootstrap
+
+      - name: Analyze
+        run: melos run analyze
+
+      - name: Test
+        run: melos exec -c 1 --dir-exists=test -- flutter test

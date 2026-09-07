@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 // Package imports:
-import 'package:common/core/ext/widget_ext.dart';
-import 'package:common/core/widgets/custom_snack_bar.dart';
+import 'package:design_system/widgets/app_bar.dart';
+import 'package:design_system/widgets/snack_bar.dart';
 import 'package:intl/intl.dart';
 
 // Project imports:
@@ -14,7 +14,7 @@ import 'package:pos/domain/model/order/param.dart';
 import 'package:pos/localizations/language/languages.dart';
 import 'package:pos/presentation/constants.dart';
 import 'package:pos/presentation/order/argument.dart';
-import 'package:pos/presentation/theme.dart';
+import 'package:design_system/theme/color.dart';
 import 'order_state.dart';
 import 'order_ui_model.dart';
 import 'order_view_model.dart';
@@ -47,7 +47,7 @@ class _OrderPageState extends State<OrderPage> {
 
   bool _isAdmin = false;
 
-  Range _value = Range.Today;
+  Range _value = Range.today;
   double _totalCost = 0;
   double _total = 0;
 
@@ -55,48 +55,56 @@ class _OrderPageState extends State<OrderPage> {
   void initState() {
     super.initState();
     _viewModel = sl<OrderViewModel>();
-    _viewModel.states.stream.listen((state) {
-      if (state is ErrorState) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _snackBar.hideAll();
-          _snackBar.showErrorSnackBar(state.message);
-        });
-      } else if (state is LoadingState) {
-        showLoadingDialog(context);
-      } else if (state is OrderSummaryState) {
-        setState(() {
-          _totalCost = state.totalCost;
-          _total = state.total;
-        });
-      } else if (state is LoggedState) {
-        setState(() {
-          _isAdmin = state.isAdmin;
-          _defaultChoiceIndex = state.isAdmin ? 0 : 1;
-        });
-        _viewModel.initData();
-      } else if (state is OrderRangeState) {
-        if (state.range == Range.DateRange) {
-          _selectRangeDate(state.startDate, state.range);
-        } else if (state.range == Range.Date) {
-          _selectDate(_startDate, state.range);
-        } else {
-          setState(() {
-            _startDate = state.startDate;
-            _endDate = state.endDate;
-            _value = state.range;
-          });
-          _viewModel.getOrderItem(_choices[_defaultChoiceIndex], _getOrderRangeParam());
-        }
-      } else if (state is InitState) {
-        _viewModel.selectRange(_value);
-      }
-    });
-
+    _viewModel.state.addListener(_onStateChanged);
     _viewModel.checkLogin();
+  }
+
+  void _onStateChanged() {
+    final state = _viewModel.state.value;
+    if (state.error != null) {
+      final message = state.error!;
+      _viewModel.consumeError();
+      _snackBar.hideAll();
+      _snackBar.showErrorSnackBar(message);
+    }
+    setState(() {
+      _totalCost = state.totalCost;
+      _total = state.total;
+    });
+    if (state.logged != null) {
+      final isAdmin = state.logged!;
+      _viewModel.consumeLogged();
+      setState(() {
+        _isAdmin = isAdmin;
+      });
+      _viewModel.initData();
+    }
+    if (state.initialized) {
+      _viewModel.consumeInitialized();
+      _viewModel.selectRange(_value);
+    }
+    final selection = state.rangeSelection;
+    if (selection != null) {
+      _viewModel.consumeRangeSelection();
+      if (selection.range == Range.dateRange) {
+        _selectRangeDate(selection.startDate, selection.range);
+      } else if (selection.range == Range.date) {
+        _selectDate(_startDate, selection.range);
+      } else {
+        setState(() {
+          _startDate = selection.startDate;
+          _endDate = selection.endDate;
+          _value = selection.range;
+        });
+        _viewModel.getOrderItem(_choices[_defaultChoiceIndex], _getOrderRangeParam());
+      }
+    }
   }
 
   @override
   void dispose() {
+    _viewModel.state.removeListener(_onStateChanged);
+    _viewModel.dispose();
     _viewNode.dispose();
     super.dispose();
   }
@@ -108,14 +116,8 @@ class _OrderPageState extends State<OrderPage> {
       onTap: () => FocusScope.of(context).requestFocus(_viewNode),
       child: Scaffold(
         key: _scaffoldKey,
-        appBar: AppBar(
-          iconTheme: CustomTheme.mainTheme.iconTheme,
-          backgroundColor: CustomColor.white,
-          centerTitle: true,
-          title: Text(
+        appBar: buildAppBar(
             Languages.of(context).ordersTitle,
-            style: CustomTheme.mainTheme.textTheme.headlineSmall,
-          ),
         ),
         body: AnnotatedRegion<SystemUiOverlayStyle>(
           value: SystemUiOverlayStyle.dark.copyWith(
@@ -143,44 +145,42 @@ class _OrderPageState extends State<OrderPage> {
   }
 
   _buildDropdown(BuildContext context) {
-    return StreamBuilder(
-      stream: _viewModel.dropdownItem.stream,
-      builder: (BuildContext context, AsyncSnapshot<List<ListItem>> snapshot) {
-        if (snapshot.hasData && _isAdmin) {
-          var data = snapshot.data ?? [];
-          return Container(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: <Widget>[
-                SizedBox(
-                  height: 40,
-                  child: DropdownButton(
-                    value: _value,
-                    alignment: AlignmentDirectional.center,
-                    style: const TextStyle(
-                      fontSize: 14.0,
-                      color: CustomColor.fontBlack,
-                    ),
-                    items: data.map((ListItem item) {
-                      return DropdownMenuItem<Range>(
-                        value: item.value,
-                        child: Text(
-                          item.name,
-                          style: const TextStyle(
-                            fontSize: 14.0,
-                            color: CustomColor.fontBlack,
-                          ),
-                        ),
-                      );
-                    }).toList(),
-                    onChanged: (value) {
-                      _viewModel.selectRange(value as Range);
-                    },
+    return ValueListenableBuilder<OrderState>(
+      valueListenable: _viewModel.state,
+      builder: (BuildContext context, OrderState state, _) {
+        final data = state.ranges;
+        if (data.isNotEmpty && _isAdmin) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: <Widget>[
+              SizedBox(
+                height: 40,
+                child: DropdownButton(
+                  value: _value,
+                  alignment: AlignmentDirectional.center,
+                  style: const TextStyle(
+                    fontSize: 14.0,
+                    color: CustomColor.fontBlack,
                   ),
+                  items: data.map((ListItem item) {
+                    return DropdownMenuItem<Range>(
+                      value: item.value,
+                      child: Text(
+                        item.name,
+                        style: const TextStyle(
+                          fontSize: 14.0,
+                          color: CustomColor.fontBlack,
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    _viewModel.selectRange(value as Range);
+                  },
                 ),
-                _buildDate(),
-              ],
-            ),
+              ),
+              _buildDate(),
+            ],
           );
         } else {
           return Container(
@@ -194,7 +194,7 @@ class _OrderPageState extends State<OrderPage> {
   _buildMenu(BuildContext context) {
     if (_isAdmin) {
       return Container(
-        padding: const EdgeInsets.only(right: DEFAULT_PAGE_PADDING, left: DEFAULT_PAGE_PADDING),
+        padding: const EdgeInsets.only(right: defaultPagePadding, left: defaultPagePadding),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
@@ -209,7 +209,7 @@ class _OrderPageState extends State<OrderPage> {
   }
 
   _buildDate() {
-    if (_value == Range.Today || _value == Range.Yesterday || _value == Range.Date) {
+    if (_value == Range.today || _value == Range.yesterday || _value == Range.date) {
       return Row(
         children: <Widget>[
           Text(
@@ -218,7 +218,7 @@ class _OrderPageState extends State<OrderPage> {
           ),
         ],
       );
-    } else if (_value == Range.CurrentMonth || _value == Range.Month || _value == Range.LastMonth) {
+    } else if (_value == Range.currentMonth || _value == Range.month || _value == Range.lastMonth) {
       return Row(
         children: <Widget>[
           Text(
@@ -271,11 +271,11 @@ class _OrderPageState extends State<OrderPage> {
   }
 
   _buildOrderList() {
-    return StreamBuilder(
-      stream: _viewModel.orders.stream,
-      builder: (BuildContext context, AsyncSnapshot<List<OrderSummary>> snapshot) {
-        if (snapshot.hasData) {
-          var orders = snapshot.data ?? [];
+    return ValueListenableBuilder<OrderState>(
+      valueListenable: _viewModel.state,
+      builder: (BuildContext context, OrderState state, _) {
+        final orders = state.orders;
+        if (orders != null) {
           return Expanded(
             child: ListView.builder(
               itemCount: orders.length,
@@ -310,7 +310,7 @@ class _OrderPageState extends State<OrderPage> {
 
   _buildSummaryTotal() {
     return Container(
-      padding: const EdgeInsets.all(DEFAULT_PAGE_PADDING),
+      padding: const EdgeInsets.all(defaultPagePadding),
       child: Column(
         children: <Widget>[
           _buildTotal(),
@@ -325,13 +325,11 @@ class _OrderPageState extends State<OrderPage> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: <Widget>[
-        Text(
+        const Text(
           'Total',
-          style: CustomTheme.mainTheme.textTheme.headlineSmall,
         ),
         Text(
           '฿ ${_format.format(_total)}',
-          style: CustomTheme.mainTheme.textTheme.headlineSmall,
         ),
       ],
     );
@@ -342,13 +340,11 @@ class _OrderPageState extends State<OrderPage> {
       return Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[
-          Text(
+          const Text(
             'Total Cost',
-            style: CustomTheme.mainTheme.textTheme.headlineSmall,
           ),
           Text(
             '฿ ${_format.format(_totalCost)}',
-            style: CustomTheme.mainTheme.textTheme.headlineSmall,
           ),
         ],
       );
@@ -362,13 +358,11 @@ class _OrderPageState extends State<OrderPage> {
       return Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[
-          Text(
+          const Text(
             'Total Profit',
-            style: CustomTheme.mainTheme.textTheme.headlineSmall,
           ),
           Text(
             '฿ ${_format.format(_total - _totalCost)}',
-            style: CustomTheme.mainTheme.textTheme.headlineSmall,
           ),
         ],
       );
@@ -424,7 +418,7 @@ class _OrderPageState extends State<OrderPage> {
   }
 
   _nextToOrderDetail(BuildContext context, OrderSummary content) async {
-    var _ = await Navigator.pushNamed(context, ORDER_DETAIL_ROUTE, arguments: OrderArgument(content.id));
+    var _ = await Navigator.pushNamed(context, orderDetailRoute, arguments: OrderArgument(content.id));
     _viewModel.getOrderItem(_choices[_defaultChoiceIndex], _getOrderRangeParam());
   }
 }

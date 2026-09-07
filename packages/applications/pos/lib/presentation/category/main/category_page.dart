@@ -2,7 +2,8 @@
 import 'package:flutter/material.dart';
 
 // Package imports:
-import 'package:common/core/widgets/custom_snack_bar.dart';
+import 'package:design_system/widgets/app_bar.dart';
+import 'package:design_system/widgets/snack_bar.dart';
 
 // Project imports:
 import 'package:pos/container.dart';
@@ -10,7 +11,7 @@ import 'package:pos/domain/model/category/category.dart';
 import 'package:pos/localizations/language/languages.dart';
 import 'package:pos/presentation/category/argument.dart';
 import 'package:pos/presentation/constants.dart';
-import 'package:pos/presentation/theme.dart';
+import 'package:design_system/theme/color.dart';
 import 'category_state.dart';
 import 'category_view_model.dart';
 
@@ -31,27 +32,24 @@ class _CategoryPageState extends State<CategoryPage> {
   void initState() {
     super.initState();
     _viewModel = sl<CategoryViewModel>();
-    _viewModel.states.stream.listen((state) {
-      if (state is ErrorState) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _snackBar.hideAll();
-          _snackBar.showErrorSnackBar(state.message);
-        });
-      } else if (state is LoadingState) {
-      } else if (state is ListCategoryState) {
-        _viewModel.setCategories(state.data);
-      } else if (state is UpdateCategoryState) {
-        _viewModel.getCategories();
-      }
-    });
-
+    _viewModel.state.addListener(_onStateChanged);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _viewModel.getCategories();
     });
   }
 
+  void _onStateChanged() {
+    final error = _viewModel.state.value.error;
+    if (error != null) {
+      _snackBar.hideAll();
+      _snackBar.showErrorSnackBar(error);
+      _viewModel.consumeError();
+    }
+  }
+
   @override
   void dispose() {
+    _viewModel.state.removeListener(_onStateChanged);
     _viewModel.dispose();
     super.dispose();
   }
@@ -61,14 +59,8 @@ class _CategoryPageState extends State<CategoryPage> {
     _snackBar = CustomSnackBar(key: const Key("snackbar"), context: context);
     return Scaffold(
       key: _scaffoldKey,
-      appBar: AppBar(
-        iconTheme: CustomTheme.mainTheme.iconTheme,
-        backgroundColor: CustomColor.white,
-        centerTitle: true,
-        title: Text(
-          Languages.of(context).categoryTitle,
-          style: CustomTheme.mainTheme.textTheme.headlineSmall,
-        ),
+      appBar: buildAppBar(
+        Languages.of(context).categoryTitle,
         actions: _buildAction(context),
       ),
       body: _buildBody(context),
@@ -101,13 +93,10 @@ class _CategoryPageState extends State<CategoryPage> {
   }
 
   _buildCategoryList() {
-    return StreamBuilder(
-      stream: _viewModel.categories.stream,
-      builder: (BuildContext context, AsyncSnapshot<List<Category>> snapshot) {
-        if (snapshot.hasData) {
-          var data = snapshot.data;
-          return _buildCategory(data ?? []);
-        } else {
+    return ValueListenableBuilder<CategoryState>(
+      valueListenable: _viewModel.state,
+      builder: (BuildContext context, CategoryState state, _) {
+        if (state.loading && state.items.isEmpty) {
           return const Center(
             child: CircularProgressIndicator(
               strokeWidth: 6,
@@ -116,6 +105,7 @@ class _CategoryPageState extends State<CategoryPage> {
             ),
           );
         }
+        return _buildCategory(state.items);
       },
     );
   }
@@ -139,12 +129,12 @@ class _CategoryPageState extends State<CategoryPage> {
   }
 
   _nextToCategoryEdit(BuildContext context, Category content) async {
-    var _ = await Navigator.pushNamed(context, CATEGORY_EDIT_ROUTE, arguments: CategoryArgument(content));
+    var _ = await Navigator.pushNamed(context, categoryEditRoute, arguments: CategoryArgument(content));
     _viewModel.getCategories();
   }
 
   _nextToCategoryAdd(BuildContext context) async {
-    var _ = await Navigator.pushNamed(context, CATEGORY_ADD_ROUTE);
+    var _ = await Navigator.pushNamed(context, categoryAddRoute);
     _viewModel.getCategories();
   }
 }

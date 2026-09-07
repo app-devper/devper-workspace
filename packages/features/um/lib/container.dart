@@ -4,23 +4,28 @@ import 'package:flutter/foundation.dart';
 // Package imports:
 import 'package:common/config/app_config.dart';
 import 'package:common/config/network_config.dart';
+import 'package:common/core/navigation/app_navigator.dart';
 import 'package:common/core/network/custom_client.dart';
 import 'package:common/core/network/http_logging_interceptor.dart';
+import 'package:common/core/network/unauthorized_interceptor.dart';
 import 'package:common/injection.dart';
 import 'package:logging/logging.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 // Project imports:
 import 'package:um/app_network_config.dart';
-import 'package:um/data/datasource/local/local_datasource.dart';
+import 'package:um/data/datasource/local/shared_prefs_token_storage.dart';
+import 'package:um/data/datasource/local/token_storage.dart';
 import 'package:um/data/datasource/network/um_service.dart';
 import 'package:um/data/datasource/session/app_session.dart';
+import 'package:um/data/datasource/session/keep_alive_scheduler.dart';
 import 'package:um/data/repositories/login_repository_impl.dart';
 import 'package:um/data/repositories/user_repository_impl.dart';
 import 'package:um/domain/repositories/login_repository.dart';
 import 'package:um/domain/repositories/user_repository.dart';
+import 'package:um/presentation/constants.dart';
 
-final sl = getIt(); // sl is referred to as Service Locator
+final sl = getIt();
 
 void setupLogging() {
   Logger.root.level = Level.ALL;
@@ -31,24 +36,19 @@ void setupLogging() {
   });
 }
 
-// Dependency injection
 Future<void> initCore(AppConfig config) async {
-  // AppConfig
   sl.registerLazySingleton(() => config);
 
-  // Session
   sl.registerLazySingleton<AppSession>(() => AppSession(sl()));
 
-  // Network
   sl.registerLazySingleton<NetworkConfig>(() => AppNetworkConfig(appSession: sl()));
 
-  CustomClient client = CustomClient();
+  final client = CustomClient();
   client.addInterceptor(HttpLoggingInterceptor());
   sl.registerLazySingleton<CustomClient>(() => client);
 
-  // LocalDataSource
-  sl.registerLazySingleton<LocalDataSource>(
-    () => LocalDataSource(
+  sl.registerLazySingleton<TokenStorage>(
+    () => SharedPrefsTokenStorage(
       sharedPreferences: sl(),
     ),
   );
@@ -58,12 +58,18 @@ Future<void> initCore(AppConfig config) async {
 }
 
 Future<void> initUm() async {
-  // Repositories
+  sl.registerLazySingleton<KeepAliveScheduler>(
+    () => KeepAliveScheduler(
+      onTick: () => sl<LoginRepository>().keepAlive(),
+    ),
+  );
+
   sl.registerLazySingleton<LoginRepository>(
     () => LoginRepositoryImpl(
       service: sl(),
-      localDataSource: sl(),
+      tokenStorage: sl(),
       appSession: sl(),
+      keepAliveScheduler: sl(),
     ),
   );
 
@@ -73,11 +79,21 @@ Future<void> initUm() async {
     ),
   );
 
-  // Service
   sl.registerLazySingleton(
     () => UmService(
       networkConfig: sl(),
       client: sl(),
     ),
   );
+
+  sl<CustomClient>().addInterceptor(
+    UnauthorizedInterceptor(onUnauthorized: _onUnauthorized),
+  );
+}
+
+Future<void> _onUnauthorized() async {
+  sl<KeepAliveScheduler>().stop();
+  await sl<TokenStorage>().clear();
+  sl<AppSession>().clear();
+  resetToRoute(routeLogin);
 }

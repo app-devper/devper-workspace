@@ -11,3 +11,13 @@ class CategoryParam {
     this.description,
   });
 }
+
+class CategoryUpdateParam {
+  final String categoryId;
+  final CategoryParam param;
+
+  CategoryUpdateParam({
+    required this.categoryId,
+    required this.param,
+  });
+}

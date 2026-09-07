@@ -1,10 +1,10 @@
 // Flutter imports:
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 
 // Package imports:
-import 'package:um/presentation/not_found/not_found_page.dart';
+import 'package:um/presentation/constants.dart';
 import 'package:um/presentation/router.dart';
-import 'package:um/presentation/splash/splash_page.dart';
 
 // Project imports:
 import 'package:pos/presentation/category/add/category_add_page.dart';
@@ -12,26 +12,22 @@ import 'package:pos/presentation/category/argument.dart';
 import 'package:pos/presentation/category/edit/category_edit_page.dart';
 import 'package:pos/presentation/category/main/category_page.dart';
 import 'package:pos/presentation/constants.dart';
-import 'package:pos/presentation/customer/add/customer_add_page.dart';
-import 'package:pos/presentation/customer/argument.dart';
-import 'package:pos/presentation/customer/edit/customer_edit_page.dart';
-import 'package:pos/presentation/customer/main/customer_page.dart';
-import 'package:pos/presentation/home/argument.dart';
 import 'package:pos/presentation/home/main/home_page.dart';
 import 'package:pos/presentation/home/scanner/scanner_page.dart';
 import 'package:pos/presentation/order/argument.dart';
 import 'package:pos/presentation/order/detail/order_detail_page.dart';
 import 'package:pos/presentation/order/history/order_history_page.dart';
 import 'package:pos/presentation/order/main/order_page.dart';
-import 'package:pos/presentation/product/add/product_add_page.dart';
 import 'package:pos/presentation/product/argument.dart';
-import 'package:pos/presentation/product/edit/product_edit_page.dart';
 import 'package:pos/presentation/product/expired/products_expired_page.dart';
 import 'package:pos/presentation/product/lot_edit/product_lot_edit_page.dart';
-import 'package:pos/presentation/product/main/products_page.dart';
+import 'package:pos/presentation/product/main/product_page.dart';
 import 'package:pos/presentation/receive/argument.dart';
-import 'package:pos/presentation/receive/main/receives_page.dart';
+import 'package:pos/presentation/receive/main/receive_page.dart';
 import 'package:pos/presentation/receive/manage/receive_manage_page.dart';
+import 'package:pos/presentation/stock_count/argument.dart';
+import 'package:pos/presentation/stock_count/main/stock_counts_page.dart';
+import 'package:pos/presentation/stock_count/manage/stock_count_manage_page.dart';
 import 'package:pos/presentation/supplier/add/supplier_add_page.dart';
 import 'package:pos/presentation/supplier/argument.dart';
 import 'package:pos/presentation/supplier/edit/supplier_edit_page.dart';
@@ -44,65 +40,86 @@ class RouterApp {
       return RouterUm.generateRoute(settings);
     } else {
       switch (settings.name) {
-        case HOME_ROUTE:
+        case homeRoute:
           return MaterialPageRoute(builder: (_) => const HomePage());
-        case PRODUCTS_ROUTE:
+        case productsRoute:
           final args = settings.arguments as ProductsArgument?;
-          return MaterialPageRoute(builder: (_) => ProductsPage(mode: args?.mode));
-        case PRODUCT_ADD_ROUTE:
-          final args = settings.arguments as ProductAddArgument?;
-          return MaterialPageRoute(builder: (_) => ProductAddPage(receiveId: args?.receiveId));
-        case PRODUCT_EDIT_ROUTE:
-          final args = settings.arguments as ProductArgument;
-          return MaterialPageRoute(builder: (_) => ProductEditPage(product: args.product));
-        case PRODUCT_EXPIRED_ROUTE:
+          return MaterialPageRoute(
+              builder: (_) => ProductsPage(mode: args?.mode));
+        case productExpiredRoute:
           return MaterialPageRoute(builder: (_) => const ProductsExpiredPage());
-        case PRODUCT_LOT_EDIT_ROUTE:
+        case productLotEditRoute:
           final args = settings.arguments as ProductLotArgument;
-          return MaterialPageRoute(builder: (_) => ProductLotEditPage(productLot: args.productLot));
-        case ORDERS_ROUTE:
+          return MaterialPageRoute(
+              builder: (_) => ProductLotEditPage(productLot: args.productLot));
+        case ordersRoute:
           return MaterialPageRoute(builder: (_) => const OrderPage());
-        case ORDER_DETAIL_ROUTE:
+        case orderDetailRoute:
           final args = settings.arguments as OrderArgument;
-          return MaterialPageRoute(builder: (_) => OrderDetailPage(orderId: args.orderId));
-        case ORDER_HISTORY_ROUTE:
+          return MaterialPageRoute(
+              builder: (_) => OrderDetailPage(orderId: args.orderId));
+        case orderHistoryRoute:
           final args = settings.arguments as OrderHistoryArgument;
-          return MaterialPageRoute(builder: (_) => OrderHistoryPage(product: args.product));
-        case CATEGORIES_ROUTE:
+          return MaterialPageRoute(
+              builder: (_) => OrderHistoryPage(product: args.product));
+        case categoriesRoute:
           return MaterialPageRoute(builder: (_) => const CategoryPage());
-        case CATEGORY_ADD_ROUTE:
+        case categoryAddRoute:
           return MaterialPageRoute(builder: (_) => const CategoryAddPage());
-        case CATEGORY_EDIT_ROUTE:
+        case categoryEditRoute:
           final args = settings.arguments as CategoryArgument;
-          return MaterialPageRoute(builder: (_) => CategoryEditPage(category: args.category));
-        case CUSTOMERS_ROUTE:
-          return MaterialPageRoute(builder: (_) => const CustomerPage());
-        case CUSTOMER_ADD_ROUTE:
-          return MaterialPageRoute(builder: (_) => const CustomerAddPage());
-        case CUSTOMER_EDIT_ROUTE:
-          final args = settings.arguments as CustomerArgument;
-          return MaterialPageRoute(builder: (_) => CustomerEditPage(customer: args.customer));
-        case SUPPLIER_ROUTE:
+          return MaterialPageRoute(
+              builder: (_) => CategoryEditPage(category: args.category));
+        case supplierRoute:
           return MaterialPageRoute(builder: (_) => const SupplierInfoPage());
-        case SUPPLIERS_ROUTE:
+        case suppliersRoute:
           return MaterialPageRoute(builder: (_) => const SuppliersPage());
-        case SUPPLIER_ADD_ROUTE:
+        case supplierAddRoute:
           return MaterialPageRoute(builder: (_) => const SupplierAddPage());
-        case SUPPLIER_EDIT_ROUTE:
+        case supplierEditRoute:
           final args = settings.arguments as SupplierArgument;
-          return MaterialPageRoute(builder: (_) => SupplierEditPage(supplier: args.supplier));
-        case RECEIVES_ROUTE:
-          return MaterialPageRoute(builder: (_) => const ReceivesPage());
-        case RECEIVE_MANAGE_ROUTE:
+          return MaterialPageRoute(
+              builder: (_) => SupplierEditPage(supplier: args.supplier));
+        case receivesRoute:
+          return MaterialPageRoute(builder: (_) => const ReceivePage());
+        case receiveManageRoute:
           final args = settings.arguments as ReceiveManageArgument?;
-          return MaterialPageRoute(builder: (_) => ReceiveManagePage(receiveId: args?.receiveId));
-        case SCAN_ROUTE:
-          final args = settings.arguments as ScannerArgument;
-          return MaterialPageRoute(builder: (_) => ScannerPage(mode: args.mode));
-        case ROOT_ROUTE:
-          return MaterialPageRoute(builder: (_) => const SplashPage());
+          return MaterialPageRoute(
+              builder: (_) => ReceiveManagePage(receiveId: args?.receiveId));
+        case stockCountsRoute:
+          return MaterialPageRoute(builder: (_) => const StockCountsPage());
+        case stockCountManageRoute:
+          final args = settings.arguments as StockCountManageArgument?;
+          return MaterialPageRoute(
+              builder: (_) => StockCountManagePage(stockCountId: args?.stockCountId));
+        case scanRoute:
+          if (kIsWeb) {
+            return MaterialPageRoute(
+              builder: (_) => Scaffold(
+                appBar: AppBar(
+                  title: const Text('Scanner'),
+                ),
+                body: const Center(
+                  child: Text('Scanner is not available on web'),
+                ),
+              ),
+            );
+          }
+          return MaterialPageRoute(builder: (_) => const ScannerPage(mode: "SCAN"));
+        case rootRoute:
+          return RouterUm.generateRoute(
+              RouteSettings(name: routeSplash, arguments: settings.arguments));
         default:
-          return MaterialPageRoute(builder: (_) => const NotFoundPage());
+          return MaterialPageRoute(
+            builder: (_) => Scaffold(
+              appBar: AppBar(
+                title: const Text('Error'),
+              ),
+              body: const Center(
+                child: Text('Page Not Found'),
+              ),
+            ),
+          );
       }
     }
   }

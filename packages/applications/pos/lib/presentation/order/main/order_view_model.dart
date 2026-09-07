@@ -1,5 +1,5 @@
-// Dart imports:
-import 'dart:async';
+// Flutter imports:
+import 'package:flutter/foundation.dart';
 
 // Package imports:
 import 'package:common/core/error/failure.dart';
@@ -8,136 +8,26 @@ import 'package:um/domain/repositories/login_repository.dart';
 // Project imports:
 import 'package:pos/domain/model/order/order_summary.dart';
 import 'package:pos/domain/model/order/param.dart';
-import 'package:pos/domain/repositories/order_repository.dart';
+import 'package:pos/domain/usecase/order/get_order_range_use_case.dart';
 import 'order_state.dart';
 import 'order_ui_model.dart';
 
 class OrderViewModel {
-  final OrderRepository orderRepo;
+  final GetOrderRangeUseCase getOrderRangeUseCase;
   final LoginRepository loginRepo;
 
   OrderViewModel({
     required this.loginRepo,
-    required this.orderRepo,
+    required this.getOrderRangeUseCase,
   });
 
-  final _states = StreamController<OrderState>();
+  final _state = ValueNotifier<OrderState>(const OrderState());
 
-  StreamController<OrderState> get states => _states;
+  ValueListenable<OrderState> get state => _state;
 
-  final _orders = StreamController<List<OrderSummary>>();
-
-  StreamController<List<OrderSummary>> get orders => _orders;
-
-  final _dropdownItems = StreamController<List<ListItem>>();
-
-  StreamController<List<ListItem>> get dropdownItem => _dropdownItems;
-
-  void getOrderItem(String type, GetOrderRangeParam param) async {
+  Future<void> getOrderItem(String type, GetOrderRangeParam param) async {
     try {
-      final result = await orderRepo.getOrderRange(param);
-      _onOrderSummary(type, result);
-    } on Exception catch (e) {
-      _onError(toFailure(e));
-    }
-  }
-
-  void checkLogin() async {
-    try {
-      final result = await loginRepo.getRole();
-      _onCheckLogin(result == "ADMIN");
-    } on Exception catch (e) {
-      _onError(toFailure(e));
-    }
-  }
-
-  void initData() {
-    List<ListItem> dropdownItems = [
-      ListItem(Range.Today, "Today"),
-      ListItem(Range.Yesterday, "Yesterday"),
-      ListItem(Range.Date, "Date"),
-      ListItem(Range.DateRange, "Date Range"),
-      ListItem(Range.CurrentMonth, "Current Month"),
-      ListItem(Range.LastMonth, "Last Month"),
-    ];
-    _dropdownItems.sink.add(dropdownItems);
-    _states.sink.add((InitState()));
-  }
-
-  void selectRange(Range range) {
-    final now = DateTime.now();
-    switch (range) {
-      case Range.Today:
-        if (!_states.isClosed) {
-          DateTime startDate = DateTime(now.year, now.month, now.day);
-          DateTime endDate = DateTime(now.year, now.month, now.day + 1);
-          _states.sink.add((OrderRangeState(range, startDate, endDate)));
-        }
-        break;
-      case Range.Yesterday:
-        if (!_states.isClosed) {
-          DateTime startDate = DateTime(now.year, now.month, now.day).subtract(const Duration(days: 1));
-          DateTime endDate = DateTime(now.year, now.month, now.day);
-          _states.sink.add((OrderRangeState(range, startDate, endDate)));
-        }
-        break;
-      case Range.Last7Days:
-        if (!_states.isClosed) {
-          DateTime startDate = DateTime(now.year, now.month, now.day).subtract(const Duration(days: 8));
-          DateTime endDate = DateTime(now.year, now.month, now.day).subtract(const Duration(days: 1));
-          _states.sink.add((OrderRangeState(range, startDate, endDate)));
-        }
-        break;
-      case Range.Last30Days:
-        if (!_states.isClosed) {
-          DateTime startDate = DateTime(now.year, now.month, now.day).subtract(const Duration(days: 31));
-          DateTime endDate = DateTime(now.year, now.month, now.day).subtract(const Duration(days: 1));
-          _states.sink.add((OrderRangeState(range, startDate, endDate)));
-        }
-        break;
-      case Range.CurrentMonth:
-        if (!_states.isClosed) {
-          DateTime startDate = DateTime(now.year, now.month, 1);
-          DateTime endDate = DateTime(now.year, now.month + 1, 1);
-          _states.sink.add((OrderRangeState(range, startDate, endDate)));
-        }
-        break;
-      case Range.LastMonth:
-        if (!_states.isClosed) {
-          DateTime startDate = DateTime(now.year, now.month - 1, 1);
-          DateTime endDate = DateTime(now.year, now.month, 1);
-          _states.sink.add((OrderRangeState(range, startDate, endDate)));
-        }
-        break;
-      case Range.DateRange:
-        if (!_states.isClosed) {
-          _states.sink.add((OrderRangeState(range, now, now)));
-        }
-        break;
-      case Range.Date:
-        if (!_states.isClosed) {
-          DateTime startDate = DateTime(now.year, now.month, now.day);
-          DateTime endDate = DateTime(now.year, now.month, now.day + 1);
-          _states.sink.add((OrderRangeState(range, startDate, endDate)));
-        }
-        break;
-      case Range.Month:
-        break;
-    }
-  }
-
-  _onLoading() {
-    _states.sink.add(LoadingState());
-  }
-
-  _onCheckLogin(bool isLogin) {
-    if (!_states.isClosed) {
-      _states.sink.add((LoggedState(isLogin)));
-    }
-  }
-
-  _onOrderSummary(String type, List<OrderSummary> result) {
-    if (!_states.isClosed) {
+      final result = await getOrderRangeUseCase(param);
       final orders = _filterOrders(type, result);
       double total = 0;
       double totalCost = 0;
@@ -145,25 +35,123 @@ class OrderViewModel {
         total += x.total;
         totalCost += x.totalCost;
       }
-      _orders.sink.add(orders);
-      _states.sink.add(OrderSummaryState(
-        orders,
-        totalCost,
-        total,
-      ));
+      _state.value = _state.value.copyWith(orders: orders, total: total, totalCost: totalCost);
+    } on Exception catch (e) {
+      _state.value = _state.value.copyWith(error: toFailure(e).getMessage());
     }
   }
 
-  _onError(Failure failure) {
-    if (!_states.isClosed) {
-      _states.sink.add(ErrorState(failure.getMessage()));
+  Future<void> checkLogin() async {
+    try {
+      final role = await loginRepo.getRole();
+      _state.value = _state.value.copyWith(logged: role == "ADMIN");
+    } on Exception catch (e) {
+      _state.value = _state.value.copyWith(error: toFailure(e).getMessage());
     }
   }
 
-  dispose() {
-    _dropdownItems.close();
-    _states.close();
-    _orders.close();
+  void initData() {
+    final ranges = [
+      ListItem(Range.today, "Today"),
+      ListItem(Range.yesterday, "Yesterday"),
+      ListItem(Range.date, "Date"),
+      ListItem(Range.dateRange, "Date Range"),
+      ListItem(Range.currentMonth, "Current Month"),
+      ListItem(Range.lastMonth, "Last Month"),
+    ];
+    _state.value = _state.value.copyWith(ranges: ranges, initialized: true);
+  }
+
+  void selectRange(Range range) {
+    final now = DateTime.now();
+    OrderRangeSelection? selection;
+    switch (range) {
+      case Range.today:
+        selection = OrderRangeSelection(
+          range: range,
+          startDate: DateTime(now.year, now.month, now.day),
+          endDate: DateTime(now.year, now.month, now.day + 1),
+        );
+        break;
+      case Range.yesterday:
+        selection = OrderRangeSelection(
+          range: range,
+          startDate: DateTime(now.year, now.month, now.day).subtract(const Duration(days: 1)),
+          endDate: DateTime(now.year, now.month, now.day),
+        );
+        break;
+      case Range.last7Days:
+        selection = OrderRangeSelection(
+          range: range,
+          startDate: DateTime(now.year, now.month, now.day).subtract(const Duration(days: 8)),
+          endDate: DateTime(now.year, now.month, now.day).subtract(const Duration(days: 1)),
+        );
+        break;
+      case Range.last30Days:
+        selection = OrderRangeSelection(
+          range: range,
+          startDate: DateTime(now.year, now.month, now.day).subtract(const Duration(days: 31)),
+          endDate: DateTime(now.year, now.month, now.day).subtract(const Duration(days: 1)),
+        );
+        break;
+      case Range.currentMonth:
+        selection = OrderRangeSelection(
+          range: range,
+          startDate: DateTime(now.year, now.month, 1),
+          endDate: DateTime(now.year, now.month + 1, 1),
+        );
+        break;
+      case Range.lastMonth:
+        selection = OrderRangeSelection(
+          range: range,
+          startDate: DateTime(now.year, now.month - 1, 1),
+          endDate: DateTime(now.year, now.month, 1),
+        );
+        break;
+      case Range.dateRange:
+        selection = OrderRangeSelection(range: range, startDate: now, endDate: now);
+        break;
+      case Range.date:
+        selection = OrderRangeSelection(
+          range: range,
+          startDate: DateTime(now.year, now.month, now.day),
+          endDate: DateTime(now.year, now.month, now.day + 1),
+        );
+        break;
+      case Range.month:
+        break;
+    }
+    if (selection != null) {
+      _state.value = _state.value.copyWith(rangeSelection: selection);
+    }
+  }
+
+  void consumeLogged() {
+    if (_state.value.logged != null) {
+      _state.value = _state.value.copyWith(clearLogged: true);
+    }
+  }
+
+  void consumeInitialized() {
+    if (_state.value.initialized) {
+      _state.value = _state.value.copyWith(clearInitialized: true);
+    }
+  }
+
+  void consumeRangeSelection() {
+    if (_state.value.rangeSelection != null) {
+      _state.value = _state.value.copyWith(clearRangeSelection: true);
+    }
+  }
+
+  void consumeError() {
+    if (_state.value.error != null) {
+      _state.value = _state.value.copyWith(clearError: true);
+    }
+  }
+
+  void dispose() {
+    _state.dispose();
   }
 
   List<OrderSummary> _filterOrders(String type, List<OrderSummary> data) {

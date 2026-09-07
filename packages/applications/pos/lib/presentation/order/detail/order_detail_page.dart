@@ -5,7 +5,9 @@ import 'package:flutter/services.dart';
 
 // Package imports:
 import 'package:common/core/ext/widget_ext.dart';
-import 'package:common/core/widgets/custom_snack_bar.dart';
+import 'package:design_system/widgets/app_bar.dart';
+import 'package:design_system/widgets/snack_bar.dart';
+import 'package:design_system/widgets/status_badge.dart';
 import 'package:intl/intl.dart';
 
 // Project imports:
@@ -18,11 +20,13 @@ import 'package:pos/domain/model/receipt/receipt.dart';
 import 'package:pos/domain/model/supplier/supplier.dart';
 import 'package:pos/localizations/language/languages.dart';
 import 'package:pos/presentation/constants.dart';
+import 'package:design_system/widgets/dialogs.dart';
 import 'package:pos/presentation/order/argument.dart';
 import 'package:pos/presentation/order/core/export_pdf.dart';
+import 'package:pos/presentation/order/return/product_return_widget.dart';
+import 'package:pos/presentation/order/return/product_returns_history_widget.dart';
 import 'package:pos/presentation/product/argument.dart';
-import 'package:pos/presentation/theme.dart';
-import 'order_detail_state.dart';
+import 'package:design_system/theme/color.dart';
 import 'order_detail_view_model.dart';
 
 class OrderDetailPage extends StatefulWidget {
@@ -56,63 +60,77 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
 
   bool isAdmin = false;
 
+  bool _loadingShown = false;
+
   @override
   void initState() {
     super.initState();
     _viewModel = sl<OrderDetailViewModel>();
-    _viewModel.states.stream.listen((state) {
-      if (state is ErrorState) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _snackBar.hideAll();
-          _snackBar.showErrorSnackBar(state.message);
-        });
-      } else if (state is LoadingState) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _snackBar.hideAll();
-          _snackBar.showLoadingSnackBar();
-        });
-      } else if (state is OrderState) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _snackBar.hideAll();
-        });
-        setState(() {
-          order = state.order;
-          orderItem = state.order.items;
-        });
-      } else if (state is RemoveOrderState) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _snackBar.hideAll();
-        });
-        Navigator.pop(context, state.order);
-      } else if (state is RemoveOrderItemState) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _snackBar.hideAll();
-        });
-        _viewModel.getOrderById(widget.orderId);
-      } else if (state is LoggedState) {
-        setState(() {
-          isAdmin = state.isAdmin;
-        });
-      } else if (state is UpdateTotalCostState) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _snackBar.hideAll();
-        });
-        _viewModel.getOrderById(widget.orderId);
-      } else if (state is GetSupplierState) {
-        _showCustomerDialog(state.supplier, state.customer);
-      } else if (state is GetSupplierErrorState) {
-        _nextToSupplier(context);
-      }
-    });
-
+    _viewModel.state.addListener(_onStateChanged);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _viewModel.checkLogin();
       _viewModel.getOrderById(widget.orderId);
     });
   }
 
+  void _onStateChanged() {
+    final state = _viewModel.state.value;
+    if (state.loading && !_loadingShown) {
+      _loadingShown = true;
+      _snackBar.hideAll();
+      _snackBar.showLoadingSnackBar();
+    } else if (!state.loading && _loadingShown) {
+      _loadingShown = false;
+      _snackBar.hideAll();
+    }
+    if (state.error != null) {
+      final message = state.error!;
+      _viewModel.consumeError();
+      _snackBar.hideAll();
+      _snackBar.showErrorSnackBar(message);
+    }
+    if (state.logged != null) {
+      final value = state.logged!;
+      _viewModel.consumeLogged();
+      setState(() {
+        isAdmin = value;
+      });
+    }
+    if (state.loaded != null) {
+      final data = state.loaded!;
+      _viewModel.consumeLoaded();
+      setState(() {
+        order = data;
+        orderItem = data.items;
+      });
+    }
+    if (state.removedOrder != null) {
+      final data = state.removedOrder!;
+      _viewModel.consumeRemovedOrder();
+      Navigator.pop(context, data);
+    }
+    if (state.removedItem != null) {
+      _viewModel.consumeRemovedItem();
+      _viewModel.getOrderById(widget.orderId);
+    }
+    if (state.totalCostUpdated) {
+      _viewModel.consumeTotalCostUpdated();
+      _viewModel.getOrderById(widget.orderId);
+    }
+    if (state.supplierResult != null) {
+      final result = state.supplierResult!;
+      _viewModel.consumeSupplierResult();
+      _showCustomerDialog(result.supplier, result.customer);
+    }
+    if (state.supplierError != null) {
+      _viewModel.consumeSupplierError();
+      _nextToSupplier(context);
+    }
+  }
+
   @override
   void dispose() {
+    _viewModel.state.removeListener(_onStateChanged);
     _viewModel.dispose();
 
     _nameNode.dispose();
@@ -126,14 +144,8 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
     _snackBar = CustomSnackBar(key: const Key("snackbar"), context: context);
     return Scaffold(
       key: _scaffoldKey,
-      appBar: AppBar(
-        iconTheme: CustomTheme.mainTheme.iconTheme,
-        backgroundColor: CustomColor.white,
-        centerTitle: true,
-        title: Text(
-          Languages.of(context).orderDetailTitle,
-          style: CustomTheme.mainTheme.textTheme.headlineSmall,
-        ),
+      appBar: buildAppBar(
+        Languages.of(context).orderDetailTitle,
         actions: _buildAction(context),
       ),
       body: AnnotatedRegion<SystemUiOverlayStyle>(
@@ -158,9 +170,16 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
         IconButton(
           splashRadius: 20,
           onPressed: () {
-            _viewModel.updateTotalCost(widget.orderId);
+            _viewModel.updateTotalCost();
           },
           icon: const Icon(Icons.sync),
+        ),
+        IconButton(
+          splashRadius: 20,
+          onPressed: () {
+            _showProductReturnsHistoryDialog(context);
+          },
+          icon: const Icon(Icons.assignment_return),
         ),
         IconButton(
           splashRadius: 20,
@@ -203,7 +222,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
     final Size size = MediaQuery.of(context).size;
     return Container(
       width: size.width,
-      padding: const EdgeInsets.all(DEFAULT_PAGE_PADDING),
+      padding: const EdgeInsets.all(defaultPagePadding),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.start,
         children: <Widget>[
@@ -221,7 +240,6 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
       alignment: Alignment.centerLeft,
       child: Text(
         "${order?.code ?? ""} ${(order?.getCreatedDate() ?? "-")}",
-        style: CustomTheme.mainTheme.textTheme.titleLarge,
       ),
     );
   }
@@ -236,7 +254,10 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
             leading: _buildListMenu(context, content),
             title: Text(content.product?.name ?? ""),
             trailing: Text(format.format(content.price)),
-            subtitle: isAdmin ? Text("Cost : ${format.format(content.costPrice)}  Profit : ${format.format(content.price - content.costPrice)}") : null,
+            subtitle: isAdmin
+                ? Text(
+                    "Cost : ${format.format(content.costPrice)}  Profit : ${format.format(content.price - content.costPrice)}")
+                : null,
             onTap: () {
               if (isAdmin) {
                 _nextToProductEdit(context, content.product);
@@ -248,10 +269,24 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
     );
   }
 
+  Widget _buildQuantityColumn(OrderItemDetail content) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: <Widget>[
+        Text('${content.quantity}'),
+        if (content.oversoldQty > 0)
+          StatusBadge(label: 'เกิน ${content.oversoldQty}', color: Colors.orange),
+        if (content.returnedQty > 0)
+          StatusBadge(label: 'คืน ${content.returnedQty}', color: Colors.grey),
+      ],
+    );
+  }
+
   Widget _buildListMenu(BuildContext context, OrderItemDetail content) {
     if (isAdmin) {
       return SizedBox(
-          width: 90,
+          width: 130,
           height: 50,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -268,21 +303,24 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                 },
                 child: const Icon(Icons.history),
               ),
-              Text(
-                '${content.quantity}',
-              ),
+              if (content.quantity - content.returnedQty > 0)
+                InkWell(
+                  onTap: () {
+                    _showProductReturnDialog(context, content);
+                  },
+                  child: const Icon(Icons.keyboard_return),
+                ),
+              _buildQuantityColumn(content),
             ],
           ));
     } else {
-      return Text(
-        '${content.quantity}',
-      );
+      return _buildQuantityColumn(content);
     }
   }
 
   Widget _buildSummaryTotal() {
     return Container(
-      padding: const EdgeInsets.all(DEFAULT_PAGE_PADDING),
+      padding: const EdgeInsets.all(defaultPagePadding),
       child: Column(
         children: <Widget>[
           _buildPrice(),
@@ -297,13 +335,11 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: <Widget>[
-        Text(
+        const Text(
           'Total',
-          style: CustomTheme.mainTheme.textTheme.headlineSmall,
         ),
         Text(
           '฿ ${format.format(getTotalPrice())}',
-          style: CustomTheme.mainTheme.textTheme.headlineSmall,
         ),
       ],
     );
@@ -314,13 +350,11 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
       return Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[
-          Text(
+          const Text(
             'Total Cost',
-            style: CustomTheme.mainTheme.textTheme.headlineSmall,
           ),
           Text(
             '฿ ${format.format(getTotalCostPrice())}',
-            style: CustomTheme.mainTheme.textTheme.headlineSmall,
           ),
         ],
       );
@@ -334,13 +368,11 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
       return Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[
-          Text(
+          const Text(
             'Total Profit',
-            style: CustomTheme.mainTheme.textTheme.headlineSmall,
           ),
           Text(
             '฿ ${format.format(getTotalPrice() - getTotalCostPrice())}',
-            style: CustomTheme.mainTheme.textTheme.headlineSmall,
           ),
         ],
       );
@@ -379,7 +411,8 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
 
   _nextToProductEdit(BuildContext context, Product? product) async {
     if (product != null) {
-      var result = await Navigator.pushNamed(context, PRODUCT_EDIT_ROUTE, arguments: ProductArgument(product));
+      var result = await Navigator.pushNamed(context, productEditRoute,
+          arguments: ProductArgument(product));
       if (result != null) {
         _viewModel.getOrderById(widget.orderId);
       }
@@ -388,11 +421,39 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
 
   _nextToOrderHistory(BuildContext context, Product? product) async {
     if (product != null) {
-      var result = await Navigator.pushNamed(context, ORDER_HISTORY_ROUTE, arguments: OrderHistoryArgument(product));
+      var result = await Navigator.pushNamed(context, orderHistoryRoute,
+          arguments: OrderHistoryArgument(product));
       if (result != null) {
         _viewModel.getOrderById(widget.orderId);
       }
     }
+  }
+
+  void _showProductReturnDialog(BuildContext context, OrderItemDetail content) {
+    showCenterDialog(
+      minWidth: 360,
+      minHeight: 560,
+      maxHeight: 560,
+      maxWidth: 360,
+      context: context,
+      builder: (context) => ProductReturnWidget(
+        orderId: widget.orderId,
+        orderItemId: content.id,
+        productName: content.product?.name ?? "",
+        price: content.price,
+        maxReturnable: content.quantity - content.returnedQty,
+        onComplete: () {
+          _viewModel.getOrderById(widget.orderId);
+        },
+      ),
+    );
+  }
+
+  void _showProductReturnsHistoryDialog(BuildContext context) {
+    showCenterDialog(
+      context: context,
+      builder: (context) => ProductReturnsHistoryWidget(orderId: widget.orderId),
+    );
   }
 
   _generateReceipt(Supplier supplier) async {
@@ -414,7 +475,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
   }
 
   _nextToSupplier(BuildContext context) async {
-    var _ = await Navigator.pushNamed(context, SUPPLIER_ROUTE);
+    var _ = await Navigator.pushNamed(context, supplierRoute);
   }
 
   _showCustomerDialog(Supplier supplier, Customer? customer) {
@@ -482,6 +543,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
       email: "",
       code: '',
       status: '',
+      type: '',
     );
   }
 }

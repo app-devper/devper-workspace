@@ -2,6 +2,7 @@
 import 'dart:convert';
 
 // Package imports:
+import 'package:common/core/network/error_mapper.dart';
 import 'package:common/core/network/exception.dart';
 
 // Project imports:
@@ -23,11 +24,7 @@ class CategoryRepositoryImpl implements CategoryRepository {
   Future<Category> createCategory(CategoryParam param) async {
     final mapper = CategoryMapper();
     final response = await posService.createCategory(mapper.toCategoryRequest(param));
-    if (response.isSuccessful) {
-      return mapper.toCategoryDomain(jsonDecode(response.body));
-    } else {
-      throw HttpException(response);
-    }
+    return mapper.toCategoryDomain(jsonOrThrow(response));
   }
 
   @override
@@ -39,7 +36,7 @@ class CategoryRepositoryImpl implements CategoryRepository {
       _categories = categories;
       return categories;
     } else {
-      throw HttpException(response);
+      throw toAppException(response);
     }
   }
 
@@ -47,44 +44,28 @@ class CategoryRepositoryImpl implements CategoryRepository {
   Future<Category> getCategoryById(String categoryId) async {
     final mapper = CategoryMapper();
     final response = await posService.getCategoryById(categoryId);
-    if (response.isSuccessful) {
-      return mapper.toCategoryDomain(jsonDecode(response.body));
-    } else {
-      throw HttpException(response);
-    }
+    return mapper.toCategoryDomain(jsonOrThrow(response));
   }
 
   @override
   Future<Category> removeCategoryById(String categoryId) async {
     final mapper = CategoryMapper();
     final response = await posService.removeCategoryById(categoryId);
-    if (response.isSuccessful) {
-      return mapper.toCategoryDomain(jsonDecode(response.body));
-    } else {
-      throw HttpException(response);
-    }
+    return mapper.toCategoryDomain(jsonOrThrow(response));
   }
 
   @override
   Future<Category> updateCategoryById(String categoryId, CategoryParam param) async {
     final mapper = CategoryMapper();
     final response = await posService.updateCategoryById(categoryId, mapper.toCategoryRequest(param));
-    if (response.isSuccessful) {
-      return mapper.toCategoryDomain(jsonDecode(response.body));
-    } else {
-      throw HttpException(response);
-    }
+    return mapper.toCategoryDomain(jsonOrThrow(response));
   }
 
   @override
   Future<Category> updateDefaultCategoryById(String categoryId) async {
     final mapper = CategoryMapper();
     final response = await posService.updateDefaultCategoryId(categoryId);
-    if (response.isSuccessful) {
-      return mapper.toCategoryDomain(jsonDecode(response.body));
-    } else {
-      throw HttpException(response);
-    }
+    return mapper.toCategoryDomain(jsonOrThrow(response));
   }
 
   @override

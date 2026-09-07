@@ -1,85 +1,69 @@
-// Dart imports:
-import 'dart:async';
+// Flutter imports:
+import 'package:flutter/foundation.dart';
 
 // Package imports:
 import 'package:common/core/error/failure.dart';
 
 // Project imports:
-import 'package:pos/domain/model/customer/customer.dart';
 import 'package:pos/domain/model/customer/param.dart';
-import 'package:pos/domain/repositories/customer_repository.dart';
+import 'package:pos/domain/usecase/customer/remove_customer_by_id_use_case.dart';
+import 'package:pos/domain/usecase/customer/update_customer_by_id_use_case.dart';
 import 'package:pos/presentation/customer/edit/customer_edit_state.dart';
 
 class CustomerEditViewModel {
-  final CustomerRepository customerRepo;
+  final UpdateCustomerByIdUseCase updateCustomerByIdUseCase;
+  final RemoveCustomerByIdUseCase removeCustomerByIdUseCase;
 
   CustomerEditViewModel({
-    required this.customerRepo,
+    required this.updateCustomerByIdUseCase,
+    required this.removeCustomerByIdUseCase,
   });
 
-  final _states = StreamController<CustomerEditState>();
+  final _state = ValueNotifier<CustomerEditState>(const CustomerEditState());
 
-  Stream<CustomerEditState> get states => _states.stream;
+  ValueListenable<CustomerEditState> get state => _state;
 
-  getCustomerById(String customerId) async {
-    _onLoading();
+  Future<void> updateCustomerById(String customerId, CustomerParam param) async {
+    _state.value = _state.value.copyWith(loading: true, clearError: true, clearUpdated: true);
     try {
-      final result = await customerRepo.getCustomerById(customerId);
-      _onGetCustomer(result);
+      final updated = await updateCustomerByIdUseCase(
+        CustomerUpdateParam(customerId: customerId, param: param),
+      );
+      _state.value = _state.value.copyWith(loading: false, updated: updated);
     } on Exception catch (e) {
-      _onError(toFailure(e));
+      _state.value = _state.value.copyWith(loading: false, error: toFailure(e).getMessage());
     }
   }
 
-  updateCustomerById(String customerId, CustomerParam param) async {
-    _onLoading();
+  Future<void> removeCustomerById(String customerId) async {
+    _state.value = _state.value.copyWith(loading: true, clearError: true, clearRemoved: true);
     try {
-      final result = await customerRepo.updateCustomerById(customerId, param);
-      _onEditCustomer(result);
+      final removed = await removeCustomerByIdUseCase(customerId);
+      _state.value = _state.value.copyWith(loading: false, removed: removed);
     } on Exception catch (e) {
-      _onError(toFailure(e));
+      _state.value = _state.value.copyWith(loading: false, error: toFailure(e).getMessage());
     }
   }
 
-  removeCustomerById(String customerId) async {
-    _onLoading();
-    try {
-      final result = await customerRepo.removeCustomerById(customerId);
-      _onRemoveCustomer(result);
-    } on Exception catch (e) {
-      _onError(toFailure(e));
+  void consumeError() {
+    if (_state.value.error != null) {
+      _state.value = _state.value.copyWith(clearError: true);
     }
   }
 
-  _onLoading() {
-    _states.sink.add(LoadingState());
-  }
-
-  _onRemoveCustomer(Customer data) {
-    if (!_states.isClosed) {
-      _states.sink.add(RemoveCustomerState(data: data));
+  void consumeUpdated() {
+    if (_state.value.updated != null) {
+      _state.value = _state.value.copyWith(clearUpdated: true);
     }
   }
 
-  _onGetCustomer(Customer data) {
-    if (!_states.isClosed) {
-      _states.sink.add(GetCustomerState(data: data));
+  void consumeRemoved() {
+    if (_state.value.removed != null) {
+      _state.value = _state.value.copyWith(clearRemoved: true);
     }
   }
 
-  _onEditCustomer(Customer data) {
-    if (!_states.isClosed) {
-      _states.sink.add(UpdateCustomerState(data: data));
-    }
-  }
-
-  _onError(Failure failure) {
-    if (!_states.isClosed) {
-      _states.sink.add(ErrorState(message: failure.getMessage()));
-    }
-  }
-
-  dispose() {
-    _states.close();
+  void dispose() {
+    _state.dispose();
   }
 }

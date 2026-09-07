@@ -20,6 +20,7 @@ class CustomerMapper {
       phone: json['phone'],
       email: json['email'],
       status: json['status'],
+      type: json['customerType'] ?? 'General',
     );
   }
 
@@ -29,6 +30,7 @@ class CustomerMapper {
       'address': param.address,
       'phone': param.phone,
       'email': param.email,
+      'customerType': param.customerType,
     });
   }
 }

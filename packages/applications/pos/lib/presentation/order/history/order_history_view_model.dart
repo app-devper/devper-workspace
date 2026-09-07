@@ -1,52 +1,41 @@
-// Dart imports:
-import 'dart:async';
+// Flutter imports:
+import 'package:flutter/foundation.dart';
 
 // Package imports:
 import 'package:common/core/error/failure.dart';
 
 // Project imports:
-import 'package:pos/domain/model/order/order_item_detail.dart';
-import 'package:pos/domain/repositories/order_repository.dart';
+import 'package:pos/domain/usecase/order/get_order_item_by_product_id_use_case.dart';
 import 'order_history_state.dart';
 
 class OrderHistoryViewModel {
-  final OrderRepository orderRepo;
+  final GetOrderItemByProductIdUseCase getOrderItemByProductIdUseCase;
 
   OrderHistoryViewModel({
-    required this.orderRepo,
+    required this.getOrderItemByProductIdUseCase,
   });
 
-  final _states = StreamController<OrderHistoryState>();
+  final _state = ValueNotifier<OrderHistoryState>(const OrderHistoryState());
 
-  StreamController<OrderHistoryState> get states => _states;
+  ValueListenable<OrderHistoryState> get state => _state;
 
-  void getOrderItemByProductId(String productId) async {
-    _onLoading();
+  Future<void> getOrderItemByProductId(String productId) async {
+    _state.value = _state.value.copyWith(loading: true, clearError: true);
     try {
-      final result = await orderRepo.getOrderItemByProductId(productId);
-      _onGetOrderItem(result);
+      final items = await getOrderItemByProductIdUseCase(productId);
+      _state.value = _state.value.copyWith(loading: false, items: items);
     } on Exception catch (e) {
-      _onError(toFailure(e));
+      _state.value = _state.value.copyWith(loading: false, error: toFailure(e).getMessage());
     }
   }
 
-  _onLoading() {
-    _states.sink.add(LoadingState());
-  }
-
-  _onGetOrderItem(List<OrderItemDetail> items) {
-    if (!_states.isClosed) {
-      _states.sink.add(OrderItemState(items));
+  void consumeError() {
+    if (_state.value.error != null) {
+      _state.value = _state.value.copyWith(clearError: true);
     }
   }
 
-  _onError(Failure failure) {
-    if (!_states.isClosed) {
-      _states.sink.add(ErrorState(failure.getMessage()));
-    }
-  }
-
-  dispose() {
-    _states.close();
+  void dispose() {
+    _state.dispose();
   }
 }

@@ -1,53 +1,48 @@
-// Dart imports:
-import 'dart:async';
+// Flutter imports:
+import 'package:flutter/foundation.dart';
 
 // Package imports:
 import 'package:common/core/error/failure.dart';
 
 // Project imports:
-import 'package:pos/domain/model/category/category.dart';
 import 'package:pos/domain/model/category/param.dart';
-import 'package:pos/domain/repositories/category_repository.dart';
+import 'package:pos/domain/usecase/category/create_category_use_case.dart';
 import 'category_add_state.dart';
 
 class CategoryAddViewModel {
-  final CategoryRepository categoryRepo;
+  final CreateCategoryUseCase createCategoryUseCase;
 
   CategoryAddViewModel({
-    required this.categoryRepo,
+    required this.createCategoryUseCase,
   });
 
-  final _states = StreamController<CategoryAddState>();
+  final _state = ValueNotifier<CategoryAddState>(const CategoryAddState());
 
-  StreamController<CategoryAddState> get states => _states;
+  ValueListenable<CategoryAddState> get state => _state;
 
-  void createCategory(CategoryParam param) async {
-    _onLoading();
+  Future<void> createCategory(CategoryParam param) async {
+    _state.value = _state.value.copyWith(saving: true, clearError: true, clearCreated: true);
     try {
-      final result = await categoryRepo.createCategory(param);
-      _onCreateCategory(result);
+      final created = await createCategoryUseCase(param);
+      _state.value = _state.value.copyWith(saving: false, created: created);
     } on Exception catch (e) {
-      _onError(toFailure(e));
+      _state.value = _state.value.copyWith(saving: false, error: toFailure(e).getMessage());
     }
   }
 
-  _onLoading() {
-    _states.sink.add(LoadingState());
-  }
-
-  _onCreateCategory(Category data) {
-    if (!_states.isClosed) {
-      _states.sink.add(CreateCategoryState(data: data));
+  void consumeError() {
+    if (_state.value.error != null) {
+      _state.value = _state.value.copyWith(clearError: true);
     }
   }
 
-  _onError(Failure failure) {
-    if (!_states.isClosed) {
-      _states.sink.add(ErrorState(message: failure.getMessage()));
+  void consumeCreated() {
+    if (_state.value.created != null) {
+      _state.value = _state.value.copyWith(clearCreated: true);
     }
   }
 
-  dispose() {
-    _states.close();
+  void dispose() {
+    _state.dispose();
   }
 }

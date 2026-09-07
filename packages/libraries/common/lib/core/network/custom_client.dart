@@ -10,6 +10,13 @@ import 'interceptor.dart';
 
 class CustomClient implements Client {
   final List<Interceptor> _interceptors = [];
+  late Client _inner;
+
+  CustomClient({
+    Client? inner,
+  }) {
+    _inner = inner ?? Client();
+  }
 
   void addInterceptor(Interceptor interceptor) {
     _interceptors.add(interceptor);
@@ -52,8 +59,9 @@ class CustomClient implements Client {
   }
 
   @override
-  Future<StreamedResponse> send(BaseRequest request) {
-    return request.send();
+  Future<StreamedResponse> send(BaseRequest request) async {
+    final response = await _attemptRequest(request, isStream: true);
+    return response as StreamedResponse;
   }
 
   /// Sends a non-streaming [Request] and returns a non-streaming [Response].
@@ -74,8 +82,14 @@ class CustomClient implements Client {
     }
 
     request = await _interceptRequest(request);
-    Response response = await Response.fromStream(await send(request));
-    return await _interceptResponse(response);
+    final response = await _attemptRequest(request);
+    return await _interceptResponse(response as Response);
+  }
+
+  Future<BaseResponse> _attemptRequest(BaseRequest request, {bool isStream = false}) async {
+    final stream = await _inner.send(request);
+    final response = isStream ? stream : await Response.fromStream(stream);
+    return response;
   }
 
   /// Throws an error if [response] is not successful.
@@ -116,5 +130,6 @@ class CustomClient implements Client {
 
   @override
   void close() {
+    _inner.close();
   }
 }

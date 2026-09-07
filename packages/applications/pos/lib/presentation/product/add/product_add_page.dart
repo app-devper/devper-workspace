@@ -1,48 +1,42 @@
 // Flutter imports:
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 // Package imports:
 import 'package:common/core/ext/widget_ext.dart';
-import 'package:common/core/utils/device.dart';
-import 'package:common/core/widgets/button_widget.dart';
-import 'package:common/core/widgets/custom_snack_bar.dart';
-import 'package:common/core/widgets/dropdown_widget.dart';
-import 'package:intl/intl.dart';
-import 'package:qr_code_scanner/qr_code_scanner.dart';
+import 'package:design_system/widgets/title_bar.dart';
 
 // Project imports:
 import 'package:pos/container.dart';
-import 'package:pos/domain/model/category/category.dart';
+import 'package:pos/domain/model/core/core.dart';
 import 'package:pos/domain/model/product/param.dart';
-import 'package:pos/localizations/language/languages.dart';
-import 'package:pos/presentation/constants.dart';
-import 'package:pos/presentation/home/argument.dart';
-import 'package:pos/presentation/product/argument.dart';
-import 'package:pos/presentation/theme.dart';
-import 'product_add_state.dart';
+import 'package:pos/presentation/core/core_widget.dart';
 import 'product_add_view_model.dart';
 
 class ProductAddPage extends StatefulWidget {
-  final String? receiveId;
+  final Function() onBack;
+  final Function() onAdd;
 
-  const ProductAddPage({super.key, required this.receiveId});
+  const ProductAddPage({
+    super.key,
+    required this.onBack,
+    required this.onAdd,
+  });
 
   @override
   State<StatefulWidget> createState() => _ProductAddPageState();
 }
 
 class _ProductAddPageState extends State<ProductAddPage> {
-  final _scaffoldKey = GlobalKey<ScaffoldState>();
+  final _formKey = GlobalKey<FormState>();
 
   final _serialNumberEditingController = TextEditingController();
   final _nameEditingController = TextEditingController();
   final _descriptionEditingController = TextEditingController();
   final _priceEditingController = TextEditingController();
   final _unitEditingController = TextEditingController();
-  final _quantityEditingController = TextEditingController();
-  final _lotNumberEditingController = TextEditingController();
-  final _expireDateEditingController = TextEditingController();
   final _costPriceEditingController = TextEditingController();
+  final _minStockEditingController = TextEditingController();
 
   final _viewNode = FocusNode();
   final _serialNumberNode = FocusNode();
@@ -50,105 +44,61 @@ class _ProductAddPageState extends State<ProductAddPage> {
   final _descriptionNode = FocusNode();
   final _priceNode = FocusNode();
   final _unitNode = FocusNode();
-  final _quantityNode = FocusNode();
-  final _lotNumberNode = FocusNode();
   final _costPriceNode = FocusNode();
 
-  late DateTime? _expireDate;
-  late CustomSnackBar _snackBar;
   late ProductAddViewModel _viewModel;
 
-  Category? _category;
-  List<Category> _categories = [];
+  ItemType? _category = categoryTypes.first;
+  final List<ItemType> _categories = categoryTypes;
+
+  ItemType? _status;
+  final List<ItemType> _productStatus = productStatus;
+
+  bool _loadingShown = false;
 
   @override
   void initState() {
     super.initState();
     _viewModel = sl<ProductAddViewModel>();
-    _viewModel.states.stream.listen((state) {
-      if (state is ErrorState) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _snackBar.hideAll();
-          _snackBar.showErrorSnackBar(state.message);
-        });
-      } else if (state is LoadingState) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _snackBar.hideAll();
-          _snackBar.showLoadingSnackBar();
-        });
-      } else if (state is GetProductState) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _snackBar.hideAll();
-        });
-        var data = state.data;
-        if (data != null) {
-          _nameEditingController.text = data.name;
-          _descriptionEditingController.text = data.description ?? "";
-          _priceEditingController.text = data.price.toString();
-          _costPriceEditingController.text = data.costPrice.toString();
-          _quantityEditingController.text = "";
-          _unitEditingController.text = data.unit;
-          _lotNumberEditingController.text = "";
-          _expireDateEditingController.text = "";
-          _expireDate = null;
-          setState(() {
-            _category = _categories.where((element) => element.value == data.category).firstOrNull;
-          });
-          FocusScope.of(context).requestFocus(_quantityNode);
-        } else {
-          _nameEditingController.text = "";
-          _descriptionEditingController.text = "";
-          _priceEditingController.text = "";
-          _costPriceEditingController.text = "";
-          _quantityEditingController.text = "";
-          _unitEditingController.text = "";
-          _lotNumberEditingController.text = "";
-          _expireDateEditingController.text = "";
-          _expireDate = null;
-          FocusScope.of(context).requestFocus(_nameNode);
-        }
-      } else if (state is CreateProductState) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _snackBar.hideAll();
-          _snackBar.showSnackBar(text: "Add ${state.data.name} success");
-        });
-        _serialNumberEditingController.text = "";
-        _nameEditingController.text = "";
-        _descriptionEditingController.text = "";
-        _priceEditingController.text = "";
-        _costPriceEditingController.text = "";
-        _quantityEditingController.text = "";
-        _unitEditingController.text = "";
-        _lotNumberEditingController.text = "";
-        _expireDateEditingController.text = "";
-        _expireDate = null;
-        FocusScope.of(context).requestFocus(_serialNumberNode);
-      } else if (state is GetSerialNumberState) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _snackBar.hideAll();
-        });
-        _serialNumberEditingController.text = state.serialNumber;
-        FocusScope.of(context).requestFocus(_serialNumberNode);
-      } else if (state is GetCategoryState) {
-        setState(() {
-          _categories = state.data;
-          _category = state.data.firstOrNull;
-        });
-      }
-    });
-
+    _viewModel.state.addListener(_onStateChanged);
     _viewModel.getCategories();
+  }
+
+  void _onStateChanged() {
+    final state = _viewModel.state.value;
+    if (state.saving && !_loadingShown) {
+      _loadingShown = true;
+      showLoadingDialog(context);
+    } else if (!state.saving && _loadingShown) {
+      _loadingShown = false;
+      hideLoadingDialog(context);
+    }
+    if (state.error != null) {
+      final message = state.error!;
+      _viewModel.consumeError();
+      showAlertDialog(context, message, () {});
+    }
+    if (state.created != null) {
+      _viewModel.consumeCreated();
+      widget.onAdd();
+    }
+    if (state.serialNumber != null) {
+      final serialNumber = state.serialNumber!;
+      _viewModel.consumeSerialNumber();
+      _serialNumberEditingController.text = serialNumber;
+      FocusScope.of(context).requestFocus(_serialNumberNode);
+    }
   }
 
   @override
   void dispose() {
+    _viewModel.state.removeListener(_onStateChanged);
     _viewNode.dispose();
     _serialNumberNode.dispose();
     _nameNode.dispose();
     _descriptionNode.dispose();
     _priceNode.dispose();
     _costPriceNode.dispose();
-    _quantityNode.dispose();
     _unitNode.dispose();
 
     _viewModel.dispose();
@@ -157,330 +107,313 @@ class _ProductAddPageState extends State<ProductAddPage> {
 
   @override
   Widget build(BuildContext context) {
-    _snackBar = CustomSnackBar(key: const Key("snackbar"), context: context);
-    return Scaffold(
-      key: _scaffoldKey,
-      appBar: AppBar(
-        iconTheme: CustomTheme.mainTheme.iconTheme,
-        backgroundColor: CustomColor.white,
-        centerTitle: true,
-        title: Text(
-          Languages.of(context).productAddTitle,
-          style: CustomTheme.mainTheme.textTheme.headlineSmall,
+    return Column(
+      children: [
+        TitleBar(
+          title: "เพิ่มสินค้า",
+          onBack: () {
+            widget.onBack();
+          },
+          action: "เพิ่มสินค้า",
+          onAction: () {
+            if (_formKey.currentState!.validate()) {
+              _viewModel.addProduct(_getProductParam());
+            }
+          },
+        ),
+        const Divider(height: 1),
+        Expanded(
+          child: _buildBody(),
+        )
+      ],
+    );
+  }
+
+  _buildBody() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(8),
+      child: Form(
+        key: _formKey,
+        child: Column(
+          children: <Widget>[
+            Card(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    const Text(
+                      'ข้อมูลทั่วไป',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'โปรดระบุข้อมูลสินค้า',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.black.withValues(alpha: 0.6),
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+                    _buildFormInfo(),
+                    const SizedBox(height: 8),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Card(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    const Text(
+                      'ข้อมูลหน่วยนับ และการจำหน่าย',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    _buildFormUnit(),
+                    const SizedBox(height: 8),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
       ),
-      body: _buildBody(context),
     );
   }
 
-  _buildBody(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(DEFAULT_PAGE_PADDING),
-      child: Column(
-        children: <Widget>[
-          _buildSerialNumber(context),
-          _buildForm(context),
-          const Padding(
-            padding: EdgeInsets.only(top: 20),
-          ),
-          _buildAddButton(),
-        ],
-      ),
-    );
-  }
-
-  _buildForm(BuildContext context) {
+  _buildFormInfo() {
     return Column(
       children: <Widget>[
-        const Padding(
-          padding: EdgeInsets.only(top: 12),
+        DropdownButtonFormField<ItemType>(
+          validator: (value) {
+            return null;
+          },
+          decoration: buildInputDecoration(
+            labelText: 'ประเภทสินค้า',
+            hintText: 'โปรดเลือกประเภทสินค้า',
+          ),
+          initialValue: _category,
+          onChanged: (value) {
+            setState(() {
+              _category = value;
+            });
+          },
+          items: _categories.map((ItemType value) {
+            return DropdownMenuItem<ItemType>(
+              value: value,
+              child: Text(value.name),
+            );
+          }).toList(),
         ),
-        buildTextFormField(
-          context,
-          _nameNode,
-          _nameEditingController,
-          "Name*",
-          TextInputType.text,
-          _descriptionNode,
+        const SizedBox(height: 16),
+        TextFormField(
+          inputFormatters: [
+            LengthLimitingTextInputFormatter(50),
+          ],
+          focusNode: _nameNode,
+          controller: _nameEditingController,
+          keyboardType: TextInputType.text,
+          autovalidateMode: AutovalidateMode.onUserInteraction,
+          decoration: buildInputDecoration(
+            labelText: 'ชื่อสินค้า',
+            hintText: 'โปรดระบุชื่อสินค้า',
+          ),
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'โปรดระบุชื่อสินค้า';
+            }
+            return null;
+          },
         ),
-        const Padding(
-          padding: EdgeInsets.only(top: 12),
+        const SizedBox(height: 16),
+        TextFormField(
+          inputFormatters: [
+            LengthLimitingTextInputFormatter(100),
+          ],
+          focusNode: _descriptionNode,
+          controller: _descriptionEditingController,
+          keyboardType: TextInputType.text,
+          autovalidateMode: AutovalidateMode.onUserInteraction,
+          decoration: buildInputDecoration(
+            labelText: 'คำอธิบายสินค้า',
+            hintText: 'โปรดระบุคำอธิบายสินค้า',
+          ),
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return null;
+            }
+            return null;
+          },
         ),
-        buildTextFormField(
-          context,
-          _descriptionNode,
-          _descriptionEditingController,
-          "Description",
-          TextInputType.text,
-          _priceNode,
-        ),
-        const Padding(
-          padding: EdgeInsets.only(top: 12),
-        ),
-        buildTextFormField(
-          context,
-          _priceNode,
-          _priceEditingController,
-          "Price*",
-          const TextInputType.numberWithOptions(decimal: true),
-          _costPriceNode,
-        ),
-        const Padding(
-          padding: EdgeInsets.only(top: 12),
-        ),
-        buildTextFormField(
-          context,
-          _costPriceNode,
-          _costPriceEditingController,
-          "Cost Price*",
-          const TextInputType.numberWithOptions(decimal: true),
-          _quantityNode,
-        ),
-        const Padding(
-          padding: EdgeInsets.only(top: 12),
-        ),
-        buildTextFormField(
-          context,
-          _quantityNode,
-          _quantityEditingController,
-          "Quantity",
-          const TextInputType.numberWithOptions(),
-          _unitNode,
-        ),
-        const Padding(
-          padding: EdgeInsets.only(top: 12),
-        ),
-        buildTextFormField(
-          context,
-          _unitNode,
-          _unitEditingController,
-          "Unit",
-          TextInputType.text,
-          _lotNumberNode,
-        ),
-        const Padding(
-          padding: EdgeInsets.only(top: 12),
-        ),
-        _buildCategory(),
-        const Padding(
-          padding: EdgeInsets.only(top: 12),
-        ),
-        buildTextFormField(
-          context,
-          _lotNumberNode,
-          _lotNumberEditingController,
-          "Lot Number*",
-          TextInputType.text,
-          _viewNode,
-        ),
-        const Padding(
-          padding: EdgeInsets.only(top: 12),
-        ),
-        _buildExpireDateField(
-          context,
+        const SizedBox(height: 16),
+        DropdownButtonFormField<ItemType>(
+          validator: (value) {
+            return null;
+          },
+          decoration: buildInputDecoration(
+            labelText: 'การแสดงข้อมูลสินค้า',
+            hintText: 'โปรดเลือกการแสดงข้อมูลสินค้า',
+          ),
+          initialValue: _status,
+          onChanged: (value) {
+            setState(() {
+              _status = value;
+            });
+          },
+          items: _productStatus.map((ItemType value) {
+            return DropdownMenuItem<ItemType>(
+              value: value,
+              child: Text(value.name),
+            );
+          }).toList(),
         ),
       ],
     );
   }
 
-  _buildSerialNumber(BuildContext context) {
-    final Size size = MediaQuery.of(context).size;
-    if (Device.isMobile()) {
-      return SizedBox(
-        width: size.width,
-        height: 50,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: <Widget>[
-            Flexible(child: _buildSerialNumberField(context)),
-            const SizedBox(width: 12),
-            SizedBox(
-              width: 60,
-              height: 50,
-              child: ButtonIconWidget(
-                key: const Key("Scan"),
-                onClicked: () {
-                  _nextToScan(context);
-                },
-                icon: const Icon(Icons.qr_code_scanner),
-              ),
-            ),
-            const SizedBox(width: 12),
-            SizedBox(
-              width: 60,
-              height: 50,
-              child: ButtonIconWidget(
-                key: const Key("Gen"),
-                onClicked: () {
-                  _viewModel.generateSerialNumber();
-                },
-                icon: const Icon(Icons.abc),
-              ),
-            ),
+  _buildFormUnit() {
+    return Column(
+      children: <Widget>[
+        TextFormField(
+          inputFormatters: [
+            LengthLimitingTextInputFormatter(10),
           ],
-        ),
-      );
-    } else {
-      return SizedBox(
-        width: size.width,
-        height: 50,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: <Widget>[
-            Flexible(child: _buildSerialNumberField(context)),
-            const SizedBox(width: 12),
-            SizedBox(
-              width: 60,
-              height: 50,
-              child: ButtonIconWidget(
-                key: const Key("Gen"),
-                onClicked: () {
-                  _viewModel.generateSerialNumber();
-                },
-                icon: const Icon(Icons.abc),
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-  }
-
-  _buildSerialNumberField(
-    BuildContext context,
-  ) {
-    return TextFormField(
-      focusNode: _serialNumberNode,
-      controller: _serialNumberEditingController,
-      keyboardType: TextInputType.number,
-      decoration: InputDecoration(
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(4.0),
-          borderSide: const BorderSide(
-            color: CustomColor.textFieldBackground,
+          focusNode: _unitNode,
+          controller: _unitEditingController,
+          keyboardType: TextInputType.text,
+          autovalidateMode: AutovalidateMode.onUserInteraction,
+          decoration: buildInputDecoration(
+            labelText: 'ชื่อหน่วยนับ',
+            hintText: 'โปรดระบุชื่อหน่วยนับ',
           ),
-        ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(4.0),
-          borderSide: const BorderSide(
-            color: CustomColor.textFieldBackground,
-          ),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(4.0),
-          borderSide: const BorderSide(
-            color: CustomColor.textFieldBackground,
-          ),
-        ),
-        focusColor: CustomColor.hintColor,
-        hoverColor: CustomColor.textFieldBackground,
-        fillColor: CustomColor.textFieldBackground,
-        filled: true,
-        labelText: "SerialNumber*",
-        labelStyle: CustomTheme.mainTheme.textTheme.bodyMedium,
-        suffixIcon: IconButton(
-          splashRadius: 20,
-          onPressed: () {
-            _nextToFindProduct(context);
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'โปรดระบุชื่อหน่วยนับ';
+            }
+            return null;
           },
-          icon: const Icon(Icons.search),
         ),
-      ),
-      cursorColor: CustomColor.hintColor,
-
-      onFieldSubmitted: (term) {
-        final serialNumber = _serialNumberEditingController.text;
-        if (serialNumber.isNotEmpty) {
-          _viewModel.getProductSerialNumber(serialNumber);
-          _serialNumberNode.unfocus();
-        }
-      },
-    );
-  }
-
-  _buildExpireDateField(
-    BuildContext context,
-  ) {
-    return TextFormField(
-      canRequestFocus: false,
-      controller: _expireDateEditingController,
-      decoration: InputDecoration(
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(4.0),
-          borderSide: const BorderSide(
-            color: CustomColor.textFieldBackground,
-          ),
+        const SizedBox(height: 16),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Flexible(
+              flex: 1,
+              child: TextFormField(
+                inputFormatters: [
+                  LengthLimitingTextInputFormatter(10),
+                ],
+                focusNode: _priceNode,
+                controller: _priceEditingController,
+                keyboardType: TextInputType.number,
+                autovalidateMode: AutovalidateMode.onUserInteraction,
+                decoration: buildInputDecoration(
+                  labelText: 'ราคาขายต่อหน่วย (ค่าเริ่มต้น)',
+                  hintText: '',
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'โปรดระบุราคาขายต่อหน่วย';
+                  }
+                  if (double.tryParse(value) == null) {
+                    return 'ราคาขายต่อหน่วยต้องเป็นตัวเลขเท่านั้น';
+                  } else if (double.tryParse(value)! < 0) {
+                    return 'ราคาขายต่อหน่วยต้องมากกว่า 0';
+                  }
+                  return null;
+                },
+              ),
+            ),
+            const SizedBox(width: 16),
+            Flexible(
+              flex: 1,
+              child: TextFormField(
+                inputFormatters: [
+                  LengthLimitingTextInputFormatter(10),
+                ],
+                focusNode: _costPriceNode,
+                controller: _costPriceEditingController,
+                keyboardType: TextInputType.number,
+                autovalidateMode: AutovalidateMode.onUserInteraction,
+                decoration: buildInputDecoration(
+                  labelText: 'ราคาทุนต่อหน่วย (ค่าเริ่มต้น)',
+                  hintText: '',
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'โปรดระบุราคาทุนต่อหน่วย';
+                  }
+                  if (double.tryParse(value) == null) {
+                    return 'ราคาทุนต่อหน่วยต้องเป็นตัวเลขเท่านั้น';
+                  } else if (double.tryParse(value)! < 0) {
+                    return 'ราคาทุนต่อหน่วยต้องมากกว่า 0';
+                  }
+                  return null;
+                },
+              ),
+            ),
+          ],
         ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(4.0),
-          borderSide: const BorderSide(
-            color: CustomColor.textFieldBackground,
-          ),
+        const SizedBox(height: 16),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Flexible(
+                child: TextFormField(
+              inputFormatters: [
+                LengthLimitingTextInputFormatter(20),
+              ],
+              focusNode: _serialNumberNode,
+              controller: _serialNumberEditingController,
+              keyboardType: TextInputType.text,
+              autovalidateMode: AutovalidateMode.onUserInteraction,
+              decoration: buildInputDecoration(
+                labelText: 'บาร์โค้ด',
+                hintText: 'โปรดระบุบาร์โค้ด',
+              ),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'โปรดระบุบาร์โค้ด';
+                }
+                return null;
+              },
+            )),
+            const SizedBox(width: 16),
+            Flexible(
+              child: TextFormField(
+                inputFormatters: [
+                  LengthLimitingTextInputFormatter(10),
+                ],
+                controller: _minStockEditingController,
+                keyboardType: TextInputType.number,
+                decoration: buildInputDecoration(
+                  labelText: 'สต็อกขั้นต่ำ',
+                  hintText: '0',
+                ),
+              ),
+            ),
+          ],
         ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(4.0),
-          borderSide: const BorderSide(
-            color: CustomColor.textFieldBackground,
-          ),
-        ),
-        focusColor: CustomColor.hintColor,
-        hoverColor: CustomColor.textFieldBackground,
-        fillColor: CustomColor.textFieldBackground,
-        filled: true,
-        labelText: "Expire Date*",
-        labelStyle: CustomTheme.mainTheme.textTheme.bodyMedium,
-      ),
-      cursorColor: CustomColor.hintColor,
-      readOnly: true,
-      onTap: () async {
-        final now = DateTime.now();
-        final lastDate = DateTime(now.year + 10, now.month, now.day);
-        DateTime? pickedDate = await showDatePicker(
-          context: context,
-          initialDate: now,
-          firstDate: now,
-          lastDate: lastDate,
-        );
-
-        if (pickedDate != null) {
-          var format = DateFormat("dd/MM/yyyy");
-          _expireDate = pickedDate;
-          setState(() {
-            _expireDateEditingController.text = format.format(pickedDate);
-          });
-        }
-      },
-    );
-  }
-
-  _buildCategory() {
-    return SizedBox(
-      height: 50,
-      child: DropdownInput<Category>(
-        hintText: "Category",
-        options: _categories,
-        value: _category,
-        onChanged: (Category? value) {
-          setState(() {
-            _category = value;
-          });
-        },
-        getLabel: (Category value) => value.name,
-      ),
-    );
-  }
-
-  _buildAddButton() {
-    return SizedBox(
-      width: double.infinity,
-      height: 50,
-      child: ButtonWidget(
-        key: const Key("Add"),
-        onClicked: () {
-          _viewModel.addProduct(_getProductParam());
-        },
-        text: "Add",
-      ),
+      ],
     );
   }
 
@@ -493,39 +426,18 @@ class _ProductAddPageState extends State<ProductAddPage> {
     if (_costPriceEditingController.text.trim().isNotEmpty) {
       costPrice = double.parse(_costPriceEditingController.text);
     }
-    var quantity = 0;
-    if (_quantityEditingController.text.trim().isNotEmpty) {
-      quantity = int.parse(_quantityEditingController.text);
-    }
-    return ProductParam(
+    final minStock = int.tryParse(_minStockEditingController.text) ?? 0;
+    return CreateProductParam(
       name: _nameEditingController.text,
       nameEn: null,
       description: _descriptionEditingController.text,
       price: price,
       costPrice: costPrice,
-      quantity: quantity,
       unit: _unitEditingController.text,
       serialNumber: _serialNumberEditingController.text,
-      lotNumber: _lotNumberEditingController.text,
-      expireDate: _expireDate?.toUtc().toIso8601String(),
-      category: _category?.value,
-      receiveId: widget.receiveId,
+      category: _category?.type ?? "",
+      status: _status?.type ?? "",
+      minStock: minStock,
     );
-  }
-
-  _nextToScan(BuildContext context) async {
-    var result = await Navigator.pushNamed(context, SCAN_ROUTE, arguments: ScannerArgument("SCAN")) as Barcode?;
-    if (result != null) {
-      _serialNumberEditingController.text = result.code ?? "";
-      _viewModel.getProductSerialNumber(result.code ?? "");
-    }
-  }
-
-  _nextToFindProduct(BuildContext context) async {
-    var result = await Navigator.pushNamed(context, PRODUCTS_ROUTE, arguments: ProductsArgument("FIND")) as String?;
-    if (result != null) {
-      _serialNumberEditingController.text = result;
-      _viewModel.getProductSerialNumber(result);
-    }
   }
 }

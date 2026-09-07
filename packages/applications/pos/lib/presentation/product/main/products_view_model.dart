@@ -1,238 +1,57 @@
-// Dart imports:
-import 'dart:async';
+// Flutter imports:
+import 'package:flutter/foundation.dart';
 
 // Package imports:
 import 'package:common/core/error/failure.dart';
-import 'package:um/domain/repositories/login_repository.dart';
 
 // Project imports:
-import 'package:pos/domain/model/category/category.dart';
 import 'package:pos/domain/model/product/product.dart';
-import 'package:pos/domain/repositories/category_repository.dart';
-import 'package:pos/domain/repositories/product_repository.dart';
-import 'package:pos/presentation/order/core/export_csv.dart';
-import 'products_state.dart';
-import 'products_ui_model.dart';
+import 'package:pos/domain/usecase/product/get_local_products_use_case.dart';
+import 'package:pos/presentation/product/main/products_state.dart';
 
 class ProductsViewModel {
-  final ProductRepository productRepo;
-  final LoginRepository loginRepo;
-  final CategoryRepository categoryRepo;
+  final GetLocalProductsUseCase getLocalProductsUseCase;
 
   ProductsViewModel({
-    required this.productRepo,
-    required this.loginRepo,
-    required this.categoryRepo,
+    required this.getLocalProductsUseCase,
   });
 
-  final _states = StreamController<ProductsState>();
+  final _state = ValueNotifier<ProductsState>(const ProductsState());
 
-  StreamController<ProductsState> get states => _states;
+  ValueListenable<ProductsState> get state => _state;
 
-  final _products = StreamController<List<Product>>();
-
-  StreamController<List<Product>> get products => _products;
-
-  final _dropdownItems = StreamController<List<ListItem>>();
-
-  StreamController<List<ListItem>> get dropdownItems => _dropdownItems;
-
-  Category all() {
-    return Category(
-      id: "",
-      name: "ทั้งหมด",
-      value: "",
-      description: "",
-      isDefault: false,
-      requireCustomerOrder: false,
-    );
-  }
-
-  void initData() async {
-    final dropdownItems = [
-      ListItem(SortProduct.CreatedAsc, "Created: Old to New"),
-      ListItem(SortProduct.CreatedDesc, "Created: New to Old"),
-      ListItem(SortProduct.NameAsc, "Name: A-Z"),
-      ListItem(SortProduct.NameDesc, "Name: Z-A"),
-      ListItem(SortProduct.PriceAsc, "Price: Low to High"),
-      ListItem(SortProduct.PriceDesc, "Price: High to Low"),
-      ListItem(SortProduct.QuantityAsc, "Quantity: Low to High"),
-      ListItem(SortProduct.QuantityDesc, "Quantity: High to Low"),
-      ListItem(SortProduct.SerialNoAsc, "Serial No.: Low to High"),
-      ListItem(SortProduct.SerialNoDesc, "Serial No.: High to Low"),
-    ];
-    if (!_dropdownItems.isClosed) {
-      _dropdownItems.sink.add(dropdownItems);
-    }
+  Future<void> searchProduct(String text, bool sortBalance) async {
     try {
-      final categories = await categoryRepo.getLocalCategories();
-      _onGetCategoriesSuccess(categories);
-    } on Exception catch (e) {
-      _onError(toFailure(e));
-    }
-  }
-
-  void checkLogin() async {
-    try {
-      final result = await loginRepo.getRole();
-      _onCheckRole(result == "ADMIN");
-    } on Exception catch (e) {
-      _onError(toFailure(e));
-    }
-  }
-
-  void searchProduct(String text) async {
-    try {
-      final result = await productRepo.getLocalProducts();
-      _onListProducts(text, result);
-    } on Exception catch (e) {
-      _onError(toFailure(e));
-    }
-  }
-
-  void getProducts(SortProduct sort, String category) async {
-    _onLoading();
-    try {
-      final result = await productRepo.getProducts();
-      _onProductsResult(sort, category, result);
-    } on Exception catch (e) {
-      _onError(toFailure(e));
-    }
-  }
-
-  void downloadProducts() async {
-    try {
-      final result = await productRepo.getLocalProducts();
-      ExportCsv.downloadProducts(result);
-    } on Exception catch (_) {}
-  }
-
-  void removeProduct(String productId) async {
-    _onLoading();
-    try {
-      final result = await productRepo.removeProductById(productId);
-      _onRemoveProduct(result);
-    } on Exception catch (e) {
-      _onError(toFailure(e));
-    }
-  }
-
-  void setProducts(List<Product> data) {
-    _products.sink.add(data);
-  }
-
-  _onLoading() {
-    _states.sink.add(LoadingState());
-  }
-
-  _onCheckRole(bool isAdmin) {
-    if (!_states.isClosed) {
-      _states.sink.add((LoggedState(isAdmin)));
-    }
-  }
-
-  _onListProducts(String text, List<Product> data) {
-    if (!_states.isClosed) {
-      _states.sink.add(ListProductsState(data: _searchProduct(text, data)));
-    }
-  }
-
-  _onProductsResult(SortProduct sort, String category, List<Product> data) {
-    if (!_states.isClosed) {
-      _states.sink.add(ProductsResultState(
-        data: _sortProduct(sort, category, data),
-        totalCost: _calculateTotalCost(data),
-      ));
-    }
-  }
-
-  _onRemoveProduct(Product data) {
-    if (!_states.isClosed) {
-      _states.sink.add(RemoveProductState(data: data));
-    }
-  }
-
-  _onGetCategoriesSuccess(List<Category> data) {
-    if (!_states.isClosed) {
-      final copied = List<Category>.from(data).toList();
-      copied.insert(0, all());
-      _states.sink.add(GetCategoryState(data: copied));
-    }
-  }
-
-  _onError(Failure failure) {
-    if (!_states.isClosed) {
-      _states.sink.add(ErrorState(message: failure.getMessage()));
-    }
-  }
-
-  dispose() {
-    _states.close();
-    _products.close();
-    _dropdownItems.close();
-  }
-
-  double _calculateTotalCost(List<Product> data) {
-    double price = 0;
-    for (var x in data) {
-      if (x.quantity > 0) {
-        price += x.costPrice * x.quantity;
+      final data = await getLocalProductsUseCase();
+      final result = _searchProduct(text, List<Product>.of(data));
+      if (sortBalance) {
+        result.sort((a, b) => a.getQuantity().compareTo(b.getQuantity()));
       }
-    }
-    return price;
-  }
-
-  List<Product> _sortProduct(SortProduct sort, String category, List<Product> data) {
-    final filtered = data.where((element) => element.category == category).toList();
-    switch (sort) {
-      case SortProduct.NameAsc:
-        filtered.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
-        return filtered;
-      case SortProduct.NameDesc:
-        filtered.sort((a, b) => b.name.toLowerCase().compareTo(a.name.toLowerCase()));
-        return filtered;
-      case SortProduct.PriceAsc:
-        filtered.sort((a, b) => a.price.compareTo(b.price));
-        return filtered;
-      case SortProduct.PriceDesc:
-        filtered.sort((a, b) => b.price.compareTo(a.price));
-        return filtered;
-      case SortProduct.CostPriceAsc:
-        filtered.sort((a, b) => a.costPrice.compareTo(b.costPrice));
-        return filtered;
-      case SortProduct.CostPriceDesc:
-        filtered.sort((a, b) => b.costPrice.compareTo(a.costPrice));
-        return filtered;
-      case SortProduct.QuantityAsc:
-        filtered.sort((a, b) => a.quantity.compareTo(b.quantity));
-        return filtered;
-      case SortProduct.QuantityDesc:
-        filtered.sort((a, b) => b.quantity.compareTo(a.quantity));
-        return filtered;
-      case SortProduct.CreatedAsc:
-        return filtered;
-      case SortProduct.CreatedDesc:
-        return filtered.reversed.toList();
-      case SortProduct.SerialNoAsc:
-        filtered.sort((a, b) => a.serialNumber.compareTo(b.serialNumber));
-        return filtered;
-      case SortProduct.SerialNoDesc:
-        filtered.sort((a, b) => b.serialNumber.compareTo(a.serialNumber));
-        return filtered;
+      _state.value = _state.value.copyWith(loading: false, items: result, clearError: true);
+    } on Exception catch (e) {
+      _state.value = _state.value.copyWith(loading: false, error: toFailure(e).getMessage());
     }
   }
 
   List<Product> _searchProduct(String param, List<Product> data) {
     if (param.isEmpty) {
       return data;
-    } else {
-      List<Product> filtered = [];
-      for (var item in data) {
-        if (item.name.toLowerCase().contains(param.toLowerCase()) || item.serialNumber.contains(param)) {
-          filtered.add(item);
-        }
-      }
-      return filtered;
     }
+    final lower = param.toLowerCase();
+    return data
+        .where((item) =>
+            item.name.toLowerCase().contains(lower) ||
+            item.units.any((element) => element.barcode.contains(param)))
+        .toList();
+  }
+
+  void consumeError() {
+    if (_state.value.error != null) {
+      _state.value = _state.value.copyWith(clearError: true);
+    }
+  }
+
+  void dispose() {
+    _state.dispose();
   }
 }

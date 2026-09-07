@@ -6,7 +6,15 @@ publish_to: 'none'
 version: 1.0.0
 
 environment:
-  sdk: '>=3.2.6 <4.0.0'
+  sdk: '>=3.10.7 <4.0.0'
+  flutter: '>=3.38.7'
+
+workspace:
+  - packages/libraries/common
+  - packages/libraries/design_system
+  - packages/features/um
+  - packages/applications/pos
+  - packages/applications/sm
 
 dependencies:
   flutter:
@@ -15,7 +23,63 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^3.0.1
-  melos: 
-  yaml: ^3.0.2
+  flutter_lints: ^4.0.0
+  melos: ^8.1.0
+  yaml: ^3.1.3
+
+melos:
+  packages:
+    - packages/*
+    - packages/*/*
+    - packages/*/*/*
+    - tests
+  scripts:
+    prepare:
+      run: |
+        melos clean && \
+        melos bootstrap
+      description: |
+        Install package after setup project
+    analyze:
+      run: |
+        melos exec -c 1 --ignore="*example*" -- \
+        flutter analyze --fatal-infos .
+      description: |
+        Analyze all code.
+    run:dev:pos:
+      run: |
+        melos exec -c 1 --scope pos -- \
+        flutter run -d chrome --dart-define=ENV=dev
+      description: |
+        Run pos app in dev mode (connects to local um-api:8585 and pos-api:8586).
+    run:dev:sm:
+      run: |
+        melos exec -c 1 --scope sm -- \
+        flutter run -d chrome --dart-define=ENV=dev
+      description: |
+        Run sm app in dev mode (connects to local um-api:8585).
+    build:web:pos:
+      run: |
+        melos exec -c 1 --scope pos -- \
+        flutter build web --release
+      description: |
+        Build.
+    deploy:web:devper:
+      run: |
+        melos exec -c 1 --scope pos -- \
+        firebase deploy --only hosting:devper
+      description: |
+        Deploy.
+    deploy:web:pos:
+      run: |
+        melos exec -c 1 --scope pos -- \
+        firebase deploy --only hosting:pos
+      description: |
+        Build and Deploy.
+    import_sorter:
+      run: |
+        melos exec -c 1 -- \
+        flutter pub run import_sorter:main
+      description: |
+        Import Sorter.
 

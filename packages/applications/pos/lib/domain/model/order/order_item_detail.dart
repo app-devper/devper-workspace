@@ -11,8 +11,11 @@ class OrderItemDetail {
   int quantity;
   double price;
   double costPrice;
+  double discount;
   String createdDate;
   Order? order;
+  int oversoldQty;
+  int returnedQty;
 
   OrderItemDetail({
     required this.id,
@@ -20,8 +23,11 @@ class OrderItemDetail {
     required this.quantity,
     required this.price,
     required this.costPrice,
+    required this.discount,
     required this.createdDate,
     required this.order,
+    this.oversoldQty = 0,
+    this.returnedQty = 0,
   });
 
   String getCreatedDate() {

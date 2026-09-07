@@ -3,8 +3,9 @@ import 'package:flutter/material.dart';
 
 // Package imports:
 import 'package:common/core/ext/widget_ext.dart';
-import 'package:common/core/widgets/button_widget.dart';
-import 'package:common/core/widgets/custom_snack_bar.dart';
+import 'package:design_system/widgets/app_bar.dart';
+import 'package:design_system/widgets/buttons.dart';
+import 'package:design_system/widgets/snack_bar.dart';
 
 // Project imports:
 import 'package:pos/container.dart';
@@ -12,8 +13,6 @@ import 'package:pos/domain/model/product/param.dart';
 import 'package:pos/domain/model/product/product_lot.dart';
 import 'package:pos/localizations/language/languages.dart';
 import 'package:pos/presentation/constants.dart';
-import 'package:pos/presentation/theme.dart';
-import 'product_lot_edit_state.dart';
 import 'product_lot_edit_view_model.dart';
 
 class ProductLotEditPage extends StatefulWidget {
@@ -44,46 +43,54 @@ class _ProductLotEditPageState extends State<ProductLotEditPage> {
   late CustomSnackBar _snackBar;
   late ProductLotEditViewModel _viewModel;
 
+  bool _loadingShown = false;
+
   @override
   void initState() {
     super.initState();
     _viewModel = sl<ProductLotEditViewModel>();
-    _viewModel.states.listen((state) {
-      if (state is ErrorState) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _snackBar.hideAll();
-          _snackBar.showErrorSnackBar(state.message);
-        });
-        hideLoadingDialog(context);
-      } else if (state is LoadingState) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _snackBar.hideAll();
-        });
-        showLoadingDialog(context);
-      } else if (state is GetProductLotState) {
-        _nameEditingController.text = state.data.product?.name ?? "-";
-        _costPriceEditingController.text = state.data.costPrice.toString();
-        _quantityEditingController.text = state.data.quantity.toString();
-        _lotNumberEditingController.text = state.data.lotNumber;
-        _expireDateEditingController.text = state.data.getExpireDate();
-
-        FocusScope.of(context).requestFocus(_quantityNode);
-      } else if (state is UpdateProductLotState) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _snackBar.hideAll();
-          _snackBar.showSnackBar(text: "Update success");
-        });
-        hideLoadingDialog(context);
-      }
-    });
-
+    _viewModel.state.addListener(_onStateChanged);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _viewModel.getProductLot(widget.productLot);
     });
   }
 
+  void _onStateChanged() {
+    final state = _viewModel.state.value;
+    if (state.loading && !_loadingShown) {
+      _loadingShown = true;
+      _snackBar.hideAll();
+      showLoadingDialog(context);
+    } else if (!state.loading && _loadingShown) {
+      _loadingShown = false;
+      hideLoadingDialog(context);
+    }
+    if (state.error != null) {
+      final message = state.error!;
+      _viewModel.consumeError();
+      _snackBar.hideAll();
+      _snackBar.showErrorSnackBar(message);
+    }
+    if (state.loaded != null) {
+      final data = state.loaded!;
+      _viewModel.consumeLoaded();
+      _nameEditingController.text = data.product?.name ?? "-";
+      _costPriceEditingController.text = data.costPrice.toString();
+      _quantityEditingController.text = data.quantity.toString();
+      _lotNumberEditingController.text = data.lotNumber;
+      _expireDateEditingController.text = data.getExpireDate();
+      FocusScope.of(context).requestFocus(_quantityNode);
+    }
+    if (state.updated != null) {
+      _viewModel.consumeUpdated();
+      _snackBar.hideAll();
+      _snackBar.showSnackBar(text: "Update success");
+    }
+  }
+
   @override
   void dispose() {
+    _viewModel.state.removeListener(_onStateChanged);
     _viewNode.dispose();
     _nameNode.dispose();
     _costPriceNode.dispose();
@@ -99,14 +106,8 @@ class _ProductLotEditPageState extends State<ProductLotEditPage> {
     _snackBar = CustomSnackBar(key: const Key("snackbar"), context: context);
     return Scaffold(
       key: _scaffoldKey,
-      appBar: AppBar(
-        iconTheme: CustomTheme.mainTheme.iconTheme,
-        backgroundColor: CustomColor.white,
-        centerTitle: true,
-        title: Text(
-          Languages.of(context).productLotEditTitle,
-          style: CustomTheme.mainTheme.textTheme.headlineSmall,
-        ),
+      appBar: buildAppBar(
+        Languages.of(context).productLotEditTitle,
       ),
       body: _buildBody(context),
     );
@@ -114,7 +115,7 @@ class _ProductLotEditPageState extends State<ProductLotEditPage> {
 
   _buildBody(BuildContext context) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(DEFAULT_PAGE_PADDING),
+      padding: const EdgeInsets.all(defaultPagePadding),
       child: Column(
         children: <Widget>[
           _buildForm(context),
@@ -196,23 +197,18 @@ class _ProductLotEditPageState extends State<ProductLotEditPage> {
       child: ButtonWidget(
         key: const Key("update"),
         onClicked: () {
+          final quantity = int.tryParse(_quantityEditingController.text.trim());
+          if (quantity == null || quantity < 0) {
+            _snackBar.showErrorSnackBar('ระบุจำนวนเต็มตั้งแต่ 0 ขึ้นไป');
+            return;
+          }
           _viewModel.updateProductLot(
             widget.productLot.id,
-            _getUpdateProductLotQuantityParam(),
+            UpdateProductLotQuantityParam(quantity: quantity),
           );
         },
         text: "Update",
       ),
-    );
-  }
-
-  _getUpdateProductLotQuantityParam() {
-    var quantity = 0;
-    if (_quantityEditingController.text.trim().isNotEmpty) {
-      quantity = int.parse(_quantityEditingController.text);
-    }
-    return UpdateProductLotQuantityParam(
-      quantity: quantity,
     );
   }
 }

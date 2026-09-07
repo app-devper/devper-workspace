@@ -34,9 +34,8 @@ Function(LoginParam) useLogin(
     final loginRepo = sl<LoginRepository>();
     loading();
     try {
-      final _ = await loginRepo.loginUser(param);
-      final result = await loginRepo.getSystem();
-      success(result);
+      final session = await loginRepo.loginUser(param);
+      success(session.system);
     } on Exception catch (e) {
       error(toFailure(e));
     }

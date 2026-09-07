@@ -69,4 +69,10 @@ abstract class Languages {
   String get productsExpiredTitle;
 
   String get productLotEditTitle;
+
+  String get stockCountsTitle;
+
+  String get stockCountManageTitle;
+
+  String get stockCountCreateTitle;
 }

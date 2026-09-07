@@ -1,52 +1,51 @@
-// Dart imports:
-import 'dart:async';
+// Flutter imports:
+import 'package:flutter/foundation.dart';
 
 // Package imports:
 import 'package:common/core/error/failure.dart';
 
 // Project imports:
-import 'package:pos/domain/model/product/product.dart';
-import 'package:pos/domain/repositories/product_repository.dart';
+import 'package:pos/domain/usecase/product/get_product_by_barcode_use_case.dart';
 import 'scanner_state.dart';
 
 class ScannerViewModel {
-  final ProductRepository productRepo;
+  final GetProductByBarcodeUseCase getProductByBarcodeUseCase;
 
   ScannerViewModel({
-    required this.productRepo,
+    required this.getProductByBarcodeUseCase,
   });
 
-  final _states = StreamController<ScannerState>();
+  final _state = ValueNotifier<ScannerState>(const ScannerState());
 
-  StreamController<ScannerState> get states => _states;
+  ValueListenable<ScannerState> get state => _state;
 
-  void getProductBySerialNumber(String serialNumber) async {
-    _onLoading();
+  Future<void> getProductBySerialNumber(String serialNumber) async {
+    _state.value = _state.value.copyWith(loading: true, clearError: true, clearLoaded: true);
     try {
-      final result = await productRepo.getProductBySerialNumber(serialNumber);
-      _onGetProductSuccess(result);
+      final result = await getProductByBarcodeUseCase(serialNumber);
+      if (result == null) {
+        _state.value = _state.value.copyWith(loading: false, error: "ไม่พบสินค้า");
+        return;
+      }
+      _state.value = _state.value.copyWith(loading: false, loaded: result);
     } on Exception catch (e) {
-      _onGetProductError(toFailure(e));
+      _state.value = _state.value.copyWith(loading: false, error: toFailure(e).getMessage());
     }
   }
 
-  _onLoading() {
-    _states.sink.add(LoadingState());
-  }
-
-  _onGetProductSuccess(Product data) {
-    if (!_states.isClosed) {
-      _states.sink.add(GetProductState(data: data));
+  void consumeError() {
+    if (_state.value.error != null) {
+      _state.value = _state.value.copyWith(clearError: true);
     }
   }
 
-  _onGetProductError(Failure failure) {
-    if (!_states.isClosed) {
-      _states.sink.add(ErrorState(message: failure.getMessage()));
+  void consumeLoaded() {
+    if (_state.value.loaded != null) {
+      _state.value = _state.value.copyWith(clearLoaded: true);
     }
   }
 
-  dispose() {
-    _states.close();
+  void dispose() {
+    _state.dispose();
   }
 }

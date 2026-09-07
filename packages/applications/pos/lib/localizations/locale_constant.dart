@@ -4,9 +4,6 @@ import 'package:flutter/material.dart';
 // Package imports:
 import 'package:shared_preferences/shared_preferences.dart';
 
-// Project imports:
-import 'package:pos/presentation/app.dart';
-
 const String prefSelectedLanguageCode = "SelectedLanguageCode";
 
 Future<Locale> setLocale(String languageCode) async {
@@ -22,10 +19,12 @@ Future<Locale> getLocale() async {
 }
 
 Locale _locale(String? languageCode) {
-  return languageCode != null && languageCode.isNotEmpty ? Locale(languageCode, '') : const Locale('en', '');
+  return languageCode != null && languageCode.isNotEmpty
+      ? Locale(languageCode, '')
+      : const Locale('en', '');
 }
 
-void changeLanguage(BuildContext context, String selectedLanguageCode) async {
-  var locale = await setLocale(selectedLanguageCode);
-  DevperPos.setLocale(context, locale);
+Future<Locale> changeLanguage(
+    BuildContext context, String selectedLanguageCode) async {
+  return setLocale(selectedLanguageCode);
 }

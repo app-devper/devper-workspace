@@ -2,7 +2,8 @@
 import 'package:flutter/material.dart';
 
 // Package imports:
-import 'package:common/core/theme/theme.dart';
+import 'package:design_system/theme/color.dart';
+import 'package:design_system/theme/theme.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 
 // Project imports:
@@ -38,10 +39,11 @@ class UserAddPage extends HookWidget {
             style: CustomTheme.mainTheme.textTheme.headlineSmall,
           ),
         ),
-        body: WillPopScope(
-          onWillPop: () async {
+        body: PopScope(
+          canPop: false,
+          onPopInvokedWithResult: (didPop, result) {
+            if (didPop) return;
             Navigator.pop(context, add.value);
-            return false;
           },
           child: buildBody(),
         ),

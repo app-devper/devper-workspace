@@ -1,0 +1,8 @@
+{
+  "apiUrl": "https://api.devper.app",
+  "logo": "assets/images/logo.png",
+  "name": "หน้าหลัก",
+  "system": "SM",
+  "home": "/home",
+  "hostApp": "https://api.devper.app"
+}

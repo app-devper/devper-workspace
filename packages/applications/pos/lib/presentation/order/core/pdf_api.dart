@@ -1,9 +1,5 @@
-// Dart imports:
-import 'dart:io';
-
 // Package imports:
-import 'package:open_file/open_file.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:flutter/foundation.dart';
 import 'package:pdf/widgets.dart';
 import 'package:universal_html/html.dart' as html;
 
@@ -12,14 +8,10 @@ class PdfApi {
     required String name,
     required Document doc,
   }) async {
-    final bytes = await doc.save();
-
-    final dir = await getApplicationDocumentsDirectory();
-    final file = File('${dir.path}/$name');
-    await file.writeAsBytes(bytes);
-
-    final url = file.path;
-    await OpenFile.open(url);
+    if (!kIsWeb) {
+      return;
+    }
+    await downloadDocument(name: name, doc: doc);
   }
 
   static downloadDocument({

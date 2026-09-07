@@ -1,78 +1,81 @@
 // Flutter imports:
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 // Package imports:
 import 'package:common/core/ext/widget_ext.dart';
-import 'package:common/core/widgets/button_widget.dart';
-import 'package:common/core/widgets/custom_snack_bar.dart';
+import 'package:design_system/widgets/title_bar.dart';
 
 // Project imports:
 import 'package:pos/container.dart';
+import 'package:pos/domain/model/core/core.dart';
 import 'package:pos/domain/model/customer/param.dart';
-import 'package:pos/localizations/language/languages.dart';
-import 'package:pos/presentation/constants.dart';
-import 'package:pos/presentation/customer/add/customer_add_state.dart';
+import 'package:pos/presentation/core/core_widget.dart';
 import 'package:pos/presentation/customer/add/customer_add_view_model.dart';
-import 'package:pos/presentation/theme.dart';
 
 class CustomerAddPage extends StatefulWidget {
-  const CustomerAddPage({super.key});
+  final Function() onBack;
+  final Function() onAdd;
+
+  const CustomerAddPage({
+    super.key,
+    required this.onBack,
+    required this.onAdd,
+  });
 
   @override
   State<StatefulWidget> createState() => _CustomerAddPageState();
 }
 
 class _CustomerAddPageState extends State<CustomerAddPage> {
-  final _scaffoldKey = GlobalKey<ScaffoldState>();
+  final _formKey = GlobalKey<FormState>();
 
   final _nameEditingController = TextEditingController();
   final _addressEditingController = TextEditingController();
   final _phoneEditingController = TextEditingController();
   final _emailEditingController = TextEditingController();
 
-  final _viewNode = FocusNode();
   final _nameNode = FocusNode();
   final _addressNode = FocusNode();
   final _phoneNode = FocusNode();
   final _emailNode = FocusNode();
 
-  late CustomSnackBar _snackBar;
-
   late CustomerAddViewModel _viewModel;
+
+  ItemType? _customer = customerTypes.first;
+  final List<ItemType> _customers = customerTypes;
+
+  bool _loadingShown = false;
 
   @override
   void initState() {
     super.initState();
     _viewModel = sl<CustomerAddViewModel>();
-    _viewModel.states.listen((state) {
-      if (state is ErrorState) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _snackBar.hideAll();
-          _snackBar.showErrorSnackBar(state.message);
-        });
-        hideLoadingDialog(context);
-      } else if (state is LoadingState) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _snackBar.hideAll();
-        });
-        showLoadingDialog(context);
-      } else if (state is CreateCustomerState) {
-        hideLoadingDialog(context);
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _snackBar.hideAll();
-          _snackBar.showSnackBar(text: "Add ${state.data.name} success");
-        });
-        _nameEditingController.text = "";
-        _addressEditingController.text = "";
-        _phoneEditingController.text = "";
-        _emailEditingController.text = "";
-        FocusScope.of(context).requestFocus(_nameNode);
-      }
-    });
+    _viewModel.state.addListener(_onStateChanged);
+  }
+
+  void _onStateChanged() {
+    final state = _viewModel.state.value;
+    if (state.saving && !_loadingShown) {
+      _loadingShown = true;
+      showLoadingDialog(context);
+    } else if (!state.saving && _loadingShown) {
+      _loadingShown = false;
+      hideLoadingDialog(context);
+    }
+    if (state.error != null) {
+      showAlertDialog(context, state.error!, () {});
+      _viewModel.consumeError();
+    }
+    if (state.created != null) {
+      _viewModel.consumeCreated();
+      widget.onAdd();
+    }
   }
 
   @override
   void dispose() {
+    _viewModel.state.removeListener(_onStateChanged);
     _nameNode.dispose();
     _addressNode.dispose();
     _phoneNode.dispose();
@@ -84,103 +87,166 @@ class _CustomerAddPageState extends State<CustomerAddPage> {
 
   @override
   Widget build(BuildContext context) {
-    _snackBar = CustomSnackBar(key: const Key("snackbar"), context: context);
-    return Scaffold(
-      key: _scaffoldKey,
-      appBar: AppBar(
-        iconTheme: CustomTheme.mainTheme.iconTheme,
-        backgroundColor: CustomColor.white,
-        centerTitle: true,
-        title: Text(
-          Languages.of(context).customerAddTitle,
-          style: CustomTheme.mainTheme.textTheme.headlineSmall,
-        ),
-      ),
-      body: _buildBody(context),
-    );
-  }
-
-  _buildBody(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(DEFAULT_PAGE_PADDING),
-      child: Container(
-        child: Column(
-          children: <Widget>[
-            _buildForm(context),
-            const Padding(
-              padding: EdgeInsets.only(top: DEFAULT_PAGE_PADDING),
-            ),
-            _buildAddButton(),
-          ],
-        ),
-      ),
-    );
-  }
-
-  _buildForm(BuildContext context) {
     return Column(
-      children: <Widget>[
-        const Padding(
-          padding: EdgeInsets.only(top: 12),
+      children: [
+        TitleBar(
+          title: "เพิ่มลูกค้า",
+          onBack: () {
+            widget.onBack();
+          },
+          action: "ยืนยัน",
+          onAction: () {
+            if (_formKey.currentState!.validate()) {
+              _viewModel.createCustomer(_getCustomerParam());
+            }
+          },
         ),
-        buildTextFormField(
-          context,
-          _nameNode,
-          _nameEditingController,
-          "Name*",
-          TextInputType.text,
-          _addressNode,
-        ),
-        const Padding(
-          padding: EdgeInsets.only(top: 12),
-        ),
-        buildAddressFormField(
-          context,
-          _addressNode,
-          _addressEditingController,
-          "Address",
-          TextInputType.text,
-          _phoneNode,
-        ),
-        const Padding(
-          padding: EdgeInsets.only(top: 12),
-        ),
-        buildTextFormField(
-          context,
-          _phoneNode,
-          _phoneEditingController,
-          "Phone",
-          TextInputType.phone,
-          _emailNode,
-        ),
-        const Padding(
-          padding: EdgeInsets.only(top: 12),
-        ),
-        buildTextFormField(
-          context,
-          _emailNode,
-          _emailEditingController,
-          "Email",
-          TextInputType.emailAddress,
-          _viewNode,
-        ),
+        const Divider(height: 1),
+        Expanded(
+          child: _buildBody(),
+        )
       ],
     );
   }
 
-  _buildAddButton() {
-    return SizedBox(
-      width: double.infinity,
-      height: 50,
-      child: ButtonWidget(
-        key: const Key("Add"),
-        onClicked: () {
-          _viewModel.createCustomer(_getCustomerParam());
-        },
-        text: "Add",
+  _buildBody() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(8),
+      child: Column(
+        children: <Widget>[
+          Card(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  const Text(
+                    'ข้อมูลทั่วไป',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'โปรดระบุข้อมูลลูกค้า',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.black.withValues(alpha: 0.6),
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                  _buildForm(),
+                  const SizedBox(height: 8),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
+
+  _buildForm() {
+    return Form(
+      key: _formKey,
+      child: Column(
+        children: <Widget>[
+          DropdownButtonFormField<ItemType>(
+            validator: (value) {
+              return value == null ? 'โปรดเลือกประเภทลูกค้า' : null;
+            },
+            decoration: buildInputDecoration(
+              labelText: 'ประเภทลูกค้า',
+              hintText: 'โปรดเลือกประเภทลูกค้า',
+            ),
+            initialValue: _customer,
+            onChanged: (value) {
+              setState(() {
+                _customer = value;
+              });
+            },
+            items: _customers.map((ItemType value) {
+              return DropdownMenuItem<ItemType>(
+                value: value,
+                child: Text(value.name),
+              );
+            }).toList(),
+          ),
+          const SizedBox(height: 16),
+          TextFormField(
+            inputFormatters: [
+              LengthLimitingTextInputFormatter(50),
+            ],
+            focusNode: _nameNode,
+            controller: _nameEditingController,
+            keyboardType: TextInputType.text,
+            autovalidateMode: AutovalidateMode.onUserInteraction,
+            decoration: buildInputDecoration(
+              labelText: 'ชื่อลูกค้า',
+              hintText: 'โปรดระบุชื่อลูกค้า',
+            ),
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'โปรดระบุชื่อลูกค้า';
+              }
+              return null;
+            },
+          ),
+          const SizedBox(height: 16),
+          TextFormField(
+            inputFormatters: [
+              LengthLimitingTextInputFormatter(100),
+            ],
+            focusNode: _addressNode,
+            controller: _addressEditingController,
+            minLines: 2,
+            maxLines: 2,
+            keyboardType: TextInputType.text,
+            autovalidateMode: AutovalidateMode.onUserInteraction,
+            textAlignVertical: TextAlignVertical.top,
+            decoration: buildInputDecoration(
+              labelText: 'ที่อยู่',
+              hintText: 'โปรดระบุที่อยู่',
+            ),
+          ),
+          const SizedBox(height: 16),
+          TextFormField(
+            inputFormatters: [
+              LengthLimitingTextInputFormatter(10),
+            ],
+            focusNode: _phoneNode,
+            controller: _phoneEditingController,
+            keyboardType: TextInputType.phone,
+            autovalidateMode: AutovalidateMode.onUserInteraction,
+            decoration: buildInputDecoration(
+              labelText: 'โทรศัพท์',
+              hintText: 'โปรดระบุเบอร์โทรศัพท์',
+            ),
+          ),
+          const SizedBox(height: 16),
+          TextFormField(
+            inputFormatters: [
+              LengthLimitingTextInputFormatter(50),
+            ],
+            focusNode: _emailNode,
+            controller: _emailEditingController,
+            keyboardType: TextInputType.emailAddress,
+            autovalidateMode: AutovalidateMode.onUserInteraction,
+            decoration: buildInputDecoration(
+              labelText: 'อีเมล',
+              hintText: 'โปรดระบุอีเมล',
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
 
   _getCustomerParam() {
     return CustomerParam(
@@ -188,6 +254,7 @@ class _CustomerAddPageState extends State<CustomerAddPage> {
       address: _addressEditingController.text,
       phone: _phoneEditingController.text,
       email: _emailEditingController.text,
+      customerType: _customer?.type ?? "",
     );
   }
 }

@@ -1,40 +1,35 @@
-// Dart imports:
-import 'dart:async';
+// Flutter imports:
+import 'package:flutter/foundation.dart';
 
 // Package imports:
 import 'package:common/core/error/failure.dart';
-import 'package:pos/domain/model/product/param.dart';
 
 // Project imports:
+import 'package:pos/domain/model/product/param.dart';
 import 'package:pos/domain/model/product/product_lot.dart';
-import 'package:pos/domain/repositories/product_repository.dart';
+import 'package:pos/domain/usecase/product/get_local_product_by_id_use_case.dart';
+import 'package:pos/domain/usecase/product/get_product_lots_use_case.dart';
 import 'package:pos/presentation/product/expired/products_expire_ui_model.dart';
 import 'package:pos/presentation/product/expired/products_expired_state.dart';
 
 class ProductsExpiredViewModel {
-  final ProductRepository productRepo;
+  final GetProductLotsUseCase getProductLotsUseCase;
+  final GetLocalProductByIdUseCase getLocalProductByIdUseCase;
 
   ProductsExpiredViewModel({
-    required this.productRepo,
+    required this.getProductLotsUseCase,
+    required this.getLocalProductByIdUseCase,
   });
 
-  final _states = StreamController<ProductsExpiredState>();
+  final _state = ValueNotifier<ProductsExpiredState>(const ProductsExpiredState());
 
-  Stream<ProductsExpiredState> get states => _states.stream;
-
-  final _lots = StreamController<List<ProductLot>>();
-
-  Stream<List<ProductLot>> get lots => _lots.stream;
-
-  final _dropdownItems = StreamController<List<ListItem>>();
-
-  StreamController<List<ListItem>> get dropdownItem => _dropdownItems;
+  ValueListenable<ProductsExpiredState> get state => _state;
 
   late DateTime _startDate;
   late DateTime _endDate;
 
   void initData() {
-    final dropdownItems = [
+    final ranges = [
       ListItem(Range.expired90Day, "หมดอายุแล้ว90วัน"),
       ListItem(Range.expired60Day, "หมดอายุแล้ว60วัน"),
       ListItem(Range.expired30Day, "หมดอายุแล้ว30วัน"),
@@ -45,10 +40,10 @@ class ProductsExpiredViewModel {
       ListItem(Range.before180Days, "ใกล้หมดอายุ180วัน"),
       ListItem(Range.before240Days, "ใกล้หมดอายุ240วัน"),
     ];
-    _dropdownItems.sink.add(dropdownItems);
+    _state.value = _state.value.copyWith(ranges: ranges);
   }
 
-  void selectRange(Range range) {
+  Future<void> selectRange(Range range) async {
     final now = DateTime.now();
     switch (range) {
       case Range.expired90Day:
@@ -88,46 +83,27 @@ class ProductsExpiredViewModel {
         _endDate = DateTime(now.year, now.month, now.day).add(const Duration(days: 241));
         break;
     }
-
-    _getProductLots();
+    await _getProductLots();
   }
 
-  void _getProductLots() async {
+  Future<void> _getProductLots() async {
+    _state.value = _state.value.copyWith(loading: true, clearError: true);
     try {
       final param = GetLotsRangeParam(
         startDate: _startDate.toUtc().toIso8601String(),
         endDate: _endDate.toUtc().toIso8601String(),
       );
-      final result = await productRepo.getProductLots(param);
-      for (var item in result) {
-        item.product = await productRepo.getLocalProductById(item.productId);
+      final items = await getProductLotsUseCase(param);
+      for (var item in items) {
+        item.product = await getLocalProductByIdUseCase(item.productId);
       }
-      _onListProductLotExpired(result);
+      _state.value = _state.value.copyWith(
+        loading: false,
+        items: items,
+        totalCost: _calculateTotalCost(items),
+      );
     } on Exception catch (e) {
-      _onError(toFailure(e));
-    }
-  }
-
-  void setProductLots(List<ProductLot> data) {
-    _lots.sink.add(data);
-  }
-
-  void _onLoading() {
-    _states.sink.add(LoadingState());
-  }
-
-  void _onListProductLotExpired(List<ProductLot> data) {
-    if (!_states.isClosed) {
-      _states.sink.add(ListExpiresState(
-        data: data,
-        totalCost: _calculateTotalCost(data),
-      ));
-    }
-  }
-
-  void _onError(Failure failure) {
-    if (!_states.isClosed) {
-      _states.sink.add(ErrorState(message: failure.getMessage()));
+      _state.value = _state.value.copyWith(loading: false, error: toFailure(e).getMessage());
     }
   }
 
@@ -139,8 +115,13 @@ class ProductsExpiredViewModel {
     return total;
   }
 
+  void consumeError() {
+    if (_state.value.error != null) {
+      _state.value = _state.value.copyWith(clearError: true);
+    }
+  }
+
   void dispose() {
-    _states.close();
-    _lots.close();
+    _state.dispose();
   }
 }

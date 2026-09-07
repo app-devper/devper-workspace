@@ -1,10 +1,12 @@
 name: um
 description: User management module project.
 
-version: 1.0.0+1
+version: 1.0.0
 
 environment:
-  sdk: ">=3.0.6 <4.0.0"
+  sdk: ">=3.6.0 <4.0.0"
+
+resolution: workspace
 
 dependencies:
   flutter:
@@ -18,11 +20,12 @@ dependencies:
   logging:
   http:
   common:
+  design_system:
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^3.0.1
+  flutter_lints: ^4.0.0
   import_sorter: ^4.6.0
 
 publish_to: none

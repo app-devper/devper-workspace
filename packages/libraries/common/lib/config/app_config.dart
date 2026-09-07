@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 
 class AppConfig {
   final String apiUrl;
+  final String hostApp; // optional pinned host (takes priority over the UM system host)
   final String logo;
   final String name;
   final String system;
@@ -13,6 +14,7 @@ class AppConfig {
 
   AppConfig({
     required this.apiUrl,
+    this.hostApp = '',
     required this.logo,
     required this.name,
     required this.system,
@@ -20,8 +22,8 @@ class AppConfig {
   });
 
   static Future<AppConfig> forEnvironment(String? env) async {
-    // set default to dev if nothing was passed
-    env = env ?? 'dev';
+    // set default to app if nothing was passed
+    env = env ?? 'app';
 
     // load the json file
     final contents = await rootBundle.loadString(
@@ -34,6 +36,7 @@ class AppConfig {
     // convert our JSON into an instance of our AppConfig class
     return AppConfig(
       apiUrl: json['apiUrl'],
+      hostApp: json['hostApp'] ?? '',
       logo: json['logo'],
       name: json['name'],
       system: json['system'],

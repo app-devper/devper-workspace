@@ -1,45 +1,31 @@
+// Flutter imports:
+import 'package:flutter/foundation.dart';
+
 // Project imports:
-import 'package:pos/domain/model/category/category.dart';
 import 'package:pos/domain/model/product/product.dart';
 
-abstract class ProductsState {}
+@immutable
+class ProductsState {
+  final List<Product> items;
+  final bool loading;
+  final String? error;
 
-class LoadingState extends ProductsState {}
+  const ProductsState({
+    this.items = const [],
+    this.loading = false,
+    this.error,
+  });
 
-class LoggedState extends ProductsState {
-  final bool isAdmin;
-
-  LoggedState(this.isAdmin);
+  ProductsState copyWith({
+    List<Product>? items,
+    bool? loading,
+    String? error,
+    bool clearError = false,
+  }) {
+    return ProductsState(
+      items: items ?? this.items,
+      loading: loading ?? this.loading,
+      error: clearError ? null : (error ?? this.error),
+    );
+  }
 }
-
-class ListProductsState extends ProductsState {
-  final List<Product> data;
-
-  ListProductsState({required this.data});
-}
-
-class ProductsResultState extends ProductsState {
-  final List<Product> data;
-  final double totalCost;
-
-  ProductsResultState({required this.data, required this.totalCost});
-}
-
-class RemoveProductState extends ProductsState {
-  final Product data;
-
-  RemoveProductState({required this.data});
-}
-
-class ErrorState extends ProductsState {
-  final String message;
-
-  ErrorState({required this.message});
-}
-
-class GetCategoryState extends ProductsState {
-  final List<Category> data;
-
-  GetCategoryState({required this.data});
-}
-

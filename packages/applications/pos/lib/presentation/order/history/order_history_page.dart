@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 // Package imports:
-import 'package:common/core/widgets/custom_snack_bar.dart';
+import 'package:design_system/widgets/app_bar.dart';
+import 'package:design_system/widgets/snack_bar.dart';
 import 'package:intl/intl.dart';
 
 // Project imports:
@@ -13,8 +14,7 @@ import 'package:pos/domain/model/product/product.dart';
 import 'package:pos/localizations/language/languages.dart';
 import 'package:pos/presentation/constants.dart';
 import 'package:pos/presentation/order/core/export_csv.dart';
-import 'package:pos/presentation/theme.dart';
-import 'order_history_state.dart';
+import 'package:design_system/theme/color.dart';
 import 'order_history_view_model.dart';
 
 class OrderHistoryPage extends StatefulWidget {
@@ -41,38 +41,42 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
   bool isAdmin = true;
   List<OrderItemDetail> orderItems = [];
 
+  bool _loadingShown = false;
+
   @override
   void initState() {
     super.initState();
     _viewModel = sl<OrderHistoryViewModel>();
-    _viewModel.states.stream.listen((state) {
-      if (state is ErrorState) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _snackBar.hideAll();
-          _snackBar.showErrorSnackBar(state.message);
-        });
-      } else if (state is LoadingState) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _snackBar.hideAll();
-          _snackBar.showLoadingSnackBar();
-        });
-      } else if (state is OrderItemState) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _snackBar.hideAll();
-        });
-        setState(() {
-          orderItems = state.items;
-        });
-      }
-    });
-
+    _viewModel.state.addListener(_onStateChanged);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _viewModel.getOrderItemByProductId(widget.product.id);
     });
   }
 
+  void _onStateChanged() {
+    final state = _viewModel.state.value;
+    if (state.loading && !_loadingShown) {
+      _loadingShown = true;
+      _snackBar.hideAll();
+      _snackBar.showLoadingSnackBar();
+    } else if (!state.loading && _loadingShown) {
+      _loadingShown = false;
+      _snackBar.hideAll();
+    }
+    if (state.error != null) {
+      final message = state.error!;
+      _viewModel.consumeError();
+      _snackBar.hideAll();
+      _snackBar.showErrorSnackBar(message);
+    }
+    setState(() {
+      orderItems = state.items;
+    });
+  }
+
   @override
   void dispose() {
+    _viewModel.state.removeListener(_onStateChanged);
     _viewModel.dispose();
     super.dispose();
   }
@@ -82,14 +86,8 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
     _snackBar = CustomSnackBar(key: const Key("snackbar"), context: context);
     return Scaffold(
       key: _scaffoldKey,
-      appBar: AppBar(
-        iconTheme: CustomTheme.mainTheme.iconTheme,
-        backgroundColor: CustomColor.white,
-        centerTitle: true,
-        title: Text(
-          Languages.of(context).orderHistoryTitle,
-          style: CustomTheme.mainTheme.textTheme.headlineSmall,
-        ),
+      appBar: buildAppBar(
+        Languages.of(context).orderHistoryTitle,
         actions: _buildAction(context),
       ),
       body: AnnotatedRegion<SystemUiOverlayStyle>(
@@ -111,11 +109,10 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
         children: <Widget>[
           Container(
             height: 50,
-            padding: const EdgeInsets.only(left: DEFAULT_PAGE_PADDING),
+            padding: const EdgeInsets.only(left: defaultPagePadding),
             alignment: Alignment.centerLeft,
             child: Text(
               widget.product.name,
-              style: CustomTheme.mainTheme.textTheme.titleLarge,
               textAlign: TextAlign.justify,
             ),
           ),
@@ -160,7 +157,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
 
   _buildSummaryTotal() {
     return Container(
-      padding: const EdgeInsets.all(DEFAULT_PAGE_PADDING),
+      padding: const EdgeInsets.all(defaultPagePadding),
       child: Column(
         children: <Widget>[
           _buildPrice(),
@@ -175,13 +172,11 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: <Widget>[
-        Text(
+        const Text(
           'Total',
-          style: CustomTheme.mainTheme.textTheme.headlineSmall,
         ),
         Text(
           '฿ ${_format.format(getTotalPrice())}',
-          style: CustomTheme.mainTheme.textTheme.headlineSmall,
         ),
       ],
     );
@@ -192,13 +187,11 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
       return Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[
-          Text(
+          const Text(
             'Total Cost',
-            style: CustomTheme.mainTheme.textTheme.headlineSmall,
           ),
           Text(
             '฿ ${_format.format(getTotalCostPrice())}',
-            style: CustomTheme.mainTheme.textTheme.headlineSmall,
           ),
         ],
       );
@@ -212,13 +205,11 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
       return Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[
-          Text(
+          const Text(
             'Total Profit',
-            style: CustomTheme.mainTheme.textTheme.headlineSmall,
           ),
           Text(
             '฿ ${_format.format(getTotalPrice() - getTotalCostPrice())}',
-            style: CustomTheme.mainTheme.textTheme.headlineSmall,
           ),
         ],
       );

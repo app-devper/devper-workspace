@@ -16,5 +16,5 @@ abstract class ReceiveRepository {
 
   Future<List<ReceiveItem>> getReceiveItemsById(String receiveId);
 
-  Future<ReceiveItem> removeReceiveItemByLotId(String lotId);
+  Future<Receive> importReceiveById(String receiveId);
 }

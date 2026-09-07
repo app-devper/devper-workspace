@@ -1,5 +1,5 @@
 {
-  "apiUrl": "https://um-api-th3taayg7q-as.a.run.app",
+  "apiUrl": "http://127.0.0.1:8585",
   "logo": "assets/images/logo.png",
   "name": "หน้าหลัก",
   "system": "SM",

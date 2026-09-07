@@ -1,108 +1,85 @@
-// Dart imports:
-import 'dart:async';
+// Flutter imports:
+import 'package:flutter/foundation.dart';
 
 // Package imports:
 import 'package:common/core/error/failure.dart';
 
 // Project imports:
-import 'package:pos/domain/model/category/category.dart';
 import 'package:pos/domain/model/product/param.dart';
-import 'package:pos/domain/model/product/product.dart';
-import 'package:pos/domain/repositories/category_repository.dart';
-import 'package:pos/domain/repositories/product_repository.dart';
+import 'package:pos/domain/usecase/category/get_local_categories_use_case.dart';
+import 'package:pos/domain/usecase/product/add_product_use_case.dart';
+import 'package:pos/domain/usecase/product/generate_serial_number_use_case.dart';
+import 'package:pos/domain/usecase/product/get_product_prices_by_product_id_use_case.dart';
+import 'package:pos/domain/usecase/product/get_product_units_by_product_id_use_case.dart';
 import 'package:pos/presentation/product/add/product_add_state.dart';
 
 class ProductAddViewModel {
-  final ProductRepository productRepo;
-  final CategoryRepository categoryRepo;
+  final GetLocalCategoriesUseCase getLocalCategoriesUseCase;
+  final GenerateSerialNumberUseCase generateSerialNumberUseCase;
+  final AddProductUseCase addProductUseCase;
+  final GetProductUnitsByProductIdUseCase getProductUnitsByProductIdUseCase;
+  final GetProductPricesByProductIdUseCase getProductPricesByProductIdUseCase;
 
   ProductAddViewModel({
-    required this.productRepo,
-    required this.categoryRepo,
+    required this.getLocalCategoriesUseCase,
+    required this.generateSerialNumberUseCase,
+    required this.addProductUseCase,
+    required this.getProductUnitsByProductIdUseCase,
+    required this.getProductPricesByProductIdUseCase,
   });
 
-  final _states = StreamController<ProductAddState>();
+  final _state = ValueNotifier<ProductAddState>(const ProductAddState());
 
-  StreamController<ProductAddState> get states => _states;
+  ValueListenable<ProductAddState> get state => _state;
 
-  void getCategories() async {
+  Future<void> getCategories() async {
     try {
-      final result = await categoryRepo.getLocalCategories();
-      _onGetCategoriesSuccess(result);
+      final categories = await getLocalCategoriesUseCase();
+      _state.value = _state.value.copyWith(categories: categories);
     } on Exception catch (_) {}
   }
 
-  void getProductSerialNumber(String serialNumber) async {
-    _onLoading();
+  Future<void> generateSerialNumber() async {
+    _state.value = _state.value.copyWith(saving: true, clearError: true, clearSerialNumber: true);
     try {
-      final result = await productRepo.getProductBySerialNumber(serialNumber);
-      _onGetProductSuccess(result);
+      final serialNumber = await generateSerialNumberUseCase();
+      _state.value = _state.value.copyWith(saving: false, serialNumber: serialNumber);
     } on Exception catch (e) {
-      _onGetProductError(toFailure(e));
+      _state.value = _state.value.copyWith(saving: false, error: toFailure(e).getMessage());
     }
   }
 
-  void generateSerialNumber() async {
-    _onLoading();
+  Future<void> addProduct(CreateProductParam param) async {
+    _state.value = _state.value.copyWith(saving: true, clearError: true, clearCreated: true);
     try {
-      final result = await productRepo.generateSerialNumber();
-      _onGenerateSerialNumberSuccess(result);
+      final created = await addProductUseCase(param);
+      await getProductUnitsByProductIdUseCase(created.id);
+      await getProductPricesByProductIdUseCase(created.id);
+      _state.value = _state.value.copyWith(saving: false, created: created);
     } on Exception catch (e) {
-      _onError(toFailure(e));
+      _state.value = _state.value.copyWith(saving: false, error: toFailure(e).getMessage());
     }
   }
 
-  void addProduct(ProductParam param) async {
-    _onLoading();
-    try {
-      final result = await productRepo.addProduct(param);
-      _onCreateProduct(result);
-    } on Exception catch (e) {
-      _onError(toFailure(e));
+  void consumeError() {
+    if (_state.value.error != null) {
+      _state.value = _state.value.copyWith(clearError: true);
     }
   }
 
-  _onLoading() {
-    _states.sink.add(LoadingState());
-  }
-
-  _onGetProductSuccess(Product data) {
-    if (!_states.isClosed) {
-      _states.sink.add(GetProductState(data: data));
+  void consumeCreated() {
+    if (_state.value.created != null) {
+      _state.value = _state.value.copyWith(clearCreated: true);
     }
   }
 
-  _onGetProductError(Failure failure) {
-    if (!_states.isClosed) {
-      _states.sink.add(GetProductState(data: null));
+  void consumeSerialNumber() {
+    if (_state.value.serialNumber != null) {
+      _state.value = _state.value.copyWith(clearSerialNumber: true);
     }
   }
 
-  _onCreateProduct(Product data) {
-    if (!_states.isClosed) {
-      _states.sink.add(CreateProductState(data: data));
-    }
-  }
-
-  _onGenerateSerialNumberSuccess(String serialNumber) {
-    if (!_states.isClosed) {
-      _states.sink.add(GetSerialNumberState(serialNumber: serialNumber));
-    }
-  }
-
-  _onGetCategoriesSuccess(List<Category> data) {
-    if (!_states.isClosed) {
-      _states.sink.add(GetCategoryState(data: data));
-    }
-  }
-
-  _onError(Failure failure) {
-    if (!_states.isClosed) {
-      _states.sink.add(ErrorState(message: failure.getMessage()));
-    }
-  }
-
-  dispose() {
-    _states.close();
+  void dispose() {
+    _state.dispose();
   }
 }

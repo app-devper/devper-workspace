@@ -1,19 +1,19 @@
 enum Range {
-  Today,
-  Yesterday,
-  Last7Days,
-  Last30Days,
-  CurrentMonth,
-  LastMonth,
-  DateRange,
-  Date,
-  Month,
+  today,
+  yesterday,
+  last7Days,
+  last30Days,
+  currentMonth,
+  lastMonth,
+  dateRange,
+  date,
+  month,
 }
 
 enum Filter {
-  All,
-  Cash,
-  Online,
+  all,
+  cash,
+  online,
 }
 
 class ListItem {

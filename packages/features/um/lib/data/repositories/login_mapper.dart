@@ -15,9 +15,9 @@ class LoginMapper {
     });
   }
 
-  toLoginDomain(Map<String, dynamic> json) {
+  Login toLoginDomain(Map<String, dynamic> json) {
     return Login(
-      accessToken: json['accessToken']
+      accessToken: json['accessToken'],
     );
   }
 

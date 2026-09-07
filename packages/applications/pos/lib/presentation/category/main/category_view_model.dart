@@ -1,78 +1,54 @@
-// Dart imports:
-import 'dart:async';
+// Flutter imports:
+import 'package:flutter/foundation.dart';
 
 // Package imports:
 import 'package:common/core/error/failure.dart';
 
 // Project imports:
-import 'package:pos/domain/model/category/category.dart';
-import 'package:pos/domain/repositories/category_repository.dart';
+import 'package:pos/domain/usecase/category/get_categories_use_case.dart';
+import 'package:pos/domain/usecase/category/update_default_category_by_id_use_case.dart';
 import 'category_state.dart';
 
 class CategoryViewModel {
-  final CategoryRepository categoryRepo;
+  final GetCategoriesUseCase getCategoriesUseCase;
+  final UpdateDefaultCategoryByIdUseCase updateDefaultCategoryByIdUseCase;
 
   CategoryViewModel({
-    required this.categoryRepo,
+    required this.getCategoriesUseCase,
+    required this.updateDefaultCategoryByIdUseCase,
   });
 
-  final _states = StreamController<CategoryState>();
+  final _state = ValueNotifier<CategoryState>(const CategoryState());
 
-  StreamController<CategoryState> get states => _states;
+  ValueListenable<CategoryState> get state => _state;
 
-  final _categories = StreamController<List<Category>>();
-
-  StreamController<List<Category>> get categories => _categories;
-
-  void getCategories() async {
+  Future<void> getCategories() async {
+    _state.value = _state.value.copyWith(loading: true, clearError: true);
     try {
-      final result = await categoryRepo.getCategories();
-      _onListCategory(result);
+      final items = await getCategoriesUseCase();
+      _state.value = _state.value.copyWith(loading: false, items: items);
     } on Exception catch (e) {
-      _onError(toFailure(e));
+      _state.value = _state.value.copyWith(loading: false, error: toFailure(e).getMessage());
     }
   }
 
-  void updateDefaultCategoryById(String categoryId) async {
-    _onLoading();
+  Future<void> updateDefaultCategoryById(String categoryId) async {
+    _state.value = _state.value.copyWith(loading: true, clearError: true);
     try {
-      final result = await categoryRepo.updateDefaultCategoryById(categoryId);
-      _onUpdateCategory(result);
+      await updateDefaultCategoryByIdUseCase(categoryId);
+      await getCategories();
     } on Exception catch (e) {
-      _onError(toFailure(e));
+      _state.value = _state.value.copyWith(loading: false, error: toFailure(e).getMessage());
     }
   }
 
-  void setCategories(List<Category> data) {
-    if (!_categories.isClosed) {
-      _categories.sink.add(data);
+  void consumeError() {
+    if (_state.value.error != null) {
+      _state.value = _state.value.copyWith(clearError: true);
     }
   }
 
-  _onLoading() {
-    _states.sink.add(LoadingState());
-  }
-
-  _onListCategory(List<Category> data) {
-    if (!_states.isClosed) {
-      _states.sink.add(ListCategoryState(data: data));
-    }
-  }
-
-  _onUpdateCategory(Category data) {
-    if (!_states.isClosed) {
-      _states.sink.add((UpdateCategoryState(data: data)));
-    }
-  }
-
-  _onError(Failure failure) {
-    if (!_states.isClosed) {
-      _states.sink.add(ErrorState(message: failure.getMessage()));
-    }
-  }
-
-  dispose() {
-    _states.close();
-    _categories.close();
+  void dispose() {
+    _state.dispose();
   }
 }

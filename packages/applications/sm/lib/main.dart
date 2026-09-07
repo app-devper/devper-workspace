@@ -11,7 +11,8 @@ import 'package:sm/presentation/app.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  final config = await AppConfig.forEnvironment("dev");
+  const env = String.fromEnvironment('ENV', defaultValue: 'app');
+  final config = await AppConfig.forEnvironment(env);
   um.setupLogging();
   await um.initCore(config);
   await um.initUm();

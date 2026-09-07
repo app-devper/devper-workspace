@@ -1,5 +1,5 @@
 // Package imports:
-import 'package:intl/intl.dart';
+import 'package:pos/domain/model/receive/receive_item.dart';
 
 // Project imports:
 import 'package:pos/domain/model/supplier/supplier.dart';
@@ -11,6 +11,9 @@ class Receive {
   final String reference;
   final double totalCost;
   final String createdDate;
+  final String status;
+  final List<ReceiveItem> items;
+  bool get isImported => status == 'IMPORTED';
   Supplier? supplier;
 
   Receive({
@@ -20,12 +23,8 @@ class Receive {
     required this.reference,
     required this.totalCost,
     required this.createdDate,
+    this.status = 'ACTIVE',
+    this.items = const [],
     this.supplier,
   });
-
-  String getCreatedDate() {
-    final date = DateTime.parse(createdDate);
-    final format = DateFormat("dd/MM/yyyy HH:mm");
-    return format.format(date.toLocal());
-  }
 }
