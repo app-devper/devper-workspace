@@ -32,6 +32,14 @@ class HomeViewModel {
 
   ValueListenable<HomeState> get state => _state;
 
+  Future<void> loadRole() async {
+    try {
+      _state.value = _state.value.copyWith(role: await loginRepo.getRole());
+    } on Exception catch (_) {
+      _state.value = _state.value.copyWith(role: '');
+    }
+  }
+
   Future<void> getSystems() async {
     _state.value = _state.value.copyWith(loading: true, clearError: true);
     try {

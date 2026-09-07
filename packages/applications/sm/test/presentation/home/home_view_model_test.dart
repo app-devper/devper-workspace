@@ -11,6 +11,7 @@ import 'package:um/domain/entities/auth/login.dart';
 import 'package:um/domain/entities/auth/param.dart';
 import 'package:um/domain/entities/auth/session.dart';
 import 'package:um/domain/entities/auth/system.dart' as um;
+import 'package:um/domain/entities/auth/user_session.dart';
 import 'package:um/domain/repositories/login_repository.dart';
 
 System _system(String id, String code) => System(
@@ -63,9 +64,10 @@ class FakeSystemRepository implements SystemRepository {
 }
 
 class FakeLoginRepository implements LoginRepository {
-  FakeLoginRepository({this.logoutFails = false});
+  FakeLoginRepository({this.logoutFails = false, this.role = 'SUPER'});
 
   final bool logoutFails;
+  final String role;
   bool loggedOut = false;
 
   @override
@@ -82,7 +84,16 @@ class FakeLoginRepository implements LoginRepository {
   Future<Login> keepAlive() => throw UnimplementedError();
 
   @override
-  Future<String> getRole() async => 'ADMIN';
+  Future<String> getRole() async => role;
+
+  @override
+  Future<List<UserSession>> getSessions() => throw UnimplementedError();
+
+  @override
+  Future<bool> revokeSessionById(String sessionId) => throw UnimplementedError();
+
+  @override
+  Future<int> revokeOtherSessions() => throw UnimplementedError();
 
   @override
   Future<um.System> getSystem() => throw UnimplementedError();
@@ -162,6 +173,36 @@ void main() {
 
     viewModel.consumeError();
     expect(viewModel.state.value.error, isNull);
+  });
+
+  test('SUPER can manage both systems and users', () async {
+    final viewModel =
+        buildViewModel(FakeSystemRepository(), FakeLoginRepository(role: 'SUPER'));
+
+    await viewModel.loadRole();
+
+    expect(viewModel.state.value.canManageSystems, isTrue);
+    expect(viewModel.state.value.canManageUsers, isTrue);
+  });
+
+  test('ADMIN can manage users but not systems', () async {
+    final viewModel =
+        buildViewModel(FakeSystemRepository(), FakeLoginRepository(role: 'ADMIN'));
+
+    await viewModel.loadRole();
+
+    expect(viewModel.state.value.canManageSystems, isFalse);
+    expect(viewModel.state.value.canManageUsers, isTrue);
+  });
+
+  test('USER can manage neither', () async {
+    final viewModel =
+        buildViewModel(FakeSystemRepository(), FakeLoginRepository(role: 'USER'));
+
+    await viewModel.loadRole();
+
+    expect(viewModel.state.value.canManageSystems, isFalse);
+    expect(viewModel.state.value.canManageUsers, isFalse);
   });
 
   test('logout marks the session as logged out', () async {

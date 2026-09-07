@@ -261,4 +261,101 @@ void main() {
       await expectLater(repo.getRole(), throwsA(isA<AuthException>()));
     });
   });
+
+  group('sessions', () {
+    test('getSessions maps the response array', () async {
+      final repo = buildRepo(
+        tokenStorage: tokenStorage,
+        appSession: appSession,
+        scheduler: scheduler,
+        handler: (request) {
+          expect(request.url.path, '/api/um/v1/auth/sessions');
+          expect(request.method, 'GET');
+          return http.Response(
+            '[{"sessionId":"s1","createdAt":"2026-09-08T00:00:00Z",'
+            '"lastActivity":"2026-09-08T01:00:00Z","userAgent":"Chrome",'
+            '"ipAddress":"1.2.3.4","system":"SM","current":true}]',
+            200,
+          );
+        },
+      );
+
+      final sessions = await repo.getSessions();
+
+      expect(sessions, hasLength(1));
+      expect(sessions.first.sessionId, 's1');
+      expect(sessions.first.system, 'SM');
+      expect(sessions.first.current, isTrue);
+    });
+
+    test('getSessions tolerates fields the API omits', () async {
+      final repo = buildRepo(
+        tokenStorage: tokenStorage,
+        appSession: appSession,
+        scheduler: scheduler,
+        handler: (request) => http.Response('[{"sessionId":"s1"}]', 200),
+      );
+
+      final sessions = await repo.getSessions();
+
+      expect(sessions.first.userAgent, '');
+      expect(sessions.first.current, isFalse);
+    });
+
+    test('revokeSessionById deletes the addressed session', () async {
+      late String path;
+      final repo = buildRepo(
+        tokenStorage: tokenStorage,
+        appSession: appSession,
+        scheduler: scheduler,
+        handler: (request) {
+          path = request.url.path;
+          expect(request.method, 'DELETE');
+          return http.Response('{}', 200);
+        },
+      );
+
+      await expectLater(repo.revokeSessionById('s2'), completion(isTrue));
+      expect(path, '/api/um/v1/auth/sessions/s2');
+    });
+
+    test('revokeSessionById surfaces a failed delete', () async {
+      final repo = buildRepo(
+        tokenStorage: tokenStorage,
+        appSession: appSession,
+        scheduler: scheduler,
+        handler: (request) => http.Response('{"message":"nope"}', 404),
+      );
+
+      await expectLater(
+          repo.revokeSessionById('s2'), throwsA(isA<NotFoundException>()));
+    });
+
+    test('revokeOtherSessions returns the revoked count', () async {
+      final repo = buildRepo(
+        tokenStorage: tokenStorage,
+        appSession: appSession,
+        scheduler: scheduler,
+        handler: (request) {
+          expect(request.url.path, '/api/um/v1/auth/sessions');
+          expect(request.method, 'DELETE');
+          return http.Response('{"revoked":3}', 200);
+        },
+      );
+
+      await expectLater(repo.revokeOtherSessions(), completion(3));
+    });
+
+    test('revokeOtherSessions defaults to zero when the count is absent', () async {
+      final repo = buildRepo(
+        tokenStorage: tokenStorage,
+        appSession: appSession,
+        scheduler: scheduler,
+        handler: (request) => http.Response('{}', 200),
+      );
+
+      await expectLater(repo.revokeOtherSessions(), completion(0));
+    });
+  });
+
 }

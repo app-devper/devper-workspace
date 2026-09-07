@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'package:common/core/error/exception.dart';
 import 'package:common/core/ext/string_ext.dart';
 import 'package:common/core/network/error_mapper.dart';
+import 'package:common/core/network/exception.dart';
 
 // Project imports:
 import 'package:um/data/datasource/local/token_storage.dart';
@@ -17,6 +18,7 @@ import 'package:um/domain/entities/auth/login.dart';
 import 'package:um/domain/entities/auth/param.dart';
 import 'package:um/domain/entities/auth/session.dart';
 import 'package:um/domain/entities/auth/system.dart';
+import 'package:um/domain/entities/auth/user_session.dart';
 import 'package:um/domain/repositories/login_repository.dart';
 
 class LoginRepositoryImpl implements LoginRepository {
@@ -113,5 +115,29 @@ class LoginRepositoryImpl implements LoginRepository {
   @override
   String getClientId() {
     return _appSession.getClientId();
+  }
+
+  @override
+  Future<List<UserSession>> getSessions() async {
+    final mapper = LoginMapper();
+    final response = await _service.getSessions();
+    return mapper.toUserSessionsDomain(jsonOrThrow(response));
+  }
+
+  @override
+  Future<bool> revokeSessionById(String sessionId) async {
+    final response = await _service.revokeSessionById(sessionId);
+    if (response.isSuccessful) {
+      return true;
+    } else {
+      throw toAppException(response);
+    }
+  }
+
+  @override
+  Future<int> revokeOtherSessions() async {
+    final response = await _service.revokeOtherSessions();
+    final json = jsonOrThrow(response);
+    return json['revoked'] ?? 0;
   }
 }
