@@ -64,6 +64,12 @@ melos:
         flutter build web --release
       description: |
         Build.
+    build:web:sm:
+      run: |
+        melos exec -c 1 --scope sm -- \
+        sh tool/build_hosting.sh
+      description: |
+        Build the sm hosting artifact (ENV=app) into build/hosting/sm.
     deploy:web:devper:
       run: |
         melos exec -c 1 --scope pos -- \
@@ -76,6 +82,12 @@ melos:
         firebase deploy --only hosting:pos
       description: |
         Build and Deploy.
+    deploy:web:sm:
+      run: |
+        melos exec -c 1 --scope sm -- \
+        firebase deploy --only hosting:sm
+      description: |
+        Build and deploy sm to https://devper-sm.web.app. Run from main.
     import_sorter:
       run: |
         melos exec -c 1 -- \

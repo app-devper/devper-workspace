@@ -102,6 +102,28 @@ then build POS with `flutter build web --release --dart-define=ENV=dev` and serv
 on port 8088. The local gateway binds to loopback and forwards only `/api/um/`
 and `/api/pos/`. `ENV=app` continues to use the Firebase API gateway.
 
+## Deploy SM to Firebase Hosting: sm
+
+Same rules as POS below — manual, and cut from `main`:
+
+```sh
+git checkout main && git pull --ff-only
+cd packages/applications/sm
+firebase deploy --only hosting:sm
+```
+
+The `sm` target maps to site `devper-sm` in Firebase project `devperpos`,
+served at https://devper-sm.web.app. The predeploy hook builds a release with
+`ENV=app`, which points `apiUrl` and `hostApp` at `https://api.devper.app`.
+
+Hosting serves `build/hosting/sm`, kept separate from the local `build/web`.
+Service-worker caching is off and responses carry `no-cache`, so browsers pick
+up each release. To prepare the build without publishing:
+
+```sh
+sh tool/build_hosting.sh
+```
+
 ## Deploy POS to Firebase Hosting: devper
 
 There is no deploy pipeline in this repo — hosting deploys are manual, and
