@@ -111,7 +111,8 @@ cd packages/applications/pos
 firebase deploy --only hosting:devper
 ```
 
-The `devper` target maps to site `devperpos` in Firebase project `devperpos`.
+The `devper` target maps to site `devper` in Firebase project `devperpos`,
+served at https://devper.web.app.
 The predeploy hook builds a fresh release with `ENV=app` and both API hosts set
 by `config/app.json` to `https://api.devper.app`. Build failure stops deployment.
 It uses FVM when available, otherwise Flutter from PATH.
