@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 // Project imports:
 import 'package:design_system/theme/color.dart';
+import 'package:design_system/theme/spacing.dart';
 
 class CustomTheme {
   static ThemeData get mainTheme => ThemeData(
@@ -20,6 +21,11 @@ class CustomTheme {
         buttonTheme: const ButtonThemeData(
           alignedDropdown: true,
           padding: EdgeInsets.symmetric(horizontal: 0),
+        ),
+        iconButtonTheme: IconButtonThemeData(
+          style: IconButton.styleFrom(
+            minimumSize: const Size(AppSpacing.minTouchTarget, AppSpacing.minTouchTarget),
+          ),
         ),
         appBarTheme: const AppBarTheme(
           elevation: 0,
