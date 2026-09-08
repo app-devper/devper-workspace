@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 // Package imports:
 import 'package:common/core/ext/widget_ext.dart';
+import 'package:design_system/theme/app_colors.dart';
 import 'package:design_system/theme/color.dart';
 import 'package:design_system/theme/radius.dart';
 import 'package:design_system/theme/spacing.dart';
@@ -14,7 +15,7 @@ import 'package:design_system/widgets/status_badge.dart';
 import 'package:um/domain/entities/user/user.dart';
 
 /// Role drives the badge colour so privileged accounts stand out in the list.
-Color _roleColor(String role) {
+Color? _roleColor(String role) {
   switch (role.toUpperCase()) {
     case 'SUPER':
       return CustomColor.font6;
@@ -23,7 +24,7 @@ Color _roleColor(String role) {
     case 'MANAGER':
       return CustomColor.warning;
     default:
-      return CustomColor.font2;
+      return null;
   }
 }
 
@@ -81,12 +82,12 @@ class _UserCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-    final roleColor = _roleColor(user.role);
+    final roleColor = _roleColor(user.role) ?? AppColors.of(context).textSecondary;
 
     return Container(
       decoration: BoxDecoration(
-        color: CustomColor.white,
-        border: Border.all(color: CustomColor.divider),
+        color: AppColors.of(context).surfaceRaised,
+        border: Border.all(color: AppColors.of(context).border),
         borderRadius: BorderRadius.circular(AppRadius.xl),
       ),
       child: InkWell(
@@ -118,7 +119,7 @@ class _UserCard extends StatelessWidget {
                     ),
                     Text(
                       user.username,
-                      style: TextStyle(fontSize: 12, color: CustomColor.font2),
+                      style: TextStyle(fontSize: 12, color: AppColors.of(context).textSecondary),
                       overflow: TextOverflow.ellipsis,
                     ),
                   ],

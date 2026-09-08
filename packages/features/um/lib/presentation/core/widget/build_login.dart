@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 
 // Package imports:
+import 'package:design_system/theme/app_colors.dart';
 import 'package:design_system/theme/color.dart';
 import 'package:design_system/theme/radius.dart';
 import 'package:design_system/theme/spacing.dart';
@@ -64,7 +65,7 @@ HookBuilder buildLogin(Function(System) onSuccess) {
         Text(
           'เข้าสู่ระบบเพื่อใช้งาน ${config.system}',
           textAlign: TextAlign.center,
-          style: textTheme.bodySmall?.copyWith(color: CustomColor.font2),
+          style: textTheme.bodySmall?.copyWith(color: AppColors.of(context).textSecondary),
         ),
         const SizedBox(height: AppSpacing.xl),
         _LoginField(
@@ -92,7 +93,7 @@ HookBuilder buildLogin(Function(System) onSuccess) {
               obscure.value ? Icons.visibility_off : Icons.visibility,
               size: 20,
             ),
-            color: CustomColor.font2,
+            color: AppColors.of(context).textSecondary,
             tooltip: obscure.value ? 'แสดงรหัสผ่าน' : 'ซ่อนรหัสผ่าน',
             onPressed: () => obscure.value = !obscure.value,
           ),
@@ -118,7 +119,7 @@ HookBuilder buildLogin(Function(System) onSuccess) {
           'หากเข้าใช้งานไม่ได้ กรุณาติดต่อผู้ดูแลระบบ',
           textAlign: TextAlign.center,
           style: textTheme.bodySmall?.copyWith(
-            color: CustomColor.font2,
+            color: AppColors.of(context).textSecondary,
             fontSize: 12,
           ),
         ),
@@ -171,13 +172,13 @@ class _LoginField extends StatelessWidget {
       decoration: InputDecoration(
         labelText: label,
         filled: true,
-        fillColor: CustomColor.white,
+        fillColor: AppColors.of(context).surfaceRaised,
         contentPadding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.md,
           vertical: AppSpacing.md,
         ),
-        enabledBorder: _border(CustomColor.divider, 1),
-        border: _border(CustomColor.divider, 1),
+        enabledBorder: _border(AppColors.of(context).border, 1),
+        border: _border(AppColors.of(context).border, 1),
         focusedBorder: _border(CustomColor.primary, 1.5),
         suffixIcon: suffixIcon,
       ),

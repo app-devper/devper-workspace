@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 
 // Package imports:
+import 'package:design_system/theme/app_colors.dart';
 import 'package:design_system/theme/color.dart';
 import 'package:design_system/theme/spacing.dart';
 import 'package:design_system/widgets/app_shell.dart';
@@ -181,14 +182,17 @@ class _HomePageState extends State<HomePage> {
               horizontal: AppSpacing.sm, vertical: 10),
           child: Row(
             children: [
-              Icon(icon, size: 18, color: color ?? CustomColor.font2),
+              Icon(icon,
+                  size: 18,
+                  color: color ?? AppColors.of(context).textSecondary),
               if (!collapsed) ...[
                 const SizedBox(width: AppSpacing.md),
                 Expanded(
                   child: Text(
                     label,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(color: color ?? CustomColor.fontBlack),
+                    style: TextStyle(
+                        color: color ?? AppColors.of(context).textPrimary),
                   ),
                 ),
               ],

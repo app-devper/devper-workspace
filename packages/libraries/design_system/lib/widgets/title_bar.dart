@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 
 // Project imports:
+import 'package:design_system/theme/app_colors.dart';
 import 'package:design_system/theme/color.dart';
 
 class TitleBar extends StatelessWidget {
@@ -56,8 +57,8 @@ class TitleBar extends StatelessWidget {
             title,
             maxLines: 1,
             textAlign: TextAlign.center,
-            style: const TextStyle(
-              color: CustomColor.fontBlack,
+            style: TextStyle(
+              color: AppColors.of(context).textPrimary,
               fontSize: 16,
               fontWeight: FontWeight.bold,
             ),
