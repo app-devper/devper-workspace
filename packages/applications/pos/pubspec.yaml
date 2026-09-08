@@ -55,9 +55,9 @@ flutter:
           weight: 700
     - family: Sarabun
       fonts:
-        - asset: assets/font/Sarabun-Regular.ttf
+        - asset: packages/common/assets/font/Sarabun-Regular.ttf
           weight: 400
-        - asset: assets/font/Sarabun-Medium.ttf
+        - asset: packages/common/assets/font/Sarabun-Medium.ttf
           weight: 500
-        - asset: assets/font/Sarabun-Bold.ttf
+        - asset: packages/common/assets/font/Sarabun-Bold.ttf
           weight: 700

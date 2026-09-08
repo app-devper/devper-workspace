@@ -15,13 +15,13 @@ import 'pdf_api.dart';
 
 class ExportPdf {
   static Future<dynamic> generate(Receipt receipt) async {
-    final font = await rootBundle.load("assets/font/Sarabun-Regular.ttf");
+    final font = await rootBundle.load("packages/common/assets/font/Sarabun-Regular.ttf");
     final ttf = pw.Font.ttf(font);
     return await PdfApi.saveDocument(name: '${receipt.info.number}.pdf', doc: genDocument(receipt, ttf));
   }
 
   static Future<dynamic> download(Receipt receipt) async {
-    final font = await rootBundle.load("assets/font/Sarabun-Regular.ttf");
+    final font = await rootBundle.load("packages/common/assets/font/Sarabun-Regular.ttf");
     final ttf = pw.Font.ttf(font);
     return PdfApi.downloadDocument(name: '${receipt.info.number}.pdf', doc: genDocument(receipt, ttf));
   }

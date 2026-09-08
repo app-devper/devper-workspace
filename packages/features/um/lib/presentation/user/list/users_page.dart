@@ -91,6 +91,7 @@ class UsersPage extends HookWidget {
           nextToUserEdit(user.id);
         },
         onSetPassword: openSetPassword,
+        onRetry: () => reloadKey.value = UniqueKey(),
       ),
     );
   }

@@ -18,3 +18,4 @@ export 'widgets/status_badge.dart';
 export 'widgets/page_container.dart';
 export 'widgets/empty_state.dart';
 export 'widgets/app_shell.dart';
+export 'widgets/error_state.dart';

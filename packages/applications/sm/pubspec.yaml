@@ -41,3 +41,11 @@ flutter:
         - asset: packages/common/assets/font/roboto_regular.ttf
         - asset: packages/common/assets/font/roboto_bold.ttf
           weight: 700
+    - family: Sarabun
+      fonts:
+        - asset: packages/common/assets/font/Sarabun-Regular.ttf
+          weight: 400
+        - asset: packages/common/assets/font/Sarabun-Medium.ttf
+          weight: 500
+        - asset: packages/common/assets/font/Sarabun-Bold.ttf
+          weight: 700

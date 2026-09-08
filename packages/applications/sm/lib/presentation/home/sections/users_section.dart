@@ -68,6 +68,7 @@ class UsersSection extends HookWidget {
           child: buildUsers(
             users,
             (user) => nextToUserEdit(user.id),
+            onRetry: () => reloadKey.value = UniqueKey(),
             onSetPassword: (user) => showSetPasswordDialog(
               context,
               user: user,
