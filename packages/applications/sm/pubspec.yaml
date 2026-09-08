@@ -16,6 +16,7 @@ dependencies:
   flutter_localizations:
     sdk: flutter
   http:
+  flutter_hooks: ^0.21.3
   common:
   design_system:
   um:
