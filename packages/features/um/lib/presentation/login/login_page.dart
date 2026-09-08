@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 
 // Package imports:
-import 'package:design_system/theme/color.dart';
+import 'package:design_system/theme/app_colors.dart';
 import 'package:design_system/theme/spacing.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 
@@ -28,7 +28,7 @@ class LoginPage extends HookWidget {
     }
 
     return Scaffold(
-      backgroundColor: CustomColor.backgroundIcon,
+      backgroundColor: AppColors.of(context).surface,
       body: SafeArea(
         child: GestureDetector(
           behavior: HitTestBehavior.opaque,

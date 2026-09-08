@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 
 // Project imports:
+import 'package:design_system/theme/app_colors.dart';
 import 'package:design_system/theme/color.dart';
 import 'package:design_system/theme/spacing.dart';
 
@@ -20,6 +21,7 @@ class ErrorState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
+    final colors = AppColors.of(context);
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.lg),
@@ -36,7 +38,7 @@ class ErrorState extends StatelessWidget {
             const SizedBox(height: AppSpacing.xs),
             Text(
               message,
-              style: textTheme.bodySmall?.copyWith(color: CustomColor.font2),
+              style: textTheme.bodySmall?.copyWith(color: colors.textSecondary),
               textAlign: TextAlign.center,
             ),
             if (onRetry != null) ...[

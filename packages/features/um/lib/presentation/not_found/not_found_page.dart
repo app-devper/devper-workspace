@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 
 // Package imports:
-import 'package:design_system/theme/color.dart';
+import 'package:design_system/theme/app_colors.dart';
 
 class NotFoundPage extends StatelessWidget {
   const NotFoundPage({super.key});
@@ -10,7 +10,7 @@ class NotFoundPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: _buildAppBar(),
+      appBar: _buildAppBar(context),
       body: _buildBody(context),
     );
   }
@@ -32,7 +32,7 @@ class NotFoundPage extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.normal,
-                  color: CustomColor.font7,
+                  color: AppColors.of(context).textPrimary,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -43,10 +43,10 @@ class NotFoundPage extends StatelessWidget {
     );
   }
 
-  AppBar _buildAppBar() {
+  AppBar _buildAppBar(BuildContext context) {
     return AppBar(
       centerTitle: true,
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.of(context).surfaceRaised,
       elevation: 1,
       automaticallyImplyLeading: false,
       title: Text(
@@ -54,7 +54,7 @@ class NotFoundPage extends StatelessWidget {
         style: TextStyle(
           fontSize: 24,
           fontWeight: FontWeight.bold,
-          color: CustomColor.font7,
+          color: AppColors.of(context).textPrimary,
         ),
       ),
     );

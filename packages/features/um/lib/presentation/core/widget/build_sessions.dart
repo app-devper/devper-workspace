@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 
 // Package imports:
+import 'package:design_system/theme/app_colors.dart';
 import 'package:design_system/theme/color.dart';
 import 'package:design_system/theme/radius.dart';
 import 'package:design_system/theme/spacing.dart';
@@ -63,7 +64,7 @@ class _SessionsSection extends StatelessWidget {
                   Text("อุปกรณ์ที่เข้าสู่ระบบอยู่", style: textTheme.titleMedium),
                   Text(
                     "อุปกรณ์ที่ยังเข้าสู่ระบบด้วยบัญชีนี้",
-                    style: textTheme.bodySmall?.copyWith(color: CustomColor.font2),
+                    style: textTheme.bodySmall?.copyWith(color: AppColors.of(context).textSecondary),
                   ),
                 ],
               ),
@@ -80,7 +81,7 @@ class _SessionsSection extends StatelessWidget {
         if (sessions.isEmpty)
           Text(
             "ไม่มีอุปกรณ์ที่เข้าสู่ระบบอยู่",
-            style: textTheme.bodySmall?.copyWith(color: CustomColor.font2),
+            style: textTheme.bodySmall?.copyWith(color: AppColors.of(context).textSecondary),
           )
         else
           ...sessions.map((session) => _sessionCard(context, session)),
@@ -90,13 +91,14 @@ class _SessionsSection extends StatelessWidget {
 
   Widget _sessionCard(BuildContext context, UserSession session) {
     final textTheme = Theme.of(context).textTheme;
+    final colors = AppColors.of(context);
     return Container(
       margin: const EdgeInsets.only(bottom: AppSpacing.sm),
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: CustomColor.white,
+        color: AppColors.of(context).surfaceRaised,
         border: Border.all(
-          color: session.current ? CustomColor.info : CustomColor.divider,
+          color: session.current ? CustomColor.info : AppColors.of(context).border,
         ),
         borderRadius: BorderRadius.circular(AppRadius.xl),
       ),
@@ -105,7 +107,7 @@ class _SessionsSection extends StatelessWidget {
         children: [
           Icon(
             session.current ? Icons.verified_user : Icons.devices_other,
-            color: session.current ? CustomColor.info : CustomColor.font2,
+            color: session.current ? CustomColor.info : AppColors.of(context).textSecondary,
           ),
           const SizedBox(width: AppSpacing.md),
           Expanded(
@@ -143,9 +145,9 @@ class _SessionsSection extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: AppSpacing.xs),
-                _line(Icons.schedule, "ใช้งานล่าสุด ${_formatTimestamp(session.lastActivity)}"),
-                _line(Icons.language, session.ipAddress),
-                _line(Icons.computer, session.userAgent),
+                _line(Icons.schedule, "ใช้งานล่าสุด ${_formatTimestamp(session.lastActivity)}", colors.textSecondary),
+                _line(Icons.language, session.ipAddress, colors.textSecondary),
+                _line(Icons.computer, session.userAgent, colors.textSecondary),
               ],
             ),
           ),
@@ -160,18 +162,18 @@ class _SessionsSection extends StatelessWidget {
     );
   }
 
-  Widget _line(IconData icon, String value) {
+  Widget _line(IconData icon, String value, Color color) {
     if (value.isEmpty) return const SizedBox.shrink();
     return Padding(
       padding: const EdgeInsets.only(top: 2),
       child: Row(
         children: [
-          Icon(icon, size: 14, color: CustomColor.font2),
+          Icon(icon, size: 14, color: color),
           const SizedBox(width: AppSpacing.xs),
           Expanded(
             child: Text(
               value,
-              style: TextStyle(fontSize: 12, color: CustomColor.font2),
+              style: TextStyle(fontSize: 12, color: color),
               overflow: TextOverflow.ellipsis,
             ),
           ),

@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 
 // Package imports:
+import 'package:design_system/theme/app_colors.dart';
 import 'package:design_system/theme/color.dart';
 import 'package:design_system/theme/radius.dart';
 import 'package:design_system/theme/spacing.dart';
@@ -115,7 +116,7 @@ class _SystemsSectionState extends State<SystemsSection> {
                 },
               ),
         filled: true,
-        fillColor: CustomColor.white,
+        fillColor: AppColors.of(context).surfaceRaised,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.lg),
           borderSide: BorderSide.none,
@@ -140,7 +141,7 @@ class _SystemsSectionState extends State<SystemsSection> {
       margin: EdgeInsets.zero,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.xl),
-        side: const BorderSide(color: CustomColor.divider),
+        side: BorderSide(color: AppColors.of(context).border),
       ),
       child: InkWell(
         borderRadius: BorderRadius.circular(AppRadius.xl),
@@ -221,12 +222,12 @@ class _SystemsSectionState extends State<SystemsSection> {
   Widget _detailRow(IconData icon, String value) {
     return Row(
       children: [
-        Icon(icon, size: 16, color: CustomColor.font2),
-        const SizedBox(width: AppSpacing.xs),
+        Icon(icon, size: 16, color: AppColors.of(context).textSecondary),
+        SizedBox(width: AppSpacing.xs),
         Expanded(
           child: Text(
             value,
-            style: TextStyle(fontSize: 13, color: CustomColor.font2),
+            style: TextStyle(fontSize: 13, color: AppColors.of(context).textSecondary),
             overflow: TextOverflow.ellipsis,
           ),
         ),

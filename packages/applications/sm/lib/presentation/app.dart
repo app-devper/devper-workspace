@@ -43,6 +43,11 @@ class _MyAppState extends State<DevperSm> {
       debugShowCheckedModeBanner: false,
       title: 'DevperSM',
       theme: CustomTheme.mainTheme,
+      darkTheme: CustomTheme.darkTheme,
+      // Follows the OS. sm's own screens all resolve their colours from the
+      // theme; pos still hardcodes light values, so it stays on `theme` only
+      // until those are migrated.
+      themeMode: ThemeMode.system,
       navigatorKey: appNavigatorKey,
       onGenerateRoute: RouterApp.generateRoute,
       initialRoute: um.routeSplash,

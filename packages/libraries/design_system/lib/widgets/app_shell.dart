@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 
 // Project imports:
+import 'package:design_system/theme/app_colors.dart';
 import 'package:design_system/theme/color.dart';
 import 'package:design_system/theme/radius.dart';
 import 'package:design_system/theme/spacing.dart';
@@ -92,8 +93,9 @@ class _AppShellState extends State<AppShell> with SingleTickerProviderStateMixin
 
   Widget _buildDesktop(BuildContext context) {
     final open = _isOpen(false);
+    final colors = AppColors.of(context);
     return Scaffold(
-      backgroundColor: CustomColor.backgroundIcon,
+      backgroundColor: colors.surface,
       floatingActionButton: widget.floatingActionButton,
       body: Row(
         children: [
@@ -127,8 +129,9 @@ class _AppShellState extends State<AppShell> with SingleTickerProviderStateMixin
 
   Widget _buildMobile(BuildContext context) {
     final open = _isOpen(true);
+    final colors = AppColors.of(context);
     return Scaffold(
-      backgroundColor: CustomColor.backgroundIcon,
+      backgroundColor: colors.surface,
       // The drawer sits above the content, so the action must not float over
       // the scrim while it is open.
       floatingActionButton: open ? null : widget.floatingActionButton,
@@ -195,12 +198,13 @@ class _TopBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
     return Container(
       height: 60,
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
-      decoration: const BoxDecoration(
-        color: CustomColor.white,
-        border: Border(bottom: BorderSide(color: CustomColor.divider)),
+      decoration: BoxDecoration(
+        color: colors.surfaceRaised,
+        border: Border(bottom: BorderSide(color: colors.border)),
       ),
       child: Row(
         children: [
@@ -242,10 +246,11 @@ class _Sidebar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
     return Container(
-      decoration: const BoxDecoration(
-        color: CustomColor.white,
-        border: Border(right: BorderSide(color: CustomColor.divider)),
+      decoration: BoxDecoration(
+        color: colors.surfaceRaised,
+        border: Border(right: BorderSide(color: colors.border)),
       ),
       child: SafeArea(
         child: Column(
@@ -325,7 +330,8 @@ class _NavItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final foreground = selected ? CustomColor.primary : CustomColor.font2;
+    final colors = AppColors.of(context);
+    final foreground = selected ? CustomColor.primary : colors.textSecondary;
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.xs),
       child: Tooltip(
@@ -353,7 +359,8 @@ class _NavItem extends StatelessWidget {
                         item.label,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          color: selected ? CustomColor.primary : CustomColor.fontBlack,
+                          color:
+                              selected ? CustomColor.primary : colors.textPrimary,
                           fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
                         ),
                       ),

@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 
 // Package imports:
+import 'package:design_system/theme/app_colors.dart';
 import 'package:design_system/theme/color.dart';
 import 'package:design_system/theme/radius.dart';
 import 'package:design_system/theme/spacing.dart';
@@ -134,7 +135,7 @@ class _SystemFormState extends State<_SystemForm> {
                             child: Text(
                               'Client ID และรหัสระบบแก้ไขไม่ได้หลังสร้างแล้ว',
                               style: TextStyle(
-                                  fontSize: 12, color: CustomColor.font2),
+                                  fontSize: 12, color: AppColors.of(context).textSecondary),
                             ),
                           ),
                         ],
@@ -193,7 +194,7 @@ class _SystemFormState extends State<_SystemForm> {
         labelText: label,
         hintText: hint,
         filled: !enabled,
-        fillColor: CustomColor.backgroundIcon,
+        fillColor: AppColors.of(context).surface,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.md),
         ),

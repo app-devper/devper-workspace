@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 
 // Project imports:
+import 'package:design_system/theme/app_colors.dart';
 import 'package:design_system/theme/color.dart';
 import 'package:design_system/widgets/error_state.dart';
 import 'package:design_system/theme/theme.dart';
@@ -130,13 +131,13 @@ void showConfirmDialog(
         fontWeight: FontWeight.normal,
       ),
     ),
-    contentPadding: const EdgeInsets.fromLTRB(24.0, 8.0, 24.0, 0.0),
+    contentPadding: EdgeInsets.fromLTRB(24.0, 8.0, 24.0, 0.0),
     actions: [
       TextButton(
         child: Text(
           localizations.cancelBtn,
           style: TextStyle(
-            color: CustomColor.font2,
+            color: AppColors.of(context).textSecondary,
             fontSize: 16,
             fontWeight: FontWeight.bold,
           ),
@@ -202,30 +203,30 @@ Widget buildTextFormField(
       decoration: InputDecoration(
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(4.0),
-          borderSide: const BorderSide(
-            color: CustomColor.textFieldBackground,
+          borderSide: BorderSide(
+            color: AppColors.of(context).surfaceSunken,
           ),
         ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(4.0),
-          borderSide: const BorderSide(
-            color: CustomColor.textFieldBackground,
+          borderSide: BorderSide(
+            color: AppColors.of(context).surfaceSunken,
           ),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(4.0),
-          borderSide: const BorderSide(
-            color: CustomColor.textFieldBackground,
+          borderSide: BorderSide(
+            color: AppColors.of(context).surfaceSunken,
           ),
         ),
-        focusColor: CustomColor.hintColor,
-        hoverColor: CustomColor.textFieldBackground,
-        fillColor: CustomColor.textFieldBackground,
+        focusColor: AppColors.of(context).textHint,
+        hoverColor: AppColors.of(context).surfaceSunken,
+        fillColor: AppColors.of(context).surfaceSunken,
         filled: true,
         labelText: labelText,
         labelStyle: CustomTheme.mainTheme.textTheme.bodyMedium,
       ),
-      cursorColor: CustomColor.hintColor,
+      cursorColor: AppColors.of(context).textHint,
       onFieldSubmitted: (term) {
         fieldFocusChange(context, focusNode, nextNode);
       },
@@ -254,30 +255,30 @@ Widget buildAddressFormField(
       decoration: InputDecoration(
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(4.0),
-          borderSide: const BorderSide(
-            color: CustomColor.textFieldBackground,
+          borderSide: BorderSide(
+            color: AppColors.of(context).surfaceSunken,
           ),
         ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(4.0),
-          borderSide: const BorderSide(
-            color: CustomColor.textFieldBackground,
+          borderSide: BorderSide(
+            color: AppColors.of(context).surfaceSunken,
           ),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(4.0),
-          borderSide: const BorderSide(
-            color: CustomColor.textFieldBackground,
+          borderSide: BorderSide(
+            color: AppColors.of(context).surfaceSunken,
           ),
         ),
-        focusColor: CustomColor.hintColor,
-        hoverColor: CustomColor.textFieldBackground,
-        fillColor: CustomColor.textFieldBackground,
+        focusColor: AppColors.of(context).textHint,
+        hoverColor: AppColors.of(context).surfaceSunken,
+        fillColor: AppColors.of(context).surfaceSunken,
         filled: true,
         labelText: labelText,
         labelStyle: CustomTheme.mainTheme.textTheme.bodyMedium,
       ),
-      cursorColor: CustomColor.hintColor,
+      cursorColor: AppColors.of(context).textHint,
       onFieldSubmitted: (term) {
         fieldFocusChange(context, focusNode, nextNode);
       },
@@ -305,30 +306,30 @@ Widget buildTextFormFieldReadOnly(
       decoration: InputDecoration(
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(4.0),
-          borderSide: const BorderSide(
-            color: CustomColor.textFieldBackground,
+          borderSide: BorderSide(
+            color: AppColors.of(context).surfaceSunken,
           ),
         ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(4.0),
-          borderSide: const BorderSide(
-            color: CustomColor.textFieldBackground,
+          borderSide: BorderSide(
+            color: AppColors.of(context).surfaceSunken,
           ),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(4.0),
-          borderSide: const BorderSide(
-            color: CustomColor.textFieldBackground,
+          borderSide: BorderSide(
+            color: AppColors.of(context).surfaceSunken,
           ),
         ),
-        focusColor: CustomColor.hintColor,
-        hoverColor: CustomColor.textFieldBackground,
-        fillColor: CustomColor.textFieldBackground,
+        focusColor: AppColors.of(context).textHint,
+        hoverColor: AppColors.of(context).surfaceSunken,
+        fillColor: AppColors.of(context).surfaceSunken,
         filled: true,
         labelText: labelText,
         labelStyle: CustomTheme.mainTheme.textTheme.bodyMedium,
       ),
-      cursorColor: CustomColor.hintColor,
+      cursorColor: AppColors.of(context).textHint,
       onFieldSubmitted: (term) {
         fieldFocusChange(context, focusNode, nextNode);
       },
