@@ -42,11 +42,11 @@ buildChangePassword() {
           changePassword(getChangePasswordParam());
         } else {
           snackBar.hideAll();
-          snackBar.showErrorSnackBar("Passwords do not match");
+          snackBar.showErrorSnackBar("รหัสผ่านใหม่ไม่ตรงกัน");
         }
       } else {
         snackBar.hideAll();
-        snackBar.showErrorSnackBar("Fields can't be empty");
+        snackBar.showErrorSnackBar("กรุณากรอกข้อมูลให้ครบ");
       }
     }
 
@@ -56,7 +56,7 @@ buildChangePassword() {
         onClicked: () {
           validate();
         },
-        text: "Change Password",
+        text: "เปลี่ยนรหัสผ่าน",
       );
     }
 
@@ -71,7 +71,7 @@ buildChangePassword() {
           context,
           oldPasswordNode,
           oldPasswordController,
-          "Old Password*",
+          "รหัสผ่านเดิม*",
           newPasswordNode,
         ),
         const Padding(
@@ -81,7 +81,7 @@ buildChangePassword() {
           context,
           newPasswordNode,
           newPasswordController,
-          "New Password*",
+          "รหัสผ่านใหม่*",
           confirmPasswordNode,
         ),
         const Padding(
@@ -91,7 +91,7 @@ buildChangePassword() {
           context,
           confirmPasswordNode,
           confirmPasswordController,
-          "Confirm Password*",
+          "ยืนยันรหัสผ่านใหม่*",
           viewNode,
         ),
         const Padding(

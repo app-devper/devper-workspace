@@ -29,7 +29,7 @@ class ErrorPage extends HookWidget {
         elevation: 1,
         automaticallyImplyLeading: false,
         title: Text(
-          "Error",
+          "เกิดข้อผิดพลาด",
           style: TextStyle(
             fontSize: 24,
             fontWeight: FontWeight.bold,

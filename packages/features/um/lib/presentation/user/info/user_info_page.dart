@@ -34,7 +34,7 @@ class UserInfoPage extends HookWidget {
 
     success(User user) {
       snackBar.hideAll();
-      snackBar.showSnackBar(text: "Update ${user.username} success");
+      snackBar.showSnackBar(text: "บันทึก ${user.username} สำเร็จ");
       edit.value = true;
     }
 
@@ -51,7 +51,7 @@ class UserInfoPage extends HookWidget {
       context,
       onSuccess: (revoked) {
         snackBar.hideAll();
-        snackBar.showSnackBar(text: "Signed out $revoked session(s)");
+        snackBar.showSnackBar(text: "ออกจากระบบแล้ว $revoked อุปกรณ์");
         reloadSessions();
       },
     );
@@ -92,7 +92,7 @@ class UserInfoPage extends HookWidget {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Text(
-                    "Profile",
+                    "ข้อมูลส่วนตัว",
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                   buildUser(snapshot.requireData, (param) {
@@ -127,7 +127,7 @@ class UserInfoPage extends HookWidget {
           backgroundColor: CustomColor.white,
           centerTitle: true,
           title: Text(
-            "User Info",
+            "ข้อมูลของฉัน",
             style: CustomTheme.mainTheme.textTheme.headlineSmall,
           ),
         ),

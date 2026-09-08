@@ -37,7 +37,7 @@ class ChangePasswordPage extends HookWidget {
           backgroundColor: CustomColor.white,
           centerTitle: true,
           title: Text(
-            "Change Password",
+            "เปลี่ยนรหัสผ่าน",
             style: CustomTheme.mainTheme.textTheme.headlineSmall,
           ),
         ),

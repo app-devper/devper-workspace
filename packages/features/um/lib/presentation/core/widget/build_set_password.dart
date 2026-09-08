@@ -17,7 +17,7 @@ void showSetPasswordDialog(
   showDialog<void>(
     context: context,
     builder: (dialogContext) => AlertDialog(
-      title: Text("Set password for ${user.username}"),
+      title: Text("ตั้งรหัสผ่านให้ ${user.username}"),
       content: Form(
         key: formKey,
         child: TextFormField(
@@ -25,12 +25,12 @@ void showSetPasswordDialog(
           obscureText: true,
           autofocus: true,
           decoration: const InputDecoration(
-            labelText: "New password",
+            labelText: "รหัสผ่านใหม่",
             border: OutlineInputBorder(),
           ),
           validator: (value) {
-            if (value == null || value.isEmpty) return "Password is required";
-            if (value.length < 6) return "Use at least 6 characters";
+            if (value == null || value.isEmpty) return "กรุณากรอกรหัสผ่าน";
+            if (value.length < 6) return "รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร";
             return null;
           },
         ),
@@ -38,7 +38,7 @@ void showSetPasswordDialog(
       actions: [
         TextButton(
           onPressed: () => Navigator.of(dialogContext).pop(),
-          child: const Text("Cancel"),
+          child: const Text("ยกเลิก"),
         ),
         TextButton(
           onPressed: () {
@@ -47,7 +47,7 @@ void showSetPasswordDialog(
             Navigator.of(dialogContext).pop();
             onSubmit(password);
           },
-          child: const Text("Save"),
+          child: const Text("บันทึก"),
         ),
       ],
     ),

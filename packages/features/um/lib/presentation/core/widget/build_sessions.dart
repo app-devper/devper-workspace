@@ -60,9 +60,9 @@ class _SessionsSection extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text("Active sessions", style: textTheme.titleMedium),
+                  Text("อุปกรณ์ที่เข้าสู่ระบบอยู่", style: textTheme.titleMedium),
                   Text(
-                    "Devices signed in to your account",
+                    "อุปกรณ์ที่ยังเข้าสู่ระบบด้วยบัญชีนี้",
                     style: textTheme.bodySmall?.copyWith(color: CustomColor.font2),
                   ),
                 ],
@@ -72,14 +72,14 @@ class _SessionsSection extends StatelessWidget {
               TextButton.icon(
                 onPressed: onRevokeOthers,
                 icon: const Icon(Icons.logout, size: 18),
-                label: const Text("Sign out others"),
+                label: const Text("ออกจากระบบอุปกรณ์อื่น"),
               ),
           ],
         ),
         const SizedBox(height: AppSpacing.md),
         if (sessions.isEmpty)
           Text(
-            "No active sessions",
+            "ไม่มีอุปกรณ์ที่เข้าสู่ระบบอยู่",
             style: textTheme.bodySmall?.copyWith(color: CustomColor.font2),
           )
         else
@@ -116,7 +116,7 @@ class _SessionsSection extends StatelessWidget {
                   children: [
                     Flexible(
                       child: Text(
-                        session.system.isEmpty ? "Unknown system" : session.system,
+                        session.system.isEmpty ? "ไม่ทราบระบบ" : session.system,
                         style: textTheme.titleSmall,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -131,7 +131,7 @@ class _SessionsSection extends StatelessWidget {
                           borderRadius: BorderRadius.circular(AppRadius.md),
                         ),
                         child: const Text(
-                          "This device",
+                          "อุปกรณ์นี้",
                           style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w600,
@@ -143,7 +143,7 @@ class _SessionsSection extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: AppSpacing.xs),
-                _line(Icons.schedule, "Last active ${_formatTimestamp(session.lastActivity)}"),
+                _line(Icons.schedule, "ใช้งานล่าสุด ${_formatTimestamp(session.lastActivity)}"),
                 _line(Icons.language, session.ipAddress),
                 _line(Icons.computer, session.userAgent),
               ],
@@ -151,7 +151,7 @@ class _SessionsSection extends StatelessWidget {
           ),
           if (!session.current)
             IconButton(
-              tooltip: "Sign out",
+              tooltip: "ออกจากระบบอุปกรณ์นี้",
               icon: const Icon(Icons.logout, color: CustomColor.error),
               onPressed: () => onRevoke(session.sessionId),
             ),

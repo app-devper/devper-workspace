@@ -45,7 +45,7 @@ buildAddUser(Function(User) onAdded) {
 
     success(User user) {
       snackBar.hideAll();
-      snackBar.showSnackBar(text: "Add ${user.username} success");
+      snackBar.showSnackBar(text: "เพิ่ม ${user.username} สำเร็จ");
       clear();
       onAdded(user);
     }
@@ -74,7 +74,7 @@ buildAddUser(Function(User) onAdded) {
             FocusScope.of(context).requestFocus(viewNode);
             add(getCreateParam());
           },
-          text: "Add",
+          text: "เพิ่มผู้ใช้",
         ),
       );
     }
@@ -89,7 +89,7 @@ buildAddUser(Function(User) onAdded) {
           true,
           usernameNode,
           usernameEditingController,
-          "Username*",
+          "ชื่อผู้ใช้*",
           TextInputType.text,
           passwordNode,
         ),
@@ -101,7 +101,7 @@ buildAddUser(Function(User) onAdded) {
           true,
           passwordNode,
           passwordEditingController,
-          "Password*",
+          "รหัสผ่าน*",
           TextInputType.text,
           firstNameNode,
         ),
@@ -113,7 +113,7 @@ buildAddUser(Function(User) onAdded) {
           true,
           firstNameNode,
           firstNameEditingController,
-          "FirstName",
+          "ชื่อ",
           TextInputType.text,
           lastNameNode,
         ),
@@ -125,7 +125,7 @@ buildAddUser(Function(User) onAdded) {
           true,
           lastNameNode,
           lastNameEditingController,
-          "LastName",
+          "นามสกุล",
           TextInputType.text,
           phoneNode,
         ),
@@ -137,7 +137,7 @@ buildAddUser(Function(User) onAdded) {
           true,
           phoneNode,
           phoneEditingController,
-          "Phone",
+          "เบอร์โทรศัพท์",
           TextInputType.phone,
           emailNode,
         ),
@@ -149,7 +149,7 @@ buildAddUser(Function(User) onAdded) {
           true,
           emailNode,
           emailEditingController,
-          "Email",
+          "อีเมล",
           TextInputType.emailAddress,
           viewNode,
         ),

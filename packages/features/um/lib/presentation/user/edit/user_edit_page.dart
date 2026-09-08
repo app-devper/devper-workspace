@@ -34,7 +34,7 @@ class UserEditPage extends HookWidget {
 
     success(User user) {
       snackBar.hideAll();
-      snackBar.showSnackBar(text: "Update ${user.username} success");
+      snackBar.showSnackBar(text: "บันทึก ${user.username} สำเร็จ");
       edit.value = true;
     }
 
@@ -97,7 +97,7 @@ class UserEditPage extends HookWidget {
           backgroundColor: CustomColor.white,
           centerTitle: true,
           title: Text(
-            "Edit User",
+            "แก้ไขผู้ใช้",
             style: CustomTheme.mainTheme.textTheme.headlineSmall,
           ),
           actions: buildAction(),

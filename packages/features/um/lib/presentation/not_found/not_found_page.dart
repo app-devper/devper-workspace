@@ -28,7 +28,7 @@ class NotFoundPage extends StatelessWidget {
             const Padding(padding: EdgeInsets.only(top: 150)),
             Expanded(
               child: Text(
-                "Page Not Found",
+                "ไม่พบหน้าที่ต้องการ",
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.normal,
@@ -50,7 +50,7 @@ class NotFoundPage extends StatelessWidget {
       elevation: 1,
       automaticallyImplyLeading: false,
       title: Text(
-        "Error",
+        "เกิดข้อผิดพลาด",
         style: TextStyle(
           fontSize: 24,
           fontWeight: FontWeight.bold,
