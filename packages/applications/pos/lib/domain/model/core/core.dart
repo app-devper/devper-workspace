@@ -38,7 +38,7 @@ List<ItemType> productStatus = [
   ItemType(name: "ไม่แสดงหน้าร้าน", type: productStatusInactive),
 ];
 
-findProductStatus(String status) {
+ItemType findProductStatus(String status) {
   return productStatus.firstWhere(
     (element) => element.type.toLowerCase() == status.toLowerCase(),
     orElse: () => categoryTypes.first,

@@ -2,6 +2,8 @@
 import 'package:flutter/material.dart';
 
 // Package imports:
+import 'package:design_system/theme/app_colors.dart';
+import 'package:design_system/theme/spacing.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 
 // Project imports:
@@ -15,10 +17,9 @@ class LoginPage extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
-    final viewNode = useFocusNode();
     final config = useAppConfig();
 
-    nextHome(System system) {
+    void nextHome(System system) {
       if (system.systemCode == config.system) {
         Navigator.pushNamedAndRemoveUntil(context, config.home, (r) => false);
       } else {
@@ -26,26 +27,27 @@ class LoginPage extends HookWidget {
       }
     }
 
-    buildBody() {
-      final bool isKeyboardOpen = (MediaQuery.of(context).viewInsets.bottom > 0);
-      return Container(
-        alignment: Alignment.topCenter,
-        padding: const EdgeInsets.all(defaultPagePadding),
-        child: SingleChildScrollView(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 480),
-            child: buildLogin(isKeyboardOpen, (system) {
-              nextHome(system);
-            }),
+    return Scaffold(
+      backgroundColor: AppColors.of(context).surface,
+      body: SafeArea(
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () => FocusScope.of(context).unfocus(),
+          child: Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.lg,
+                vertical: AppSpacing.xl,
+              ),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 380),
+                // AutofillGroup lets the browser and the OS offer saved
+                // credentials for the pair of fields.
+                child: AutofillGroup(child: buildLogin(nextHome)),
+              ),
+            ),
           ),
         ),
-      );
-    }
-
-    return GestureDetector(
-      onTap: () => FocusScope.of(context).requestFocus(viewNode),
-      child: Scaffold(
-        body: buildBody(),
       ),
     );
   }

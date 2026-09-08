@@ -143,7 +143,7 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
     }
   }
 
-  _buildMobile() {
+  Row _buildMobile() {
     return Row(
       children: [
         Expanded(
@@ -158,7 +158,7 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
     );
   }
 
-  _buildTablet() {
+  Row _buildTablet() {
     return Row(
       children: [
         Expanded(
@@ -182,7 +182,7 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
     );
   }
 
-  _buildDesktop() {
+  Row _buildDesktop() {
     return Row(
       children: [
         Expanded(
@@ -206,7 +206,7 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
     );
   }
 
-  _buildCart({bool showSearchIcon = false}) {
+  Column _buildCart({bool showSearchIcon = false}) {
     final showCustomer = _viewModel.cartStore.customer != null;
     return Column(
       children: [
@@ -414,7 +414,7 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
     );
   }
 
-  _buildCartItem() {
+  Column _buildCartItem() {
     return Column(
       children: [
         Expanded(
@@ -458,7 +458,7 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
     );
   }
 
-  _buildCartOrderItems() {
+  Expanded _buildCartOrderItems() {
     return Expanded(
       child: ListView.builder(
         itemCount: _orderItems.length,
@@ -516,7 +516,7 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
     return price;
   }
 
-  _showCustomerDialog() {
+  void _showCustomerDialog() {
     showRightDialog(
       context,
       builder: (context) => Column(
@@ -565,7 +565,7 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
     return parts.join(', ');
   }
 
-  _showComplianceDialog() {
+  void _showComplianceDialog() {
     final patientController = TextEditingController(text: _patientId);
     final prescriberController = TextEditingController(text: _prescriberName);
     final pharmacistController = TextEditingController(text: _pharmacistName);
@@ -630,7 +630,7 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
     );
   }
 
-  _showAddCustomerDialog() {
+  void _showAddCustomerDialog() {
     showCenterDialog(
       context: context,
       builder: (context) => CustomerAddPage(onBack: () {
@@ -642,7 +642,7 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
     );
   }
 
-  _showProductDialog() {
+  void _showProductDialog() {
     showRightDialog(
       context,
       builder: (context) => Column(
@@ -666,7 +666,7 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
     );
   }
 
-  _showPaymentDialog() {
+  void _showPaymentDialog() {
     showCenterDialog(
       context: context,
       alertKey: _alertKey,
@@ -674,7 +674,7 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
     );
   }
 
-  _buildPaymentScreen(BuildContext context) {
+  Column _buildPaymentScreen(BuildContext context) {
     return Column(
       children: [
         TitleBar(
@@ -701,7 +701,7 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
     );
   }
 
-  _getOrderParam(amount, typeMode) {
+  CreateOrderParam _getOrderParam(double amount, String typeMode) {
     return CreateOrderParam(
       customerCode: _viewModel.cartStore.customer?.code ?? "",
       customerName: _viewModel.cartStore.customer?.name ?? "",

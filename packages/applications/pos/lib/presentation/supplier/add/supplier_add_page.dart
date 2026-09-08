@@ -7,6 +7,8 @@ import 'package:design_system/widgets/app_bar.dart';
 import 'package:design_system/widgets/buttons.dart';
 import 'package:design_system/widgets/snack_bar.dart';
 
+import 'package:design_system/widgets/page_container.dart';
+
 // Project imports:
 import 'package:pos/container.dart';
 import 'package:pos/domain/model/supplier/param.dart';
@@ -97,22 +99,25 @@ class _SupplierAddPageState extends State<SupplierAddPage> {
     );
   }
 
-  _buildBody(BuildContext context) {
+  Widget _buildBody(BuildContext context) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(defaultPagePadding),
-      child: Column(
-        children: <Widget>[
-          _buildForm(context),
-          const Padding(
-            padding: EdgeInsets.only(top: defaultPagePadding),
-          ),
-          _buildAddButton(),
-        ],
+      child: PageContainer(
+        maxWidth: 640,
+        padding: const EdgeInsets.all(defaultPagePadding),
+        child: Column(
+          children: <Widget>[
+            _buildForm(context),
+            const Padding(
+              padding: EdgeInsets.only(top: defaultPagePadding),
+            ),
+            _buildAddButton(),
+          ],
+        ),
       ),
     );
   }
 
-  _buildForm(BuildContext context) {
+  Column _buildForm(BuildContext context) {
     return Column(
       children: <Widget>[
         const Padding(
@@ -163,7 +168,7 @@ class _SupplierAddPageState extends State<SupplierAddPage> {
     );
   }
 
-  _buildAddButton() {
+  SizedBox _buildAddButton() {
     return SizedBox(
       width: double.infinity,
       height: 50,
@@ -177,7 +182,7 @@ class _SupplierAddPageState extends State<SupplierAddPage> {
     );
   }
 
-  _getSupplierParam() {
+  SupplierParam _getSupplierParam() {
     return SupplierParam(
       name: _nameEditingController.text,
       address: _addressEditingController.text,

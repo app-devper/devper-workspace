@@ -2,11 +2,10 @@
 import 'package:flutter/material.dart';
 
 // Package imports:
-import 'package:design_system/theme/color.dart';
-import 'package:design_system/theme/theme.dart';
+import 'package:design_system/theme/app_colors.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 
-fieldFocusChange(
+void fieldFocusChange(
   BuildContext context,
   FocusNode currentFocus,
   FocusNode nextFocus,
@@ -15,37 +14,42 @@ fieldFocusChange(
   FocusScope.of(context).requestFocus(nextFocus);
 }
 
-buildInputDecoration(String labelText, {Widget? suffixIcon}) {
+InputDecoration buildInputDecoration(
+  BuildContext context,
+  String labelText, {
+  Widget? suffixIcon,
+}) {
+  final colors = AppColors.of(context);
   return InputDecoration(
     focusedBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(4.0),
-      borderSide: const BorderSide(
-        color: CustomColor.textFieldBackground,
+      borderSide: BorderSide(
+        color: colors.surfaceSunken,
       ),
     ),
     border: OutlineInputBorder(
       borderRadius: BorderRadius.circular(4.0),
-      borderSide: const BorderSide(
-        color: CustomColor.textFieldBackground,
+      borderSide: BorderSide(
+        color: colors.surfaceSunken,
       ),
     ),
     enabledBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(4.0),
-      borderSide: const BorderSide(
-        color: CustomColor.textFieldBackground,
+      borderSide: BorderSide(
+        color: colors.surfaceSunken,
       ),
     ),
-    focusColor: CustomColor.hintColor,
-    hoverColor: CustomColor.textFieldBackground,
-    fillColor: CustomColor.textFieldBackground,
+    focusColor: colors.textHint,
+    hoverColor: colors.surfaceSunken,
+    fillColor: colors.surfaceSunken,
     filled: true,
     labelText: labelText,
-    labelStyle: CustomTheme.mainTheme.textTheme.bodyMedium,
+    labelStyle: Theme.of(context).textTheme.bodyMedium,
     suffixIcon: suffixIcon,
   );
 }
 
-buildPasswordField(
+SizedBox buildPasswordField(
   BuildContext context,
   FocusNode focusNode,
   TextEditingController controller,
@@ -53,6 +57,7 @@ buildPasswordField(
   FocusNode nextNode,
 ) {
   Size size = MediaQuery.of(context).size;
+  final colors = AppColors.of(context);
   final state = useState(true);
   return SizedBox(
     width: size.width,
@@ -63,16 +68,17 @@ buildPasswordField(
       obscureText: state.value,
       keyboardType: TextInputType.visiblePassword,
       decoration: buildInputDecoration(
+        context,
         labelText,
         suffixIcon: IconButton(
           icon: state.value ? const Icon(Icons.visibility_off) : const Icon(Icons.visibility),
-          color: CustomColor.hintColor,
+          color: colors.textHint,
           onPressed: () {
             state.value = !state.value;
           },
         ),
       ),
-      cursorColor: CustomColor.hintColor,
+      cursorColor: colors.textHint,
       onFieldSubmitted: (term) {
         fieldFocusChange(context, focusNode, nextNode);
       },
@@ -80,7 +86,7 @@ buildPasswordField(
   );
 }
 
-buildTextFormField(
+SizedBox buildTextFormField(
   BuildContext context,
   bool enabled,
   FocusNode focusNode,
@@ -90,6 +96,7 @@ buildTextFormField(
   FocusNode nextNode,
 ) {
   final Size size = MediaQuery.of(context).size;
+  final colors = AppColors.of(context);
   return SizedBox(
     width: size.width,
     height: 50,
@@ -98,8 +105,8 @@ buildTextFormField(
       focusNode: focusNode,
       controller: controller,
       keyboardType: textInputType,
-      decoration: buildInputDecoration(labelText),
-      cursorColor: CustomColor.hintColor,
+      decoration: buildInputDecoration(context, labelText),
+      cursorColor: colors.textHint,
       onFieldSubmitted: (term) {
         fieldFocusChange(context, focusNode, nextNode);
       },

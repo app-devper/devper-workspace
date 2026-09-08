@@ -19,6 +19,7 @@ import 'package:pos/presentation/product/stock/stock_adjustment_history_widget.d
 import 'package:pos/presentation/product/stock/stock_adjustment_widget.dart';
 import 'package:pos/presentation/product/unit/product_unit_widget.dart';
 import 'package:design_system/theme/color.dart';
+import 'package:design_system/theme/spacing.dart';
 
 class ProductDetailWidget extends StatefulWidget {
   final Product product;
@@ -840,8 +841,8 @@ class _ProductDetailWidgetState extends State<ProductDetailWidget>
                         const SizedBox(height: 22.0),
                         ...stock.map(
                           (e) => SizedBox(
-                            width: 32,
-                            height: 24,
+                            width: AppSpacing.minTouchTarget,
+                            height: AppSpacing.minTouchTarget,
                             child: IconButton(
                               padding: EdgeInsets.zero,
                               splashRadius: 16,
@@ -865,7 +866,7 @@ class _ProductDetailWidgetState extends State<ProductDetailWidget>
     );
   }
 
-  _showAddPriceDialog(
+  void _showAddPriceDialog(
     BuildContext context, {
     required ProductUnit unit,
     required List<ProductPrice> prices,
@@ -882,7 +883,7 @@ class _ProductDetailWidgetState extends State<ProductDetailWidget>
     );
   }
 
-  _showEditPriceDialog(
+  void _showEditPriceDialog(
     BuildContext context, {
     required ProductUnit unit,
     required ProductPrice price,
@@ -901,7 +902,7 @@ class _ProductDetailWidgetState extends State<ProductDetailWidget>
     );
   }
 
-  _showEditUnitDialog(
+  void _showEditUnitDialog(
     BuildContext context, {
     required ProductUnit unit,
   }) {

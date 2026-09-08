@@ -54,7 +54,7 @@ class _CustomerSearchState extends State<CustomerSearch> {
     return _buildCustomers();
   }
 
-  _buildCustomers() {
+  Column _buildCustomers() {
     return Column(
       children: [
         Container(

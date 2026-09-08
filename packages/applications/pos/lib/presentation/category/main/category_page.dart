@@ -92,7 +92,7 @@ class _CategoryPageState extends State<CategoryPage> {
     );
   }
 
-  _buildCategoryList() {
+  ValueListenableBuilder<CategoryState> _buildCategoryList() {
     return ValueListenableBuilder<CategoryState>(
       valueListenable: _viewModel.state,
       builder: (BuildContext context, CategoryState state, _) {
@@ -110,7 +110,7 @@ class _CategoryPageState extends State<CategoryPage> {
     );
   }
 
-  _buildCategory(List<Category> item) {
+  Expanded _buildCategory(List<Category> item) {
     return Expanded(
       child: ListView.builder(
         itemCount: item.length,
@@ -128,12 +128,12 @@ class _CategoryPageState extends State<CategoryPage> {
     );
   }
 
-  _nextToCategoryEdit(BuildContext context, Category content) async {
+  Future<void> _nextToCategoryEdit(BuildContext context, Category content) async {
     var _ = await Navigator.pushNamed(context, categoryEditRoute, arguments: CategoryArgument(content));
     _viewModel.getCategories();
   }
 
-  _nextToCategoryAdd(BuildContext context) async {
+  Future<void> _nextToCategoryAdd(BuildContext context) async {
     var _ = await Navigator.pushNamed(context, categoryAddRoute);
     _viewModel.getCategories();
   }

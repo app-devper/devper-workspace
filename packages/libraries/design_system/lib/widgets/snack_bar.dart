@@ -1,13 +1,16 @@
 // Flutter imports:
 import 'package:flutter/material.dart';
 
+// Project imports:
+import 'package:design_system/theme/color.dart';
+
 class CustomSnackBar {
   final BuildContext context;
   final Key key;
 
   CustomSnackBar({required this.key, required this.context});
 
-  void showErrorSnackBar(final msg, {action = false}) {
+  void showErrorSnackBar(final Object? msg, {bool action = false}) {
     showSnackBar(text: "Error: $msg", color: Colors.red[400], action: action);
   }
 
@@ -16,15 +19,24 @@ class CustomSnackBar {
     final snackBar = SnackBar(
       key: key,
       elevation: 8.0,
-      content: const Row(
-        children: <Widget>[
-          CircularProgressIndicator(),
-          SizedBox(width: 10.0),
-          Text("Loading..."),
+      content: Row(
+        children: const <Widget>[
+          SizedBox(
+            width: 18,
+            height: 18,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              color: CustomColor.white,
+            ),
+          ),
+          SizedBox(width: 12.0),
+          Text("กำลังโหลด..."),
         ],
       ),
-      backgroundColor: Colors.green[400],
-      duration: const Duration(minutes: 1),
+      // Green reads as "done"; loading is neutral. The duration is only a
+      // safety net for a missed hideAll, so it need not run for a minute.
+      backgroundColor: CustomColor.fontBlack,
+      duration: const Duration(seconds: 20),
     );
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }

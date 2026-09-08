@@ -2,6 +2,10 @@
 import 'package:flutter/material.dart';
 
 // Package imports:
+import 'package:design_system/theme/app_colors.dart';
+import 'package:design_system/theme/color.dart';
+import 'package:design_system/theme/radius.dart';
+import 'package:design_system/theme/spacing.dart';
 import 'package:design_system/widgets/dialogs.dart';
 import 'package:design_system/widgets/title_bar.dart';
 
@@ -109,26 +113,62 @@ class _SystemFormState extends State<_SystemForm> {
         const Divider(height: 1),
         Expanded(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(AppSpacing.lg),
             child: Form(
               key: _formKey,
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  if (_isEdit) ...[
+                    Container(
+                      padding: const EdgeInsets.all(AppSpacing.sm),
+                      decoration: BoxDecoration(
+                        color: CustomColor.info.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(AppRadius.md),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.info_outline,
+                              size: 18, color: CustomColor.info),
+                          const SizedBox(width: AppSpacing.sm),
+                          Expanded(
+                            child: Text(
+                              'Client ID และรหัสระบบแก้ไขไม่ได้หลังสร้างแล้ว',
+                              style: TextStyle(
+                                  fontSize: 12, color: AppColors.of(context).textSecondary),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                  ],
                   _field(
                     controller: _clientId,
                     label: 'Client ID',
+                    hint: 'เช่น 000',
                     enabled: !_isEdit,
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: AppSpacing.md),
                   _field(
                     controller: _systemCode,
-                    label: 'System code',
+                    label: 'รหัสระบบ',
+                    hint: 'เช่น POS',
                     enabled: !_isEdit,
                   ),
-                  const SizedBox(height: 16),
-                  _field(controller: _systemName, label: 'System name'),
-                  const SizedBox(height: 16),
-                  _field(controller: _host, label: 'Host'),
+                  const SizedBox(height: AppSpacing.md),
+                  _field(
+                    controller: _systemName,
+                    label: 'ชื่อระบบ',
+                    hint: 'ชื่อที่แสดงให้ผู้ใช้เห็น',
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  _field(
+                    controller: _host,
+                    label: 'Host',
+                    hint: 'https://api.example.com',
+                    keyboardType: TextInputType.url,
+                  ),
                 ],
               ),
             ),
@@ -141,14 +181,23 @@ class _SystemFormState extends State<_SystemForm> {
   Widget _field({
     required TextEditingController controller,
     required String label,
+    String? hint,
     bool enabled = true,
+    TextInputType? keyboardType,
   }) {
     return TextFormField(
       controller: controller,
       enabled: enabled,
+      keyboardType: keyboardType,
+      textInputAction: TextInputAction.next,
       decoration: InputDecoration(
         labelText: label,
-        border: const OutlineInputBorder(),
+        hintText: hint,
+        filled: !enabled,
+        fillColor: AppColors.of(context).surface,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppRadius.md),
+        ),
       ),
       validator: (value) =>
           (value == null || value.trim().isEmpty) ? 'กรุณากรอก$label' : null,

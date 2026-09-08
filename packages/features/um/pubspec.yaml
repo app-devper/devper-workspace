@@ -15,7 +15,7 @@ dependencies:
     sdk: flutter
 
   shared_preferences: ^2.0.5
-  flutter_hooks: ^0.20.0
+  flutter_hooks: ^0.21.3
   intl:
   logging:
   http:
@@ -25,7 +25,7 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^4.0.0
+  flutter_lints: ^6.0.0
   import_sorter: ^4.6.0
 
 publish_to: none
@@ -43,6 +43,14 @@ flutter:
       fonts:
         - asset: packages/common/assets/font/roboto_regular.ttf
         - asset: packages/common/assets/font/roboto_bold.ttf
+          weight: 700
+    - family: Sarabun
+      fonts:
+        - asset: packages/common/assets/font/Sarabun-Regular.ttf
+          weight: 400
+        - asset: packages/common/assets/font/Sarabun-Medium.ttf
+          weight: 500
+        - asset: packages/common/assets/font/Sarabun-Bold.ttf
           weight: 700
 
   module:

@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 
 // Package imports:
-import 'package:design_system/theme/color.dart';
+import 'package:design_system/theme/app_colors.dart';
 import 'package:design_system/theme/theme.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 
@@ -43,10 +43,10 @@ class UserHomePage extends HookWidget {
             }
           },
           itemBuilder: (context) => [
-            const PopupMenuItem<int>(value: 0, child: Text("User List")),
-            const PopupMenuItem<int>(value: 1, child: Text("User Info")),
-            const PopupMenuItem<int>(value: 2, child: Text("Change Password")),
-            const PopupMenuItem<int>(value: 3, child: Text('Logout')),
+            const PopupMenuItem<int>(value: 0, child: Text("รายชื่อผู้ใช้")),
+            const PopupMenuItem<int>(value: 1, child: Text("ข้อมูลของฉัน")),
+            const PopupMenuItem<int>(value: 2, child: Text("เปลี่ยนรหัสผ่าน")),
+            const PopupMenuItem<int>(value: 3, child: Text('ออกจากระบบ')),
           ],
         ),
       ];
@@ -57,10 +57,10 @@ class UserHomePage extends HookWidget {
       child: Scaffold(
         appBar: AppBar(
           iconTheme: CustomTheme.mainTheme.iconTheme,
-          backgroundColor: CustomColor.white,
+          backgroundColor: AppColors.of(context).surfaceRaised,
           centerTitle: true,
           title: Text(
-            "Home",
+            "หน้าหลัก",
             style: CustomTheme.mainTheme.textTheme.headlineSmall,
           ),
           actions: buildAction(),

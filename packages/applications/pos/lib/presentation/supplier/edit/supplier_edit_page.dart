@@ -7,6 +7,8 @@ import 'package:design_system/widgets/app_bar.dart';
 import 'package:design_system/widgets/buttons.dart';
 import 'package:design_system/widgets/snack_bar.dart';
 
+import 'package:design_system/widgets/page_container.dart';
+
 // Project imports:
 import 'package:pos/container.dart';
 import 'package:pos/domain/model/supplier/param.dart';
@@ -104,7 +106,7 @@ class _SupplierEditPageState extends State<SupplierEditPage> {
     );
   }
 
-  _setupData(Supplier data) {
+  void _setupData(Supplier data) {
     _nameEditingController.text = data.name;
     _addressEditingController.text = data.address;
     _phoneEditingController.text = data.phone;
@@ -123,22 +125,25 @@ class _SupplierEditPageState extends State<SupplierEditPage> {
     ];
   }
 
-  _buildBody(BuildContext context) {
+  Widget _buildBody(BuildContext context) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(defaultPagePadding),
-      child: Column(
-        children: <Widget>[
-          _buildForm(context),
-          const Padding(
-            padding: EdgeInsets.only(top: defaultPagePadding),
-          ),
-          _buildUpdateButton(),
-        ],
+      child: PageContainer(
+        maxWidth: 640,
+        padding: const EdgeInsets.all(defaultPagePadding),
+        child: Column(
+          children: <Widget>[
+            _buildForm(context),
+            const Padding(
+              padding: EdgeInsets.only(top: defaultPagePadding),
+            ),
+            _buildUpdateButton(),
+          ],
+        ),
       ),
     );
   }
 
-  _buildForm(BuildContext context) {
+  Column _buildForm(BuildContext context) {
     return Column(
       children: <Widget>[
         const Padding(
@@ -189,7 +194,7 @@ class _SupplierEditPageState extends State<SupplierEditPage> {
     );
   }
 
-  _buildUpdateButton() {
+  SizedBox _buildUpdateButton() {
     return SizedBox(
       width: double.infinity,
       height: 50,
@@ -203,13 +208,13 @@ class _SupplierEditPageState extends State<SupplierEditPage> {
     );
   }
 
-  _showRemoveConfirm(BuildContext context, Supplier data) {
+  void _showRemoveConfirm(BuildContext context, Supplier data) {
     showConfirmDialog(context, "ต้องการลบร้านค้าใช่หรือไม่?", () {
       _viewModel.removeSupplierById(data.id);
     });
   }
 
-  _getSupplierParam() {
+  SupplierParam _getSupplierParam() {
     return SupplierParam(
       name: _nameEditingController.text,
       address: _addressEditingController.text,

@@ -7,6 +7,8 @@ import 'package:design_system/widgets/app_bar.dart';
 import 'package:design_system/widgets/buttons.dart';
 import 'package:design_system/widgets/snack_bar.dart';
 
+import 'package:design_system/widgets/page_container.dart';
+
 // Project imports:
 import 'package:pos/container.dart';
 import 'package:pos/domain/model/product/param.dart';
@@ -113,22 +115,25 @@ class _ProductLotEditPageState extends State<ProductLotEditPage> {
     );
   }
 
-  _buildBody(BuildContext context) {
+  Widget _buildBody(BuildContext context) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(defaultPagePadding),
-      child: Column(
-        children: <Widget>[
-          _buildForm(context),
-          const Padding(
-            padding: EdgeInsets.only(top: 20),
-          ),
-          _buildUpdateButton(),
-        ],
+      child: PageContainer(
+        maxWidth: 640,
+        padding: const EdgeInsets.all(defaultPagePadding),
+        child: Column(
+          children: <Widget>[
+            _buildForm(context),
+            const Padding(
+              padding: EdgeInsets.only(top: 20),
+            ),
+            _buildUpdateButton(),
+          ],
+        ),
       ),
     );
   }
 
-  _buildForm(BuildContext context) {
+  Column _buildForm(BuildContext context) {
     return Column(
       children: <Widget>[
         const Padding(
@@ -190,7 +195,7 @@ class _ProductLotEditPageState extends State<ProductLotEditPage> {
     );
   }
 
-  _buildUpdateButton() {
+  SizedBox _buildUpdateButton() {
     return SizedBox(
       width: double.infinity,
       height: 50,

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 // Package imports:
 import 'package:common/core/ext/widget_ext.dart';
+import 'package:design_system/theme/app_colors.dart';
 import 'package:design_system/theme/color.dart';
 import 'package:design_system/theme/theme.dart';
 import 'package:design_system/widgets/snack_bar.dart';
@@ -34,7 +35,7 @@ class UserEditPage extends HookWidget {
 
     success(User user) {
       snackBar.hideAll();
-      snackBar.showSnackBar(text: "Update ${user.username} success");
+      snackBar.showSnackBar(text: "บันทึก ${user.username} สำเร็จ");
       edit.value = true;
     }
 
@@ -94,10 +95,10 @@ class UserEditPage extends HookWidget {
       child: Scaffold(
         appBar: AppBar(
           iconTheme: CustomTheme.mainTheme.iconTheme,
-          backgroundColor: CustomColor.white,
+          backgroundColor: AppColors.of(context).surfaceRaised,
           centerTitle: true,
           title: Text(
-            "Edit User",
+            "แก้ไขผู้ใช้",
             style: CustomTheme.mainTheme.textTheme.headlineSmall,
           ),
           actions: buildAction(),

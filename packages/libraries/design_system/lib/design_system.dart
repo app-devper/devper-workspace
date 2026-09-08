@@ -1,4 +1,4 @@
-library design_system;
+library;
 
 export 'theme/color.dart';
 export 'theme/theme.dart';
@@ -15,3 +15,7 @@ export 'widgets/buttons.dart';
 export 'widgets/responsive.dart';
 export 'widgets/dialogs.dart';
 export 'widgets/status_badge.dart';
+export 'widgets/page_container.dart';
+export 'widgets/empty_state.dart';
+export 'widgets/app_shell.dart';
+export 'widgets/error_state.dart';

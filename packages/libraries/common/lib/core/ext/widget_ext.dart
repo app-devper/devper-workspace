@@ -2,9 +2,12 @@
 import 'package:flutter/material.dart';
 
 // Project imports:
+import 'package:design_system/theme/app_colors.dart';
 import 'package:design_system/theme/color.dart';
+import 'package:design_system/widgets/error_state.dart';
 import 'package:design_system/theme/theme.dart';
 import 'package:common/localizations/localizations.dart';
+import 'package:common/core/error/failure.dart';
 
 // Package imports:
 
@@ -122,19 +125,19 @@ void showConfirmDialog(
     content: Text(
       message,
       style: const TextStyle(
-        fontFamily: "Roboto",
+        fontFamily: "Sarabun",
         color: Colors.black,
         fontSize: 16,
         fontWeight: FontWeight.normal,
       ),
     ),
-    contentPadding: const EdgeInsets.fromLTRB(24.0, 8.0, 24.0, 0.0),
+    contentPadding: EdgeInsets.fromLTRB(24.0, 8.0, 24.0, 0.0),
     actions: [
       TextButton(
         child: Text(
           localizations.cancelBtn,
           style: TextStyle(
-            color: CustomColor.font2,
+            color: AppColors.of(context).textSecondary,
             fontSize: 16,
             fontWeight: FontWeight.bold,
           ),
@@ -200,30 +203,30 @@ Widget buildTextFormField(
       decoration: InputDecoration(
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(4.0),
-          borderSide: const BorderSide(
-            color: CustomColor.textFieldBackground,
+          borderSide: BorderSide(
+            color: AppColors.of(context).surfaceSunken,
           ),
         ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(4.0),
-          borderSide: const BorderSide(
-            color: CustomColor.textFieldBackground,
+          borderSide: BorderSide(
+            color: AppColors.of(context).surfaceSunken,
           ),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(4.0),
-          borderSide: const BorderSide(
-            color: CustomColor.textFieldBackground,
+          borderSide: BorderSide(
+            color: AppColors.of(context).surfaceSunken,
           ),
         ),
-        focusColor: CustomColor.hintColor,
-        hoverColor: CustomColor.textFieldBackground,
-        fillColor: CustomColor.textFieldBackground,
+        focusColor: AppColors.of(context).textHint,
+        hoverColor: AppColors.of(context).surfaceSunken,
+        fillColor: AppColors.of(context).surfaceSunken,
         filled: true,
         labelText: labelText,
         labelStyle: CustomTheme.mainTheme.textTheme.bodyMedium,
       ),
-      cursorColor: CustomColor.hintColor,
+      cursorColor: AppColors.of(context).textHint,
       onFieldSubmitted: (term) {
         fieldFocusChange(context, focusNode, nextNode);
       },
@@ -252,30 +255,30 @@ Widget buildAddressFormField(
       decoration: InputDecoration(
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(4.0),
-          borderSide: const BorderSide(
-            color: CustomColor.textFieldBackground,
+          borderSide: BorderSide(
+            color: AppColors.of(context).surfaceSunken,
           ),
         ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(4.0),
-          borderSide: const BorderSide(
-            color: CustomColor.textFieldBackground,
+          borderSide: BorderSide(
+            color: AppColors.of(context).surfaceSunken,
           ),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(4.0),
-          borderSide: const BorderSide(
-            color: CustomColor.textFieldBackground,
+          borderSide: BorderSide(
+            color: AppColors.of(context).surfaceSunken,
           ),
         ),
-        focusColor: CustomColor.hintColor,
-        hoverColor: CustomColor.textFieldBackground,
-        fillColor: CustomColor.textFieldBackground,
+        focusColor: AppColors.of(context).textHint,
+        hoverColor: AppColors.of(context).surfaceSunken,
+        fillColor: AppColors.of(context).surfaceSunken,
         filled: true,
         labelText: labelText,
         labelStyle: CustomTheme.mainTheme.textTheme.bodyMedium,
       ),
-      cursorColor: CustomColor.hintColor,
+      cursorColor: AppColors.of(context).textHint,
       onFieldSubmitted: (term) {
         fieldFocusChange(context, focusNode, nextNode);
       },
@@ -303,30 +306,30 @@ Widget buildTextFormFieldReadOnly(
       decoration: InputDecoration(
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(4.0),
-          borderSide: const BorderSide(
-            color: CustomColor.textFieldBackground,
+          borderSide: BorderSide(
+            color: AppColors.of(context).surfaceSunken,
           ),
         ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(4.0),
-          borderSide: const BorderSide(
-            color: CustomColor.textFieldBackground,
+          borderSide: BorderSide(
+            color: AppColors.of(context).surfaceSunken,
           ),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(4.0),
-          borderSide: const BorderSide(
-            color: CustomColor.textFieldBackground,
+          borderSide: BorderSide(
+            color: AppColors.of(context).surfaceSunken,
           ),
         ),
-        focusColor: CustomColor.hintColor,
-        hoverColor: CustomColor.textFieldBackground,
-        fillColor: CustomColor.textFieldBackground,
+        focusColor: AppColors.of(context).textHint,
+        hoverColor: AppColors.of(context).surfaceSunken,
+        fillColor: AppColors.of(context).surfaceSunken,
         filled: true,
         labelText: labelText,
         labelStyle: CustomTheme.mainTheme.textTheme.bodyMedium,
       ),
-      cursorColor: CustomColor.hintColor,
+      cursorColor: AppColors.of(context).textHint,
       onFieldSubmitted: (term) {
         fieldFocusChange(context, focusNode, nextNode);
       },
@@ -347,12 +350,22 @@ extension WidgetStream<T> on Stream<T> {
 }
 
 extension WidgetFutureLoading<T> on Future<T> {
-  FutureBuilder<T> toWidgetLoading({required Widget Function(T event) widgetBuilder}) {
+  /// [onRetry] should re-create the future the caller passed in; without it the
+  /// failure is still reported, just without a way to try again.
+  FutureBuilder<T> toWidgetLoading({
+    required Widget Function(T event) widgetBuilder,
+    VoidCallback? onRetry,
+  }) {
     return FutureBuilder(
       future: this,
       builder: (BuildContext context, AsyncSnapshot<T> snapshot) {
         if (snapshot.hasError) {
-          return Container();
+          // An empty container here left the user staring at a blank screen
+          // with no way to tell a failed load from an empty list.
+          return ErrorState(
+            message: toFailure(snapshot.error!).getMessage(),
+            onRetry: onRetry,
+          );
         } else if (snapshot.hasData) {
           return widgetBuilder(snapshot.requireData);
         } else {

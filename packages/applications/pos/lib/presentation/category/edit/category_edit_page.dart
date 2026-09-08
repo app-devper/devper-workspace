@@ -7,6 +7,8 @@ import 'package:design_system/widgets/app_bar.dart';
 import 'package:design_system/widgets/buttons.dart';
 import 'package:design_system/widgets/snack_bar.dart';
 
+import 'package:design_system/widgets/page_container.dart';
+
 // Project imports:
 import 'package:pos/container.dart';
 import 'package:pos/domain/model/category/category.dart';
@@ -122,22 +124,25 @@ class _CategoryEditPageState extends State<CategoryEditPage> {
     ];
   }
 
-  _buildBody(BuildContext context) {
+  Widget _buildBody(BuildContext context) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(defaultPagePadding),
-      child: Column(
-        children: <Widget>[
-          _buildForm(context),
-          const Padding(
-            padding: EdgeInsets.only(top: defaultPagePadding),
-          ),
-          _buildUpdateButton(),
-        ],
+      child: PageContainer(
+        maxWidth: 640,
+        padding: const EdgeInsets.all(defaultPagePadding),
+        child: Column(
+          children: <Widget>[
+            _buildForm(context),
+            const Padding(
+              padding: EdgeInsets.only(top: defaultPagePadding),
+            ),
+            _buildUpdateButton(),
+          ],
+        ),
       ),
     );
   }
 
-  _buildForm(BuildContext context) {
+  Column _buildForm(BuildContext context) {
     return Column(
       children: <Widget>[
         const Padding(
@@ -192,7 +197,7 @@ class _CategoryEditPageState extends State<CategoryEditPage> {
     );
   }
 
-  _buildTextFormField(
+  SizedBox _buildTextFormField(
     BuildContext context,
     FocusNode focusNode,
     TextEditingController controller,
@@ -241,7 +246,7 @@ class _CategoryEditPageState extends State<CategoryEditPage> {
     );
   }
 
-  _buildUpdateButton() {
+  SizedBox _buildUpdateButton() {
     return SizedBox(
       width: double.infinity,
       height: 50,
@@ -255,13 +260,13 @@ class _CategoryEditPageState extends State<CategoryEditPage> {
     );
   }
 
-  _showRemoveCategoryConfirm(BuildContext context, Category category) {
+  void _showRemoveCategoryConfirm(BuildContext context, Category category) {
     showConfirmDialog(context, "ต้องการลบประเภทสินค้าใช่หรือไม่?", () {
       _viewModel.removeCategoryById(category.id);
     });
   }
 
-  _getCategoryParam() {
+  CategoryParam _getCategoryParam() {
     return CategoryParam(
       name: _nameEditingController.text,
       value: _valueEditingController.text,

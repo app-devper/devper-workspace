@@ -28,14 +28,14 @@ class UserMapper {
     );
   }
 
-  toChangePasswordRequest(ChangePasswordParam param) {
+  String toChangePasswordRequest(ChangePasswordParam param) {
     return jsonEncode({
       'oldPassword': param.oldPassword,
       'newPassword': param.newPassword,
     });
   }
 
-  toCreateUserRequest(CreateParam param) {
+  String toCreateUserRequest(CreateParam param) {
     return jsonEncode({
       'firstName': param.firstName,
       'lastName': param.lastName,
@@ -47,7 +47,7 @@ class UserMapper {
     });
   }
 
-  toUpdateUserRequest(UserParam param) {
+  String toUpdateUserRequest(UserParam param) {
     return jsonEncode({
       'firstName': param.firstName,
       'lastName': param.lastName,
@@ -56,19 +56,19 @@ class UserMapper {
     });
   }
 
-  toUpdateStatusRequest(String param) {
+  String toUpdateStatusRequest(String param) {
     return jsonEncode({
       'status': param,
     });
   }
 
-  toSetPasswordRequest(String param) {
+  String toSetPasswordRequest(String param) {
     return jsonEncode({
       'password': param,
     });
   }
 
-  toUpdateRoleRequest(String param) {
+  String toUpdateRoleRequest(String param) {
     return jsonEncode({
       'role': param,
     });

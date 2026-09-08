@@ -55,7 +55,7 @@ class _ProductsWidgetState extends State<ProductsWidget> {
     return _buildBody();
   }
 
-  _buildBody() {
+  Column _buildBody() {
     final isMobile = Responsive.isMobile(context);
     return Column(
       children: <Widget>[
@@ -126,7 +126,7 @@ class _ProductsWidgetState extends State<ProductsWidget> {
     );
   }
 
-  _buildProductList() {
+  ValueListenableBuilder<ProductsState> _buildProductList() {
     return ValueListenableBuilder<ProductsState>(
       valueListenable: _viewModel.state,
       builder: (BuildContext context, ProductsState state, _) {
@@ -146,7 +146,7 @@ class _ProductsWidgetState extends State<ProductsWidget> {
     );
   }
 
-  _buildProducts(List<Product> item) {
+  Expanded _buildProducts(List<Product> item) {
     getSubTitle(Product content) {
       if (_sortBalance) {
         return "คงเหลือ ${content.getQuantity()} ${content.units.isNotEmpty ? content.units.first.unit : ""}";

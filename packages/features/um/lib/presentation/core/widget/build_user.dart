@@ -11,7 +11,7 @@ import 'package:um/domain/entities/user/user.dart';
 import 'package:um/presentation/constants.dart';
 import 'package:um/presentation/core/widget/build_widget.dart';
 
-buildUser(User user, Function(UpdateUserParam) onClicked) {
+HookBuilder buildUser(User user, Function(UpdateUserParam) onClicked) {
   return HookBuilder(builder: (context) {
     final usernameEditingController = useTextEditingController();
     final firstNameEditingController = useTextEditingController();
@@ -61,7 +61,7 @@ buildUser(User user, Function(UpdateUserParam) onClicked) {
             FocusScope.of(context).requestFocus(viewNode);
             onClicked(getUserParam());
           },
-          text: "Update",
+          text: "บันทึก",
         ),
       );
     }
@@ -76,7 +76,7 @@ buildUser(User user, Function(UpdateUserParam) onClicked) {
           false,
           usernameNode,
           usernameEditingController,
-          "Username",
+          "ชื่อผู้ใช้",
           TextInputType.text,
           firstNameNode,
         ),
@@ -88,7 +88,7 @@ buildUser(User user, Function(UpdateUserParam) onClicked) {
           true,
           firstNameNode,
           firstNameEditingController,
-          "FirstName*",
+          "ชื่อ*",
           TextInputType.text,
           lastNameNode,
         ),
@@ -100,7 +100,7 @@ buildUser(User user, Function(UpdateUserParam) onClicked) {
           true,
           lastNameNode,
           lastNameEditingController,
-          "LastName*",
+          "นามสกุล*",
           TextInputType.text,
           phoneNode,
         ),
@@ -112,7 +112,7 @@ buildUser(User user, Function(UpdateUserParam) onClicked) {
           true,
           phoneNode,
           phoneEditingController,
-          "Phone",
+          "เบอร์โทรศัพท์",
           TextInputType.phone,
           emailNode,
         ),
@@ -124,7 +124,7 @@ buildUser(User user, Function(UpdateUserParam) onClicked) {
           true,
           emailNode,
           emailEditingController,
-          "Email",
+          "อีเมล",
           TextInputType.emailAddress,
           viewNode,
         ),

@@ -11,7 +11,7 @@ resolution: workspace
 dependencies:
   flutter:
     sdk: flutter
-  get_it: ^7.1.3
+  get_it: ^9.2.1
   cupertino_icons: ^1.0.2
   http: ^1.2.1
   logging: ^1.0.2
@@ -24,7 +24,7 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^4.0.0
+  flutter_lints: ^6.0.0
   import_sorter: ^4.6.0
 
 publish_to: none
@@ -36,5 +36,13 @@ flutter:
       fonts:
         - asset: packages/common/assets/font/roboto_regular.ttf
         - asset: packages/common/assets/font/roboto_bold.ttf
+          weight: 700
+    - family: Sarabun
+      fonts:
+        - asset: packages/common/assets/font/Sarabun-Regular.ttf
+          weight: 400
+        - asset: packages/common/assets/font/Sarabun-Medium.ttf
+          weight: 500
+        - asset: packages/common/assets/font/Sarabun-Bold.ttf
           weight: 700
 

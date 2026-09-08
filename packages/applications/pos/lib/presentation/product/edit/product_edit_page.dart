@@ -6,6 +6,8 @@ import 'package:flutter/services.dart';
 import 'package:common/core/ext/widget_ext.dart';
 import 'package:design_system/widgets/title_bar.dart';
 
+import 'package:design_system/widgets/page_container.dart';
+
 // Project imports:
 import 'package:pos/container.dart';
 import 'package:pos/domain/model/core/core.dart';
@@ -161,151 +163,154 @@ class _ProductEditPageState extends State<ProductEditPage> {
     }
   }
 
-  _buildBody() {
+  Widget _buildBody() {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(8),
-      child: Column(
-        children: <Widget>[
-          Card(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  const Text(
-                    'ข้อมูลทั่วไป',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
+      child: PageContainer(
+        maxWidth: 640,
+        padding: const EdgeInsets.all(8),
+        child: Column(
+          children: <Widget>[
+            Card(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    const Text(
+                      'ข้อมูลทั่วไป',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'โปรดระบุข้อมูลสินค้า',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.black.withValues(alpha: 0.6),
+                    const SizedBox(height: 16),
+                    Text(
+                      'โปรดระบุข้อมูลสินค้า',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.black.withValues(alpha: 0.6),
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 32),
-                  _buildFormInfo(),
-                  const SizedBox(height: 8),
-                ],
+                    const SizedBox(height: 32),
+                    _buildFormInfo(),
+                    const SizedBox(height: 8),
+                  ],
+                ),
               ),
             ),
-          ),
-          const SizedBox(height: 16),
-          Card(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  const Text(
-                    'ข้อมูลสต็อกขั้นต่ำ',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
+            const SizedBox(height: 16),
+            Card(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    const Text(
+                      'ข้อมูลสต็อกขั้นต่ำ',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                  TextFormField(
-                    inputFormatters: [
-                      LengthLimitingTextInputFormatter(10),
-                    ],
-                    controller: _minStockEditingController,
-                    keyboardType: TextInputType.number,
-                    decoration: buildInputDecoration(
-                      labelText: 'สต็อกขั้นต่ำ',
-                      hintText: '0',
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      inputFormatters: [
+                        LengthLimitingTextInputFormatter(10),
+                      ],
+                      controller: _minStockEditingController,
+                      keyboardType: TextInputType.number,
+                      decoration: buildInputDecoration(
+                        labelText: 'สต็อกขั้นต่ำ',
+                        hintText: '0',
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
-          ),
-          const SizedBox(height: 16),
-          Card(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  const Text(
-                    'ข้อมูลยา',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
+            const SizedBox(height: 16),
+            Card(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    const Text(
+                      'ข้อมูลยา',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                  _buildDrugInfoForm(),
-                  const SizedBox(height: 8),
-                ],
+                    const SizedBox(height: 16),
+                    _buildDrugInfoForm(),
+                    const SizedBox(height: 8),
+                  ],
+                ),
               ),
             ),
-          ),
-          const SizedBox(height: 16),
-          Card(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  const Text(
-                    'ทะเบียนยา',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
+            const SizedBox(height: 16),
+            Card(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    const Text(
+                      'ทะเบียนยา',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                  TextFormField(
-                    controller: _drugRegistrationsController,
-                    keyboardType: TextInputType.text,
-                    decoration: buildInputDecoration(
-                      labelText: 'ทะเบียนยา (คั่นด้วยเครื่องหมาย ,)',
-                      hintText: 'เช่น KHY9, KHY10',
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: _drugRegistrationsController,
+                      keyboardType: TextInputType.text,
+                      decoration: buildInputDecoration(
+                        labelText: 'ทะเบียนยา (คั่นด้วยเครื่องหมาย ,)',
+                        hintText: 'เช่น KHY9, KHY10',
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
-          ),
-          const SizedBox(height: 60),
-          TextButton(
-            onPressed: () => _showConfirmDialog(context),
-            child: const Text(
-              "ลบสินค้า",
-              style: TextStyle(
-                color: Colors.red,
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
+            const SizedBox(height: 60),
+            TextButton(
+              onPressed: () => _showConfirmDialog(context),
+              child: const Text(
+                "ลบสินค้า",
+                style: TextStyle(
+                  color: Colors.red,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-            ),
-          )
-        ],
+            )
+          ],
+        ),
       ),
     );
   }
 
-  _buildFormInfo() {
+  Column _buildFormInfo() {
     return Column(
       children: <Widget>[
         DropdownButtonFormField<ItemType>(
@@ -395,7 +400,7 @@ class _ProductEditPageState extends State<ProductEditPage> {
     );
   }
 
-  _buildDrugInfoForm() {
+  Column _buildDrugInfoForm() {
     return Column(
       children: <Widget>[
         TextFormField(
@@ -551,7 +556,7 @@ class _ProductEditPageState extends State<ProductEditPage> {
         .toList();
   }
 
-  _getProductParam() {
+  ProductParam _getProductParam() {
     final minStock = int.tryParse(_minStockEditingController.text) ?? 0;
     return ProductParam(
       name: _nameEditingController.text,
@@ -573,7 +578,7 @@ class _ProductEditPageState extends State<ProductEditPage> {
     );
   }
 
-  _showConfirmDialog(BuildContext context) {
+  void _showConfirmDialog(BuildContext context) {
     showConfirmDialog(context, "ต้องการลบสินค้าใช่หรือไม่", () {
       _viewModel.removeProductById(widget.product.id);
     });

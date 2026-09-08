@@ -92,7 +92,7 @@ class _SuppliersPageState extends State<SuppliersPage> {
     );
   }
 
-  _buildSupplierList() {
+  ValueListenableBuilder<SuppliersState> _buildSupplierList() {
     return ValueListenableBuilder<SuppliersState>(
       valueListenable: _viewModel.state,
       builder: (BuildContext context, SuppliersState state, _) {
@@ -112,7 +112,7 @@ class _SuppliersPageState extends State<SuppliersPage> {
     );
   }
 
-  _buildCustomer(List<Supplier> item) {
+  Expanded _buildCustomer(List<Supplier> item) {
     return Expanded(
       child: ListView.builder(
         itemCount: item.length,
@@ -130,12 +130,12 @@ class _SuppliersPageState extends State<SuppliersPage> {
     );
   }
 
-  _nextToSupplierEdit(BuildContext context, Supplier content) async {
+  Future<void> _nextToSupplierEdit(BuildContext context, Supplier content) async {
     var _ = await Navigator.pushNamed(context, supplierEditRoute, arguments: SupplierArgument(content));
     _viewModel.getSuppliers();
   }
 
-  _nextToSupplierAdd(BuildContext context) async {
+  Future<void> _nextToSupplierAdd(BuildContext context) async {
     var _ = await Navigator.pushNamed(context, supplierAddRoute);
     _viewModel.getSuppliers();
   }

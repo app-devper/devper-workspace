@@ -397,19 +397,19 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
     return price;
   }
 
-  _showRemoveOrderConfirm(BuildContext context) {
+  void _showRemoveOrderConfirm(BuildContext context) {
     showConfirmDialog(context, "ต้องการลบรายการใช่หรือไม่?", () {
       _viewModel.removeOrderById(widget.orderId);
     });
   }
 
-  _showRemoveOrderItemConfirm(BuildContext context, OrderItemDetail orderItem) {
+  void _showRemoveOrderItemConfirm(BuildContext context, OrderItemDetail orderItem) {
     showConfirmDialog(context, "ต้องการลบสินค้าใช่หรือไม่?", () {
       _viewModel.removeOrderItem(orderItem.id);
     });
   }
 
-  _nextToProductEdit(BuildContext context, Product? product) async {
+  Future<void> _nextToProductEdit(BuildContext context, Product? product) async {
     if (product != null) {
       var result = await Navigator.pushNamed(context, productEditRoute,
           arguments: ProductArgument(product));
@@ -419,7 +419,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
     }
   }
 
-  _nextToOrderHistory(BuildContext context, Product? product) async {
+  Future<void> _nextToOrderHistory(BuildContext context, Product? product) async {
     if (product != null) {
       var result = await Navigator.pushNamed(context, orderHistoryRoute,
           arguments: OrderHistoryArgument(product));
@@ -456,7 +456,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
     );
   }
 
-  _generateReceipt(Supplier supplier) async {
+  Future<void> _generateReceipt(Supplier supplier) async {
     final receipt = Receipt(
       supplier: supplier,
       customer: _getCustomer(),
@@ -474,11 +474,11 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
     }
   }
 
-  _nextToSupplier(BuildContext context) async {
+  Future<void> _nextToSupplier(BuildContext context) async {
     var _ = await Navigator.pushNamed(context, supplierRoute);
   }
 
-  _showCustomerDialog(Supplier supplier, Customer? customer) {
+  void _showCustomerDialog(Supplier supplier, Customer? customer) {
     _nameEditingController.text = customer?.name ?? order?.customerName ?? "";
     _addressEditingController.text = customer?.address ?? "";
 
@@ -534,7 +534,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
     );
   }
 
-  _getCustomer() {
+  Customer _getCustomer() {
     return Customer(
       id: "",
       name: _nameEditingController.text,

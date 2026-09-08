@@ -1,20 +1,26 @@
 // Flutter imports:
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 // Package imports:
-import 'package:common/config/app_config.dart';
+import 'package:design_system/theme/app_colors.dart';
 import 'package:design_system/theme/color.dart';
-import 'package:design_system/theme/theme.dart';
+import 'package:design_system/theme/spacing.dart';
+import 'package:design_system/widgets/app_shell.dart';
 import 'package:design_system/widgets/snack_bar.dart';
 import 'package:um/presentation/constants.dart';
 
 // Project imports:
 import 'package:sm/container.dart';
-import 'package:sm/domain/model/system/system.dart';
 import 'package:sm/presentation/home/main/home_state.dart';
 import 'package:sm/presentation/home/main/home_view_model.dart';
 import 'package:sm/presentation/home/main/system_form_dialog.dart';
+import 'package:sm/presentation/home/sections/profile_section.dart';
+import 'package:sm/presentation/home/sections/systems_section.dart';
+import 'package:sm/presentation/home/sections/users_section.dart';
+
+const _systemsId = 'systems';
+const _usersId = 'users';
+const _profileId = 'profile';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -24,17 +30,15 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  final _scaffoldKey = GlobalKey<ScaffoldState>();
-
   late HomeViewModel _viewModel;
-  late AppConfig _config;
   late CustomSnackBar _snackBar;
+
+  String _selected = _systemsId;
 
   @override
   void initState() {
     super.initState();
     _viewModel = sl<HomeViewModel>();
-    _config = sl<AppConfig>();
     _viewModel.state.addListener(_onStateChanged);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _viewModel.loadRole();
@@ -67,149 +71,134 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      key: _scaffoldKey,
-      appBar: AppBar(
-        iconTheme: CustomTheme.mainTheme.iconTheme,
-        backgroundColor: CustomColor.white,
-        centerTitle: true,
-        title: Text(_config.home),
-        actions: _buildAction(context),
-      ),
-      floatingActionButton: ValueListenableBuilder<HomeState>(
-        valueListenable: _viewModel.state,
-        builder: (context, state, _) => state.canManageSystems
-            ? FloatingActionButton(
-                onPressed: () => _openForm(),
-                tooltip: 'เพิ่มระบบ',
-                child: const Icon(Icons.add),
-              )
-            : const SizedBox.shrink(),
-      ),
-      body: AnnotatedRegion<SystemUiOverlayStyle>(
-        value: SystemUiOverlayStyle.dark.copyWith(
-          statusBarColor: CustomColor.statusBarColor,
-        ),
-        child: _buildBody(context),
-      ),
-    );
-  }
-
-  List<Widget> _buildAction(BuildContext context) {
+  /// The sidebar only offers what the signed-in role may open, mirroring the
+  /// gating the screens themselves apply.
+  List<AppShellItem> _items(HomeState state) {
     return [
-      ValueListenableBuilder<HomeState>(
-        valueListenable: _viewModel.state,
-        builder: (context, state, _) => PopupMenuButton<int>(
-          icon: const Icon(Icons.more_vert),
-          onSelected: (item) => handleClick(item),
-          itemBuilder: (context) => [
-            if (state.canManageUsers)
-              const PopupMenuItem<int>(value: 0, child: Text("Users")),
-            const PopupMenuItem<int>(value: 1, child: Text("User info")),
-            const PopupMenuItem<int>(value: 2, child: Text("Change password")),
-            const PopupMenuItem<int>(value: 3, child: Text('Logout')),
-          ],
-        ),
-      ),
+      if (state.canManageSystems)
+        const AppShellItem(
+            id: _systemsId, label: 'ระบบ', icon: Icons.dns_outlined),
+      if (state.canManageUsers)
+        const AppShellItem(
+            id: _usersId, label: 'ผู้ใช้งาน', icon: Icons.group_outlined),
+      const AppShellItem(
+          id: _profileId, label: 'ข้อมูลของฉัน', icon: Icons.person_outline),
     ];
   }
 
-  void handleClick(int item) {
-    switch (item) {
-      case 0:
-        Navigator.pushNamed(context, routeUsers);
-        break;
-      case 1:
-        Navigator.pushNamed(context, routeUserInfo);
-        break;
-      case 2:
-        Navigator.pushNamed(context, routeChangePassword);
-        break;
-      case 3:
-        _viewModel.logout();
-        break;
+  String _titleFor(String id) {
+    switch (id) {
+      case _usersId:
+        return 'ผู้ใช้งาน';
+      case _profileId:
+        return 'ข้อมูลของฉัน';
+      default:
+        return 'ระบบทั้งหมด';
     }
   }
 
-  Widget _buildBody(BuildContext context) {
+  Widget _sectionFor(String id) {
+    switch (id) {
+      case _usersId:
+        return const UsersSection();
+      case _profileId:
+        return const ProfileSection();
+      default:
+        return SystemsSection(viewModel: _viewModel);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return ValueListenableBuilder<HomeState>(
       valueListenable: _viewModel.state,
       builder: (context, state, _) {
-        if (state.loading && state.items.isEmpty) {
-          return const Center(child: CircularProgressIndicator());
-        }
-        if (state.items.isEmpty) {
-          return const Center(child: Text('ยังไม่มีระบบ'));
-        }
-        return Padding(
-          padding: const EdgeInsets.all(defaultPagePadding),
-          child: _buildSystems(state.items, state.canManageSystems),
+        final items = _items(state);
+        // Role loads after the first frame, so fall back to a section the
+        // current role is actually allowed to see.
+        final selected = items.any((item) => item.id == _selected)
+            ? _selected
+            : (items.isEmpty ? _profileId : items.first.id);
+
+        return AppShell(
+          brand: 'Devper SM',
+          title: _titleFor(selected),
+          items: items,
+          selectedId: selected,
+          onSelect: (id) => setState(() => _selected = id),
+          sidebarFooter: _buildSidebarFooter,
+          floatingActionButton:
+              selected == _systemsId && state.canManageSystems
+                  ? FloatingActionButton.extended(
+                      onPressed: () => showSystemFormDialog(
+                        context,
+                        onCreate: _viewModel.createSystem,
+                        onUpdate: _viewModel.updateSystemById,
+                      ),
+                      icon: const Icon(Icons.add),
+                      label: const Text('เพิ่มระบบ'),
+                    )
+                  : null,
+          child: _sectionFor(selected),
         );
       },
     );
   }
 
-  Widget _buildSystems(List<System> items, bool canManage) {
-    return ListView.builder(
-      itemCount: items.length,
-      itemBuilder: (context, index) {
-        final content = items[index];
-        return ListTile(
-          title: Text(content.systemCode),
-          subtitle: Text('${content.systemName}\n${content.host}'),
-          isThreeLine: true,
-          trailing: canManage
-              ? PopupMenuButton<int>(
-                  icon: const Icon(Icons.more_horiz),
-                  onSelected: (action) {
-                    if (action == 0) {
-                      _openForm(system: content);
-                    } else {
-                      _confirmRemove(content);
-                    }
-                  },
-                  itemBuilder: (context) => [
-                    const PopupMenuItem<int>(value: 0, child: Text('แก้ไข')),
-                    const PopupMenuItem<int>(value: 1, child: Text('ลบ')),
-                  ],
-                )
-              : null,
-          onTap: canManage ? () => _openForm(system: content) : null,
-        );
-      },
+  Widget _buildSidebarFooter(bool collapsed) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _footerAction(
+          collapsed: collapsed,
+          icon: Icons.lock_outline,
+          label: 'เปลี่ยนรหัสผ่าน',
+          onTap: () => Navigator.pushNamed(context, routeChangePassword),
+        ),
+        _footerAction(
+          collapsed: collapsed,
+          icon: Icons.logout,
+          label: 'ออกจากระบบ',
+          color: CustomColor.error,
+          onTap: _viewModel.logout,
+        ),
+      ],
     );
   }
 
-  void _openForm({System? system}) {
-    showSystemFormDialog(
-      context,
-      system: system,
-      onCreate: _viewModel.createSystem,
-      onUpdate: _viewModel.updateSystemById,
-    );
-  }
-
-  void _confirmRemove(System system) {
-    showDialog<void>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('ลบระบบ'),
-        content: Text('ต้องการลบ ${system.systemCode} ใช่หรือไม่'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(),
-            child: const Text('ยกเลิก'),
+  Widget _footerAction({
+    required bool collapsed,
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+    Color? color,
+  }) {
+    return Tooltip(
+      message: collapsed ? label : '',
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.sm, vertical: 10),
+          child: Row(
+            children: [
+              Icon(icon,
+                  size: 18,
+                  color: color ?? AppColors.of(context).textSecondary),
+              if (!collapsed) ...[
+                const SizedBox(width: AppSpacing.md),
+                Expanded(
+                  child: Text(
+                    label,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                        color: color ?? AppColors.of(context).textPrimary),
+                  ),
+                ),
+              ],
+            ],
           ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(dialogContext).pop();
-              _viewModel.removeSystemById(system.id);
-            },
-            child: const Text('ลบ'),
-          ),
-        ],
+        ),
       ),
     );
   }

@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 
 // Package imports:
-import 'package:design_system/theme/color.dart';
+import 'package:design_system/theme/app_colors.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 
 class ErrorPage extends HookWidget {
@@ -29,11 +29,11 @@ class ErrorPage extends HookWidget {
         elevation: 1,
         automaticallyImplyLeading: false,
         title: Text(
-          "Error",
+          "เกิดข้อผิดพลาด",
           style: TextStyle(
             fontSize: 24,
             fontWeight: FontWeight.bold,
-            color: CustomColor.font7,
+            color: AppColors.of(context).textPrimary,
           ),
         ),
       ),
