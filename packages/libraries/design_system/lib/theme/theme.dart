@@ -9,7 +9,10 @@ class CustomTheme {
         brightness: Brightness.light,
         primaryColor: CustomColor.primary,
         primaryColorDark: Colors.cyan[600],
-        fontFamily: 'Roboto',
+        // Roboto has no Thai glyphs, so Thai text fell back to whatever each
+        // platform picked. Sarabun covers both scripts; Roboto stays behind it.
+        fontFamily: 'Sarabun',
+        fontFamilyFallback: const ['Roboto'],
         useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(
           seedColor: CustomColor.primary,
@@ -41,9 +44,9 @@ class CustomTheme {
           bodyLarge: TextStyle(fontSize: 16.0, color: CustomColor.hintColor),
           bodyMedium: TextStyle(fontSize: 16.0, color: CustomColor.fontBlack),
           bodySmall: TextStyle(fontSize: 14.0, color: CustomColor.fontBlack),
-          labelLarge: TextStyle(color: CustomColor.white, fontFamily: 'Roboto', fontWeight: FontWeight.w500, fontSize: 16),
-          labelMedium: TextStyle(color: CustomColor.fontBlack, fontFamily: 'Roboto', fontWeight: FontWeight.w500, fontSize: 14),
-          labelSmall: TextStyle(color: CustomColor.hintColor, fontFamily: 'Roboto', fontWeight: FontWeight.w500, fontSize: 12),
+          labelLarge: TextStyle(color: CustomColor.white, fontFamily: 'Sarabun', fontWeight: FontWeight.w500, fontSize: 16),
+          labelMedium: TextStyle(color: CustomColor.fontBlack, fontFamily: 'Sarabun', fontWeight: FontWeight.w500, fontSize: 14),
+          labelSmall: TextStyle(color: CustomColor.hintColor, fontFamily: 'Sarabun', fontWeight: FontWeight.w500, fontSize: 12),
         ),
       );
 }

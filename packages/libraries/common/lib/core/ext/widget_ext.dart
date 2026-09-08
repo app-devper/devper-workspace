@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 
 // Project imports:
 import 'package:design_system/theme/color.dart';
+import 'package:design_system/widgets/error_state.dart';
 import 'package:design_system/theme/theme.dart';
 import 'package:common/localizations/localizations.dart';
+import 'package:common/core/error/failure.dart';
 
 // Package imports:
 
@@ -122,7 +124,7 @@ void showConfirmDialog(
     content: Text(
       message,
       style: const TextStyle(
-        fontFamily: "Roboto",
+        fontFamily: "Sarabun",
         color: Colors.black,
         fontSize: 16,
         fontWeight: FontWeight.normal,
@@ -347,12 +349,22 @@ extension WidgetStream<T> on Stream<T> {
 }
 
 extension WidgetFutureLoading<T> on Future<T> {
-  FutureBuilder<T> toWidgetLoading({required Widget Function(T event) widgetBuilder}) {
+  /// [onRetry] should re-create the future the caller passed in; without it the
+  /// failure is still reported, just without a way to try again.
+  FutureBuilder<T> toWidgetLoading({
+    required Widget Function(T event) widgetBuilder,
+    VoidCallback? onRetry,
+  }) {
     return FutureBuilder(
       future: this,
       builder: (BuildContext context, AsyncSnapshot<T> snapshot) {
         if (snapshot.hasError) {
-          return Container();
+          // An empty container here left the user staring at a blank screen
+          // with no way to tell a failed load from an empty list.
+          return ErrorState(
+            message: toFailure(snapshot.error!).getMessage(),
+            onRetry: onRetry,
+          );
         } else if (snapshot.hasData) {
           return widgetBuilder(snapshot.requireData);
         } else {

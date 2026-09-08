@@ -31,8 +31,10 @@ FutureBuilder<List<User>> buildUsers(
   Future<List<User>> users,
   Function(User) onTap, {
   Function(User)? onSetPassword,
+  VoidCallback? onRetry,
 }) {
   return users.toWidgetLoading(
+    onRetry: onRetry,
     widgetBuilder: (data) {
       if (data.isEmpty) {
         return const EmptyState(
