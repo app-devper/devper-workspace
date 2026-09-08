@@ -3,8 +3,6 @@ import 'package:flutter/material.dart';
 
 // Project imports:
 import 'package:design_system/theme/app_colors.dart';
-import 'package:design_system/theme/color.dart';
-import 'package:design_system/theme/radius.dart';
 import 'package:design_system/theme/spacing.dart';
 import 'package:design_system/widgets/responsive.dart';
 
@@ -35,6 +33,7 @@ class AppShell extends StatefulWidget {
   final ValueChanged<String> onSelect;
   final Widget child;
   final List<Widget> actions;
+
   /// Built with the collapsed state so the host can drop labels in the rail,
   /// the way the nav items do. A plain widget would wrap one glyph per line.
   final Widget Function(bool collapsed)? sidebarFooter;
@@ -67,7 +66,8 @@ class AppShell extends StatefulWidget {
   State<AppShell> createState() => _AppShellState();
 }
 
-class _AppShellState extends State<AppShell> with SingleTickerProviderStateMixin {
+class _AppShellState extends State<AppShell>
+    with SingleTickerProviderStateMixin {
   static const _expandedWidth = 260.0;
   static const _railWidth = 72.0;
   static const _duration = Duration(milliseconds: 220);
@@ -80,7 +80,7 @@ class _AppShellState extends State<AppShell> with SingleTickerProviderStateMixin
   bool? _open;
 
   bool _isOpen(bool isMobile) =>
-      _open ?? widget.initiallyExpanded ?? !isMobile;
+      _open ?? (isMobile ? false : (widget.initiallyExpanded ?? true));
 
   void _toggle(bool isMobile) => setState(() => _open = !_isOpen(isMobile));
 
@@ -249,8 +249,10 @@ class _Sidebar extends StatelessWidget {
     final colors = AppColors.of(context);
     return Container(
       decoration: BoxDecoration(
-        color: colors.surfaceRaised,
-        border: Border(right: BorderSide(color: colors.border)),
+        color: colors.sidebarSurface,
+        border: Border(
+          right: BorderSide(color: colors.border.withValues(alpha: 0.5)),
+        ),
       ),
       child: SafeArea(
         child: Column(
@@ -258,6 +260,14 @@ class _Sidebar extends StatelessWidget {
           children: [
             _header(context),
             const SizedBox(height: AppSpacing.sm),
+            if (!collapsed)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
+                child: Text(
+                  "พื้นที่ทำงาน",
+                  style: TextStyle(fontSize: 12, color: colors.textSecondary),
+                ),
+              ),
             Expanded(
               child: ListView(
                 padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
@@ -305,7 +315,7 @@ class _Sidebar extends StatelessWidget {
             ),
           ),
           IconButton(
-            icon: Icon(collapsed ? Icons.chevron_right : Icons.chevron_left),
+            icon: const Icon(Icons.view_sidebar_outlined, size: 21),
             tooltip: collapsed ? 'ขยายเมนู' : 'ย่อเมนู',
             onPressed: onToggle,
           ),
@@ -330,43 +340,82 @@ class _NavItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return AppSidebarAction(
+      label: item.label,
+      icon: item.icon,
+      collapsed: collapsed,
+      selected: selected,
+      onTap: onTap,
+    );
+  }
+}
+
+/// Shared navigation and account action for every Devper application.
+class AppSidebarAction extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final bool collapsed;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const AppSidebarAction({
+    super.key,
+    required this.label,
+    required this.icon,
+    required this.collapsed,
+    required this.onTap,
+    this.selected = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     final colors = AppColors.of(context);
-    final foreground = selected ? CustomColor.primary : colors.textSecondary;
     return Padding(
-      padding: const EdgeInsets.only(bottom: AppSpacing.xs),
+      padding: const EdgeInsets.only(bottom: 4),
       child: Tooltip(
-        message: collapsed ? item.label : '',
-        child: Material(
-          color: selected
-              ? CustomColor.primary.withValues(alpha: 0.1)
-              : Colors.transparent,
-          borderRadius: BorderRadius.circular(AppRadius.lg),
-          child: InkWell(
-            borderRadius: BorderRadius.circular(AppRadius.lg),
-            onTap: onTap,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.md,
-                vertical: 12,
-              ),
-              child: Row(
-                children: [
-                  Icon(item.icon, size: 20, color: foreground),
-                  if (!collapsed) ...[
-                    const SizedBox(width: AppSpacing.md),
-                    Expanded(
-                      child: Text(
-                        item.label,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          color:
-                              selected ? CustomColor.primary : colors.textPrimary,
-                          fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
-                        ),
-                      ),
+        message: label,
+        excludeFromSemantics: true,
+        child: Semantics(
+          label: label,
+          button: true,
+          selected: selected,
+          child: Material(
+            color: selected ? colors.sidebarSelected : Colors.transparent,
+            borderRadius: BorderRadius.circular(10),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(10),
+              onTap: onTap,
+              child: SizedBox(
+                height: 48,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 14),
+                  child: LayoutBuilder(
+                    builder: (context, constraints) => Row(
+                      children: [
+                        Icon(icon, size: 20, color: colors.sidebarForeground),
+                        if (!collapsed && constraints.maxWidth > 80) ...[
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: ExcludeSemantics(
+                              child: Text(
+                                label,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  color: colors.sidebarForeground,
+                                  fontSize: 14,
+                                  fontWeight: selected
+                                      ? FontWeight.w600
+                                      : FontWeight.w400,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
-                  ],
-                ],
+                  ),
+                ),
               ),
             ),
           ),

@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 
 // Package imports:
 import 'package:design_system/theme/color.dart';
-import 'package:design_system/theme/spacing.dart';
 import 'package:design_system/widgets/app_shell.dart';
 import 'package:um/presentation/constants.dart';
 
@@ -72,7 +71,8 @@ class _HomePageState extends State<HomePage> {
       if (_isAdmin) ...[
         const AppShellItem(
             id: 'product', label: 'สินค้า', icon: Icons.medical_information),
-        const AppShellItem(id: 'database', label: 'จัดการ', icon: Icons.storage),
+        const AppShellItem(
+            id: 'database', label: 'จัดการ', icon: Icons.storage),
       ],
     ];
   }
@@ -104,7 +104,12 @@ class _HomePageState extends State<HomePage> {
         title: '',
         // Each section draws its own header already.
         showTopBar: false,
-        // Keep the rail POS has always had; it can now be widened on demand.
+        // Start as a rail. The selling screen lays out as
+        // [ProductSearch (flexible)] | [cart 340-400] | [items 50], so the
+        // product picker is the only column that gives, and it absorbs the
+        // whole sidebar. On a 1024 shop tablet that is ~560px of search area
+        // as a rail against ~372px expanded — a third of it, spent on four
+        // labels a cashier already knows by icon. It still opens on demand.
         initiallyExpanded: false,
         items: _items,
         selectedId: _selectedId,
@@ -143,30 +148,11 @@ class _HomePageState extends State<HomePage> {
     required VoidCallback onTap,
     Color? color,
   }) {
-    return Tooltip(
-      message: collapsed ? label : '',
-      child: InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.sm, vertical: 10),
-          child: Row(
-            children: [
-              Icon(icon, size: 18, color: color ?? CustomColor.font2),
-              if (!collapsed) ...[
-                const SizedBox(width: AppSpacing.md),
-                Expanded(
-                  child: Text(
-                    label,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(color: color ?? CustomColor.fontBlack),
-                  ),
-                ),
-              ],
-            ],
-          ),
-        ),
-      ),
+    return AppSidebarAction(
+      label: label,
+      icon: icon,
+      collapsed: collapsed,
+      onTap: onTap,
     );
   }
 
