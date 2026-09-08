@@ -151,12 +151,6 @@ class _HomePageState extends State<HomePage> {
       children: [
         _footerAction(
           collapsed: collapsed,
-          icon: Icons.lock_outline,
-          label: 'เปลี่ยนรหัสผ่าน',
-          onTap: () => Navigator.pushNamed(context, routeChangePassword),
-        ),
-        _footerAction(
-          collapsed: collapsed,
           icon: Icons.logout,
           label: 'ออกจากระบบ',
           color: CustomColor.error,
