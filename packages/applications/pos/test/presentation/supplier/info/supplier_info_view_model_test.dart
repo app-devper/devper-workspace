@@ -30,11 +30,17 @@ class FakeSupplierRepository implements SupplierRepository {
       throw error;
     }
     updatedInfoParam = param;
-    return Supplier(id: '1', name: param.name, address: param.address, phone: param.phone, taxId: param.taxId);
+    return Supplier(
+        id: '1',
+        name: param.name,
+        address: param.address,
+        phone: param.phone,
+        taxId: param.taxId);
   }
 
   @override
-  Future<Supplier> createSupplier(SupplierParam param) => throw UnimplementedError();
+  Future<Supplier> createSupplier(SupplierParam param) =>
+      throw UnimplementedError();
 
   @override
   Future<List<Supplier>> getSuppliers() => throw UnimplementedError();
@@ -43,16 +49,20 @@ class FakeSupplierRepository implements SupplierRepository {
   Future<List<Supplier>> getLocalSuppliers() => throw UnimplementedError();
 
   @override
-  Future<Supplier> getSupplierById(String supplierId) => throw UnimplementedError();
+  Future<Supplier> getSupplierById(String supplierId) =>
+      throw UnimplementedError();
 
   @override
-  Future<Supplier?> getLocalSupplierById(String supplierId) => throw UnimplementedError();
+  Future<Supplier?> getLocalSupplierById(String supplierId) =>
+      throw UnimplementedError();
 
   @override
-  Future<Supplier> updateSupplierById(String supplierId, SupplierParam param) => throw UnimplementedError();
+  Future<Supplier> updateSupplierById(String supplierId, SupplierParam param) =>
+      throw UnimplementedError();
 
   @override
-  Future<Supplier> removeSupplierById(String supplierId) => throw UnimplementedError();
+  Future<Supplier> removeSupplierById(String supplierId) =>
+      throw UnimplementedError();
 }
 
 Supplier buildSupplier(String id) {
@@ -60,7 +70,8 @@ Supplier buildSupplier(String id) {
 }
 
 SupplierParam buildParam() {
-  return SupplierParam(name: 'ร้านยาใหม่', address: 'เชียงใหม่', phone: '053123456', taxId: '');
+  return SupplierParam(
+      name: 'ร้านยาใหม่', address: 'เชียงใหม่', phone: '053123456', taxId: '');
 }
 
 SupplierInfoViewModel buildViewModel(SupplierRepository repo) {
@@ -79,15 +90,16 @@ void main() {
     expect(vm.state.value.supplier?.id, '5');
   });
 
-  test('getSupplierInfo failure leaves state untouched', () async {
+  test('getSupplierInfo maps a typed exception to state.error', () async {
     final vm = buildViewModel(
-      FakeSupplierRepository(throws: const NetworkException(message: 'offline')),
+      FakeSupplierRepository(
+          throws: const NetworkException(message: 'offline')),
     );
 
     await vm.getSupplierInfo();
 
     expect(vm.state.value.supplier, isNull);
-    expect(vm.state.value.error, isNull);
+    expect(vm.state.value.error, isNotNull);
   });
 
   test('updateSupplierInfo sets updated on success', () async {
@@ -103,7 +115,8 @@ void main() {
 
   test('updateSupplierInfo maps a typed exception to state.error', () async {
     final vm = buildViewModel(
-      FakeSupplierRepository(throws: const NetworkException(message: 'offline')),
+      FakeSupplierRepository(
+          throws: const NetworkException(message: 'offline')),
     );
 
     await vm.updateSupplierInfo(buildParam());

@@ -44,31 +44,40 @@ class ProductViewModel {
   }
 
   Future<void> exportProducts() async {
+    _state.value = _state.value.copyWith(clearError: true);
     try {
       final result = await getLocalProductsUseCase();
       ExportCsv.downloadProducts(result);
-    } on Exception catch (_) {}
+    } on Exception catch (e) {
+      _state.value = _state.value.copyWith(error: toFailure(e).getMessage());
+    }
   }
 
-  Future<void> importCSV({required List<int> bytes, required String filename}) async {
-    _state.value = _state.value.copyWith(loading: true, clearError: true, clearImportResult: true);
+  Future<void> importCSV(
+      {required List<int> bytes, required String filename}) async {
+    _state.value = _state.value
+        .copyWith(loading: true, clearError: true, clearImportResult: true);
     try {
       final result = await importProductCSVUseCase(
         ImportProductCSVParam(bytes: bytes, filename: filename),
       );
-      _state.value = _state.value.copyWith(loading: false, importResult: result);
+      _state.value =
+          _state.value.copyWith(loading: false, importResult: result);
     } on Exception catch (e) {
-      _state.value = _state.value.copyWith(loading: false, error: toFailure(e).getMessage());
+      _state.value = _state.value
+          .copyWith(loading: false, error: toFailure(e).getMessage());
     }
   }
 
   Future<void> clearSoldFirst(String productId) async {
-    _state.value = _state.value.copyWith(loading: true, clearError: true, clearLoaded: true);
+    _state.value = _state.value
+        .copyWith(loading: true, clearError: true, clearLoaded: true);
     try {
       final result = await clearQuantitySoldFirstByIdUseCase(productId);
       _state.value = _state.value.copyWith(loading: false, loaded: result);
     } on Exception catch (e) {
-      _state.value = _state.value.copyWith(loading: false, error: toFailure(e).getMessage());
+      _state.value = _state.value
+          .copyWith(loading: false, error: toFailure(e).getMessage());
     }
   }
 
