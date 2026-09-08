@@ -11,7 +11,10 @@ import 'package:um/domain/entities/user/param.dart';
 import 'package:um/hooks/use_change_password.dart';
 import 'package:um/presentation/core/widget/build_widget.dart';
 
-HookBuilder buildChangePassword() {
+/// [onSuccess] decides what happens after the password changes. On its own
+/// page that means popping; embedded in the profile it means clearing the
+/// fields and saying so, since there is nothing to pop.
+HookBuilder buildChangePassword({VoidCallback? onSuccess}) {
   return HookBuilder(builder: (context) {
     final snackBar = CustomSnackBar(key: const Key("snackbar"), context: context);
     final oldPasswordController = useTextEditingController();
@@ -23,8 +26,15 @@ HookBuilder buildChangePassword() {
     final confirmPasswordNode = useFocusNode();
     final viewNode = useFocusNode();
 
-    success(bool success){
-      Navigator.pop(context);
+    void success(bool changed) {
+      oldPasswordController.clear();
+      newPasswordController.clear();
+      confirmPasswordController.clear();
+      if (onSuccess != null) {
+        onSuccess();
+      } else {
+        Navigator.pop(context);
+      }
     }
 
     getChangePasswordParam() {

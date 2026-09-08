@@ -13,6 +13,7 @@ import 'package:um/hooks/use_revoke_session.dart';
 import 'package:um/hooks/use_sessions.dart';
 import 'package:um/hooks/use_update_user_info.dart';
 import 'package:um/hooks/use_user_info.dart';
+import 'package:um/presentation/core/widget/build_change_password.dart';
 import 'package:um/presentation/core/widget/build_sessions.dart';
 import 'package:um/presentation/core/widget/build_user.dart';
 
@@ -72,6 +73,14 @@ class ProfileSection extends HookWidget {
                 );
               },
             ),
+            const SizedBox(height: AppSpacing.xl),
+            const Divider(),
+            const SizedBox(height: AppSpacing.lg),
+            Text("เปลี่ยนรหัสผ่าน", style: textTheme.titleMedium),
+            buildChangePassword(onSuccess: () {
+              snackBar.hideAll();
+              snackBar.showSnackBar(text: "เปลี่ยนรหัสผ่านแล้ว");
+            }),
             const SizedBox(height: AppSpacing.xl),
             const Divider(),
             const SizedBox(height: AppSpacing.lg),
