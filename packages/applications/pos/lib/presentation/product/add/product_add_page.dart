@@ -6,6 +6,8 @@ import 'package:flutter/services.dart';
 import 'package:common/core/ext/widget_ext.dart';
 import 'package:design_system/widgets/title_bar.dart';
 
+import 'package:design_system/widgets/page_container.dart';
+
 // Project imports:
 import 'package:pos/container.dart';
 import 'package:pos/domain/model/core/core.dart';
@@ -129,71 +131,74 @@ class _ProductAddPageState extends State<ProductAddPage> {
     );
   }
 
-  SingleChildScrollView _buildBody() {
+  Widget _buildBody() {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(8),
-      child: Form(
-        key: _formKey,
-        child: Column(
-          children: <Widget>[
-            Card(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    const Text(
-                      'ข้อมูลทั่วไป',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
+      child: PageContainer(
+        maxWidth: 640,
+        padding: const EdgeInsets.all(8),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            children: <Widget>[
+              Card(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      const Text(
+                        'ข้อมูลทั่วไป',
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'โปรดระบุข้อมูลสินค้า',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.black.withValues(alpha: 0.6),
+                      const SizedBox(height: 16),
+                      Text(
+                        'โปรดระบุข้อมูลสินค้า',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.black.withValues(alpha: 0.6),
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 32),
-                    _buildFormInfo(),
-                    const SizedBox(height: 8),
-                  ],
+                      const SizedBox(height: 32),
+                      _buildFormInfo(),
+                      const SizedBox(height: 8),
+                    ],
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(height: 16),
-            Card(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    const Text(
-                      'ข้อมูลหน่วยนับ และการจำหน่าย',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
+              const SizedBox(height: 16),
+              Card(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      const Text(
+                        'ข้อมูลหน่วยนับ และการจำหน่าย',
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 24),
-                    _buildFormUnit(),
-                    const SizedBox(height: 8),
-                  ],
+                      const SizedBox(height: 24),
+                      _buildFormUnit(),
+                      const SizedBox(height: 8),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
