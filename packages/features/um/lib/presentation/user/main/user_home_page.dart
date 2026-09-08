@@ -43,10 +43,10 @@ class UserHomePage extends HookWidget {
             }
           },
           itemBuilder: (context) => [
-            const PopupMenuItem<int>(value: 0, child: Text("User List")),
-            const PopupMenuItem<int>(value: 1, child: Text("User Info")),
-            const PopupMenuItem<int>(value: 2, child: Text("Change Password")),
-            const PopupMenuItem<int>(value: 3, child: Text('Logout')),
+            const PopupMenuItem<int>(value: 0, child: Text("รายชื่อผู้ใช้")),
+            const PopupMenuItem<int>(value: 1, child: Text("ข้อมูลของฉัน")),
+            const PopupMenuItem<int>(value: 2, child: Text("เปลี่ยนรหัสผ่าน")),
+            const PopupMenuItem<int>(value: 3, child: Text('ออกจากระบบ')),
           ],
         ),
       ];
@@ -60,7 +60,7 @@ class UserHomePage extends HookWidget {
           backgroundColor: CustomColor.white,
           centerTitle: true,
           title: Text(
-            "Home",
+            "หน้าหลัก",
             style: CustomTheme.mainTheme.textTheme.headlineSmall,
           ),
           actions: buildAction(),

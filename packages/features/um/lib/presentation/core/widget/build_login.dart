@@ -50,7 +50,7 @@ buildLogin(bool isKeyboardOpen, Function(System) onSuccess) {
               padding: EdgeInsets.only(top: 20),
             ),
             Text(
-              "Login",
+              "เข้าสู่ระบบ",
               style: CustomTheme.mainTheme.textTheme.titleLarge,
             ),
             const Padding(
@@ -76,7 +76,7 @@ buildLogin(bool isKeyboardOpen, Function(System) onSuccess) {
           true,
           usernameNode,
           usernameEditingController,
-          "Username*",
+          "ชื่อผู้ใช้*",
           TextInputType.emailAddress,
           passwordNode,
         ),
@@ -87,7 +87,7 @@ buildLogin(bool isKeyboardOpen, Function(System) onSuccess) {
           context,
           passwordNode,
           passwordEditingController,
-          "Password*",
+          "รหัสผ่าน*",
           viewNode,
         ),
         const Padding(
@@ -95,7 +95,7 @@ buildLogin(bool isKeyboardOpen, Function(System) onSuccess) {
         ),
         ButtonWidget(
           key: const Key("login"),
-          text: "LOGIN",
+          text: "เข้าสู่ระบบ",
           onClicked: () {
             FocusScope.of(context).requestFocus(viewNode);
             login(getLoginParam());

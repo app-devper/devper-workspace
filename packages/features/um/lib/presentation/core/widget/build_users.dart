@@ -37,7 +37,7 @@ buildUsers(
       if (data.isEmpty) {
         return const EmptyState(
           icon: Icons.group_outlined,
-          title: "No users yet",
+          title: "ยังไม่มีผู้ใช้งาน",
         );
       }
       return PageContainer(
@@ -126,7 +126,7 @@ class _UserCard extends StatelessWidget {
               StatusBadge(label: user.role, color: roleColor),
               if (onSetPassword != null)
                 IconButton(
-                  tooltip: "Set password",
+                  tooltip: "ตั้งรหัสผ่าน",
                   icon: const Icon(Icons.key_outlined),
                   onPressed: () => onSetPassword!(user),
                 ),

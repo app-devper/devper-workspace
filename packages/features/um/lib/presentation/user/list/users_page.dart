@@ -49,7 +49,7 @@ class UsersPage extends HookWidget {
       context,
       onSuccess: () {
         snackBar.hideAll();
-        snackBar.showSnackBar(text: "Password updated");
+        snackBar.showSnackBar(text: "ตั้งรหัสผ่านใหม่แล้ว");
       },
     );
 
@@ -80,7 +80,7 @@ class UsersPage extends HookWidget {
         backgroundColor: CustomColor.white,
         centerTitle: true,
         title: Text(
-          "Users",
+          "ผู้ใช้งาน",
           style: CustomTheme.mainTheme.textTheme.headlineSmall,
         ),
         actions: buildAction(),

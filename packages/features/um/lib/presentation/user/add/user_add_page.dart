@@ -35,7 +35,7 @@ class UserAddPage extends HookWidget {
           backgroundColor: CustomColor.white,
           centerTitle: true,
           title: Text(
-            "Add User",
+            "เพิ่มผู้ใช้",
             style: CustomTheme.mainTheme.textTheme.headlineSmall,
           ),
         ),
