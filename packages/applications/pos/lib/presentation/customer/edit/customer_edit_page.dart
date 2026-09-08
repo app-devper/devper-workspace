@@ -6,6 +6,8 @@ import 'package:flutter/services.dart';
 import 'package:common/core/ext/widget_ext.dart';
 import 'package:design_system/widgets/title_bar.dart';
 
+import 'package:design_system/widgets/page_container.dart';
+
 // Project imports:
 import 'package:pos/container.dart';
 import 'package:pos/domain/model/core/core.dart';
@@ -127,56 +129,59 @@ class _CustomerEditPageState extends State<CustomerEditPage> {
     _phoneEditingController.text = data.phone;
   }
 
-  SingleChildScrollView _buildBody() {
+  Widget _buildBody() {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(defaultPagePadding),
-      child: Column(
-        children: <Widget>[
-          Card(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  const Text(
-                    'ข้อมูลทั่วไป',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
+      child: PageContainer(
+        maxWidth: 640,
+        padding: const EdgeInsets.all(defaultPagePadding),
+        child: Column(
+          children: <Widget>[
+            Card(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    const Text(
+                      'ข้อมูลทั่วไป',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'โปรดระบุข้อมูลลูกค้า',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.black.withValues(alpha: 0.6),
+                    const SizedBox(height: 16),
+                    Text(
+                      'โปรดระบุข้อมูลลูกค้า',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.black.withValues(alpha: 0.6),
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 32),
-                  _buildForm(),
-                  const SizedBox(height: 8),
-                ],
+                    const SizedBox(height: 32),
+                    _buildForm(),
+                    const SizedBox(height: 8),
+                  ],
+                ),
               ),
             ),
-          ),
-          const SizedBox(height: 60),
-          TextButton(
-            onPressed: () => _showRemoveConfirm(context, widget.customer),
-            child: const Text(
-              "ลบลูกค้า",
-              style: TextStyle(
-                color: Colors.red,
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
+            const SizedBox(height: 60),
+            TextButton(
+              onPressed: () => _showRemoveConfirm(context, widget.customer),
+              child: const Text(
+                "ลบลูกค้า",
+                style: TextStyle(
+                  color: Colors.red,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-            ),
-          )
-        ],
+            )
+          ],
+        ),
       ),
     );
   }
