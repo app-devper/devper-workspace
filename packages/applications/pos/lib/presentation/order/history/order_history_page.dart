@@ -123,7 +123,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
     );
   }
 
-  _buildAction(BuildContext context) {
+  List<Widget> _buildAction(BuildContext context) {
     return <Widget>[
       IconButton(
         splashRadius: 20,
@@ -135,7 +135,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
     ];
   }
 
-  _buildOrderItem(BuildContext context) {
+  Expanded _buildOrderItem(BuildContext context) {
     return Expanded(
       child: ListView.builder(
         itemCount: orderItems.length,
@@ -155,7 +155,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
     );
   }
 
-  _buildSummaryTotal() {
+  Container _buildSummaryTotal() {
     return Container(
       padding: const EdgeInsets.all(defaultPagePadding),
       child: Column(

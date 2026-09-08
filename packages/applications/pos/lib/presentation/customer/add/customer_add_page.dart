@@ -109,7 +109,7 @@ class _CustomerAddPageState extends State<CustomerAddPage> {
     );
   }
 
-  _buildBody() {
+  SingleChildScrollView _buildBody() {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(8),
       child: Column(
@@ -151,7 +151,7 @@ class _CustomerAddPageState extends State<CustomerAddPage> {
     );
   }
 
-  _buildForm() {
+  Form _buildForm() {
     return Form(
       key: _formKey,
       child: Column(
@@ -248,7 +248,7 @@ class _CustomerAddPageState extends State<CustomerAddPage> {
   }
 
 
-  _getCustomerParam() {
+  CustomerParam _getCustomerParam() {
     return CustomerParam(
       name: _nameEditingController.text,
       address: _addressEditingController.text,

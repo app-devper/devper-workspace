@@ -43,7 +43,7 @@ class ProductMenuWidget extends StatelessWidget {
     );
   }
 
-  _buildMenuItem(
+  Column _buildMenuItem(
       {required IconData icon,
       required String title,
       required Null Function() onTap}) {

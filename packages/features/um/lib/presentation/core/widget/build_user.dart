@@ -11,7 +11,7 @@ import 'package:um/domain/entities/user/user.dart';
 import 'package:um/presentation/constants.dart';
 import 'package:um/presentation/core/widget/build_widget.dart';
 
-buildUser(User user, Function(UpdateUserParam) onClicked) {
+HookBuilder buildUser(User user, Function(UpdateUserParam) onClicked) {
   return HookBuilder(builder: (context) {
     final usernameEditingController = useTextEditingController();
     final firstNameEditingController = useTextEditingController();

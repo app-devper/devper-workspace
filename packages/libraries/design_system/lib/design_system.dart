@@ -1,4 +1,4 @@
-library design_system;
+library;
 
 export 'theme/color.dart';
 export 'theme/theme.dart';

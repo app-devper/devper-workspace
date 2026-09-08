@@ -70,7 +70,7 @@ class _HomeMenuState extends State<HomeMenu> {
     );
   }
 
-  _buildHome() {
+  Column _buildHome() {
     return Column(
       children: [
         Expanded(
@@ -160,7 +160,7 @@ class _HomeMenuState extends State<HomeMenu> {
     );
   }
 
-  _showProfileMenu() async {
+  Future<void> _showProfileMenu() async {
     final item = await showMenu(
         context: context,
         position: const RelativeRect.fromLTRB(0, 50, 0, 0),

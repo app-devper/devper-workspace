@@ -13,7 +13,7 @@ import 'package:um/hooks/use_app_config.dart';
 import 'package:um/hooks/use_login.dart';
 import 'package:um/presentation/core/widget/build_widget.dart';
 
-buildLogin(bool isKeyboardOpen, Function(System) onSuccess) {
+HookBuilder buildLogin(bool isKeyboardOpen, Function(System) onSuccess) {
   return HookBuilder(builder: (context) {
     final usernameEditingController = useTextEditingController();
     final passwordEditingController = useTextEditingController();

@@ -87,7 +87,7 @@ class _ProductsExpiredPageState extends State<ProductsExpiredPage> {
     );
   }
 
-  _buildMenu() {
+  Container _buildMenu() {
     return Container(
       padding: const EdgeInsets.only(right: defaultPagePadding, left: defaultPagePadding),
       child: Row(
@@ -99,7 +99,7 @@ class _ProductsExpiredPageState extends State<ProductsExpiredPage> {
     );
   }
 
-  _buildDropdown() {
+  ValueListenableBuilder<ProductsExpiredState> _buildDropdown() {
     return ValueListenableBuilder<ProductsExpiredState>(
       valueListenable: _viewModel.state,
       builder: (BuildContext context, ProductsExpiredState state, _) {
@@ -148,7 +148,7 @@ class _ProductsExpiredPageState extends State<ProductsExpiredPage> {
     );
   }
 
-  _buildReceiveList() {
+  ValueListenableBuilder<ProductsExpiredState> _buildReceiveList() {
     return ValueListenableBuilder<ProductsExpiredState>(
       valueListenable: _viewModel.state,
       builder: (BuildContext context, ProductsExpiredState state, _) {
@@ -168,7 +168,7 @@ class _ProductsExpiredPageState extends State<ProductsExpiredPage> {
     );
   }
 
-  _buildProductLots(List<ProductLot> items) {
+  Expanded _buildProductLots(List<ProductLot> items) {
     return Expanded(
       child: ListView.builder(
         itemCount: items.length,
@@ -188,7 +188,7 @@ class _ProductsExpiredPageState extends State<ProductsExpiredPage> {
     );
   }
 
-  _buildTotalCost() {
+  Container _buildTotalCost() {
     return Container(
       padding: const EdgeInsets.all(defaultPagePadding),
       child: Row(
@@ -210,7 +210,7 @@ class _ProductsExpiredPageState extends State<ProductsExpiredPage> {
     );
   }
 
-  _nextToProductLotEdit(BuildContext context, ProductLot content) async {
+  Future<void> _nextToProductLotEdit(BuildContext context, ProductLot content) async {
     var _ = await Navigator.pushNamed(context, productLotEditRoute, arguments: ProductLotArgument(content));
     _viewModel.selectRange(_value);
   }

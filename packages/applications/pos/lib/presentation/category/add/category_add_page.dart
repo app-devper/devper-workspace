@@ -93,7 +93,7 @@ class _CategoryAddPageState extends State<CategoryAddPage> {
     );
   }
 
-  _buildBody(BuildContext context) {
+  SingleChildScrollView _buildBody(BuildContext context) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(defaultPagePadding),
       child: Column(
@@ -108,7 +108,7 @@ class _CategoryAddPageState extends State<CategoryAddPage> {
     );
   }
 
-  _buildForm(BuildContext context) {
+  Column _buildForm(BuildContext context) {
     return Column(
       children: <Widget>[
         const Padding(
@@ -163,7 +163,7 @@ class _CategoryAddPageState extends State<CategoryAddPage> {
     );
   }
 
-  _buildTextFormField(
+  SizedBox _buildTextFormField(
     BuildContext context,
     FocusNode focusNode,
     TextEditingController controller,
@@ -212,7 +212,7 @@ class _CategoryAddPageState extends State<CategoryAddPage> {
     );
   }
 
-  _buildAddButton() {
+  SizedBox _buildAddButton() {
     return SizedBox(
       width: double.infinity,
       height: 50,
@@ -226,7 +226,7 @@ class _CategoryAddPageState extends State<CategoryAddPage> {
     );
   }
 
-  _getCategoryParam() {
+  CategoryParam _getCategoryParam() {
     return CategoryParam(
       name: _nameEditingController.text,
       value: _valueEditingController.text,

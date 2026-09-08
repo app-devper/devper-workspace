@@ -56,7 +56,7 @@ class _CustomerPageState extends State<CustomerPage> {
     return Responsive(mobile: _buildMobile(), desktop: _buildDesktop());
   }
 
-  _buildDesktop() {
+  Row _buildDesktop() {
     return Row(
       children: [
         SizedBox(
@@ -83,7 +83,7 @@ class _CustomerPageState extends State<CustomerPage> {
     );
   }
 
-  _buildMobile() {
+  Row _buildMobile() {
     return Row(
       children: [
         Expanded(
@@ -93,7 +93,7 @@ class _CustomerPageState extends State<CustomerPage> {
     );
   }
 
-  _buildPage() {
+  Widget _buildPage() {
     if (_pageState is MainPage) {
       final isMobile = Responsive.isMobile(context);
       if (isMobile) {
@@ -170,6 +170,7 @@ class _CustomerPageState extends State<CustomerPage> {
         },
       );
     }
+    return const SizedBox.shrink();
   }
 }
 

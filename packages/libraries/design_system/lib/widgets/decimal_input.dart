@@ -68,7 +68,7 @@ class _DecimalInputState extends State<DecimalInput> {
     return NumberFormat("#,##0", "en_US").format(value);
   }
 
-  _getNumberFormat(String value) {
+  String _getNumberFormat(String value) {
     if (value.isEmpty) {
       return "";
     }

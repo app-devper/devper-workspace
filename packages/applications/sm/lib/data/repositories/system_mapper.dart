@@ -22,7 +22,7 @@ class SystemMapper {
     );
   }
 
-  toCreateSystemRequest(CreateParam param) {
+  String toCreateSystemRequest(CreateParam param) {
     return jsonEncode({
       'systemName': param.systemName,
       'systemCode': param.systemCode,
@@ -31,7 +31,7 @@ class SystemMapper {
     });
   }
 
-  toUpdateSystemRequest(UpdateSystemParam param) {
+  String toUpdateSystemRequest(UpdateSystemParam param) {
     return jsonEncode({
       'systemName': param.systemName,
       'host': param.host,

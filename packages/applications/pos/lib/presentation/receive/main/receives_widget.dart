@@ -55,7 +55,7 @@ class _ReceivesWidgetState extends State<ReceivesWidget> {
     return _buildBody();
   }
 
-  _buildBody() {
+  Column _buildBody() {
     final isMobile = Responsive.isMobile(context);
     return Column(
       children: <Widget>[
@@ -114,7 +114,7 @@ class _ReceivesWidgetState extends State<ReceivesWidget> {
     );
   }
 
-  _buildProductList() {
+  ValueListenableBuilder<ReceivesState> _buildProductList() {
     return ValueListenableBuilder<ReceivesState>(
       valueListenable: _viewModel.state,
       builder: (BuildContext context, ReceivesState state, _) {
@@ -144,7 +144,7 @@ class _ReceivesWidgetState extends State<ReceivesWidget> {
     );
   }
 
-  _buildReceives(List<Receive> item) {
+  Expanded _buildReceives(List<Receive> item) {
     return Expanded(
       child: ListView.builder(
         itemCount: item.length,

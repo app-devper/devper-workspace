@@ -41,7 +41,7 @@ class CustomColor {
   static Color buttonSecondary1Font = const Color(0xff1c4776);
   static Color buttonSecondary2Font = const Color(0xffffffff);
 
-  static init(MethodChannel platform) async {
+  static Future<void> init(MethodChannel platform) async {
     try {
       Map<String, int>? theme = await platform.invokeMapMethod('getTheme');
       if (theme != null) {
@@ -50,7 +50,7 @@ class CustomColor {
     } catch (_) {}
   }
 
-  static _initTheme(Map<String, int> map) async {
+  static Future<void> _initTheme(Map<String, int> map) async {
     int? font1 = map["font1"];
     if (font1 != null) {
       CustomColor.font1 = Color(font1);

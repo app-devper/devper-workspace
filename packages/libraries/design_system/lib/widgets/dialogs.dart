@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:design_system/widgets/decimal_input.dart';
 import 'package:design_system/widgets/title_bar.dart';
 
-showRightDialog(BuildContext context, {required WidgetBuilder builder}) {
+void showRightDialog(BuildContext context, {required WidgetBuilder builder}) {
   showDialog(
     barrierDismissible: true,
     context: context,
@@ -26,7 +26,7 @@ showRightDialog(BuildContext context, {required WidgetBuilder builder}) {
   );
 }
 
-showCenterDialog({
+void showCenterDialog({
   Key? alertKey,
   required BuildContext context,
   required WidgetBuilder builder,
@@ -78,7 +78,7 @@ double _clampToViewport(double requested, double viewportExtent) {
   return requested > maxAllowed ? maxAllowed : requested;
 }
 
-showInputNumberDialog(
+void showInputNumberDialog(
   BuildContext context, {
   required String title,
   required Function(String) onCompleted,

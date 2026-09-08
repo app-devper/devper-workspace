@@ -6,7 +6,7 @@ import 'package:design_system/theme/color.dart';
 import 'package:design_system/theme/theme.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 
-fieldFocusChange(
+void fieldFocusChange(
   BuildContext context,
   FocusNode currentFocus,
   FocusNode nextFocus,
@@ -15,7 +15,7 @@ fieldFocusChange(
   FocusScope.of(context).requestFocus(nextFocus);
 }
 
-buildInputDecoration(String labelText, {Widget? suffixIcon}) {
+InputDecoration buildInputDecoration(String labelText, {Widget? suffixIcon}) {
   return InputDecoration(
     focusedBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(4.0),
@@ -45,7 +45,7 @@ buildInputDecoration(String labelText, {Widget? suffixIcon}) {
   );
 }
 
-buildPasswordField(
+SizedBox buildPasswordField(
   BuildContext context,
   FocusNode focusNode,
   TextEditingController controller,
@@ -80,7 +80,7 @@ buildPasswordField(
   );
 }
 
-buildTextFormField(
+SizedBox buildTextFormField(
   BuildContext context,
   bool enabled,
   FocusNode focusNode,

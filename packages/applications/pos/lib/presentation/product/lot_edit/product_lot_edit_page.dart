@@ -113,7 +113,7 @@ class _ProductLotEditPageState extends State<ProductLotEditPage> {
     );
   }
 
-  _buildBody(BuildContext context) {
+  SingleChildScrollView _buildBody(BuildContext context) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(defaultPagePadding),
       child: Column(
@@ -128,7 +128,7 @@ class _ProductLotEditPageState extends State<ProductLotEditPage> {
     );
   }
 
-  _buildForm(BuildContext context) {
+  Column _buildForm(BuildContext context) {
     return Column(
       children: <Widget>[
         const Padding(
@@ -190,7 +190,7 @@ class _ProductLotEditPageState extends State<ProductLotEditPage> {
     );
   }
 
-  _buildUpdateButton() {
+  SizedBox _buildUpdateButton() {
     return SizedBox(
       width: double.infinity,
       height: 50,

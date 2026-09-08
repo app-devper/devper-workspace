@@ -14,13 +14,13 @@ import 'package:pos/domain/model/supplier/supplier.dart';
 import 'pdf_api.dart';
 
 class ExportPdf {
-  static generate(Receipt receipt) async {
+  static Future<dynamic> generate(Receipt receipt) async {
     final font = await rootBundle.load("assets/font/Sarabun-Regular.ttf");
     final ttf = pw.Font.ttf(font);
     return await PdfApi.saveDocument(name: '${receipt.info.number}.pdf', doc: genDocument(receipt, ttf));
   }
 
-  static download(Receipt receipt) async {
+  static Future<dynamic> download(Receipt receipt) async {
     final font = await rootBundle.load("assets/font/Sarabun-Regular.ttf");
     final ttf = pw.Font.ttf(font);
     return PdfApi.downloadDocument(name: '${receipt.info.number}.pdf', doc: genDocument(receipt, ttf));
@@ -253,7 +253,7 @@ class ExportPdf {
         ],
       );
 
-  static buildText({
+  static pw.Container buildText({
     required String title,
     required String value,
     double width = double.infinity,

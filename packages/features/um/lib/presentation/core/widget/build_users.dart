@@ -27,7 +27,7 @@ Color _roleColor(String role) {
   }
 }
 
-buildUsers(
+FutureBuilder<List<User>> buildUsers(
   Future<List<User>> users,
   Function(User) onTap, {
   Function(User)? onSetPassword,

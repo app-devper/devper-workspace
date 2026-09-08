@@ -165,7 +165,7 @@ class _ReceiveManagePageState extends State<ReceiveManagePage> {
     );
   }
 
-  _buildBody(BuildContext context) {
+  Container _buildBody(BuildContext context) {
     final button =
         _receive == null ? _buildAddButton() : _buildAddProductButton();
     return Container(
@@ -205,7 +205,7 @@ class _ReceiveManagePageState extends State<ReceiveManagePage> {
     );
   }
 
-  _buildForm(BuildContext context) {
+  Column _buildForm(BuildContext context) {
     return Column(
       children: <Widget>[
         _buildSuppliers(),
@@ -222,7 +222,7 @@ class _ReceiveManagePageState extends State<ReceiveManagePage> {
     );
   }
 
-  _buildSuppliers() {
+  SizedBox _buildSuppliers() {
     return SizedBox(
       height: 50,
       child: Row(
@@ -290,7 +290,7 @@ class _ReceiveManagePageState extends State<ReceiveManagePage> {
     );
   }
 
-  _buildTotalCost() {
+  Row _buildTotalCost() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.start,
       children: <Widget>[
@@ -309,7 +309,7 @@ class _ReceiveManagePageState extends State<ReceiveManagePage> {
     );
   }
 
-  _buildAddButton() {
+  SizedBox _buildAddButton() {
     return SizedBox(
       width: double.infinity,
       height: 50,
@@ -325,7 +325,7 @@ class _ReceiveManagePageState extends State<ReceiveManagePage> {
     );
   }
 
-  _buildUpdateButton() {
+  SizedBox _buildUpdateButton() {
     return SizedBox(
       width: 100,
       height: 50,
@@ -342,7 +342,7 @@ class _ReceiveManagePageState extends State<ReceiveManagePage> {
     );
   }
 
-  _buildAddProductButton() {
+  SizedBox _buildAddProductButton() {
     return SizedBox(
       width: double.infinity,
       height: 50,
@@ -358,7 +358,7 @@ class _ReceiveManagePageState extends State<ReceiveManagePage> {
     );
   }
 
-  _getReceiveParam() {
+  ReceiveParam _getReceiveParam() {
     return ReceiveParam(
       supplierId: _supplier?.id ?? "",
       reference: _referenceEditingController.text,
@@ -374,7 +374,7 @@ class _ReceiveManagePageState extends State<ReceiveManagePage> {
     );
   }
 
-  _showRemoveAlertDialog(BuildContext context) {
+  void _showRemoveAlertDialog(BuildContext context) {
     showConfirmDialog(context, "ต้องการลบใบรับสินค้าใช่หรือไม่", () {
       if (_receive != null) {
         _viewModel.removeReceiveById(_receive!.id);
@@ -382,7 +382,7 @@ class _ReceiveManagePageState extends State<ReceiveManagePage> {
     });
   }
 
-  _showRemoveItemAlertDialog(BuildContext context, int index) {
+  void _showRemoveItemAlertDialog(BuildContext context, int index) {
     showConfirmDialog(context, "ต้องการลบสินค้าใช่หรือไม่", () {
       final items = List<ReceiveItem>.of(_receiveItems)..removeAt(index);
       _viewModel.updateReceiveById(
@@ -410,7 +410,7 @@ class _ReceiveManagePageState extends State<ReceiveManagePage> {
     }
   }
 
-  _nextToSupplierAdd(BuildContext context) async {
+  Future<void> _nextToSupplierAdd(BuildContext context) async {
     var _ = await Navigator.pushNamed(context, supplierAddRoute);
     _viewModel.getSuppliers();
   }

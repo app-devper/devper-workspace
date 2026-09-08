@@ -27,7 +27,7 @@ class _ReceivePageState extends State<ReceivePage> {
     );
   }
 
-  _buildDesktop() {
+  Row _buildDesktop() {
     return Row(
       children: [
         SizedBox(
@@ -52,7 +52,7 @@ class _ReceivePageState extends State<ReceivePage> {
     );
   }
 
-  _buildMobile() {
+  Row _buildMobile() {
     return Row(
       children: [
         Expanded(
@@ -74,7 +74,7 @@ class _ReceivePageState extends State<ReceivePage> {
     if (mounted) setState(() => _revision++);
   }
 
-  _showProductMenuDialog() {
+  void _showProductMenuDialog() {
     showRightDialog(
       context,
       builder: (context) => Column(

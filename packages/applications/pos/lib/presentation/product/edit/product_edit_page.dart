@@ -161,7 +161,7 @@ class _ProductEditPageState extends State<ProductEditPage> {
     }
   }
 
-  _buildBody() {
+  SingleChildScrollView _buildBody() {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(8),
       child: Column(
@@ -305,7 +305,7 @@ class _ProductEditPageState extends State<ProductEditPage> {
     );
   }
 
-  _buildFormInfo() {
+  Column _buildFormInfo() {
     return Column(
       children: <Widget>[
         DropdownButtonFormField<ItemType>(
@@ -395,7 +395,7 @@ class _ProductEditPageState extends State<ProductEditPage> {
     );
   }
 
-  _buildDrugInfoForm() {
+  Column _buildDrugInfoForm() {
     return Column(
       children: <Widget>[
         TextFormField(
@@ -551,7 +551,7 @@ class _ProductEditPageState extends State<ProductEditPage> {
         .toList();
   }
 
-  _getProductParam() {
+  ProductParam _getProductParam() {
     final minStock = int.tryParse(_minStockEditingController.text) ?? 0;
     return ProductParam(
       name: _nameEditingController.text,
@@ -573,7 +573,7 @@ class _ProductEditPageState extends State<ProductEditPage> {
     );
   }
 
-  _showConfirmDialog(BuildContext context) {
+  void _showConfirmDialog(BuildContext context) {
     showConfirmDialog(context, "ต้องการลบสินค้าใช่หรือไม่", () {
       _viewModel.removeProductById(widget.product.id);
     });
