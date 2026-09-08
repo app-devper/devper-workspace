@@ -372,7 +372,7 @@ class _ProductUnitWidgetState extends State<ProductUnitWidget> {
     );
   }
 
-  _showVolumeUnitDialog() {
+  void _showVolumeUnitDialog() {
     showCenterDialog(
       context: context,
       minWidth: 320,

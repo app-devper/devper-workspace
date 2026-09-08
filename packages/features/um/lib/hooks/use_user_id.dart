@@ -10,7 +10,7 @@ import 'package:um/container.dart';
 import 'package:um/domain/entities/user/user.dart';
 import 'package:um/domain/repositories/user_repository.dart';
 
-Future<User> useUserId(userId) {
+Future<User> useUserId(String userId) {
   Future<User> getUserId() async {
     final userRepo = sl<UserRepository>();
     try {

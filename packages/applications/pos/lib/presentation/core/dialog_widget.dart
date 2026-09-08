@@ -9,7 +9,7 @@ import 'package:design_system/widgets/title_bar.dart';
 import 'package:pos/domain/model/order/order_item.dart';
 import 'package:pos/presentation/core/order_item_widget.dart';
 
-showEditOrderItemDialog(
+void showEditOrderItemDialog(
   BuildContext context, {
   required OrderItem orderItem,
   required Function(OrderItem) onCompleted,

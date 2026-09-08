@@ -865,7 +865,7 @@ class _ProductDetailWidgetState extends State<ProductDetailWidget>
     );
   }
 
-  _showAddPriceDialog(
+  void _showAddPriceDialog(
     BuildContext context, {
     required ProductUnit unit,
     required List<ProductPrice> prices,
@@ -882,7 +882,7 @@ class _ProductDetailWidgetState extends State<ProductDetailWidget>
     );
   }
 
-  _showEditPriceDialog(
+  void _showEditPriceDialog(
     BuildContext context, {
     required ProductUnit unit,
     required ProductPrice price,
@@ -901,7 +901,7 @@ class _ProductDetailWidgetState extends State<ProductDetailWidget>
     );
   }
 
-  _showEditUnitDialog(
+  void _showEditUnitDialog(
     BuildContext context, {
     required ProductUnit unit,
   }) {

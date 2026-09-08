@@ -129,7 +129,7 @@ class _ProductAddPageState extends State<ProductAddPage> {
     );
   }
 
-  _buildBody() {
+  SingleChildScrollView _buildBody() {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(8),
       child: Form(
@@ -199,7 +199,7 @@ class _ProductAddPageState extends State<ProductAddPage> {
     );
   }
 
-  _buildFormInfo() {
+  Column _buildFormInfo() {
     return Column(
       children: <Widget>[
         DropdownButtonFormField<ItemType>(
@@ -289,7 +289,7 @@ class _ProductAddPageState extends State<ProductAddPage> {
     );
   }
 
-  _buildFormUnit() {
+  Column _buildFormUnit() {
     return Column(
       children: <Widget>[
         TextFormField(
@@ -417,7 +417,7 @@ class _ProductAddPageState extends State<ProductAddPage> {
     );
   }
 
-  _getProductParam() {
+  CreateProductParam _getProductParam() {
     var price = 0.0;
     if (_priceEditingController.text.trim().isNotEmpty) {
       price = double.parse(_priceEditingController.text);

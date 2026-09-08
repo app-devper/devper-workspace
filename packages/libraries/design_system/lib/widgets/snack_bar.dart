@@ -7,7 +7,7 @@ class CustomSnackBar {
 
   CustomSnackBar({required this.key, required this.context});
 
-  void showErrorSnackBar(final msg, {action = false}) {
+  void showErrorSnackBar(final Object? msg, {bool action = false}) {
     showSnackBar(text: "Error: $msg", color: Colors.red[400], action: action);
   }
 

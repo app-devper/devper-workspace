@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-buildInputDecoration({
+InputDecoration buildInputDecoration({
   required String labelText,
   required String hintText,
   Widget? suffix,

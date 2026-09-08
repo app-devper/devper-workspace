@@ -90,7 +90,7 @@ class _ProductsPageState extends State<ProductsPage> {
     );
   }
 
-  _buildDesktop() {
+  Row _buildDesktop() {
     return Row(
       children: [
         SizedBox(
@@ -112,7 +112,7 @@ class _ProductsPageState extends State<ProductsPage> {
     );
   }
 
-  _buildMobile() {
+  Row _buildMobile() {
     return Row(
       children: [
         Expanded(
@@ -122,7 +122,7 @@ class _ProductsPageState extends State<ProductsPage> {
     );
   }
 
-  _buildPage() {
+  Widget _buildPage() {
     if (_pageState is MainPage) {
       final isMobile = Responsive.isMobile(context);
       if (isMobile) {
@@ -200,23 +200,20 @@ class _ProductsPageState extends State<ProductsPage> {
         },
       );
     }
+    return const SizedBox.shrink();
   }
 
   void _pickAndImportCSV() async {
-    final result = await FilePicker.platform.pickFiles(
+    final file = await FilePicker.pickFile(
       type: FileType.custom,
       allowedExtensions: ['csv'],
-      withData: true,
     );
-    if (result != null && result.files.isNotEmpty) {
-      final file = result.files.first;
-      if (file.bytes != null) {
-        _viewModel.importCSV(bytes: file.bytes!, filename: file.name);
-      }
-    }
+    if (file == null) return;
+    final bytes = await file.readAsBytes();
+    _viewModel.importCSV(bytes: bytes, filename: file.name);
   }
 
-  _showProductMenuDialog() {
+  void _showProductMenuDialog() {
     showRightDialog(
       context,
       builder: (context) => Column(

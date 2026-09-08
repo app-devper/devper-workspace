@@ -111,7 +111,7 @@ class _CustomersWidgetState extends State<CustomersWidget> {
     );
   }
 
-  _buildCustomerList() {
+  ValueListenableBuilder<CustomersState> _buildCustomerList() {
     return ValueListenableBuilder<CustomersState>(
       valueListenable: _viewModel.state,
       builder: (BuildContext context, CustomersState state, _) {
@@ -131,7 +131,7 @@ class _CustomersWidgetState extends State<CustomersWidget> {
     );
   }
 
-  _buildCustomer(List<Customer> item) {
+  Expanded _buildCustomer(List<Customer> item) {
     return Expanded(
       child: ListView.builder(
         itemCount: item.length,

@@ -129,7 +129,7 @@ class _OrderPageState extends State<OrderPage> {
     );
   }
 
-  _buildBody(BuildContext context) {
+  SizedBox _buildBody(BuildContext context) {
     final Size size = MediaQuery.of(context).size;
     return SizedBox(
       height: size.height,
@@ -144,7 +144,7 @@ class _OrderPageState extends State<OrderPage> {
     );
   }
 
-  _buildDropdown(BuildContext context) {
+  ValueListenableBuilder<OrderState> _buildDropdown(BuildContext context) {
     return ValueListenableBuilder<OrderState>(
       valueListenable: _viewModel.state,
       builder: (BuildContext context, OrderState state, _) {
@@ -191,7 +191,7 @@ class _OrderPageState extends State<OrderPage> {
     );
   }
 
-  _buildMenu(BuildContext context) {
+  Container _buildMenu(BuildContext context) {
     if (_isAdmin) {
       return Container(
         padding: const EdgeInsets.only(right: defaultPagePadding, left: defaultPagePadding),
@@ -208,7 +208,7 @@ class _OrderPageState extends State<OrderPage> {
     }
   }
 
-  _buildDate() {
+  Row _buildDate() {
     if (_value == Range.today || _value == Range.yesterday || _value == Range.date) {
       return Row(
         children: <Widget>[
@@ -247,7 +247,7 @@ class _OrderPageState extends State<OrderPage> {
     }
   }
 
-  _buildFilter() {
+  Wrap _buildFilter() {
     return Wrap(
       spacing: 8,
       children: List.generate(_choices.length, (index) {
@@ -270,7 +270,7 @@ class _OrderPageState extends State<OrderPage> {
     );
   }
 
-  _buildOrderList() {
+  ValueListenableBuilder<OrderState> _buildOrderList() {
     return ValueListenableBuilder<OrderState>(
       valueListenable: _viewModel.state,
       builder: (BuildContext context, OrderState state, _) {
@@ -308,7 +308,7 @@ class _OrderPageState extends State<OrderPage> {
     );
   }
 
-  _buildSummaryTotal() {
+  Container _buildSummaryTotal() {
     return Container(
       padding: const EdgeInsets.all(defaultPagePadding),
       child: Column(
@@ -321,7 +321,7 @@ class _OrderPageState extends State<OrderPage> {
     );
   }
 
-  _buildTotal() {
+  Row _buildTotal() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: <Widget>[
@@ -335,7 +335,7 @@ class _OrderPageState extends State<OrderPage> {
     );
   }
 
-  _buildTotalCost() {
+  Widget _buildTotalCost() {
     if (_isAdmin) {
       return Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -353,7 +353,7 @@ class _OrderPageState extends State<OrderPage> {
     }
   }
 
-  _buildTotalProfit() {
+  Widget _buildTotalProfit() {
     if (_isAdmin) {
       return Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -371,7 +371,7 @@ class _OrderPageState extends State<OrderPage> {
     }
   }
 
-  _selectRangeDate(DateTime currentDate, Range range) async {
+  Future<void> _selectRangeDate(DateTime currentDate, Range range) async {
     final DateTimeRange? result = await showDateRangePicker(
       context: context,
       firstDate: DateTime(2021, 1, 1),
@@ -391,7 +391,7 @@ class _OrderPageState extends State<OrderPage> {
     }
   }
 
-  _selectDate(DateTime currentDate, Range range) async {
+  Future<void> _selectDate(DateTime currentDate, Range range) async {
     final DateTime? result = await showDatePicker(
       context: context,
       initialDate: currentDate,
@@ -410,14 +410,14 @@ class _OrderPageState extends State<OrderPage> {
     }
   }
 
-  _getOrderRangeParam() {
+  GetOrderRangeParam _getOrderRangeParam() {
     return GetOrderRangeParam(
       startDate: _startDate.toUtc().toIso8601String(),
       endDate: _endDate.toUtc().toIso8601String(),
     );
   }
 
-  _nextToOrderDetail(BuildContext context, OrderSummary content) async {
+  Future<void> _nextToOrderDetail(BuildContext context, OrderSummary content) async {
     var _ = await Navigator.pushNamed(context, orderDetailRoute, arguments: OrderArgument(content.id));
     _viewModel.getOrderItem(_choices[_defaultChoiceIndex], _getOrderRangeParam());
   }

@@ -144,7 +144,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
     );
   }
 
-  _calculate(String value) {
+  void _calculate(String value) {
     setState(() {
       _isInput = true;
       _number = value;
@@ -156,7 +156,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
     });
   }
 
-  _getPaymentBtn(double value) {
+  String _getPaymentBtn(double value) {
     if (!_isInput && _change == 0) {
       return "รับชำระพอดี ไม่มีเงินทอน";
     } else if (_isInput && _change == 0) {
@@ -167,7 +167,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
     return "เงินทอน ฿${formatDouble(value)}";
   }
 
-  _getNumberFormat(String value) {
+  String _getNumberFormat(String value) {
     if (value.isEmpty) {
       return "";
     }

@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 // Project imports:
 import 'package:design_system/theme/color.dart';
 
-buildAppBar(String title, {List<Widget>? actions}) {
+AppBar buildAppBar(String title, {List<Widget>? actions}) {
   return AppBar(
     iconTheme: const IconThemeData(
       color: CustomColor.fontBlack,
@@ -17,7 +17,7 @@ buildAppBar(String title, {List<Widget>? actions}) {
   );
 }
 
-buildAppBarTextStyle() {
+TextStyle buildAppBarTextStyle() {
   return const TextStyle(
     color: CustomColor.fontBlack,
     fontSize: 20,

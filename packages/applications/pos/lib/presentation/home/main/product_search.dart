@@ -55,7 +55,7 @@ class _ProductSearchState extends State<ProductSearch> {
     return _buildProducts();
   }
 
-  _buildProducts() {
+  LayoutBuilder _buildProducts() {
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
         int countRow = constraints.maxWidth ~/ _widthCard;

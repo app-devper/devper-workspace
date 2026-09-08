@@ -28,35 +28,35 @@ class OrderItem {
     priceType = product.getPrice(customerType);
   }
 
-  updatePriceType(String customerType) {
+  void updatePriceType(String customerType) {
     priceType = product.getPrice(customerType);
   }
 
-  updateDiscount(double discountPrice) {
+  void updateDiscount(double discountPrice) {
     discount = discountPrice;
   }
 
-  updateDiscountByPercent(double percent) {
+  void updateDiscountByPercent(double percent) {
     discount = priceType.price * percent / 100;
   }
 
-  updateProductStockSequence(List<ProductStock> productStocks) {
+  void updateProductStockSequence(List<ProductStock> productStocks) {
     product.updateProductStockSequence(productStocks);
     priceType = product.getPrice(customerType);
   }
 
-  plusAmount() {
+  void plusAmount() {
     quantity += 1;
   }
 
-  minusAmount() {
+  void minusAmount() {
     if (quantity == 0) {
       return;
     }
     quantity -= 1;
   }
 
-  toggleAllowOversell() {
+  void toggleAllowOversell() {
     allowOversell = !allowOversell;
   }
 

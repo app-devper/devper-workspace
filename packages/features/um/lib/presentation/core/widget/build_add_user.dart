@@ -14,7 +14,7 @@ import 'package:um/hooks/use_client_id.dart';
 import 'package:um/presentation/constants.dart';
 import 'package:um/presentation/core/widget/build_widget.dart';
 
-buildAddUser(Function(User) onAdded) {
+HookBuilder buildAddUser(Function(User) onAdded) {
   return HookBuilder(builder: (context) {
     final usernameEditingController = useTextEditingController();
     final passwordEditingController = useTextEditingController();

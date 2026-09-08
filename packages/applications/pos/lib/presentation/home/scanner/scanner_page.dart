@@ -140,7 +140,7 @@ class _ScannerPageState extends State<ScannerPage> {
     }
   }
 
-  _nextToProductEdit(BuildContext context, Product content) async {
+  Future<void> _nextToProductEdit(BuildContext context, Product content) async {
     var _ = await Navigator.pushNamed(context, productEditRoute,
         arguments: ProductArgument(content));
     controller?.resumeCamera();

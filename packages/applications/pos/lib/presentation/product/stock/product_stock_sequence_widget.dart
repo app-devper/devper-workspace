@@ -152,7 +152,7 @@ class _ProductStockSequenceWidgetState extends State<ProductStockSequenceWidget>
     );
   }
 
-  _getSubtitle(ProductStock stock, String unit) {
+  Text _getSubtitle(ProductStock stock, String unit) {
     const style = TextStyle(color: Colors.grey, fontSize: 14);
     if (stock.costPrice > 0 && stock.price > 0) {
       return Text('Cost: ฿${formatDouble(stock.costPrice)}, Price: ฿${formatDouble(stock.price)}', style: style);
@@ -165,7 +165,7 @@ class _ProductStockSequenceWidgetState extends State<ProductStockSequenceWidget>
     }
   }
 
-  _getUpdateProductStockSequenceParam() {
+  UpdateProductStockSequenceParam _getUpdateProductStockSequenceParam() {
     return UpdateProductStockSequenceParam(
       productId: _items.first.productId,
       stocks: _items.map((e) => ProductStockSequenceParam(stockId: e.id, sequence: _items.indexOf(e) + 1)).toList(),

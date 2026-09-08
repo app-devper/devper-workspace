@@ -59,7 +59,7 @@ class HomeDatabasePage extends StatelessWidget {
     );
   }
 
-  _buildMenuItem({required IconData icon, required String title, required Null Function() onTap}) {
+  Column _buildMenuItem({required IconData icon, required String title, required Null Function() onTap}) {
     return Column(
       children: [
         ListTile(
@@ -72,15 +72,15 @@ class HomeDatabasePage extends StatelessWidget {
     );
   }
 
-  _nextToUserManagement(BuildContext context) {
+  void _nextToUserManagement(BuildContext context) {
     Navigator.pushNamed(context, routeUsers);
   }
 
-  _nextToStoreInfo(BuildContext context) {
+  void _nextToStoreInfo(BuildContext context) {
     Navigator.pushNamed(context, supplierRoute);
   }
 
-  _nextToStockCounts(BuildContext context) {
+  void _nextToStockCounts(BuildContext context) {
     Navigator.pushNamed(context, stockCountsRoute);
   }
 }

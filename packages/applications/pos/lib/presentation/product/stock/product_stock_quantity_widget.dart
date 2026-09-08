@@ -102,7 +102,7 @@ class _ProductStockQuantityWidgetState extends State<ProductStockQuantityWidget>
     );
   }
 
-  _updateProductStockQuantity() {
+  void _updateProductStockQuantity() {
     _viewModel.updateProductStockQuantityById(
       widget.stock.id,
       UpdateProductStockQuantityParam(

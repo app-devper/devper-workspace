@@ -4,7 +4,7 @@ import 'package:pdf/widgets.dart';
 import 'package:universal_html/html.dart' as html;
 
 class PdfApi {
-  static saveDocument({
+  static Future<void> saveDocument({
     required String name,
     required Document doc,
   }) async {
@@ -14,7 +14,7 @@ class PdfApi {
     await downloadDocument(name: name, doc: doc);
   }
 
-  static downloadDocument({
+  static Future<void> downloadDocument({
     required String name,
     required Document doc,
   }) async {

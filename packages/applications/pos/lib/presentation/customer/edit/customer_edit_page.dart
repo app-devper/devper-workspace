@@ -120,14 +120,14 @@ class _CustomerEditPageState extends State<CustomerEditPage> {
     );
   }
 
-  _setupData(Customer data) {
+  void _setupData(Customer data) {
     _nameEditingController.text = data.name;
     _addressEditingController.text = data.address;
     _emailEditingController.text = data.email;
     _phoneEditingController.text = data.phone;
   }
 
-  _buildBody() {
+  SingleChildScrollView _buildBody() {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(defaultPagePadding),
       child: Column(
@@ -181,7 +181,7 @@ class _CustomerEditPageState extends State<CustomerEditPage> {
     );
   }
 
-  _buildForm() {
+  Form _buildForm() {
     return Form(
       key: _formKey,
       child: Column(
@@ -277,13 +277,13 @@ class _CustomerEditPageState extends State<CustomerEditPage> {
     );
   }
 
-  _showRemoveConfirm(BuildContext context, Customer data) {
+  void _showRemoveConfirm(BuildContext context, Customer data) {
     showConfirmDialog(context, "ต้องการลบลูกค้าใช่หรือไม่?", () {
       _viewModel.removeCustomerById(data.id);
     });
   }
 
-  _getCustomerParam() {
+  CustomerParam _getCustomerParam() {
     return CustomerParam(
       name: _nameEditingController.text,
       address: _addressEditingController.text,

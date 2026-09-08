@@ -65,7 +65,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  _buildPage() {
+  Widget _buildPage() {
     switch (_menuEvent) {
       case MenuEvent.home:
         return const CartPage();

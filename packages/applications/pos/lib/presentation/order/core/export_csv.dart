@@ -11,7 +11,7 @@ import 'package:pos/domain/model/order/order_item_detail.dart';
 import 'package:pos/domain/model/product/product.dart';
 
 class ExportCsv {
-  static downloadOrderItems(Product product, List<OrderItemDetail> data) async {
+  static Future<void> downloadOrderItems(Product product, List<OrderItemDetail> data) async {
     List<List<dynamic>> rows = <List<dynamic>>[];
     List<dynamic> row = [];
     row.add("No.");
@@ -30,7 +30,7 @@ class ExportCsv {
       rows.add(row);
     }
 
-    String csv = const ListToCsvConverter().convert(rows);
+    String csv = Csv().encode(rows);
     var format = DateFormat("yyyy-MM-dd");
     var date = format.format(DateTime.now().toLocal());
     String filename = "${product.name.trim()}-$date.csv";
@@ -43,7 +43,7 @@ class ExportCsv {
       ..click();
   }
 
-  static downloadProducts(List<Product> data) async {
+  static Future<void> downloadProducts(List<Product> data) async {
     List<List<dynamic>> rows = <List<dynamic>>[];
     List<dynamic> row = [];
     row.add("No.");
@@ -78,7 +78,7 @@ class ExportCsv {
       }
     }
 
-    String csv = const ListToCsvConverter().convert(rows);
+    String csv = Csv().encode(rows);
     var format = DateFormat("yyyy-MM-dd");
     var date = format.format(DateTime.now().toLocal());
     String filename = "products-$date.csv";

@@ -97,7 +97,7 @@ class _SupplierAddPageState extends State<SupplierAddPage> {
     );
   }
 
-  _buildBody(BuildContext context) {
+  SingleChildScrollView _buildBody(BuildContext context) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(defaultPagePadding),
       child: Column(
@@ -112,7 +112,7 @@ class _SupplierAddPageState extends State<SupplierAddPage> {
     );
   }
 
-  _buildForm(BuildContext context) {
+  Column _buildForm(BuildContext context) {
     return Column(
       children: <Widget>[
         const Padding(
@@ -163,7 +163,7 @@ class _SupplierAddPageState extends State<SupplierAddPage> {
     );
   }
 
-  _buildAddButton() {
+  SizedBox _buildAddButton() {
     return SizedBox(
       width: double.infinity,
       height: 50,
@@ -177,7 +177,7 @@ class _SupplierAddPageState extends State<SupplierAddPage> {
     );
   }
 
-  _getSupplierParam() {
+  SupplierParam _getSupplierParam() {
     return SupplierParam(
       name: _nameEditingController.text,
       address: _addressEditingController.text,

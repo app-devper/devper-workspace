@@ -11,7 +11,7 @@ import 'package:um/domain/entities/user/param.dart';
 import 'package:um/hooks/use_change_password.dart';
 import 'package:um/presentation/core/widget/build_widget.dart';
 
-buildChangePassword() {
+HookBuilder buildChangePassword() {
   return HookBuilder(builder: (context) {
     final snackBar = CustomSnackBar(key: const Key("snackbar"), context: context);
     final oldPasswordController = useTextEditingController();
