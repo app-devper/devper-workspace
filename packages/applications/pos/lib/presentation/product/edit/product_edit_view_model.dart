@@ -33,44 +33,67 @@ class ProductEditViewModel {
   ValueListenable<ProductEditState> get state => _state;
 
   Future<void> getProductById(String productId) async {
+    _state.value = _state.value
+        .copyWith(loading: true, clearError: true, clearLoaded: true);
     try {
       final loaded = await getLocalProductByIdUseCase(productId);
       final categories = await getLocalCategoriesUseCase();
       if (loaded != null) {
-        _state.value = _state.value.copyWith(loaded: loaded, categories: categories);
+        _state.value = _state.value.copyWith(
+          loading: false,
+          loaded: loaded,
+          categories: categories,
+        );
+      } else {
+        _state.value = _state.value.copyWith(
+          loading: false,
+          error: "Product not found",
+        );
       }
-    } on Exception catch (_) {}
+    } on Exception catch (e) {
+      _state.value = _state.value.copyWith(
+        loading: false,
+        error: toFailure(e).getMessage(),
+      );
+    }
   }
 
   Future<void> updateProductById(String productId, ProductParam param) async {
-    _state.value = _state.value.copyWith(loading: true, clearError: true, clearUpdated: true);
+    _state.value = _state.value
+        .copyWith(loading: true, clearError: true, clearUpdated: true);
     try {
       final updated = await updateProductByIdUseCase(
         ProductUpdateParam(productId: productId, param: param),
       );
       _state.value = _state.value.copyWith(loading: false, updated: updated);
     } on Exception catch (e) {
-      _state.value = _state.value.copyWith(loading: false, error: toFailure(e).getMessage());
+      _state.value = _state.value
+          .copyWith(loading: false, error: toFailure(e).getMessage());
     }
   }
 
   Future<void> removeProductById(String productId) async {
-    _state.value = _state.value.copyWith(loading: true, clearError: true, clearRemoved: true);
+    _state.value = _state.value
+        .copyWith(loading: true, clearError: true, clearRemoved: true);
     try {
       final removed = await removeProductByIdUseCase(productId);
       _state.value = _state.value.copyWith(loading: false, removed: removed);
     } on Exception catch (e) {
-      _state.value = _state.value.copyWith(loading: false, error: toFailure(e).getMessage());
+      _state.value = _state.value
+          .copyWith(loading: false, error: toFailure(e).getMessage());
     }
   }
 
   Future<void> generateSerialNumber() async {
-    _state.value = _state.value.copyWith(loading: true, clearError: true, clearSerialNumber: true);
+    _state.value = _state.value
+        .copyWith(loading: true, clearError: true, clearSerialNumber: true);
     try {
       final serialNumber = await generateSerialNumberUseCase();
-      _state.value = _state.value.copyWith(loading: false, serialNumber: serialNumber);
+      _state.value =
+          _state.value.copyWith(loading: false, serialNumber: serialNumber);
     } on Exception catch (e) {
-      _state.value = _state.value.copyWith(loading: false, error: toFailure(e).getMessage());
+      _state.value = _state.value
+          .copyWith(loading: false, error: toFailure(e).getMessage());
     }
   }
 
