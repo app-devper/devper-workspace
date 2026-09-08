@@ -2,9 +2,7 @@
 import 'package:flutter/material.dart';
 
 // Package imports:
-import 'package:design_system/theme/app_colors.dart';
 import 'package:design_system/theme/color.dart';
-import 'package:design_system/theme/spacing.dart';
 import 'package:design_system/widgets/app_shell.dart';
 import 'package:design_system/widgets/snack_bar.dart';
 import 'package:um/presentation/constants.dart';
@@ -127,18 +125,17 @@ class _HomePageState extends State<HomePage> {
           selectedId: selected,
           onSelect: (id) => setState(() => _selected = id),
           sidebarFooter: _buildSidebarFooter,
-          floatingActionButton:
-              selected == _systemsId && state.canManageSystems
-                  ? FloatingActionButton.extended(
-                      onPressed: () => showSystemFormDialog(
-                        context,
-                        onCreate: _viewModel.createSystem,
-                        onUpdate: _viewModel.updateSystemById,
-                      ),
-                      icon: const Icon(Icons.add),
-                      label: const Text('เพิ่มระบบ'),
-                    )
-                  : null,
+          floatingActionButton: selected == _systemsId && state.canManageSystems
+              ? FloatingActionButton.extended(
+                  onPressed: () => showSystemFormDialog(
+                    context,
+                    onCreate: _viewModel.createSystem,
+                    onUpdate: _viewModel.updateSystemById,
+                  ),
+                  icon: const Icon(Icons.add),
+                  label: const Text('เพิ่มระบบ'),
+                )
+              : null,
           child: _sectionFor(selected),
         );
       },
@@ -167,33 +164,11 @@ class _HomePageState extends State<HomePage> {
     required VoidCallback onTap,
     Color? color,
   }) {
-    return Tooltip(
-      message: collapsed ? label : '',
-      child: InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.sm, vertical: 10),
-          child: Row(
-            children: [
-              Icon(icon,
-                  size: 18,
-                  color: color ?? AppColors.of(context).textSecondary),
-              if (!collapsed) ...[
-                const SizedBox(width: AppSpacing.md),
-                Expanded(
-                  child: Text(
-                    label,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                        color: color ?? AppColors.of(context).textPrimary),
-                  ),
-                ),
-              ],
-            ],
-          ),
-        ),
-      ),
+    return AppSidebarAction(
+      label: label,
+      icon: icon,
+      collapsed: collapsed,
+      onTap: onTap,
     );
   }
 }

@@ -33,6 +33,15 @@ class AppColors extends ThemeExtension<AppColors> {
   /// Placeholder text inside empty inputs.
   final Color textHint;
 
+  /// Sidebar panel, a touch off [surface] so the frame reads as its own area.
+  final Color sidebarSurface;
+
+  /// Fill behind the selected sidebar entry.
+  final Color sidebarSelected;
+
+  /// Sidebar labels and icons.
+  final Color sidebarForeground;
+
   const AppColors({
     required this.surface,
     required this.surfaceRaised,
@@ -41,6 +50,9 @@ class AppColors extends ThemeExtension<AppColors> {
     required this.textPrimary,
     required this.textSecondary,
     required this.textHint,
+    required this.sidebarSurface,
+    required this.sidebarSelected,
+    required this.sidebarForeground,
   });
 
   static const light = AppColors(
@@ -51,6 +63,9 @@ class AppColors extends ThemeExtension<AppColors> {
     textPrimary: Color(0xDE000000),
     textSecondary: Color(0xFF979797),
     textHint: Color(0x99000000),
+    sidebarSurface: Color(0xFFF9F9F9),
+    sidebarSelected: Color(0xFFECECEC),
+    sidebarForeground: Color(0xFF303030),
   );
 
   static const dark = AppColors(
@@ -61,6 +76,9 @@ class AppColors extends ThemeExtension<AppColors> {
     textPrimary: Color(0xFFECEDEE),
     textSecondary: Color(0xFF9BA1A6),
     textHint: Color(0x99FFFFFF),
+    sidebarSurface: Color(0xFF171717),
+    sidebarSelected: Color(0xFF303030),
+    sidebarForeground: Color(0xFFECECEC),
   );
 
   /// Falls back to the light set so a widget still renders if a host forgot
@@ -77,6 +95,9 @@ class AppColors extends ThemeExtension<AppColors> {
     Color? textPrimary,
     Color? textSecondary,
     Color? textHint,
+    Color? sidebarSurface,
+    Color? sidebarSelected,
+    Color? sidebarForeground,
   }) {
     return AppColors(
       surface: surface ?? this.surface,
@@ -86,6 +107,9 @@ class AppColors extends ThemeExtension<AppColors> {
       textPrimary: textPrimary ?? this.textPrimary,
       textSecondary: textSecondary ?? this.textSecondary,
       textHint: textHint ?? this.textHint,
+      sidebarSurface: sidebarSurface ?? this.sidebarSurface,
+      sidebarSelected: sidebarSelected ?? this.sidebarSelected,
+      sidebarForeground: sidebarForeground ?? this.sidebarForeground,
     );
   }
 
@@ -100,6 +124,10 @@ class AppColors extends ThemeExtension<AppColors> {
       textPrimary: Color.lerp(textPrimary, other.textPrimary, t)!,
       textSecondary: Color.lerp(textSecondary, other.textSecondary, t)!,
       textHint: Color.lerp(textHint, other.textHint, t)!,
+      sidebarSurface: Color.lerp(sidebarSurface, other.sidebarSurface, t)!,
+      sidebarSelected: Color.lerp(sidebarSelected, other.sidebarSelected, t)!,
+      sidebarForeground:
+          Color.lerp(sidebarForeground, other.sidebarForeground, t)!,
     );
   }
 }
