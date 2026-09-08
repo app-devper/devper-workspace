@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 
 // Package imports:
+import 'package:design_system/theme/app_colors.dart';
 import 'package:design_system/theme/color.dart';
 
 // Project imports:
@@ -70,7 +71,7 @@ class _CustomerSearchState extends State<CustomerSearch> {
                 borderRadius: BorderRadius.circular(10),
                 borderSide: BorderSide.none,
               ),
-              fillColor: Colors.grey[200],
+              fillColor: AppColors.of(context).border,
               filled: true,
             ),
             onChanged: (value) {

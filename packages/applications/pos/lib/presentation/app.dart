@@ -55,6 +55,8 @@ class _MyAppState extends State<DevperPos> {
       debugShowCheckedModeBanner: false,
       title: 'DevperPOS',
       theme: CustomTheme.mainTheme,
+      darkTheme: CustomTheme.darkTheme,
+      themeMode: ThemeMode.system,
       navigatorKey: appNavigatorKey,
       onGenerateRoute: RouterApp.generateRoute,
       initialRoute: um.routeSplash,

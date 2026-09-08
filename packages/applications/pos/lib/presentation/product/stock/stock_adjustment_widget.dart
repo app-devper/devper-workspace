@@ -154,6 +154,7 @@ class _StockAdjustmentWidgetState extends State<StockAdjustmentWidget> {
                     keyboardType: TextInputType.number,
                     autovalidateMode: AutovalidateMode.onUserInteraction,
                     decoration: buildInputDecoration(
+                      context: context,
                       labelText: 'จำนวน',
                       hintText: 'โปรดระบุจำนวนที่ต้องการปรับ',
                     ),
@@ -172,6 +173,7 @@ class _StockAdjustmentWidgetState extends State<StockAdjustmentWidget> {
                     focusNode: _noteFocus,
                     controller: _noteController,
                     decoration: buildInputDecoration(
+                      context: context,
                       labelText: 'หมายเหตุ',
                       hintText: 'โปรดระบุหมายเหตุ (ถ้ามี)',
                     ),

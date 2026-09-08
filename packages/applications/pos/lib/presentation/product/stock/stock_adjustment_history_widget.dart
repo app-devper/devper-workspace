@@ -6,6 +6,7 @@ import 'package:pos/container.dart';
 import 'package:pos/domain/model/stock_adjustment/stock_adjustment.dart';
 import 'package:pos/presentation/product/stock/stock_adjustment_history_state.dart';
 import 'package:pos/presentation/product/stock/stock_adjustment_history_view_model.dart';
+import 'package:design_system/theme/app_colors.dart';
 import 'package:design_system/theme/color.dart';
 import 'package:design_system/widgets/status_badge.dart';
 
@@ -72,12 +73,12 @@ class _StockAdjustmentHistoryWidgetState extends State<StockAdjustmentHistoryWid
           );
         }
         if (state.items.isEmpty) {
-          return const Center(
+          return Center(
             child: Text(
               'ไม่มีประวัติการปรับสต็อก',
               style: TextStyle(
                 fontSize: 16,
-                color: Colors.grey,
+                color: AppColors.of(context).textSecondary,
               ),
             ),
           );
@@ -112,9 +113,9 @@ class _StockAdjustmentHistoryWidgetState extends State<StockAdjustmentHistoryWid
                     ),
                     Text(
                       adjustment.getCreatedDate(),
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 13,
-                        color: Colors.grey,
+                        color: AppColors.of(context).textSecondary,
                       ),
                     ),
                   ],
@@ -151,9 +152,9 @@ class _StockAdjustmentHistoryWidgetState extends State<StockAdjustmentHistoryWid
       children: [
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 12,
-            color: Colors.grey,
+            color: AppColors.of(context).textSecondary,
           ),
         ),
         const SizedBox(height: 4),

@@ -10,6 +10,7 @@ import 'package:pos/domain/model/customer/customer.dart';
 import 'package:pos/localizations/language/languages.dart';
 import 'package:pos/presentation/customer/main/customers_state.dart';
 import 'package:pos/presentation/customer/main/customers_view_model.dart';
+import 'package:design_system/theme/app_colors.dart';
 import 'package:design_system/theme/color.dart';
 
 // Package imports:
@@ -66,9 +67,9 @@ class _CustomersWidgetState extends State<CustomersWidget> {
                 width: 40,
                 height: 40,
                 padding: const EdgeInsets.all(8.0),
-                child: const Icon(
+                child: Icon(
                   Icons.arrow_back_ios,
-                  color: Colors.grey,
+                  color: AppColors.of(context).textSecondary,
                   size: 16,
                 ),
               ),
@@ -78,8 +79,8 @@ class _CustomersWidgetState extends State<CustomersWidget> {
                 Languages.of(context).customerTitle,
                 maxLines: 1,
                 textAlign: TextAlign.center,
-                style: const TextStyle(
-                  color: CustomColor.fontBlack,
+                style: TextStyle(
+                  color: AppColors.of(context).textPrimary,
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                 ),
@@ -145,10 +146,10 @@ class _CustomersWidgetState extends State<CustomersWidget> {
                 onTap: () {
                   widget.onSelected(content);
                 },
-                trailing: const Icon(
+                trailing: Icon(
                   Icons.arrow_forward_ios,
                   size: 16,
-                  color: Colors.grey,
+                  color: AppColors.of(context).textSecondary,
                 ),
               ),
               const Divider(height: 1),

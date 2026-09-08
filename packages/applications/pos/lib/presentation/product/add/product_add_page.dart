@@ -1,5 +1,6 @@
 // Flutter imports:
 import 'package:flutter/material.dart';
+import 'package:design_system/theme/app_colors.dart';
 import 'package:flutter/services.dart';
 
 // Package imports:
@@ -149,20 +150,20 @@ class _ProductAddPageState extends State<ProductAddPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
-                      const Text(
+                      Text(
                         'ข้อมูลทั่วไป',
                         style: TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
-                          color: Colors.black,
+                          color: AppColors.of(context).textPrimary,
                         ),
                       ),
-                      const SizedBox(height: 16),
+                      SizedBox(height: 16),
                       Text(
                         'โปรดระบุข้อมูลสินค้า',
                         style: TextStyle(
                           fontSize: 16,
-                          color: Colors.black.withValues(alpha: 0.6),
+                          color: AppColors.of(context).textPrimary.withValues(alpha: 0.6),
                         ),
                       ),
                       const SizedBox(height: 32),
@@ -182,12 +183,12 @@ class _ProductAddPageState extends State<ProductAddPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
-                      const Text(
+                      Text(
                         'ข้อมูลหน่วยนับ และการจำหน่าย',
                         style: TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
-                          color: Colors.black,
+                          color: AppColors.of(context).textPrimary,
                         ),
                       ),
                       const SizedBox(height: 24),
@@ -212,6 +213,7 @@ class _ProductAddPageState extends State<ProductAddPage> {
             return null;
           },
           decoration: buildInputDecoration(
+            context: context,
             labelText: 'ประเภทสินค้า',
             hintText: 'โปรดเลือกประเภทสินค้า',
           ),
@@ -238,6 +240,7 @@ class _ProductAddPageState extends State<ProductAddPage> {
           keyboardType: TextInputType.text,
           autovalidateMode: AutovalidateMode.onUserInteraction,
           decoration: buildInputDecoration(
+            context: context,
             labelText: 'ชื่อสินค้า',
             hintText: 'โปรดระบุชื่อสินค้า',
           ),
@@ -258,6 +261,7 @@ class _ProductAddPageState extends State<ProductAddPage> {
           keyboardType: TextInputType.text,
           autovalidateMode: AutovalidateMode.onUserInteraction,
           decoration: buildInputDecoration(
+            context: context,
             labelText: 'คำอธิบายสินค้า',
             hintText: 'โปรดระบุคำอธิบายสินค้า',
           ),
@@ -274,6 +278,7 @@ class _ProductAddPageState extends State<ProductAddPage> {
             return null;
           },
           decoration: buildInputDecoration(
+            context: context,
             labelText: 'การแสดงข้อมูลสินค้า',
             hintText: 'โปรดเลือกการแสดงข้อมูลสินค้า',
           ),
@@ -306,6 +311,7 @@ class _ProductAddPageState extends State<ProductAddPage> {
           keyboardType: TextInputType.text,
           autovalidateMode: AutovalidateMode.onUserInteraction,
           decoration: buildInputDecoration(
+            context: context,
             labelText: 'ชื่อหน่วยนับ',
             hintText: 'โปรดระบุชื่อหน่วยนับ',
           ),
@@ -332,6 +338,7 @@ class _ProductAddPageState extends State<ProductAddPage> {
                 keyboardType: TextInputType.number,
                 autovalidateMode: AutovalidateMode.onUserInteraction,
                 decoration: buildInputDecoration(
+                  context: context,
                   labelText: 'ราคาขายต่อหน่วย (ค่าเริ่มต้น)',
                   hintText: '',
                 ),
@@ -360,6 +367,7 @@ class _ProductAddPageState extends State<ProductAddPage> {
                 keyboardType: TextInputType.number,
                 autovalidateMode: AutovalidateMode.onUserInteraction,
                 decoration: buildInputDecoration(
+                  context: context,
                   labelText: 'ราคาทุนต่อหน่วย (ค่าเริ่มต้น)',
                   hintText: '',
                 ),
@@ -392,6 +400,7 @@ class _ProductAddPageState extends State<ProductAddPage> {
               keyboardType: TextInputType.text,
               autovalidateMode: AutovalidateMode.onUserInteraction,
               decoration: buildInputDecoration(
+                context: context,
                 labelText: 'บาร์โค้ด',
                 hintText: 'โปรดระบุบาร์โค้ด',
               ),
@@ -411,6 +420,7 @@ class _ProductAddPageState extends State<ProductAddPage> {
                 controller: _minStockEditingController,
                 keyboardType: TextInputType.number,
                 decoration: buildInputDecoration(
+                  context: context,
                   labelText: 'สต็อกขั้นต่ำ',
                   hintText: '0',
                 ),

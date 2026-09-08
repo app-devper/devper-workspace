@@ -9,6 +9,7 @@ import 'package:pos/container.dart';
 import 'package:pos/domain/model/product_return/product_return.dart';
 import 'package:pos/presentation/order/return/product_returns_history_state.dart';
 import 'package:pos/presentation/order/return/product_returns_history_view_model.dart';
+import 'package:design_system/theme/app_colors.dart';
 import 'package:design_system/theme/color.dart';
 
 class ProductReturnsHistoryWidget extends StatefulWidget {
@@ -69,8 +70,8 @@ class _ProductReturnsHistoryWidgetState extends State<ProductReturnsHistoryWidge
                 );
               }
               if (state.items.isEmpty) {
-                return const Center(
-                  child: Text('ไม่มีประวัติการคืนสินค้า', style: TextStyle(color: Colors.grey)),
+                return Center(
+                  child: Text('ไม่มีประวัติการคืนสินค้า', style: TextStyle(color: AppColors.of(context).textSecondary)),
                 );
               }
               return _buildList(state.items);
@@ -103,7 +104,7 @@ class _ProductReturnsHistoryWidgetState extends State<ProductReturnsHistoryWidge
                     ),
                     Text(
                       productReturn.getCreatedDate(),
-                      style: const TextStyle(fontSize: 13, color: Colors.grey),
+                      style: TextStyle(fontSize: 13, color: AppColors.of(context).textSecondary),
                     ),
                   ],
                 ),

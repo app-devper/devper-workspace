@@ -1,5 +1,6 @@
 // Flutter imports:
 import 'package:flutter/material.dart';
+import 'package:design_system/theme/app_colors.dart';
 
 // Package imports:
 import 'package:design_system/widgets/title_bar.dart';
@@ -72,12 +73,12 @@ class _StockCountItemPickerWidgetState
             decoration: InputDecoration(
               contentPadding: const EdgeInsets.all(0),
               hintText: 'ค้นหาสินค้า...',
-              prefixIcon: const Icon(Icons.search),
+              prefixIcon: Icon(Icons.search),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10),
                 borderSide: BorderSide.none,
               ),
-              fillColor: Colors.grey[200],
+              fillColor: AppColors.of(context).border,
               filled: true,
             ),
             onChanged: (value) {
@@ -135,10 +136,10 @@ class _StockCountItemPickerWidgetState
         const Divider(height: 1),
         Expanded(
           child: product.stocks.isEmpty
-              ? const Center(
+              ? Center(
                   child: Text(
                     'สินค้านี้ยังไม่มีล็อตสต็อก',
-                    style: TextStyle(color: Colors.grey),
+                    style: TextStyle(color: AppColors.of(context).textSecondary),
                   ),
                 )
               : ListView.builder(

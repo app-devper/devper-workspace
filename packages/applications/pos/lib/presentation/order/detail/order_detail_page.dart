@@ -26,6 +26,7 @@ import 'package:pos/presentation/order/core/export_pdf.dart';
 import 'package:pos/presentation/order/return/product_return_widget.dart';
 import 'package:pos/presentation/order/return/product_returns_history_widget.dart';
 import 'package:pos/presentation/product/argument.dart';
+import 'package:design_system/theme/app_colors.dart';
 import 'package:design_system/theme/color.dart';
 import 'order_detail_view_model.dart';
 
@@ -278,7 +279,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
         if (content.oversoldQty > 0)
           StatusBadge(label: 'เกิน ${content.oversoldQty}', color: Colors.orange),
         if (content.returnedQty > 0)
-          StatusBadge(label: 'คืน ${content.returnedQty}', color: Colors.grey),
+          StatusBadge(label: 'คืน ${content.returnedQty}', color: AppColors.of(context).textSecondary),
       ],
     );
   }

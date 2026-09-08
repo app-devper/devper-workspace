@@ -1,5 +1,6 @@
 // Flutter imports:
 import 'package:flutter/material.dart';
+import 'package:design_system/theme/app_colors.dart';
 
 // Package imports:
 import 'package:common/core/ext/widget_ext.dart';
@@ -147,18 +148,18 @@ class _ProductPriceWidgetState extends State<ProductPriceWidget> {
                 const SizedBox(height: 64),
                 Text(
                   'ข้อมูลราคาขาย "${unit.unit}"',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
-                    color: Colors.black,
+                    color: AppColors.of(context).textPrimary,
                   ),
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: 16),
                 Text(
                   'โปรดระบุข้อมูลราคาขาย "${unit.unit}"',
                   style: TextStyle(
                     fontSize: 16,
-                    color: Colors.black.withValues(alpha: 0.6),
+                    color: AppColors.of(context).textPrimary.withValues(alpha: 0.6),
                   ),
                 ),
                 const SizedBox(height: 32),
@@ -179,6 +180,7 @@ class _ProductPriceWidgetState extends State<ProductPriceWidget> {
                           },
                           padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
                           decoration: buildInputDecoration(
+                            context: context,
                             labelText: 'ผูกกับประเภทลูกค้า',
                             hintText: 'เลือกประเภทลูกค้า',
                           ),
@@ -207,6 +209,7 @@ class _ProductPriceWidgetState extends State<ProductPriceWidget> {
                           keyboardType: TextInputType.number,
                           autovalidateMode: AutovalidateMode.onUserInteraction,
                           decoration: buildInputDecoration(
+                            context: context,
                             labelText: 'ราคาขายต่อหน่วย',
                             hintText: '0.00',
                           ),

@@ -1,8 +1,10 @@
 // Flutter imports:
 import 'package:flutter/material.dart';
+import 'package:design_system/theme/app_colors.dart';
 import 'package:flutter/services.dart';
 
 InputDecoration buildInputDecoration({
+  required BuildContext context,
   required String labelText,
   required String hintText,
   Widget? suffix,
@@ -10,11 +12,11 @@ InputDecoration buildInputDecoration({
   return InputDecoration(
     contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
     border: OutlineInputBorder(
-      borderSide: const BorderSide(color: Colors.grey),
+      borderSide: BorderSide(color: AppColors.of(context).textSecondary),
       borderRadius: BorderRadius.circular(8.0),
     ),
     enabledBorder: OutlineInputBorder(
-      borderSide: const BorderSide(color: Colors.grey),
+      borderSide: BorderSide(color: AppColors.of(context).textSecondary),
       borderRadius: BorderRadius.circular(8.0),
     ),
     filled: true,

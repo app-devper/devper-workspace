@@ -1,5 +1,6 @@
 // Flutter imports:
 import 'package:flutter/material.dart';
+import 'package:design_system/theme/app_colors.dart';
 
 // Package imports:
 import 'package:design_system/widgets/title_bar.dart';
@@ -74,11 +75,11 @@ class _CustomerDetailWidgetState extends State<CustomerDetailWidget> with Ticker
           children: <Widget>[
             const Divider(height: 1),
             TabBar.secondary(
-              indicator: const UnderlineTabIndicator(
+              indicator: UnderlineTabIndicator(
                 borderSide: BorderSide(color: Colors.blue, width: 2.0),
               ),
               isScrollable: false,
-              labelColor: Colors.black,
+              labelColor: AppColors.of(context).textPrimary,
               controller: _tabController,
               tabs: const <Widget>[
                 Tab(
@@ -140,15 +141,15 @@ class _CustomerDetailWidgetState extends State<CustomerDetailWidget> with Ticker
         ListTile(
           title: Text(
             title,
-            style: const TextStyle(
-              color: Colors.black,
+            style: TextStyle(
+              color: AppColors.of(context).textPrimary,
               fontSize: 16.0,
             ),
           ),
           trailing: Text(
             subtitle,
-            style: const TextStyle(
-              color: Colors.black,
+            style: TextStyle(
+              color: AppColors.of(context).textPrimary,
               fontSize: 16.0,
             ),
           ),

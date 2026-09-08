@@ -14,6 +14,7 @@ import 'package:pos/domain/model/order/param.dart';
 import 'package:pos/localizations/language/languages.dart';
 import 'package:pos/presentation/constants.dart';
 import 'package:pos/presentation/order/argument.dart';
+import 'package:design_system/theme/app_colors.dart';
 import 'package:design_system/theme/color.dart';
 import 'order_state.dart';
 import 'order_ui_model.dart';
@@ -158,18 +159,18 @@ class _OrderPageState extends State<OrderPage> {
                 child: DropdownButton(
                   value: _value,
                   alignment: AlignmentDirectional.center,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14.0,
-                    color: CustomColor.fontBlack,
+                    color: AppColors.of(context).textPrimary,
                   ),
                   items: data.map((ListItem item) {
                     return DropdownMenuItem<Range>(
                       value: item.value,
                       child: Text(
                         item.name,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 14.0,
-                          color: CustomColor.fontBlack,
+                          color: AppColors.of(context).textPrimary,
                         ),
                       ),
                     );
@@ -214,7 +215,7 @@ class _OrderPageState extends State<OrderPage> {
         children: <Widget>[
           Text(
             _dateFormat.format(_startDate),
-            style: const TextStyle(fontSize: 14.0, color: CustomColor.fontBlack),
+            style: TextStyle(fontSize: 14.0, color: AppColors.of(context).textPrimary),
           ),
         ],
       );
@@ -223,7 +224,7 @@ class _OrderPageState extends State<OrderPage> {
         children: <Widget>[
           Text(
             _mountFormat.format(_startDate),
-            style: const TextStyle(fontSize: 14.0, color: CustomColor.fontBlack),
+            style: TextStyle(fontSize: 14.0, color: AppColors.of(context).textPrimary),
           ),
         ],
       );
@@ -232,15 +233,15 @@ class _OrderPageState extends State<OrderPage> {
         children: <Widget>[
           Text(
             _dateFormat.format(_startDate),
-            style: const TextStyle(fontSize: 14.0, color: CustomColor.fontBlack),
+            style: TextStyle(fontSize: 14.0, color: AppColors.of(context).textPrimary),
           ),
-          const Text(
+          Text(
             " - ",
-            style: TextStyle(fontSize: 14.0, color: CustomColor.fontBlack),
+            style: TextStyle(fontSize: 14.0, color: AppColors.of(context).textPrimary),
           ),
           Text(
             _dateFormat.format(_endDate.subtract(const Duration(days: 1))),
-            style: const TextStyle(fontSize: 14.0, color: CustomColor.fontBlack),
+            style: TextStyle(fontSize: 14.0, color: AppColors.of(context).textPrimary),
           ),
         ],
       );
@@ -253,10 +254,10 @@ class _OrderPageState extends State<OrderPage> {
       children: List.generate(_choices.length, (index) {
         return ChoiceChip(
           label: Text(_choices[index]),
-          labelStyle: const TextStyle(color: Colors.white),
+          labelStyle: TextStyle(color: Colors.white),
           selected: _defaultChoiceIndex == index,
           selectedColor: CustomColor.primary,
-          backgroundColor: Colors.grey,
+          backgroundColor: AppColors.of(context).textSecondary,
           onSelected: (value) {
             setState(() {
               _defaultChoiceIndex = value ? index : _defaultChoiceIndex;

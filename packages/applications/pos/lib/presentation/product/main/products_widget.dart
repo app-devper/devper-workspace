@@ -7,6 +7,7 @@ import 'package:design_system/widgets/responsive.dart';
 // Project imports:
 import 'package:pos/container.dart';
 import 'package:pos/domain/model/product/product.dart';
+import 'package:design_system/theme/app_colors.dart';
 import 'package:design_system/theme/color.dart';
 import 'products_state.dart';
 import 'products_view_model.dart';
@@ -71,12 +72,12 @@ class _ProductsWidgetState extends State<ProductsWidget> {
                   decoration: InputDecoration(
                     contentPadding: const EdgeInsets.all(0),
                     hintText: 'ค้นหาสิ่งที่คุณต้องการ...',
-                    prefixIcon: const Icon(Icons.search),
+                    prefixIcon: Icon(Icons.search),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                       borderSide: BorderSide.none,
                     ),
-                    fillColor: Colors.grey[200],
+                    fillColor: AppColors.of(context).border,
                     filled: true,
                     suffixIcon: IconButton(
                       splashRadius: 20,
@@ -165,15 +166,15 @@ class _ProductsWidgetState extends State<ProductsWidget> {
               title: Text(content.name),
               subtitle: Text(
                 getSubTitle(content),
-                style: const TextStyle(
-                  color: Colors.grey,
+                style: TextStyle(
+                  color: AppColors.of(context).textSecondary,
                   fontSize: 14,
                 ),
               ),
-              trailing: const Icon(
+              trailing: Icon(
                 Icons.arrow_forward_ios,
                 size: 16,
-                color: Colors.grey,
+                color: AppColors.of(context).textSecondary,
               ),
               onTap: () {
                 widget.onSelected(content);

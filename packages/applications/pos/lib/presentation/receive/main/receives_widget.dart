@@ -10,6 +10,7 @@ import 'package:pos/container.dart';
 import 'package:pos/domain/model/receive/receive.dart';
 import 'package:pos/presentation/receive/main/receive_state.dart';
 import 'package:pos/presentation/receive/main/receives_view_model.dart';
+import 'package:design_system/theme/app_colors.dart';
 import 'package:design_system/theme/color.dart';
 
 class ReceivesWidget extends StatefulWidget {
@@ -71,12 +72,12 @@ class _ReceivesWidgetState extends State<ReceivesWidget> {
                   decoration: InputDecoration(
                     contentPadding: const EdgeInsets.all(0),
                     hintText: 'ค้นหาเลขที่ใบรับสินค้า...',
-                    prefixIcon: const Icon(Icons.search),
+                    prefixIcon: Icon(Icons.search),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                       borderSide: BorderSide.none,
                     ),
-                    fillColor: Colors.grey[200],
+                    fillColor: AppColors.of(context).border,
                     filled: true,
                     suffixIcon: IconButton(
                       splashRadius: 20,
@@ -155,15 +156,15 @@ class _ReceivesWidgetState extends State<ReceivesWidget> {
               title: Text(content.code),
               subtitle: Text(
                 "มูลค่า: ฿${content.totalCost.toStringAsFixed(2)}, วันที่: ${content.createdDate.formatDate()}",
-                style: const TextStyle(
-                  color: Colors.grey,
+                style: TextStyle(
+                  color: AppColors.of(context).textSecondary,
                   fontSize: 14,
                 ),
               ),
-              trailing: const Icon(
+              trailing: Icon(
                 Icons.arrow_forward_ios,
                 size: 16,
-                color: Colors.grey,
+                color: AppColors.of(context).textSecondary,
               ),
               onTap: () {
                 widget.onSelected(content);

@@ -18,6 +18,7 @@ import 'package:pos/presentation/product/stock/product_stock_widget.dart';
 import 'package:pos/presentation/product/stock/stock_adjustment_history_widget.dart';
 import 'package:pos/presentation/product/stock/stock_adjustment_widget.dart';
 import 'package:pos/presentation/product/unit/product_unit_widget.dart';
+import 'package:design_system/theme/app_colors.dart';
 import 'package:design_system/theme/color.dart';
 import 'package:design_system/theme/spacing.dart';
 
@@ -88,11 +89,11 @@ class _ProductDetailWidgetState extends State<ProductDetailWidget>
           children: <Widget>[
             const Divider(height: 1),
             TabBar.secondary(
-              indicator: const UnderlineTabIndicator(
+              indicator: UnderlineTabIndicator(
                 borderSide: BorderSide(color: Colors.blue, width: 2.0),
               ),
               isScrollable: false,
-              labelColor: Colors.black,
+              labelColor: AppColors.of(context).textPrimary,
               controller: _tabController,
               tabs: const <Widget>[
                 Tab(
@@ -309,22 +310,23 @@ class _ProductDetailWidgetState extends State<ProductDetailWidget>
   Widget _buildListItem(
     String title,
     String subtitle, {
-    Color color = Colors.black,
+    Color? color,
   }) {
+    final textColor = color ?? AppColors.of(context).textPrimary;
     return Column(
       children: [
         ListTile(
           title: Text(
             title,
-            style: const TextStyle(
-              color: Colors.black,
+            style: TextStyle(
+              color: AppColors.of(context).textPrimary,
               fontSize: 16.0,
             ),
           ),
           trailing: Text(
             subtitle,
             style: TextStyle(
-              color: color,
+              color: textColor,
               fontSize: 16.0,
             ),
           ),
@@ -383,9 +385,9 @@ class _ProductDetailWidgetState extends State<ProductDetailWidget>
                 const SizedBox(height: 4.0),
                 Text(
                   'บาร์โค้ด: ${unit.barcode}',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 16.0,
-                    color: Colors.black,
+                    color: AppColors.of(context).textPrimary,
                   ),
                 ),
                 const Divider(),
@@ -395,11 +397,11 @@ class _ProductDetailWidgetState extends State<ProductDetailWidget>
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        const Text(
+                        Text(
                           'ขนาดบรรจุ',
                           style: TextStyle(
                             fontSize: 14.0,
-                            color: Colors.grey,
+                            color: AppColors.of(context).textSecondary,
                           ),
                         ),
                         const SizedBox(height: 4.0),
@@ -415,11 +417,11 @@ class _ProductDetailWidgetState extends State<ProductDetailWidget>
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
-                        const Text(
+                        Text(
                           'ต้นทุน',
                           style: TextStyle(
                             fontSize: 14.0,
-                            color: Colors.grey,
+                            color: AppColors.of(context).textSecondary,
                           ),
                         ),
                         const SizedBox(height: 4.0),
@@ -435,11 +437,11 @@ class _ProductDetailWidgetState extends State<ProductDetailWidget>
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
-                        const Text(
+                        Text(
                           'ปริมาณ',
                           style: TextStyle(
                             fontSize: 14.0,
-                            color: Colors.grey,
+                            color: AppColors.of(context).textSecondary,
                           ),
                         ),
                         const SizedBox(height: 4.0),
@@ -501,9 +503,9 @@ class _ProductDetailWidgetState extends State<ProductDetailWidget>
                 const SizedBox(height: 4.0),
                 Text(
                   'ต้นทุนของสินค้า: ฿${formatDouble(unit.costPrice)}',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 16.0,
-                    color: Colors.black,
+                    color: AppColors.of(context).textPrimary,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -514,11 +516,11 @@ class _ProductDetailWidgetState extends State<ProductDetailWidget>
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
+                        Text(
                           'ผูกกับประเภทลูกค้า',
                           style: TextStyle(
                             fontSize: 14.0,
-                            color: Colors.grey,
+                            color: AppColors.of(context).textSecondary,
                           ),
                         ),
                         const SizedBox(height: 4.0),
@@ -558,11 +560,11 @@ class _ProductDetailWidgetState extends State<ProductDetailWidget>
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
-                        const Text(
+                        Text(
                           'ราคา',
                           style: TextStyle(
                             fontSize: 14.0,
-                            color: Colors.grey,
+                            color: AppColors.of(context).textSecondary,
                           ),
                         ),
                         const SizedBox(height: 4.0),
@@ -649,9 +651,9 @@ class _ProductDetailWidgetState extends State<ProductDetailWidget>
                 const SizedBox(height: 4.0),
                 Text(
                   'คงเหลือรวมทั้งหมด: $total ${unit.unit}',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 16.0,
-                    color: Colors.black,
+                    color: AppColors.of(context).textPrimary,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -662,11 +664,11 @@ class _ProductDetailWidgetState extends State<ProductDetailWidget>
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
+                        Text(
                           'นำเข้าเมื่อ',
                           style: TextStyle(
                             fontSize: 14.0,
-                            color: Colors.grey,
+                            color: AppColors.of(context).textSecondary,
                           ),
                         ),
                         const SizedBox(height: 4.0),
@@ -707,11 +709,11 @@ class _ProductDetailWidgetState extends State<ProductDetailWidget>
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        const Text(
+                        Text(
                           'วันหมดอายุ',
                           style: TextStyle(
                             fontSize: 14.0,
-                            color: Colors.grey,
+                            color: AppColors.of(context).textSecondary,
                           ),
                         ),
                         const SizedBox(height: 4.0),
@@ -728,11 +730,11 @@ class _ProductDetailWidgetState extends State<ProductDetailWidget>
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
-                        const Text(
+                        Text(
                           'ต้นทุน',
                           style: TextStyle(
                             fontSize: 14.0,
-                            color: Colors.grey,
+                            color: AppColors.of(context).textSecondary,
                           ),
                         ),
                         const SizedBox(height: 4.0),
@@ -747,9 +749,9 @@ class _ProductDetailWidgetState extends State<ProductDetailWidget>
                                 )
                               : Text(
                                   '฿${formatDouble(unit.costPrice)}',
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 16.0,
-                                    color: Colors.grey,
+                                    color: AppColors.of(context).textSecondary,
                                   ),
                                 ),
                         ),
@@ -758,11 +760,11 @@ class _ProductDetailWidgetState extends State<ProductDetailWidget>
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
-                        const Text(
+                        Text(
                           'ราคาขาย',
                           style: TextStyle(
                             fontSize: 14.0,
-                            color: Colors.grey,
+                            color: AppColors.of(context).textSecondary,
                           ),
                         ),
                         const SizedBox(height: 4.0),
@@ -777,9 +779,9 @@ class _ProductDetailWidgetState extends State<ProductDetailWidget>
                                 )
                               : Text(
                                   '฿${formatDouble(price.price)}',
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 16.0,
-                                    color: Colors.grey,
+                                    color: AppColors.of(context).textSecondary,
                                   ),
                                 ),
                         ),
@@ -788,11 +790,11 @@ class _ProductDetailWidgetState extends State<ProductDetailWidget>
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        const Text(
+                        Text(
                           'นำเข้า',
                           style: TextStyle(
                             fontSize: 14.0,
-                            color: Colors.grey,
+                            color: AppColors.of(context).textSecondary,
                           ),
                         ),
                         const SizedBox(height: 4.0),
@@ -810,11 +812,11 @@ class _ProductDetailWidgetState extends State<ProductDetailWidget>
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        const Text(
+                        Text(
                           'คงเหลือ',
                           style: TextStyle(
                             fontSize: 14.0,
-                            color: Colors.grey,
+                            color: AppColors.of(context).textSecondary,
                           ),
                         ),
                         const SizedBox(height: 4.0),
