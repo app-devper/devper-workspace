@@ -34,8 +34,18 @@ class AppShell extends StatefulWidget {
   final ValueChanged<String> onSelect;
   final Widget child;
   final List<Widget> actions;
-  final Widget? sidebarFooter;
+  /// Built with the collapsed state so the host can drop labels in the rail,
+  /// the way the nav items do. A plain widget would wrap one glyph per line.
+  final Widget Function(bool collapsed)? sidebarFooter;
   final Widget? floatingActionButton;
+
+  /// Start docked-and-expanded or as an icon rail. Null follows the form
+  /// factor, which suits a host whose sidebar is the only navigation.
+  final bool? initiallyExpanded;
+
+  /// Set false when each section draws its own header. The bar still appears
+  /// on a narrow viewport, where it is the only way to reach the drawer.
+  final bool showTopBar;
 
   const AppShell({
     super.key,
@@ -48,6 +58,8 @@ class AppShell extends StatefulWidget {
     this.actions = const [],
     this.sidebarFooter,
     this.floatingActionButton,
+    this.initiallyExpanded,
+    this.showTopBar = true,
   });
 
   @override
@@ -66,7 +78,8 @@ class _AppShellState extends State<AppShell> with SingleTickerProviderStateMixin
   /// form factor: a docked sidebar starts open, a drawer starts hidden.
   bool? _open;
 
-  bool _isOpen(bool isMobile) => _open ?? !isMobile;
+  bool _isOpen(bool isMobile) =>
+      _open ?? widget.initiallyExpanded ?? !isMobile;
 
   void _toggle(bool isMobile) => setState(() => _open = !_isOpen(isMobile));
 
@@ -95,13 +108,14 @@ class _AppShellState extends State<AppShell> with SingleTickerProviderStateMixin
               collapsed: !open,
               onSelect: widget.onSelect,
               onToggle: () => _toggle(false),
-              footer: widget.sidebarFooter,
+              footer: widget.sidebarFooter?.call(!open),
             ),
           ),
           Expanded(
             child: Column(
               children: [
-                _TopBar(title: widget.title, actions: widget.actions),
+                if (widget.showTopBar)
+                  _TopBar(title: widget.title, actions: widget.actions),
                 Expanded(child: widget.child),
               ],
             ),
@@ -123,7 +137,7 @@ class _AppShellState extends State<AppShell> with SingleTickerProviderStateMixin
           Column(
             children: [
               _TopBar(
-                title: widget.title,
+                title: widget.showTopBar ? widget.title : '',
                 actions: widget.actions,
                 onMenu: () => _toggle(true),
               ),
@@ -162,7 +176,7 @@ class _AppShellState extends State<AppShell> with SingleTickerProviderStateMixin
                   widget.onSelect(id);
                 },
                 onToggle: () => _toggle(true),
-                footer: widget.sidebarFooter,
+                footer: widget.sidebarFooter?.call(false),
               ),
             ),
           ),
