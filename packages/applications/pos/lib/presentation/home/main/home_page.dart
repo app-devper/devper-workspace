@@ -104,8 +104,13 @@ class _HomePageState extends State<HomePage> {
         title: '',
         // Each section draws its own header already.
         showTopBar: false,
-        // Share the expanded workspace navigation with SM.
-        initiallyExpanded: true,
+        // Start as a rail. The selling screen lays out as
+        // [ProductSearch (flexible)] | [cart 340-400] | [items 50], so the
+        // product picker is the only column that gives, and it absorbs the
+        // whole sidebar. On a 1024 shop tablet that is ~560px of search area
+        // as a rail against ~372px expanded — a third of it, spent on four
+        // labels a cashier already knows by icon. It still opens on demand.
+        initiallyExpanded: false,
         items: _items,
         selectedId: _selectedId,
         onSelect: _onSelect,
