@@ -125,7 +125,7 @@ class _HomePageState extends State<HomePage> {
           items: items,
           selectedId: selected,
           onSelect: (id) => setState(() => _selected = id),
-          sidebarFooter: _buildSidebarFooter(),
+          sidebarFooter: _buildSidebarFooter,
           floatingActionButton:
               selected == _systemsId && state.canManageSystems
                   ? FloatingActionButton.extended(
@@ -144,16 +144,18 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildSidebarFooter() {
+  Widget _buildSidebarFooter(bool collapsed) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         _footerAction(
+          collapsed: collapsed,
           icon: Icons.lock_outline,
           label: 'เปลี่ยนรหัสผ่าน',
           onTap: () => Navigator.pushNamed(context, routeChangePassword),
         ),
         _footerAction(
+          collapsed: collapsed,
           icon: Icons.logout,
           label: 'ออกจากระบบ',
           color: CustomColor.error,
@@ -164,28 +166,34 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _footerAction({
+    required bool collapsed,
     required IconData icon,
     required String label,
     required VoidCallback onTap,
     Color? color,
   }) {
-    return InkWell(
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.sm, vertical: 10),
-        child: Row(
-          children: [
-            Icon(icon, size: 18, color: color ?? CustomColor.font2),
-            const SizedBox(width: AppSpacing.md),
-            Expanded(
-              child: Text(
-                label,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(color: color ?? CustomColor.fontBlack),
-              ),
-            ),
-          ],
+    return Tooltip(
+      message: collapsed ? label : '',
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.sm, vertical: 10),
+          child: Row(
+            children: [
+              Icon(icon, size: 18, color: color ?? CustomColor.font2),
+              if (!collapsed) ...[
+                const SizedBox(width: AppSpacing.md),
+                Expanded(
+                  child: Text(
+                    label,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(color: color ?? CustomColor.fontBlack),
+                  ),
+                ),
+              ],
+            ],
+          ),
         ),
       ),
     );
