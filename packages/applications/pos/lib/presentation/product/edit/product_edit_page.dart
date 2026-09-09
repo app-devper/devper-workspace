@@ -1,5 +1,6 @@
 // Flutter imports:
 import 'package:flutter/material.dart';
+import 'package:design_system/theme/app_colors.dart';
 import 'package:flutter/services.dart';
 
 // Package imports:
@@ -179,20 +180,20 @@ class _ProductEditPageState extends State<ProductEditPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
-                    const Text(
+                    Text(
                       'ข้อมูลทั่วไป',
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
-                        color: Colors.black,
+                        color: AppColors.of(context).textPrimary,
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: 16),
                     Text(
                       'โปรดระบุข้อมูลสินค้า',
                       style: TextStyle(
                         fontSize: 16,
-                        color: Colors.black.withValues(alpha: 0.6),
+                        color: AppColors.of(context).textPrimary.withValues(alpha: 0.6),
                       ),
                     ),
                     const SizedBox(height: 32),
@@ -212,12 +213,12 @@ class _ProductEditPageState extends State<ProductEditPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
-                    const Text(
+                    Text(
                       'ข้อมูลสต็อกขั้นต่ำ',
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
-                        color: Colors.black,
+                        color: AppColors.of(context).textPrimary,
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -228,6 +229,7 @@ class _ProductEditPageState extends State<ProductEditPage> {
                       controller: _minStockEditingController,
                       keyboardType: TextInputType.number,
                       decoration: buildInputDecoration(
+                        context: context,
                         labelText: 'สต็อกขั้นต่ำ',
                         hintText: '0',
                       ),
@@ -246,12 +248,12 @@ class _ProductEditPageState extends State<ProductEditPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
-                    const Text(
+                    Text(
                       'ข้อมูลยา',
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
-                        color: Colors.black,
+                        color: AppColors.of(context).textPrimary,
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -271,12 +273,12 @@ class _ProductEditPageState extends State<ProductEditPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
-                    const Text(
+                    Text(
                       'ทะเบียนยา',
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
-                        color: Colors.black,
+                        color: AppColors.of(context).textPrimary,
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -284,6 +286,7 @@ class _ProductEditPageState extends State<ProductEditPage> {
                       controller: _drugRegistrationsController,
                       keyboardType: TextInputType.text,
                       decoration: buildInputDecoration(
+                        context: context,
                         labelText: 'ทะเบียนยา (คั่นด้วยเครื่องหมาย ,)',
                         hintText: 'เช่น KHY9, KHY10',
                       ),
@@ -318,6 +321,7 @@ class _ProductEditPageState extends State<ProductEditPage> {
             return null;
           },
           decoration: buildInputDecoration(
+            context: context,
             labelText: 'ประเภทสินค้า',
             hintText: 'โปรดเลือกประเภทสินค้า',
           ),
@@ -344,6 +348,7 @@ class _ProductEditPageState extends State<ProductEditPage> {
           keyboardType: TextInputType.text,
           autovalidateMode: AutovalidateMode.onUserInteraction,
           decoration: buildInputDecoration(
+            context: context,
             labelText: 'ชื่อสินค้า',
             hintText: 'โปรดระบุชื่อสินค้า',
           ),
@@ -364,6 +369,7 @@ class _ProductEditPageState extends State<ProductEditPage> {
           keyboardType: TextInputType.text,
           autovalidateMode: AutovalidateMode.onUserInteraction,
           decoration: buildInputDecoration(
+            context: context,
             labelText: 'คำอธิบายสินค้า',
             hintText: 'โปรดระบุคำอธิบายสินค้า',
           ),
@@ -380,6 +386,7 @@ class _ProductEditPageState extends State<ProductEditPage> {
             return null;
           },
           decoration: buildInputDecoration(
+            context: context,
             labelText: 'การแสดงข้อมูลสินค้า',
             hintText: 'โปรดเลือกการแสดงข้อมูลสินค้า',
           ),
@@ -407,6 +414,7 @@ class _ProductEditPageState extends State<ProductEditPage> {
           controller: _genericNameController,
           keyboardType: TextInputType.text,
           decoration: buildInputDecoration(
+            context: context,
             labelText: 'ชื่อสามัญ (Generic Name)',
             hintText: '',
           ),
@@ -416,6 +424,7 @@ class _ProductEditPageState extends State<ProductEditPage> {
           controller: _drugTypeController,
           keyboardType: TextInputType.text,
           decoration: buildInputDecoration(
+            context: context,
             labelText: 'ประเภทยา (Drug Type)',
             hintText: '',
           ),
@@ -425,6 +434,7 @@ class _ProductEditPageState extends State<ProductEditPage> {
           controller: _dosageFormController,
           keyboardType: TextInputType.text,
           decoration: buildInputDecoration(
+            context: context,
             labelText: 'รูปแบบยา (Dosage Form)',
             hintText: '',
           ),
@@ -434,6 +444,7 @@ class _ProductEditPageState extends State<ProductEditPage> {
           controller: _strengthController,
           keyboardType: TextInputType.text,
           decoration: buildInputDecoration(
+            context: context,
             labelText: 'ความแรง (Strength)',
             hintText: '',
           ),
@@ -443,6 +454,7 @@ class _ProductEditPageState extends State<ProductEditPage> {
           controller: _indicationController,
           keyboardType: TextInputType.text,
           decoration: buildInputDecoration(
+            context: context,
             labelText: 'ข้อบ่งใช้ (Indication)',
             hintText: '',
           ),
@@ -452,6 +464,7 @@ class _ProductEditPageState extends State<ProductEditPage> {
           controller: _dosageController,
           keyboardType: TextInputType.text,
           decoration: buildInputDecoration(
+            context: context,
             labelText: 'ขนาดยา (Dosage)',
             hintText: '',
           ),
@@ -461,6 +474,7 @@ class _ProductEditPageState extends State<ProductEditPage> {
           controller: _sideEffectsController,
           keyboardType: TextInputType.text,
           decoration: buildInputDecoration(
+            context: context,
             labelText: 'ผลข้างเคียง (Side Effects)',
             hintText: '',
           ),
@@ -470,6 +484,7 @@ class _ProductEditPageState extends State<ProductEditPage> {
           controller: _contraindicationsController,
           keyboardType: TextInputType.text,
           decoration: buildInputDecoration(
+            context: context,
             labelText: 'ข้อห้ามใช้ (Contraindications)',
             hintText: '',
           ),
@@ -479,6 +494,7 @@ class _ProductEditPageState extends State<ProductEditPage> {
           controller: _storageConditionController,
           keyboardType: TextInputType.text,
           decoration: buildInputDecoration(
+            context: context,
             labelText: 'เงื่อนไขการเก็บรักษา',
             hintText: '',
           ),
@@ -488,6 +504,7 @@ class _ProductEditPageState extends State<ProductEditPage> {
           controller: _manufacturerController,
           keyboardType: TextInputType.text,
           decoration: buildInputDecoration(
+            context: context,
             labelText: 'ผู้ผลิต (Manufacturer)',
             hintText: '',
           ),
@@ -497,6 +514,7 @@ class _ProductEditPageState extends State<ProductEditPage> {
           controller: _registrationNoController,
           keyboardType: TextInputType.text,
           decoration: buildInputDecoration(
+            context: context,
             labelText: 'เลขทะเบียน (Registration No)',
             hintText: '',
           ),

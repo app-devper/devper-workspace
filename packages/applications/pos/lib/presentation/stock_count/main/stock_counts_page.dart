@@ -13,6 +13,7 @@ import 'package:pos/presentation/constants.dart';
 import 'package:pos/presentation/stock_count/argument.dart';
 import 'package:pos/presentation/stock_count/main/stock_counts_state.dart';
 import 'package:pos/presentation/stock_count/main/stock_counts_view_model.dart';
+import 'package:design_system/theme/app_colors.dart';
 import 'package:design_system/theme/color.dart';
 
 class StockCountsPage extends StatefulWidget {
@@ -89,10 +90,10 @@ class _StockCountsPageState extends State<StockCountsPage> {
           );
         }
         if (state.items.isEmpty) {
-          return const Center(
+          return Center(
             child: Text(
               'ยังไม่มีการนับสต็อก',
-              style: TextStyle(fontSize: 16, color: Colors.grey),
+              style: TextStyle(fontSize: 16, color: AppColors.of(context).textSecondary),
             ),
           );
         }
@@ -111,9 +112,9 @@ class _StockCountsPageState extends State<StockCountsPage> {
             title: Text(content.countNo),
             subtitle: Text(
               "รายการ: ${content.items.length}, วันที่: ${content.getCreatedDate()}",
-              style: const TextStyle(color: Colors.grey, fontSize: 14),
+              style: TextStyle(color: AppColors.of(context).textSecondary, fontSize: 14),
             ),
-            trailing: const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
+            trailing: Icon(Icons.arrow_forward_ios, size: 16, color: AppColors.of(context).textSecondary),
             onTap: () {
               _nextToStockCountManage(context, stockCountId: content.id);
             },

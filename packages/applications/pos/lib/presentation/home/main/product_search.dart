@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 
 // Package imports:
+import 'package:design_system/theme/app_colors.dart';
 import 'package:design_system/theme/color.dart';
 import 'package:qr_code_scanner_plus/qr_code_scanner_plus.dart';
 
@@ -83,7 +84,7 @@ class _ProductSearchState extends State<ProductSearch> {
                     borderRadius: BorderRadius.circular(10),
                     borderSide: BorderSide.none,
                   ),
-                  fillColor: Colors.grey[200],
+                  fillColor: AppColors.of(context).border,
                   filled: true,
                 ),
                 onChanged: (value) {
@@ -114,12 +115,12 @@ class _ProductSearchState extends State<ProductSearch> {
                     );
                   }
                   if (items.isEmpty) {
-                    return const Center(
+                    return Center(
                         child: Text(
                             "ไม่พบสินค้า\nลองค้นหาด้วยชื่อหรือบาร์โค้ดอื่น",
                             textAlign: TextAlign.center,
                             style: TextStyle(
-                                color: Color(0xFF687588), height: 1.8)));
+                                color: AppColors.of(context).textSecondary, height: 1.8)));
                   }
                   return GridView.builder(
                     padding: const EdgeInsets.all(8),

@@ -15,7 +15,7 @@ import 'package:pos/domain/model/category/category.dart';
 import 'package:pos/domain/model/category/param.dart';
 import 'package:pos/localizations/language/languages.dart';
 import 'package:pos/presentation/constants.dart';
-import 'package:design_system/theme/color.dart';
+import 'package:design_system/theme/app_colors.dart';
 import 'category_edit_view_model.dart';
 
 class CategoryEditPage extends StatefulWidget {
@@ -216,29 +216,29 @@ class _CategoryEditPageState extends State<CategoryEditPage> {
         decoration: InputDecoration(
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(4.0),
-            borderSide: const BorderSide(
-              color: CustomColor.textFieldBackground,
+            borderSide: BorderSide(
+              color: AppColors.of(context).surfaceSunken,
             ),
           ),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(4.0),
-            borderSide: const BorderSide(
-              color: CustomColor.textFieldBackground,
+            borderSide: BorderSide(
+              color: AppColors.of(context).surfaceSunken,
             ),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(4.0),
-            borderSide: const BorderSide(
-              color: CustomColor.textFieldBackground,
+            borderSide: BorderSide(
+              color: AppColors.of(context).surfaceSunken,
             ),
           ),
-          focusColor: CustomColor.hintColor,
-          hoverColor: CustomColor.textFieldBackground,
-          fillColor: CustomColor.textFieldBackground,
+          focusColor: AppColors.of(context).textHint,
+          hoverColor: AppColors.of(context).surfaceSunken,
+          fillColor: AppColors.of(context).surfaceSunken,
           filled: true,
           labelText: labelText,
         ),
-        cursorColor: CustomColor.hintColor,
+        cursorColor: AppColors.of(context).textHint,
         onFieldSubmitted: (term) {
           fieldFocusChange(context, focusNode, nextNode);
         },

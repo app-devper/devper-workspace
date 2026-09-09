@@ -9,6 +9,7 @@ import 'package:pos/container.dart';
 import 'package:pos/domain/model/product/product_history.dart';
 import 'package:pos/presentation/product/history/product_history_state.dart';
 import 'package:pos/presentation/product/history/product_history_view_model.dart';
+import 'package:design_system/theme/app_colors.dart';
 import 'package:design_system/theme/color.dart';
 import 'package:design_system/widgets/status_badge.dart';
 
@@ -75,12 +76,12 @@ class _ProductHistoryWidgetState extends State<ProductHistoryWidget> {
           );
         }
         if (state.items.isEmpty) {
-          return const Center(
+          return Center(
             child: Text(
               'ไม่มีประวัติ',
               style: TextStyle(
                 fontSize: 16,
-                color: Colors.grey,
+                color: AppColors.of(context).textSecondary,
               ),
             ),
           );
@@ -114,9 +115,9 @@ class _ProductHistoryWidgetState extends State<ProductHistoryWidget> {
                     ),
                     Text(
                       history.getCreatedDate(),
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 13,
-                        color: Colors.grey,
+                        color: AppColors.of(context).textSecondary,
                       ),
                     ),
                   ],
@@ -156,9 +157,9 @@ class _ProductHistoryWidgetState extends State<ProductHistoryWidget> {
       children: [
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 12,
-            color: Colors.grey,
+            color: AppColors.of(context).textSecondary,
           ),
         ),
         const SizedBox(height: 4),
@@ -187,7 +188,7 @@ class _ProductHistoryWidgetState extends State<ProductHistoryWidget> {
       case 'return':
         return Colors.purple;
       default:
-        return Colors.grey;
+        return AppColors.of(context).textSecondary;
     }
   }
 

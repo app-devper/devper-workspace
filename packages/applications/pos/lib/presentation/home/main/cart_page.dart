@@ -22,6 +22,7 @@ import 'package:pos/presentation/home/main/cart_widget.dart';
 import 'package:pos/presentation/home/main/customer_search.dart';
 import 'package:pos/presentation/home/main/payment_screen.dart';
 import 'package:pos/presentation/home/main/product_search.dart';
+import 'package:design_system/theme/app_colors.dart';
 import 'package:design_system/theme/color.dart';
 import 'cart_view_model.dart';
 
@@ -149,7 +150,7 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
         Expanded(
           child: _buildCart(showSearchIcon: true),
         ),
-        Container(width: 1, color: Colors.grey[200]),
+        Container(width: 1, color: AppColors.of(context).border),
         SizedBox(
           width: 50,
           child: _buildCartItem(),
@@ -168,12 +169,12 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
             },
           ),
         ),
-        Container(width: 1, color: Colors.grey[200]),
+        Container(width: 1, color: AppColors.of(context).border),
         SizedBox(
           width: 340,
           child: _buildCart(),
         ),
-        Container(width: 1, color: Colors.grey[200]),
+        Container(width: 1, color: AppColors.of(context).border),
         SizedBox(
           width: 50,
           child: _buildCartItem(),
@@ -192,12 +193,12 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
             },
           ),
         ),
-        Container(width: 1, color: Colors.grey[200]),
+        Container(width: 1, color: AppColors.of(context).border),
         SizedBox(
           width: 400,
           child: _buildCart(),
         ),
-        Container(width: 1, color: Colors.grey[200]),
+        Container(width: 1, color: AppColors.of(context).border),
         SizedBox(
           width: 50,
           child: _buildCartItem(),
@@ -381,8 +382,8 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
             style: ElevatedButton.styleFrom(
               backgroundColor: CustomColor.primary,
               foregroundColor: Colors.white,
-              disabledBackgroundColor: const Color(0xFFE8EDF3),
-              disabledForegroundColor: const Color(0xFF596579),
+              disabledBackgroundColor: AppColors.of(context).surfaceSunken,
+              disabledForegroundColor: AppColors.of(context).textSecondary,
               minimumSize: const Size(double.infinity, 64),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),

@@ -6,6 +6,7 @@ import 'package:common/core/ext/number_ext.dart';
 import 'package:design_system/widgets/input_number.dart';
 
 // Project imports:
+import 'package:design_system/theme/app_colors.dart';
 import 'package:design_system/theme/color.dart';
 
 class PaymentScreen extends StatefulWidget {
@@ -188,7 +189,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
   Widget _buildInputSection(String title, String amount) {
     getAmount() {
       if (!_isInput && amount.isEmpty) {
-        return Text("฿${formatDouble(widget.amount)}", style: TextStyle(fontSize: 24, color: Colors.grey[400], fontWeight: FontWeight.bold));
+        return Text("฿${formatDouble(widget.amount)}", style: TextStyle(fontSize: 24, color: AppColors.of(context).textSecondary, fontWeight: FontWeight.bold));
       }
       return Text("฿$amount", style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold));
     }
@@ -198,7 +199,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.of(context).surfaceRaised,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Column(
@@ -266,9 +267,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
         height: 80,
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppColors.of(context).surfaceRaised,
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: isSelected ? Colors.green : const Color(0xFFEEEEEE), width: 2),
+          border: Border.all(
+              color: isSelected ? Colors.green : AppColors.of(context).border,
+              width: 2),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -276,8 +279,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(iconData, color: isSelected ? Colors.green : Colors.grey, size: 20),
-                Text(title, style: TextStyle(fontSize: 16, color: isSelected ? Colors.green : Colors.grey, fontWeight: FontWeight.bold)),
+                Icon(iconData, color: isSelected ? Colors.green : AppColors.of(context).textSecondary, size: 20),
+                Text(title, style: TextStyle(fontSize: 16, color: isSelected ? Colors.green : AppColors.of(context).textSecondary, fontWeight: FontWeight.bold)),
               ],
             ),
             if (amount != null) ...[

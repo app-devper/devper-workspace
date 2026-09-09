@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:common/core/ext/date_ext.dart';
 import 'package:common/core/ext/number_ext.dart';
 import 'package:common/core/ext/widget_ext.dart';
+import 'package:design_system/theme/app_colors.dart';
 import 'package:design_system/theme/color.dart';
 import 'package:design_system/widgets/title_bar.dart';
 
@@ -91,8 +92,8 @@ class _ProductStockSequenceWidgetState extends State<ProductStockSequenceWidget>
           final double elevation = lerpDouble(0, 6, animValue)!;
           return Material(
             elevation: elevation,
-            color: Colors.grey.withValues(alpha: animValue * 0.1),
-            shadowColor: Colors.grey.withValues(alpha: animValue * 0.1),
+            color: AppColors.of(context).textSecondary.withValues(alpha: animValue * 0.1),
+            shadowColor: AppColors.of(context).textSecondary.withValues(alpha: animValue * 0.1),
             child: child,
           );
         },
@@ -153,7 +154,7 @@ class _ProductStockSequenceWidgetState extends State<ProductStockSequenceWidget>
   }
 
   Text _getSubtitle(ProductStock stock, String unit) {
-    const style = TextStyle(color: Colors.grey, fontSize: 14);
+    final style = TextStyle(color: AppColors.of(context).textSecondary, fontSize: 14);
     if (stock.costPrice > 0 && stock.price > 0) {
       return Text('Cost: ฿${formatDouble(stock.costPrice)}, Price: ฿${formatDouble(stock.price)}', style: style);
     } else if (stock.costPrice > 0) {
