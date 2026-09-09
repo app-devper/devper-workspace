@@ -1,5 +1,6 @@
 // Flutter imports:
 import 'package:flutter/material.dart';
+import 'package:design_system/theme/app_colors.dart';
 import 'package:flutter/services.dart';
 
 // Package imports:
@@ -70,7 +71,7 @@ class _OrderItemWidgetState extends State<OrderItemWidget> {
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
             Text(value),
-            const Icon(Icons.arrow_drop_down, color: Colors.grey),
+            Icon(Icons.arrow_drop_down, color: AppColors.of(context).textSecondary),
           ],
         ),
       );

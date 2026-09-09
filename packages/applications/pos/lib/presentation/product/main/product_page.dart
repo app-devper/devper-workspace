@@ -1,5 +1,6 @@
 // Flutter imports:
 import 'package:flutter/material.dart';
+import 'package:design_system/theme/app_colors.dart';
 
 // Package imports:
 import 'package:design_system/widgets/responsive.dart';
@@ -104,7 +105,7 @@ class _ProductsPageState extends State<ProductsPage> {
             },
           ),
         ),
-        Container(width: 1, color: Colors.grey[200]),
+        Container(width: 1, color: AppColors.of(context).border),
         Expanded(
           child: _buildPage(),
         ),

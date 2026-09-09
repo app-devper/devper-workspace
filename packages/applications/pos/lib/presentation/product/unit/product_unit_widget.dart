@@ -1,5 +1,6 @@
 // Flutter imports:
 import 'package:flutter/material.dart';
+import 'package:design_system/theme/app_colors.dart';
 import 'package:flutter/services.dart';
 
 // Package imports:
@@ -162,20 +163,20 @@ class _ProductUnitWidgetState extends State<ProductUnitWidget> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: 64),
-                const Text(
+                Text(
                   'ข้อมูลหน่วยนับ',
                   style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
-                    color: Colors.black,
+                    color: AppColors.of(context).textPrimary,
                   ),
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: 16),
                 Text(
                   'โปรดระบุข้อมูลหน่วยนับของสินค้า',
                   style: TextStyle(
                     fontSize: 16,
-                    color: Colors.black.withValues(alpha: 0.6),
+                    color: AppColors.of(context).textPrimary.withValues(alpha: 0.6),
                   ),
                 ),
                 const SizedBox(height: 32),
@@ -198,6 +199,7 @@ class _ProductUnitWidgetState extends State<ProductUnitWidget> {
                               keyboardType: TextInputType.text,
                               autovalidateMode: AutovalidateMode.onUserInteraction,
                               decoration: buildInputDecoration(
+                                context: context,
                                 labelText: 'ชื่อหน่วยนับ',
                                 hintText: 'โปรดระบุชื่อหน่วยนับ',
                               ),
@@ -222,6 +224,7 @@ class _ProductUnitWidgetState extends State<ProductUnitWidget> {
                               keyboardType: TextInputType.number,
                               autovalidateMode: AutovalidateMode.onUserInteraction,
                               decoration: buildInputDecoration(
+                                context: context,
                                 labelText: 'ขนาดบรรจุ',
                                 hintText: '',
                               ),
@@ -255,6 +258,7 @@ class _ProductUnitWidgetState extends State<ProductUnitWidget> {
                               keyboardType: TextInputType.number,
                               autovalidateMode: AutovalidateMode.onUserInteraction,
                               decoration: buildInputDecoration(
+                                context: context,
                                 labelText: 'ราคาทุนต่อหน่วย',
                                 hintText: 'โปรดระบุราคาทุนต่อหน่วย',
                               ),
@@ -283,6 +287,7 @@ class _ProductUnitWidgetState extends State<ProductUnitWidget> {
                               keyboardType: TextInputType.number,
                               autovalidateMode: AutovalidateMode.onUserInteraction,
                               decoration: buildInputDecoration(
+                                context: context,
                                 labelText: 'ปริมาณหรือน้ำหนัก',
                                 hintText: '',
                                 suffix: SizedBox(
@@ -330,6 +335,7 @@ class _ProductUnitWidgetState extends State<ProductUnitWidget> {
                             keyboardType: TextInputType.text,
                             autovalidateMode: AutovalidateMode.onUserInteraction,
                             decoration: buildInputDecoration(
+                              context: context,
                               labelText: 'บาร์โค้ด',
                               hintText: 'โปรดระบุบาร์โค้ด',
                             ),

@@ -2,6 +2,7 @@
 import 'package:design_system/widgets/responsive.dart';
 import 'package:design_system/widgets/title_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:design_system/theme/app_colors.dart';
 
 // Project imports:
 import 'package:pos/presentation/constants.dart';
@@ -40,7 +41,7 @@ class _ReceivePageState extends State<ReceivePage> {
             onSelected: (value) => _nextToReceiveManage(value.id),
           ),
         ),
-        Container(width: 1, color: Colors.grey[200]),
+        Container(width: 1, color: AppColors.of(context).border),
         Expanded(
           child: ReceiveMenuWidget(
             onAdd: () {

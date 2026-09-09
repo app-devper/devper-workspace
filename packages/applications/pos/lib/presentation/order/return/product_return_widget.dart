@@ -1,5 +1,6 @@
 // Flutter imports:
 import 'package:flutter/material.dart';
+import 'package:design_system/theme/app_colors.dart';
 import 'package:flutter/services.dart';
 
 // Package imports:
@@ -120,7 +121,7 @@ class _ProductReturnWidgetState extends State<ProductReturnWidget> {
                   const SizedBox(height: 4),
                   Text(
                     'คืนได้สูงสุด ${widget.maxReturnable}',
-                    style: const TextStyle(color: Colors.grey),
+                    style: TextStyle(color: AppColors.of(context).textSecondary),
                   ),
                   const SizedBox(height: 16),
                   TextFormField(
@@ -132,6 +133,7 @@ class _ProductReturnWidgetState extends State<ProductReturnWidget> {
                     keyboardType: TextInputType.number,
                     autovalidateMode: AutovalidateMode.onUserInteraction,
                     decoration: buildInputDecoration(
+                      context: context,
                       labelText: 'จำนวนที่คืน',
                       hintText: 'โปรดระบุจำนวนที่คืน',
                     ),
@@ -155,6 +157,7 @@ class _ProductReturnWidgetState extends State<ProductReturnWidget> {
                     keyboardType: const TextInputType.numberWithOptions(decimal: true),
                     autovalidateMode: AutovalidateMode.onUserInteraction,
                     decoration: buildInputDecoration(
+                      context: context,
                       labelText: 'จำนวนเงินคืน',
                       hintText: 'โปรดระบุจำนวนเงินคืน',
                     ),
@@ -175,6 +178,7 @@ class _ProductReturnWidgetState extends State<ProductReturnWidget> {
                     ],
                     controller: _reasonController,
                     decoration: buildInputDecoration(
+                      context: context,
                       labelText: 'เหตุผลการคืน',
                       hintText: 'โปรดระบุเหตุผลการคืน (ถ้ามี)',
                     ),

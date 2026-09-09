@@ -1,5 +1,6 @@
 // Flutter imports:
 import 'package:flutter/material.dart';
+import 'package:design_system/theme/app_colors.dart';
 
 // Package imports:
 import 'package:common/core/ext/number_ext.dart';
@@ -27,10 +28,12 @@ class ProductItem extends StatelessWidget {
     final available = quantity > 0;
     return Card(
       elevation: 0,
-      color: available ? Colors.white : const Color(0xFFF4F6F8),
+      color: available
+          ? AppColors.of(context).surfaceRaised
+          : AppColors.of(context).surfaceSunken,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(14),
-        side: const BorderSide(color: Color(0xFFE0E6ED)),
+        side: BorderSide(color: AppColors.of(context).border),
       ),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
@@ -43,10 +46,10 @@ class ProductItem extends StatelessWidget {
               Text(name,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
+                  style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      color: Color(0xFF243247))),
+                      color: AppColors.of(context).textPrimary)),
               const Spacer(),
               Text(available ? 'คงเหลือ $quantity $unit' : 'สินค้าหมด',
                   maxLines: 1,
@@ -186,10 +189,10 @@ class CartOrderItem extends StatelessWidget {
             children: [
               Text(
                 '฿${formatDouble(price * quantity)}',
-                style: const TextStyle(
+                style: TextStyle(
                   decoration: TextDecoration.lineThrough,
                   fontSize: 10,
-                  color: Colors.grey,
+                  color: AppColors.of(context).textSecondary,
                 ),
               ),
               Text(
@@ -216,8 +219,8 @@ class CartOrderItem extends StatelessWidget {
             ),
             Text(
               priceDetail,
-              style: const TextStyle(
-                color: Colors.grey,
+              style: TextStyle(
+                color: AppColors.of(context).textSecondary,
                 fontSize: 10,
               ),
             ),
@@ -243,8 +246,8 @@ class CartOrderItem extends StatelessWidget {
           ),
           subtitle: Text(
             unit,
-            style: const TextStyle(
-              color: Colors.grey,
+            style: TextStyle(
+              color: AppColors.of(context).textSecondary,
               fontSize: 14,
             ),
           ),
@@ -268,14 +271,14 @@ class CartOrderItem extends StatelessWidget {
                         decoration: ShapeDecoration(
                           color: allowOversell
                               ? Colors.orange[50]
-                              : Colors.grey[100],
-                          shape: const CircleBorder(),
+                              : AppColors.of(context).surfaceSunken,
+                          shape: CircleBorder(),
                         ),
                         child: Icon(
                           allowOversell
                               ? Icons.check_box
                               : Icons.check_box_outline_blank,
-                          color: allowOversell ? Colors.orange : Colors.grey,
+                          color: allowOversell ? Colors.orange : AppColors.of(context).textSecondary,
                           size: 18,
                         ),
                       ),

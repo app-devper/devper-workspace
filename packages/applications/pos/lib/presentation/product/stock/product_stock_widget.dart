@@ -1,5 +1,6 @@
 // Flutter imports:
 import 'package:flutter/material.dart';
+import 'package:design_system/theme/app_colors.dart';
 import 'package:flutter/services.dart';
 
 // Package imports:
@@ -186,18 +187,18 @@ class _ProductStockWidgetState extends State<ProductStockWidget> {
                 const SizedBox(height: 64),
                 Text(
                   'ข้อมูลสต็อก "${unit.unit}"',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
-                    color: Colors.black,
+                    color: AppColors.of(context).textPrimary,
                   ),
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: 16),
                 Text(
                   'โปรดระบุข้อมูลสต็อก',
                   style: TextStyle(
                     fontSize: 16,
-                    color: Colors.black.withValues(alpha: 0.6),
+                    color: AppColors.of(context).textPrimary.withValues(alpha: 0.6),
                   ),
                 ),
                 const SizedBox(height: 32),
@@ -221,6 +222,7 @@ class _ProductStockWidgetState extends State<ProductStockWidget> {
                               keyboardType: TextInputType.number,
                               autovalidateMode: AutovalidateMode.onUserInteraction,
                               decoration: buildInputDecoration(
+                                context: context,
                                 labelText: 'จำนวนที่นำเข้า',
                                 hintText: 'โปรดระบุจำนวนที่นำเข้า',
                               ),
@@ -249,6 +251,7 @@ class _ProductStockWidgetState extends State<ProductStockWidget> {
                               controller: _importDateController,
                               keyboardType: TextInputType.number,
                               decoration: buildInputDecoration(
+                                context: context,
                                 labelText: 'วันที่นำเข้า',
                                 hintText: 'โปรดระบุวันที่นำเข้า',
                                 suffix: IconButton(
@@ -288,6 +291,7 @@ class _ProductStockWidgetState extends State<ProductStockWidget> {
                               keyboardType: TextInputType.number,
                               autovalidateMode: AutovalidateMode.onUserInteraction,
                               decoration: buildInputDecoration(
+                                context: context,
                                 labelText: 'ราคาขายต่อหน่วย',
                                 hintText: '฿${formatDouble(widget.price.price)} จากหน่วยนับ',
                               ),
@@ -316,6 +320,7 @@ class _ProductStockWidgetState extends State<ProductStockWidget> {
                               keyboardType: TextInputType.number,
                               autovalidateMode: AutovalidateMode.onUserInteraction,
                               decoration: buildInputDecoration(
+                                context: context,
                                 labelText: 'ราคาทุนต่อหน่วย',
                                 hintText: '฿${formatDouble(widget.unit.costPrice)} จากหน่วยนับ',
                               ),
@@ -349,6 +354,7 @@ class _ProductStockWidgetState extends State<ProductStockWidget> {
                                 controller: _lotNumberController,
                                 autovalidateMode: AutovalidateMode.onUserInteraction,
                                 decoration: buildInputDecoration(
+                                  context: context,
                                   labelText: 'หมายเลขล็อต',
                                   hintText: 'โปรดระบุหมายเลขล็อต',
                                 ),
@@ -372,6 +378,7 @@ class _ProductStockWidgetState extends State<ProductStockWidget> {
                               keyboardType: TextInputType.number,
                               autovalidateMode: AutovalidateMode.onUserInteraction,
                               decoration: buildInputDecoration(
+                                context: context,
                                 labelText: 'วันหมดอายุ',
                                 hintText: 'โปรดระบุวันหมดอายุ',
                                 suffix: IconButton(

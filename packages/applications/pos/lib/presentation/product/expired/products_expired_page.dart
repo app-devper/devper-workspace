@@ -14,6 +14,7 @@ import 'package:pos/presentation/constants.dart';
 import 'package:pos/presentation/product/argument.dart';
 import 'package:pos/presentation/product/expired/products_expired_state.dart';
 import 'package:pos/presentation/product/expired/products_expired_view_model.dart';
+import 'package:design_system/theme/app_colors.dart';
 import 'package:design_system/theme/color.dart';
 import 'products_expire_ui_model.dart';
 
@@ -113,18 +114,18 @@ class _ProductsExpiredPageState extends State<ProductsExpiredPage> {
                 child: DropdownButton(
                   value: _value,
                   alignment: AlignmentDirectional.center,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14.0,
-                    color: CustomColor.fontBlack,
+                    color: AppColors.of(context).textPrimary,
                   ),
                   items: data.map((ListItem item) {
                     return DropdownMenuItem<Range>(
                       value: item.value,
                       child: Text(
                         item.name,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 14.0,
-                          color: CustomColor.fontBlack,
+                          color: AppColors.of(context).textPrimary,
                         ),
                       ),
                     );

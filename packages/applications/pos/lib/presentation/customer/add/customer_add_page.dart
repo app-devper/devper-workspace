@@ -1,5 +1,6 @@
 // Flutter imports:
 import 'package:flutter/material.dart';
+import 'package:design_system/theme/app_colors.dart';
 import 'package:flutter/services.dart';
 
 // Package imports:
@@ -127,20 +128,20 @@ class _CustomerAddPageState extends State<CustomerAddPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
-                    const Text(
+                    Text(
                       'ข้อมูลทั่วไป',
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
-                        color: Colors.black,
+                        color: AppColors.of(context).textPrimary,
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: 16),
                     Text(
                       'โปรดระบุข้อมูลลูกค้า',
                       style: TextStyle(
                         fontSize: 16,
-                        color: Colors.black.withValues(alpha: 0.6),
+                        color: AppColors.of(context).textPrimary.withValues(alpha: 0.6),
                       ),
                     ),
                     const SizedBox(height: 32),
@@ -166,6 +167,7 @@ class _CustomerAddPageState extends State<CustomerAddPage> {
               return value == null ? 'โปรดเลือกประเภทลูกค้า' : null;
             },
             decoration: buildInputDecoration(
+              context: context,
               labelText: 'ประเภทลูกค้า',
               hintText: 'โปรดเลือกประเภทลูกค้า',
             ),
@@ -192,6 +194,7 @@ class _CustomerAddPageState extends State<CustomerAddPage> {
             keyboardType: TextInputType.text,
             autovalidateMode: AutovalidateMode.onUserInteraction,
             decoration: buildInputDecoration(
+              context: context,
               labelText: 'ชื่อลูกค้า',
               hintText: 'โปรดระบุชื่อลูกค้า',
             ),
@@ -215,6 +218,7 @@ class _CustomerAddPageState extends State<CustomerAddPage> {
             autovalidateMode: AutovalidateMode.onUserInteraction,
             textAlignVertical: TextAlignVertical.top,
             decoration: buildInputDecoration(
+              context: context,
               labelText: 'ที่อยู่',
               hintText: 'โปรดระบุที่อยู่',
             ),
@@ -229,6 +233,7 @@ class _CustomerAddPageState extends State<CustomerAddPage> {
             keyboardType: TextInputType.phone,
             autovalidateMode: AutovalidateMode.onUserInteraction,
             decoration: buildInputDecoration(
+              context: context,
               labelText: 'โทรศัพท์',
               hintText: 'โปรดระบุเบอร์โทรศัพท์',
             ),
@@ -243,6 +248,7 @@ class _CustomerAddPageState extends State<CustomerAddPage> {
             keyboardType: TextInputType.emailAddress,
             autovalidateMode: AutovalidateMode.onUserInteraction,
             decoration: buildInputDecoration(
+              context: context,
               labelText: 'อีเมล',
               hintText: 'โปรดระบุอีเมล',
             ),

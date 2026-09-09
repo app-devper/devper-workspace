@@ -1,5 +1,6 @@
 // Flutter imports:
 import 'package:flutter/material.dart';
+import 'package:design_system/theme/app_colors.dart';
 
 // Package imports:
 import 'package:design_system/widgets/app_bar.dart';
@@ -106,14 +107,14 @@ class _StockCountManagePageState extends State<StockCountManagePage> {
         const SizedBox(height: 4),
         Text(
           stockCount.getCreatedDate(),
-          style: const TextStyle(color: Colors.grey),
+          style: TextStyle(color: AppColors.of(context).textSecondary),
         ),
         if (stockCount.note.isNotEmpty) ...[
           const SizedBox(height: 8),
           Text(stockCount.note),
         ],
         const SizedBox(height: 16),
-        const Divider(height: 1),
+        Divider(height: 1),
         ...stockCount.items.map(
           (item) => Column(
             children: [
@@ -124,7 +125,7 @@ class _StockCountManagePageState extends State<StockCountManagePage> {
                   item.delta == 0 ? 'ตรงกัน' : (item.delta > 0 ? '+${item.delta}' : '${item.delta}'),
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    color: item.delta == 0 ? Colors.grey : (item.delta > 0 ? Colors.green : Colors.red),
+                    color: item.delta == 0 ? AppColors.of(context).textSecondary : (item.delta > 0 ? Colors.green : Colors.red),
                   ),
                 ),
               ),
@@ -152,10 +153,10 @@ class _StockCountManagePageState extends State<StockCountManagePage> {
         ),
         Expanded(
           child: state.items.isEmpty
-              ? const Center(
+              ? Center(
                   child: Text(
                     'ยังไม่มีสินค้าที่นับ',
-                    style: TextStyle(color: Colors.grey),
+                    style: TextStyle(color: AppColors.of(context).textSecondary),
                   ),
                 )
               : ListView.builder(
