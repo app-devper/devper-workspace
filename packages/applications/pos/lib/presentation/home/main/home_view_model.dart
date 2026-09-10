@@ -2,16 +2,18 @@
 import 'package:flutter/foundation.dart';
 
 // Package imports:
-import 'package:um/domain/repositories/login_repository.dart';
+import 'package:um/domain/usecase/auth_use_cases.dart';
 
 // Project imports:
 import 'home_state.dart';
 
 class HomeViewModel {
-  final LoginRepository loginRepo;
+  final GetRoleUseCase getRoleUseCase;
+  final LogoutUseCase logoutUseCase;
 
   HomeViewModel({
-    required this.loginRepo,
+    required this.getRoleUseCase,
+    required this.logoutUseCase,
   });
 
   final _state = ValueNotifier<HomeState>(const HomeState());
@@ -24,7 +26,7 @@ class HomeViewModel {
 
   Future<void> getRole() async {
     try {
-      final role = await loginRepo.getRole();
+      final role = await getRoleUseCase();
       _state.value = _state.value.copyWith(isAdmin: role == "ADMIN");
     } on Exception catch (_) {
       _state.value = _state.value.copyWith(isAdmin: false);
@@ -33,7 +35,7 @@ class HomeViewModel {
 
   Future<void> logout() async {
     try {
-      await loginRepo.logoutUser();
+      await logoutUseCase();
     } on Exception catch (_) {}
     _state.value = _state.value.copyWith(loggedOut: true);
   }

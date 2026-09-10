@@ -16,30 +16,31 @@ class StockAdjustmentViewModel {
     required this.createStockAdjustmentUseCase,
   });
 
-  final _state = ValueNotifier<StockAdjustmentState>(const StockAdjustmentState());
+  final _state =
+      ValueNotifier<StockAdjustmentState>(const StockAdjustmentState());
 
   ValueListenable<StockAdjustmentState> get state => _state;
 
   Future<void> createStockAdjustment(CreateStockAdjustmentParam param) async {
-    if (_state.value.loading) return;
-    _state.value = _state.value.copyWith(loading: true, clearError: true, clearCreated: true);
+    if (_state.value is StockAdjustmentSubmitting) return;
+    _state.value = const StockAdjustmentSubmitting();
     try {
       final created = await createStockAdjustmentUseCase(param);
-      _state.value = _state.value.copyWith(loading: false, created: created);
+      _state.value = StockAdjustmentSucceeded(created);
     } on Exception catch (e) {
-      _state.value = _state.value.copyWith(loading: false, error: toFailure(e).getMessage());
+      _state.value = StockAdjustmentFailed(toFailure(e));
     }
   }
 
   void consumeError() {
     if (_state.value.error != null) {
-      _state.value = _state.value.copyWith(clearError: true);
+      _state.value = const StockAdjustmentState();
     }
   }
 
   void consumeCreated() {
     if (_state.value.created != null) {
-      _state.value = _state.value.copyWith(clearCreated: true);
+      _state.value = const StockAdjustmentState();
     }
   }
 

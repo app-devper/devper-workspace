@@ -11,13 +11,13 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 // Project imports:
 import 'package:um/container.dart';
 import 'package:um/domain/entities/user/user.dart';
-import 'package:um/domain/repositories/user_repository.dart';
+import 'package:um/domain/usecase/user_use_cases.dart';
 
 Future<List<User>> useUsers(UniqueKey reloadKey) {
   Future<List<User>> getUsers() async {
-    final userRepo = sl<UserRepository>();
+    final action = sl<GetUsersUseCase>();
     try {
-      final result = await userRepo.getUsers();
+      final result = await action();
       return result;
     } on Exception catch (e) {
       return Future.error(toFailure(e));

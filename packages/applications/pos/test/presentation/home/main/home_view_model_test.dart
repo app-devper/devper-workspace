@@ -1,3 +1,4 @@
+import 'package:um/domain/usecase/auth_use_cases.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pos/presentation/home/main/home_view_model.dart';
 import 'package:um/domain/entities/auth/login.dart';
@@ -36,7 +37,8 @@ class FakeLoginRepository implements LoginRepository {
   Future<List<UserSession>> getSessions() => throw UnimplementedError();
 
   @override
-  Future<bool> revokeSessionById(String sessionId) => throw UnimplementedError();
+  Future<bool> revokeSessionById(String sessionId) =>
+      throw UnimplementedError();
 
   @override
   Future<int> revokeOtherSessions() => throw UnimplementedError();
@@ -50,7 +52,11 @@ class FakeLoginRepository implements LoginRepository {
 
 void main() {
   test('getRole sets isAdmin true for ADMIN', () async {
-    final vm = HomeViewModel(loginRepo: FakeLoginRepository(role: 'ADMIN'));
+    final repo = FakeLoginRepository(role: 'ADMIN');
+    final vm = HomeViewModel(
+      getRoleUseCase: GetRoleUseCase(repo),
+      logoutUseCase: LogoutUseCase(repo),
+    );
 
     await vm.getRole();
 
@@ -62,7 +68,11 @@ void main() {
   });
 
   test('getRole sets isAdmin false for USER', () async {
-    final vm = HomeViewModel(loginRepo: FakeLoginRepository(role: 'USER'));
+    final repo = FakeLoginRepository(role: 'USER');
+    final vm = HomeViewModel(
+      getRoleUseCase: GetRoleUseCase(repo),
+      logoutUseCase: LogoutUseCase(repo),
+    );
 
     await vm.getRole();
 
@@ -71,7 +81,10 @@ void main() {
 
   test('logout sets loggedOut even when the repository fails', () async {
     final repo = FakeLoginRepository(logoutThrows: true);
-    final vm = HomeViewModel(loginRepo: repo);
+    final vm = HomeViewModel(
+      getRoleUseCase: GetRoleUseCase(repo),
+      logoutUseCase: LogoutUseCase(repo),
+    );
 
     await vm.logout();
 

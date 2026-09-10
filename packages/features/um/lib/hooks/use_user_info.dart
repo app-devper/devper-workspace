@@ -8,13 +8,13 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 // Project imports:
 import 'package:um/container.dart';
 import 'package:um/domain/entities/user/user.dart';
-import 'package:um/domain/repositories/user_repository.dart';
+import 'package:um/domain/usecase/user_use_cases.dart';
 
 Future<User> useUserInfo() {
   Future<User> getUserInfo() async {
-    final userRepo = sl<UserRepository>();
+    final action = sl<GetUserInfoUseCase>();
     try {
-      final result = await userRepo.getUserInfo();
+      final result = await action();
       return result;
     } on Exception catch (e) {
       return Future.error(toFailure(e));

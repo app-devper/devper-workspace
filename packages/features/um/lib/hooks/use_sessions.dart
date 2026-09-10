@@ -8,13 +8,13 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 // Project imports:
 import 'package:um/container.dart';
 import 'package:um/domain/entities/auth/user_session.dart';
-import 'package:um/domain/repositories/login_repository.dart';
+import 'package:um/domain/usecase/auth_use_cases.dart';
 
 Future<List<UserSession>> useSessions([List<Object?> keys = const []]) {
   Future<List<UserSession>> getSessions() async {
-    final loginRepo = sl<LoginRepository>();
+    final action = sl<GetSessionsUseCase>();
     try {
-      return await loginRepo.getSessions();
+      return await action();
     } on Exception catch (e) {
       return Future.error(toFailure(e));
     }

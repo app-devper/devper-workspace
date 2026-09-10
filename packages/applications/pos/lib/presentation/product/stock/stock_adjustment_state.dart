@@ -1,32 +1,37 @@
-// Flutter imports:
-import 'package:flutter/foundation.dart';
-
-// Project imports:
+import 'package:common/core/error/failure.dart';
 import 'package:pos/domain/model/stock_adjustment/stock_adjustment.dart';
 
-@immutable
-class StockAdjustmentState {
-  final bool loading;
-  final String? error;
-  final StockAdjustment? created;
+/// The mutually exclusive states of this screen's submit flow.
+sealed class StockAdjustmentState {
+  const StockAdjustmentState._();
+  const factory StockAdjustmentState() = StockAdjustmentIdle;
 
-  const StockAdjustmentState({
-    this.loading = false,
-    this.error,
-    this.created,
-  });
+  // Derived UI projections; no independently writable boolean flags.
+  bool get loading => this is StockAdjustmentSubmitting;
+  String? get error => switch (this) {
+        StockAdjustmentFailed(:final failure) => failure.getMessage(),
+        _ => null,
+      };
+  StockAdjustment? get created => switch (this) {
+        StockAdjustmentSucceeded(:final result) => result,
+        _ => null,
+      };
+}
 
-  StockAdjustmentState copyWith({
-    bool? loading,
-    String? error,
-    StockAdjustment? created,
-    bool clearError = false,
-    bool clearCreated = false,
-  }) {
-    return StockAdjustmentState(
-      loading: loading ?? this.loading,
-      error: clearError ? null : (error ?? this.error),
-      created: clearCreated ? null : (created ?? this.created),
-    );
-  }
+final class StockAdjustmentIdle extends StockAdjustmentState {
+  const StockAdjustmentIdle() : super._();
+}
+
+final class StockAdjustmentSubmitting extends StockAdjustmentState {
+  const StockAdjustmentSubmitting() : super._();
+}
+
+final class StockAdjustmentSucceeded extends StockAdjustmentState {
+  final StockAdjustment result;
+  const StockAdjustmentSucceeded(this.result) : super._();
+}
+
+final class StockAdjustmentFailed extends StockAdjustmentState {
+  final Failure failure;
+  const StockAdjustmentFailed(this.failure) : super._();
 }
