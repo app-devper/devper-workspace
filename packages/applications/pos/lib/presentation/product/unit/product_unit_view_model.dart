@@ -35,7 +35,8 @@ class ProductUnitViewModel {
   }
 
   Future<void> updateProductUnitById(String id, ProductUnitParam param) async {
-    await _run(() => updateProductUnitByIdUseCase(ProductUnitUpdateParam(unitId: id, param: param)));
+    await _run(() => updateProductUnitByIdUseCase(
+        ProductUnitUpdateParam(unitId: id, param: param)));
   }
 
   Future<void> removeProductUnitById(String id) async {
@@ -43,34 +44,38 @@ class ProductUnitViewModel {
   }
 
   Future<void> getProductUnit(String productId) async {
-    _state.value = _state.value.copyWith(loading: true, clearError: true);
+    _state.value = _state.value.copyWith(task: const ProductUnitRunning());
     try {
       final items = await getProductUnitsByProductIdUseCase(productId);
-      _state.value = _state.value.copyWith(loading: false, items: items);
+      _state.value =
+          _state.value.copyWith(task: const ProductUnitTask(), items: items);
     } on Exception catch (e) {
-      _state.value = _state.value.copyWith(loading: false, error: toFailure(e).getMessage());
+      _state.value =
+          _state.value.copyWith(task: ProductUnitFailed(toFailure(e)));
     }
   }
 
   Future<void> _run(Future<ProductUnit> Function() action) async {
-    _state.value = _state.value.copyWith(loading: true, clearError: true, clearCompleted: true);
+    _state.value = _state.value.copyWith(task: const ProductUnitRunning());
     try {
       final completed = await action();
-      _state.value = _state.value.copyWith(loading: false, completed: completed);
+      _state.value =
+          _state.value.copyWith(task: ProductUnitCompleted(completed));
     } on Exception catch (e) {
-      _state.value = _state.value.copyWith(loading: false, error: toFailure(e).getMessage());
+      _state.value =
+          _state.value.copyWith(task: ProductUnitFailed(toFailure(e)));
     }
   }
 
   void consumeError() {
-    if (_state.value.error != null) {
-      _state.value = _state.value.copyWith(clearError: true);
+    if (_state.value.task is ProductUnitFailed) {
+      _state.value = _state.value.copyWith(task: const ProductUnitTask());
     }
   }
 
   void consumeCompleted() {
-    if (_state.value.completed != null) {
-      _state.value = _state.value.copyWith(clearCompleted: true);
+    if (_state.value.task is ProductUnitCompleted) {
+      _state.value = _state.value.copyWith(task: const ProductUnitTask());
     }
   }
 

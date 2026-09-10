@@ -24,36 +24,36 @@ class SupplierInfoViewModel {
   ValueListenable<SupplierInfoState> get state => _state;
 
   Future<void> getSupplierInfo() async {
-    _state.value = _state.value.copyWith(clearError: true);
+    _state.value = _state.value.copyWith(task: const SupplierInfoTask());
     try {
       final supplier = await getSupplierInfoUseCase();
       _state.value = _state.value.copyWith(supplier: supplier);
     } on Exception catch (e) {
-      _state.value = _state.value.copyWith(error: toFailure(e).getMessage());
+      _state.value =
+          _state.value.copyWith(task: SupplierInfoFailed(toFailure(e)));
     }
   }
 
   Future<void> updateSupplierInfo(SupplierParam param) async {
-    _state.value = _state.value
-        .copyWith(saving: true, clearError: true, clearUpdated: true);
+    _state.value = _state.value.copyWith(task: const SupplierInfoRunning());
     try {
       final updated = await updateSupplierInfoUseCase(param);
-      _state.value = _state.value.copyWith(saving: false, updated: updated);
+      _state.value = _state.value.copyWith(task: SupplierInfoUpdated(updated));
     } on Exception catch (e) {
-      _state.value = _state.value
-          .copyWith(saving: false, error: toFailure(e).getMessage());
+      _state.value =
+          _state.value.copyWith(task: SupplierInfoFailed(toFailure(e)));
     }
   }
 
   void consumeError() {
-    if (_state.value.error != null) {
-      _state.value = _state.value.copyWith(clearError: true);
+    if (_state.value.task is SupplierInfoFailed) {
+      _state.value = _state.value.copyWith(task: const SupplierInfoTask());
     }
   }
 
   void consumeUpdated() {
-    if (_state.value.updated != null) {
-      _state.value = _state.value.copyWith(clearUpdated: true);
+    if (_state.value.task is SupplierInfoUpdated) {
+      _state.value = _state.value.copyWith(task: const SupplierInfoTask());
     }
   }
 

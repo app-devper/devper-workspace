@@ -82,6 +82,13 @@ to idle after an async completion.
 The category, customer and supplier edit screens follow this too: one sealed
 type each, named for its own entity, rather than a shared generic command state.
 
+Twelve screens that ran one command each — add, edit and the small
+tier/unit/stock dialogs — follow the same shape: a sealed task beside the data
+the screen renders. Where a screen prints a message it wrote itself rather than
+reporting a failed request, the variant is Rejected(message) and keeps the text
+verbatim; wrapping it in a Failure would append an error code to strings the
+user reads.
+
 OrderDetailState shows the other half of the rule: a screen with several
 unrelated flows gets one sealed type per flow, not one per screen. Its order
 commands are an OrderTask and its supplier profile fetch a SupplierLookup, while
@@ -96,9 +103,9 @@ it, because a barcode lookup and a submit are different operations.
 
 Outstanding findings, not yet migrated:
 
-- Thirteen screens still share one small shape: a busy boolean, an error string
-  and a single command result with its clear flag. Mechanical to convert, and
-  worth doing as one batch rather than one at a time.
+- stock_count_item_picker matches the single-command field count but is not one
+  of them: selectedProduct is selection state the user drives, not a command
+  result, so it belongs with the list screens below.
 - Twelve list screens carry loading/items/error. These are the weakest case for
   the rule: `items` is data that has to survive a reload, not a command result,
   so only loading and error are in tension, and no view model can currently
