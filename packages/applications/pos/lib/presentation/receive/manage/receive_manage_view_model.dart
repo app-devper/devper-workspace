@@ -50,7 +50,7 @@ class ReceiveManageViewModel {
   ValueListenable<ReceiveManageState> get state => _state;
 
   Future<void> getReceiveById(String? receiveId) async {
-    _state.value = _state.value.copyWith(loading: true, clearError: true);
+    _state.value = _state.value.copyWith(task: const ReceiveTaskRunning());
     try {
       Receive? receive;
       if (receiveId != null) {
@@ -59,29 +59,28 @@ class ReceiveManageViewModel {
       }
       final suppliers = await getLocalSuppliersUseCase();
       _state.value = _state.value.copyWith(
-        loading: false,
+        task: const ReceiveTask(),
         receiveLoaded: true,
         receive: receive,
         clearReceive: receive == null,
         receiveSuppliers: suppliers,
       );
     } on Exception catch (e) {
-      _state.value = _state.value
-          .copyWith(loading: false, error: toFailure(e).getMessage());
+      _state.value =
+          _state.value.copyWith(task: ReceiveTaskFailed(toFailure(e)));
     }
   }
 
   Future<void> createReceive(ReceiveParam param) async {
     if (_state.value.loading) return;
-    _state.value = _state.value
-        .copyWith(loading: true, clearError: true, clearCreated: true);
+    _state.value = _state.value.copyWith(task: const ReceiveTaskRunning());
     try {
       final created = await createReceiveUseCase(param);
       _state.value = _state.value.copyWith(
-          loading: false, created: created, receive: created, itemsReady: true);
+          task: ReceiveCreated(created), receive: created, itemsReady: true);
     } on Exception catch (e) {
-      _state.value = _state.value
-          .copyWith(loading: false, error: toFailure(e).getMessage());
+      _state.value =
+          _state.value.copyWith(task: ReceiveTaskFailed(toFailure(e)));
     }
   }
 
@@ -92,19 +91,18 @@ class ReceiveManageViewModel {
         _state.value.receive?.isImported == true) {
       return false;
     }
-    _state.value = _state.value
-        .copyWith(loading: true, clearError: true, clearUpdated: true);
+    _state.value = _state.value.copyWith(task: const ReceiveTaskRunning());
     try {
       final updated = await updateReceiveByIdUseCase(
         ReceiveUpdateParam(receiveId: receiveId, param: param),
       );
       _state.value = _state.value
-          .copyWith(loading: false, updated: updated, receive: updated);
+          .copyWith(task: ReceiveUpdated(updated), receive: updated);
       await getReceiveItemsById(receiveId);
       return true;
     } on Exception catch (e) {
-      _state.value = _state.value
-          .copyWith(loading: false, error: toFailure(e).getMessage());
+      _state.value =
+          _state.value.copyWith(task: ReceiveTaskFailed(toFailure(e)));
       return false;
     }
   }
@@ -113,14 +111,13 @@ class ReceiveManageViewModel {
     if (_state.value.loading || _state.value.receive?.isImported == true) {
       return;
     }
-    _state.value = _state.value
-        .copyWith(loading: true, clearError: true, clearRemoved: true);
+    _state.value = _state.value.copyWith(task: const ReceiveTaskRunning());
     try {
       final removed = await removeReceiveByIdUseCase(receiveId);
-      _state.value = _state.value.copyWith(loading: false, removed: removed);
+      _state.value = _state.value.copyWith(task: ReceiveRemoved(removed));
     } on Exception catch (e) {
-      _state.value = _state.value
-          .copyWith(loading: false, error: toFailure(e).getMessage());
+      _state.value =
+          _state.value.copyWith(task: ReceiveTaskFailed(toFailure(e)));
     }
   }
 
@@ -130,17 +127,16 @@ class ReceiveManageViewModel {
         _state.value.receive?.isImported == true) {
       return;
     }
-    _state.value = _state.value
-        .copyWith(loading: true, clearError: true, clearUpdated: true);
+    _state.value = _state.value.copyWith(task: const ReceiveTaskRunning());
     try {
       final imported = await importReceiveUseCase(receiveId);
       _state.value = _state.value
-          .copyWith(loading: false, updated: imported, receive: imported);
+          .copyWith(task: ReceiveUpdated(imported), receive: imported);
       await getProductsUseCase();
       await getReceiveItemsById(receiveId);
     } on Exception catch (e) {
-      _state.value = _state.value
-          .copyWith(loading: false, error: toFailure(e).getMessage());
+      _state.value =
+          _state.value.copyWith(task: ReceiveTaskFailed(toFailure(e)));
     }
   }
 
@@ -158,7 +154,8 @@ class ReceiveManageViewModel {
         items: result,
       );
     } on Exception catch (e) {
-      _state.value = _state.value.copyWith(error: toFailure(e).getMessage());
+      _state.value =
+          _state.value.copyWith(task: ReceiveTaskFailed(toFailure(e)));
     }
   }
 
@@ -167,13 +164,14 @@ class ReceiveManageViewModel {
       final suppliers = await getSuppliersUseCase();
       _state.value = _state.value.copyWith(suppliersEvent: suppliers);
     } on Exception catch (e) {
-      _state.value = _state.value.copyWith(error: toFailure(e).getMessage());
+      _state.value =
+          _state.value.copyWith(task: ReceiveTaskFailed(toFailure(e)));
     }
   }
 
   void consumeError() {
-    if (_state.value.error != null) {
-      _state.value = _state.value.copyWith(clearError: true);
+    if (_state.value.task is ReceiveTaskFailed) {
+      _state.value = _state.value.copyWith(task: const ReceiveTask());
     }
   }
 
@@ -196,20 +194,20 @@ class ReceiveManageViewModel {
   }
 
   void consumeCreated() {
-    if (_state.value.created != null) {
-      _state.value = _state.value.copyWith(clearCreated: true);
+    if (_state.value.task is ReceiveCreated) {
+      _state.value = _state.value.copyWith(task: const ReceiveTask());
     }
   }
 
   void consumeUpdated() {
-    if (_state.value.updated != null) {
-      _state.value = _state.value.copyWith(clearUpdated: true);
+    if (_state.value.task is ReceiveUpdated) {
+      _state.value = _state.value.copyWith(task: const ReceiveTask());
     }
   }
 
   void consumeRemoved() {
-    if (_state.value.removed != null) {
-      _state.value = _state.value.copyWith(clearRemoved: true);
+    if (_state.value.task is ReceiveRemoved) {
+      _state.value = _state.value.copyWith(task: const ReceiveTask());
     }
   }
 

@@ -18,6 +18,7 @@ import 'package:pos/domain/usecase/receive/import_receive_use_case.dart';
 import 'package:pos/domain/usecase/receive/update_receive_by_id_use_case.dart';
 import 'package:pos/domain/usecase/supplier/get_local_suppliers_use_case.dart';
 import 'package:pos/domain/usecase/supplier/get_suppliers_use_case.dart';
+import 'package:pos/presentation/receive/manage/receive_manage_state.dart';
 import 'package:pos/presentation/receive/manage/receive_manage_view_model.dart';
 
 class FakeReceiveRepository implements ReceiveRepository {
@@ -69,13 +70,23 @@ class FakeReceiveRepository implements ReceiveRepository {
 class FakeSupplierRepository implements SupplierRepository {
   final List<Supplier> suppliers;
 
-  FakeSupplierRepository({this.suppliers = const []});
+  /// Only the remote fetch fails, so a test can break the supplier list
+  /// without breaking the screen's initial load.
+  final Object? remoteThrows;
+
+  FakeSupplierRepository({this.suppliers = const [], this.remoteThrows});
 
   @override
   Future<List<Supplier>> getLocalSuppliers() async => suppliers;
 
   @override
-  Future<List<Supplier>> getSuppliers() async => suppliers;
+  Future<List<Supplier>> getSuppliers() async {
+    final error = remoteThrows;
+    if (error != null) {
+      throw error;
+    }
+    return suppliers;
+  }
 
   @override
   dynamic noSuchMethod(Invocation invocation) => throw UnimplementedError();
@@ -115,10 +126,11 @@ ReceiveManageViewModel buildViewModel({
   List<ReceiveItem> items = const [],
   List<Supplier> suppliers = const [],
   Object? throws,
+  Object? suppliersThrows,
 }) {
   final ProductRepository productRepo = FakeProductRepository();
-  final SupplierRepository supplierRepo =
-      FakeSupplierRepository(suppliers: suppliers);
+  final SupplierRepository supplierRepo = FakeSupplierRepository(
+      suppliers: suppliers, remoteThrows: suppliersThrows);
   final ReceiveRepository receiveRepo =
       FakeReceiveRepository(receive: receive, items: items, throws: throws);
   return ReceiveManageViewModel(
@@ -249,5 +261,56 @@ void main() {
     await vm.getReceiveById('7');
 
     expect(vm.state.value.error, isNotNull);
+  });
+
+  group('one command result at a time', () {
+    test('saving after creating drops the stale created result', () async {
+      final vm = buildViewModel(receive: buildReceive('9'));
+
+      await vm.createReceive(ReceiveParam(supplierId: 's1', reference: 'ref'));
+      expect(vm.state.value.created, isNotNull);
+
+      await vm.updateReceiveById(
+          '9',
+          UpdateReceiveParam(
+              supplierId: 's1', reference: 'ref', totalCost: 0, items: []));
+
+      expect(vm.state.value.updated, isNotNull);
+      expect(vm.state.value.created, isNull,
+          reason: 'the create result must not outlive the save that follows');
+      expect(vm.state.value.task, isA<ReceiveUpdated>());
+    });
+
+    test('deleting drops a stale save result', () async {
+      final vm = buildViewModel(receive: buildReceive('9'));
+
+      await vm.getReceiveById('9');
+      await vm.updateReceiveById(
+          '9',
+          UpdateReceiveParam(
+              supplierId: 's1', reference: 'ref', totalCost: 0, items: []));
+      expect(vm.state.value.updated, isNotNull);
+
+      await vm.removeReceiveById('9');
+
+      expect(vm.state.value.removed, isNotNull);
+      expect(vm.state.value.updated, isNull);
+    });
+
+    test('a failure leaves no command result behind', () async {
+      final vm = buildViewModel(
+        receive: buildReceive('9'),
+        suppliersThrows: const NetworkException(message: 'offline'),
+      );
+
+      await vm.createReceive(ReceiveParam(supplierId: 's1', reference: 'ref'));
+      expect(vm.state.value.created, isNotNull);
+
+      await vm.getSuppliers();
+
+      expect(vm.state.value.error, isNotNull);
+      expect(vm.state.value.created, isNull);
+      expect(vm.state.value.loading, isFalse);
+    });
   });
 }
