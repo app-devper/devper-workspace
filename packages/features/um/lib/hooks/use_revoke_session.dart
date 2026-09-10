@@ -1,44 +1,13 @@
-// Flutter imports:
-import 'package:flutter/cupertino.dart';
-
-// Package imports:
-import 'package:common/core/error/failure.dart';
-import 'package:common/core/ext/widget_ext.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
-
-// Project imports:
+import 'package:flutter/widgets.dart';
 import 'package:um/container.dart';
-import 'package:um/domain/repositories/login_repository.dart';
+import 'package:um/domain/usecase/auth_use_cases.dart';
+import 'package:um/hooks/use_mutation_action.dart';
 
 Function(String) useRevokeSession(
   BuildContext context, {
   required Function() onSuccess,
 }) {
-  loading() {
-    showLoadingDialog(context);
-  }
-
-  success() {
-    hideLoadingDialog(context);
-    onSuccess();
-  }
-
-  error(Failure failure) {
-    hideLoadingDialog(context);
-    showAlertDialog(context, failure.getMessage(), () {});
-  }
-
-  revokeSession(String sessionId) async {
-    final loginRepo = sl<LoginRepository>();
-    loading();
-    try {
-      await loginRepo.revokeSessionById(sessionId);
-      success();
-    } on Exception catch (e) {
-      error(toFailure(e));
-    }
-  }
-
-  final cachedFunction = useCallback(revokeSession, []);
-  return cachedFunction;
+  final action = sl<RevokeSessionUseCase>();
+  return useMutationAction<String, bool>(context, action.call,
+      onSuccess: (_) => onSuccess());
 }

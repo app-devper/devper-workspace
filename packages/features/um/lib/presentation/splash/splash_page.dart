@@ -42,15 +42,15 @@ class SplashPage extends HookWidget {
     }
 
     final keepAlive = useKeepAlive();
-    getToken() {
-      final result = keepAlive();
-      result.then(nextHome).onError((error, _) => nextLogin());
-    }
-
     useEffect(() {
-      getToken();
-      return () {};
-    }, []);
+      var active = true;
+      keepAlive().then((system) {
+        if (active && context.mounted) nextHome(system);
+      }, onError: (Object error, StackTrace stack) {
+        if (active && context.mounted) nextLogin();
+      });
+      return () => active = false;
+    }, [keepAlive]);
 
     return GestureDetector(
       onTap: () => FocusScope.of(context).requestFocus(viewNode),
