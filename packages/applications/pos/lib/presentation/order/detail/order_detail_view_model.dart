@@ -3,7 +3,7 @@ import 'package:flutter/foundation.dart';
 
 // Package imports:
 import 'package:common/core/error/failure.dart';
-import 'package:um/domain/repositories/login_repository.dart';
+import 'package:um/domain/usecase/auth_use_cases.dart';
 
 // Project imports:
 import 'package:pos/domain/model/customer/customer.dart';
@@ -18,7 +18,7 @@ class OrderDetailViewModel {
   final GetOrderByIdUseCase getOrderByIdUseCase;
   final RemoveOrderByIdUseCase removeOrderByIdUseCase;
   final RemoveOrderItemByIdUseCase removeOrderItemByIdUseCase;
-  final LoginRepository loginRepo;
+  final GetRoleUseCase getRoleUseCase;
   final GetSupplierInfoUseCase getSupplierInfoUseCase;
   final GetLocalCustomersUseCase getLocalCustomersUseCase;
 
@@ -26,7 +26,7 @@ class OrderDetailViewModel {
     required this.getOrderByIdUseCase,
     required this.removeOrderByIdUseCase,
     required this.removeOrderItemByIdUseCase,
-    required this.loginRepo,
+    required this.getRoleUseCase,
     required this.getSupplierInfoUseCase,
     required this.getLocalCustomersUseCase,
   });
@@ -37,7 +37,7 @@ class OrderDetailViewModel {
 
   Future<void> checkLogin() async {
     try {
-      final role = await loginRepo.getRole();
+      final role = await getRoleUseCase();
       _state.value = _state.value.copyWith(logged: role == "ADMIN");
     } on Exception catch (e) {
       _state.value = _state.value.copyWith(error: toFailure(e).getMessage());
@@ -50,27 +50,34 @@ class OrderDetailViewModel {
       final loaded = await getOrderByIdUseCase(orderId);
       _state.value = _state.value.copyWith(loading: false, loaded: loaded);
     } on Exception catch (e) {
-      _state.value = _state.value.copyWith(loading: false, error: toFailure(e).getMessage());
+      _state.value = _state.value
+          .copyWith(loading: false, error: toFailure(e).getMessage());
     }
   }
 
   Future<void> removeOrderById(String orderId) async {
-    _state.value = _state.value.copyWith(loading: true, clearError: true, clearRemovedOrder: true);
+    _state.value = _state.value
+        .copyWith(loading: true, clearError: true, clearRemovedOrder: true);
     try {
       final removed = await removeOrderByIdUseCase(orderId);
-      _state.value = _state.value.copyWith(loading: false, removedOrder: removed);
+      _state.value =
+          _state.value.copyWith(loading: false, removedOrder: removed);
     } on Exception catch (e) {
-      _state.value = _state.value.copyWith(loading: false, error: toFailure(e).getMessage());
+      _state.value = _state.value
+          .copyWith(loading: false, error: toFailure(e).getMessage());
     }
   }
 
   Future<void> removeOrderItem(String id) async {
-    _state.value = _state.value.copyWith(loading: true, clearError: true, clearRemovedItem: true);
+    _state.value = _state.value
+        .copyWith(loading: true, clearError: true, clearRemovedItem: true);
     try {
       final removed = await removeOrderItemByIdUseCase(id);
-      _state.value = _state.value.copyWith(loading: false, removedItem: removed);
+      _state.value =
+          _state.value.copyWith(loading: false, removedItem: removed);
     } on Exception catch (e) {
-      _state.value = _state.value.copyWith(loading: false, error: toFailure(e).getMessage());
+      _state.value = _state.value
+          .copyWith(loading: false, error: toFailure(e).getMessage());
     }
   }
 
@@ -82,7 +89,8 @@ class OrderDetailViewModel {
     Customer? customer;
     try {
       final result = await getLocalCustomersUseCase();
-      customer = result.where((element) => element.code == customerCode).firstOrNull;
+      customer =
+          result.where((element) => element.code == customerCode).firstOrNull;
     } on Exception catch (_) {}
     try {
       final supplier = await getSupplierInfoUseCase();
@@ -90,7 +98,8 @@ class OrderDetailViewModel {
         supplierResult: SupplierResult(supplier: supplier, customer: customer),
       );
     } on Exception catch (e) {
-      _state.value = _state.value.copyWith(supplierError: toFailure(e).getMessage());
+      _state.value =
+          _state.value.copyWith(supplierError: toFailure(e).getMessage());
     }
   }
 

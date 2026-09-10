@@ -1,3 +1,4 @@
+import 'package:um/domain/usecase/auth_use_cases.dart';
 import 'package:common/core/error/exception.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pos/domain/model/order/order_summary.dart';
@@ -13,7 +14,8 @@ import 'package:um/domain/entities/auth/system.dart' as um;
 import 'package:um/domain/entities/auth/user_session.dart';
 import 'package:um/domain/repositories/login_repository.dart';
 
-OrderSummary order(String id, String type, {double total = 100, double cost = 60}) {
+OrderSummary order(String id, String type,
+    {double total = 100, double cost = 60}) {
   return OrderSummary(
     id: id,
     code: 'OD-$id',
@@ -76,7 +78,8 @@ class FakeLoginRepository implements LoginRepository {
   Future<List<UserSession>> getSessions() => throw UnimplementedError();
 
   @override
-  Future<bool> revokeSessionById(String sessionId) => throw UnimplementedError();
+  Future<bool> revokeSessionById(String sessionId) =>
+      throw UnimplementedError();
 
   @override
   Future<int> revokeOtherSessions() => throw UnimplementedError();
@@ -89,7 +92,7 @@ OrderViewModel buildViewModel({
   return OrderViewModel(
     getOrderRangeUseCase:
         GetOrderRangeUseCase(orderRepo: orders ?? FakeOrderRepository()),
-    loginRepo: login ?? FakeLoginRepository(),
+    getRoleUseCase: GetRoleUseCase(login ?? FakeLoginRepository()),
   );
 }
 
@@ -107,7 +110,8 @@ void main() {
 
     test('Store covers cash sales and the ones with no channel recorded',
         () async {
-      final viewModel = buildViewModel(orders: FakeOrderRepository(orders: mixed));
+      final viewModel =
+          buildViewModel(orders: FakeOrderRepository(orders: mixed));
 
       await viewModel.getOrderItem('Store', anyRange());
 
@@ -117,7 +121,8 @@ void main() {
     });
 
     test('Online covers only the online channel', () async {
-      final viewModel = buildViewModel(orders: FakeOrderRepository(orders: mixed));
+      final viewModel =
+          buildViewModel(orders: FakeOrderRepository(orders: mixed));
 
       await viewModel.getOrderItem('Online', anyRange());
 
@@ -125,7 +130,8 @@ void main() {
     });
 
     test('any other type keeps every order', () async {
-      final viewModel = buildViewModel(orders: FakeOrderRepository(orders: mixed));
+      final viewModel =
+          buildViewModel(orders: FakeOrderRepository(orders: mixed));
 
       await viewModel.getOrderItem('All', anyRange());
 
@@ -157,7 +163,8 @@ void main() {
     await viewModel.getOrderItem('Store', anyRange());
     expect(viewModel.state.value.orders, hasLength(1));
 
-    repo.throws = const NetworkException(message: 'down', code: 'NETWORK_ERROR');
+    repo.throws =
+        const NetworkException(message: 'down', code: 'NETWORK_ERROR');
     await viewModel.getOrderItem('Store', anyRange());
 
     expect(viewModel.state.value.error, contains('เชื่อมต่อเซิร์ฟเวอร์ไม่ได้'));
