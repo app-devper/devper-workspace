@@ -35,20 +35,25 @@ class CartViewModel {
     selectCart(cartStore.cartIndex);
   }
 
-  Future<void> addOrderItem(String serialNumber, List<OrderItem> orderItem) async {
+  Future<void> addOrderItem(
+      String serialNumber, List<OrderItem> orderItem) async {
     _state.value = _state.value.copyWith(loading: true, clearError: true);
     try {
-      final data = orderItem.where((item) => item.product.unit.barcode == serialNumber).firstOrNull;
+      final data = orderItem
+          .where((item) => item.product.unit.barcode == serialNumber)
+          .firstOrNull;
       if (data != null) {
         data.plusAmount();
       } else {
         final result = await getProductByBarcodeUseCase(serialNumber);
         if (result == null) {
-          _state.value = _state.value.copyWith(loading: false, error: "ไม่พบสินค้า");
+          _state.value =
+              _state.value.copyWith(loading: false, error: "ไม่พบสินค้า");
           return;
         }
         final productItems = result.toProductItems();
-        final productItem = productItems.firstWhere((item) => item.unit.barcode == serialNumber);
+        final productItem = productItems
+            .firstWhere((item) => item.unit.barcode == serialNumber);
         orderItem.add(OrderItem(
           product: productItem,
           quantity: 1,
@@ -57,20 +62,24 @@ class CartViewModel {
       }
       _emitOrderItems(orderItem);
     } on Exception catch (e) {
-      _state.value = _state.value.copyWith(loading: false, error: toFailure(e).getMessage());
+      _state.value = _state.value
+          .copyWith(loading: false, error: toFailure(e).getMessage());
     }
   }
 
   Future<void> createOrder(CreateOrderParam param) async {
-    _state.value = _state.value.copyWith(orderSaving: true, clearOrderError: true, clearOrderResult: true);
+    // A second submit while one is in flight would bill the customer twice.
+    if (_state.value.checkout is CheckoutSubmitting) return;
+    _state.value = _state.value.copyWith(checkout: const CheckoutSubmitting());
     try {
       final result = await createOrderUseCase(param);
       for (var element in result.stocks) {
         await updateProductStockUseCase(element);
       }
-      _state.value = _state.value.copyWith(orderSaving: false, orderResult: result);
+      _state.value = _state.value.copyWith(checkout: CheckoutSucceeded(result));
     } on Exception catch (e) {
-      _state.value = _state.value.copyWith(orderSaving: false, orderError: toFailure(e).getMessage());
+      _state.value =
+          _state.value.copyWith(checkout: CheckoutFailed(toFailure(e)));
     }
   }
 
@@ -128,13 +137,15 @@ class CartViewModel {
     _emitOrderItems(orderItems);
   }
 
-  void editOrderItem(int index, OrderItem orderItem, List<OrderItem> orderItems) {
+  void editOrderItem(
+      int index, OrderItem orderItem, List<OrderItem> orderItems) {
     orderItems[index] = orderItem;
     _emitOrderItems(orderItems);
   }
 
   void _emitOrderItems(List<OrderItem> orderItems) {
-    _state.value = _state.value.copyWith(loading: false, orderItems: List<OrderItem>.of(orderItems));
+    _state.value = _state.value
+        .copyWith(loading: false, orderItems: List<OrderItem>.of(orderItems));
   }
 
   void consumeError() {
@@ -144,14 +155,14 @@ class CartViewModel {
   }
 
   void consumeOrderResult() {
-    if (_state.value.orderResult != null) {
-      _state.value = _state.value.copyWith(clearOrderResult: true);
+    if (_state.value.checkout is CheckoutSucceeded) {
+      _state.value = _state.value.copyWith(checkout: const CheckoutIdle());
     }
   }
 
   void consumeOrderError() {
-    if (_state.value.orderError != null) {
-      _state.value = _state.value.copyWith(clearOrderError: true);
+    if (_state.value.checkout is CheckoutFailed) {
+      _state.value = _state.value.copyWith(checkout: const CheckoutIdle());
     }
   }
 

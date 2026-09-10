@@ -1,3 +1,5 @@
+import 'package:um/domain/usecase/auth_use_cases.dart';
+import 'package:um/domain/usecase/user_use_cases.dart';
 // Flutter imports:
 import 'package:flutter/foundation.dart';
 
@@ -41,7 +43,8 @@ Future<void> initCore(AppConfig config) async {
 
   sl.registerLazySingleton<AppSession>(() => AppSession(sl()));
 
-  sl.registerLazySingleton<NetworkConfig>(() => AppNetworkConfig(appSession: sl()));
+  sl.registerLazySingleton<NetworkConfig>(
+      () => AppNetworkConfig(appSession: sl()));
 
   final client = CustomClient();
   client.addInterceptor(HttpLoggingInterceptor());
@@ -53,11 +56,29 @@ Future<void> initCore(AppConfig config) async {
     ),
   );
 
-  final SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+  final SharedPreferences sharedPreferences =
+      await SharedPreferences.getInstance();
   sl.registerLazySingleton(() => sharedPreferences);
 }
 
 Future<void> initUm() async {
+  sl.registerFactory(() => GetClientIdUseCase(sl()));
+  sl.registerFactory(() => LoginUseCase(sl()));
+  sl.registerFactory(() => RestoreSessionUseCase(sl()));
+  sl.registerFactory(() => LogoutUseCase(sl()));
+  sl.registerFactory(() => GetRoleUseCase(sl()));
+  sl.registerFactory(() => GetSessionsUseCase(sl()));
+  sl.registerFactory(() => RevokeSessionUseCase(sl()));
+  sl.registerFactory(() => RevokeOtherSessionsUseCase(sl()));
+  sl.registerFactory(() => GetUserUseCase(sl()));
+  sl.registerFactory(() => GetUserInfoUseCase(sl()));
+  sl.registerFactory(() => GetUsersUseCase(sl()));
+  sl.registerFactory(() => CreateUserUseCase(sl()));
+  sl.registerFactory(() => UpdateUserUseCase(sl()));
+  sl.registerFactory(() => UpdateUserInfoUseCase(sl()));
+  sl.registerFactory(() => RemoveUserUseCase(sl()));
+  sl.registerFactory(() => ChangePasswordUseCase(sl()));
+  sl.registerFactory(() => SetPasswordUseCase(sl()));
   sl.registerLazySingleton<KeepAliveScheduler>(
     () => KeepAliveScheduler(
       onTick: () => sl<LoginRepository>().keepAlive(),

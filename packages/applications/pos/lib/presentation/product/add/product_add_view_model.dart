@@ -33,57 +33,56 @@ class ProductAddViewModel {
   ValueListenable<ProductAddState> get state => _state;
 
   Future<void> getCategories() async {
-    _state.value = _state.value.copyWith(clearError: true);
+    _state.value = _state.value.copyWith(task: const ProductAddTask());
     try {
       final categories = await getLocalCategoriesUseCase();
       _state.value = _state.value.copyWith(categories: categories);
     } on Exception catch (e) {
-      _state.value = _state.value.copyWith(error: toFailure(e).getMessage());
+      _state.value =
+          _state.value.copyWith(task: ProductAddFailed(toFailure(e)));
     }
   }
 
   Future<void> generateSerialNumber() async {
-    _state.value = _state.value
-        .copyWith(saving: true, clearError: true, clearSerialNumber: true);
+    _state.value = _state.value.copyWith(task: const ProductAddSaving());
     try {
       final serialNumber = await generateSerialNumberUseCase();
       _state.value =
-          _state.value.copyWith(saving: false, serialNumber: serialNumber);
+          _state.value.copyWith(task: ProductAddSerialNumber(serialNumber));
     } on Exception catch (e) {
-      _state.value = _state.value
-          .copyWith(saving: false, error: toFailure(e).getMessage());
+      _state.value =
+          _state.value.copyWith(task: ProductAddFailed(toFailure(e)));
     }
   }
 
   Future<void> addProduct(CreateProductParam param) async {
-    _state.value = _state.value
-        .copyWith(saving: true, clearError: true, clearCreated: true);
+    _state.value = _state.value.copyWith(task: const ProductAddSaving());
     try {
       final created = await addProductUseCase(param);
       await getProductUnitsByProductIdUseCase(created.id);
       await getProductPricesByProductIdUseCase(created.id);
-      _state.value = _state.value.copyWith(saving: false, created: created);
+      _state.value = _state.value.copyWith(task: ProductCreated(created));
     } on Exception catch (e) {
-      _state.value = _state.value
-          .copyWith(saving: false, error: toFailure(e).getMessage());
+      _state.value =
+          _state.value.copyWith(task: ProductAddFailed(toFailure(e)));
     }
   }
 
   void consumeError() {
-    if (_state.value.error != null) {
-      _state.value = _state.value.copyWith(clearError: true);
+    if (_state.value.task is ProductAddFailed) {
+      _state.value = _state.value.copyWith(task: const ProductAddTask());
     }
   }
 
   void consumeCreated() {
-    if (_state.value.created != null) {
-      _state.value = _state.value.copyWith(clearCreated: true);
+    if (_state.value.task is ProductCreated) {
+      _state.value = _state.value.copyWith(task: const ProductAddTask());
     }
   }
 
   void consumeSerialNumber() {
-    if (_state.value.serialNumber != null) {
-      _state.value = _state.value.copyWith(clearSerialNumber: true);
+    if (_state.value.task is ProductAddSerialNumber) {
+      _state.value = _state.value.copyWith(task: const ProductAddTask());
     }
   }
 

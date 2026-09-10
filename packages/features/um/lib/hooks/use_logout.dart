@@ -1,34 +1,15 @@
-// Flutter imports:
-import 'package:flutter/cupertino.dart';
-
-// Package imports:
-import 'package:common/core/ext/widget_ext.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-
-// Project imports:
 import 'package:um/container.dart';
-import 'package:um/domain/repositories/login_repository.dart';
+import 'package:um/domain/usecase/auth_use_cases.dart';
+import 'package:um/hooks/use_mutation_action.dart';
 
 Function() useLogout(
   BuildContext context, {
   required Function() onSuccess,
 }) {
-  loading() {
-    showLoadingDialog(context);
-  }
-
-  success() {
-    hideLoadingDialog(context);
-    onSuccess();
-  }
-
-  logoutUser() async {
-    final loginRepo = sl<LoginRepository>();
-    loading();
-    final _ = await loginRepo.logoutUser();
-    success();
-  }
-
-  final cachedFunction = useCallback(logoutUser, []);
-  return cachedFunction;
+  final action = sl<LogoutUseCase>();
+  final run = useMutationAction<void, bool>(context, (_) => action(),
+      onSuccess: (_) => onSuccess());
+  return useCallback(() => run(null), [run]);
 }

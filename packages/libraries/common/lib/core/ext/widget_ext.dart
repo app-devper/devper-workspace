@@ -8,42 +8,15 @@ import 'package:design_system/widgets/error_state.dart';
 import 'package:design_system/theme/theme.dart';
 import 'package:common/localizations/localizations.dart';
 import 'package:common/core/error/failure.dart';
+import 'package:common/widgets/loading_dialog.dart';
 
 // Package imports:
 
-
 void showLoadingDialog(BuildContext context) {
-  final localizations = CommonLocalizations.of(context);
-  AlertDialog alert = AlertDialog(
-    content: Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        const CircularProgressIndicator(
-          strokeWidth: 6,
-          color: CustomColor.primary,
-          strokeCap: StrokeCap.round,
-        ),
-        const Padding(padding: EdgeInsets.only(top: 10)),
-        Text(
-          localizations.loading,
-          style: TextStyle(
-            color: CustomColor.font1,
-            fontSize: 16,
-          ),
-        ),
-      ],
-    ),
-    contentPadding: const EdgeInsets.all(20.0),
-  );
   showDialog(
     barrierDismissible: false,
     context: context,
-    builder: (BuildContext context) {
-      return PopScope(
-        canPop: false,
-        child: alert,
-      );
-    },
+    builder: (BuildContext context) => const LoadingDialog(),
   );
 }
 
@@ -338,7 +311,9 @@ Widget buildTextFormFieldReadOnly(
 }
 
 extension WidgetStream<T> on Stream<T> {
-  StreamBuilder<T> toWidget({required T initialData, required Widget Function(T event) widgetBuilder}) {
+  StreamBuilder<T> toWidget(
+      {required T initialData,
+      required Widget Function(T event) widgetBuilder}) {
     return StreamBuilder(
       initialData: initialData,
       stream: this,
@@ -383,7 +358,8 @@ extension WidgetFutureLoading<T> on Future<T> {
 }
 
 extension WidgetErrorLoading<T> on Future<T> {
-  FutureBuilder<T> toWidgetErrorLoading({required Widget Function() widgetBuilder}) {
+  FutureBuilder<T> toWidgetErrorLoading(
+      {required Widget Function() widgetBuilder}) {
     return FutureBuilder(
       future: this,
       builder: (BuildContext context, AsyncSnapshot<T> snapshot) {

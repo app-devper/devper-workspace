@@ -21,25 +21,25 @@ class ProductReturnViewModel {
   ValueListenable<ProductReturnState> get state => _state;
 
   Future<void> createProductReturn(CreateProductReturnParam param) async {
-    if (_state.value.loading) return;
-    _state.value = _state.value.copyWith(loading: true, clearError: true, clearCreated: true);
+    if (_state.value is ProductReturnSubmitting) return;
+    _state.value = const ProductReturnSubmitting();
     try {
       final created = await createProductReturnUseCase(param);
-      _state.value = _state.value.copyWith(loading: false, created: created);
+      _state.value = ProductReturnSucceeded(created);
     } on Exception catch (e) {
-      _state.value = _state.value.copyWith(loading: false, error: toFailure(e).getMessage());
+      _state.value = ProductReturnFailed(toFailure(e));
     }
   }
 
   void consumeError() {
     if (_state.value.error != null) {
-      _state.value = _state.value.copyWith(clearError: true);
+      _state.value = const ProductReturnState();
     }
   }
 
   void consumeCreated() {
     if (_state.value.created != null) {
-      _state.value = _state.value.copyWith(clearCreated: true);
+      _state.value = const ProductReturnState();
     }
   }
 

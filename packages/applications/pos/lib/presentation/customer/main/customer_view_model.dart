@@ -20,24 +20,24 @@ class CustomerViewModel {
   ValueListenable<CustomerState> get state => _state;
 
   Future<void> getCustomerById(String id) async {
-    _state.value = _state.value.copyWith(loading: true, clearError: true, clearLoaded: true);
+    _state.value = _state.value.copyWith(task: const CustomerRunning());
     try {
       final loaded = await getCustomerByIdUseCase(id);
-      _state.value = _state.value.copyWith(loading: false, loaded: loaded);
+      _state.value = _state.value.copyWith(task: CustomerLoaded(loaded));
     } on Exception catch (e) {
-      _state.value = _state.value.copyWith(loading: false, error: toFailure(e).getMessage());
+      _state.value = _state.value.copyWith(task: CustomerFailed(toFailure(e)));
     }
   }
 
   void consumeError() {
-    if (_state.value.error != null) {
-      _state.value = _state.value.copyWith(clearError: true);
+    if (_state.value.task is CustomerFailed) {
+      _state.value = _state.value.copyWith(task: const CustomerTask());
     }
   }
 
   void consumeLoaded() {
-    if (_state.value.loaded != null) {
-      _state.value = _state.value.copyWith(clearLoaded: true);
+    if (_state.value.task is CustomerLoaded) {
+      _state.value = _state.value.copyWith(task: const CustomerTask());
     }
   }
 

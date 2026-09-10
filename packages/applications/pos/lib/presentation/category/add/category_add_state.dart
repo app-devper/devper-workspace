@@ -1,32 +1,67 @@
 // Flutter imports:
 import 'package:flutter/foundation.dart' hide Category;
 
+// Package imports:
+import 'package:common/core/error/failure.dart';
+
 // Project imports:
 import 'package:pos/domain/model/category/category.dart';
 
+/// The one thing this screen does, as a flow rather than a bag of flags:
+/// it is idle, running, finished with a result, or failed. Never two at once.
+sealed class CategoryAddTask {
+  const CategoryAddTask._();
+  const factory CategoryAddTask() = CategoryAddIdle;
+
+  // Derived UI projections; no independently writable flags.
+  bool get running => this is CategoryAddRunning;
+  String? get error => switch (this) {
+        CategoryAddFailed(:final failure) => failure.getMessage(),
+        _ => null,
+      };
+  Category? get created => switch (this) {
+        CategoryAddCreated(:final result) => result,
+        _ => null,
+      };
+}
+
+final class CategoryAddIdle extends CategoryAddTask {
+  const CategoryAddIdle() : super._();
+}
+
+final class CategoryAddRunning extends CategoryAddTask {
+  const CategoryAddRunning() : super._();
+}
+
+final class CategoryAddCreated extends CategoryAddTask {
+  final Category result;
+  const CategoryAddCreated(this.result) : super._();
+}
+
+final class CategoryAddFailed extends CategoryAddTask {
+  final Failure failure;
+  const CategoryAddFailed(this.failure) : super._();
+}
+
 @immutable
 class CategoryAddState {
-  final bool saving;
-  final String? error;
-  final Category? created;
+  final CategoryAddTask task;
 
   const CategoryAddState({
-    this.saving = false,
-    this.error,
-    this.created,
+    this.task = const CategoryAddIdle(),
   });
 
+  bool get saving => task.running;
+
+  String? get error => task.error;
+
+  Category? get created => task.created;
+
   CategoryAddState copyWith({
-    bool? saving,
-    String? error,
-    Category? created,
-    bool clearError = false,
-    bool clearCreated = false,
+    CategoryAddTask? task,
   }) {
     return CategoryAddState(
-      saving: saving ?? this.saving,
-      error: clearError ? null : (error ?? this.error),
-      created: clearCreated ? null : (created ?? this.created),
+      task: task ?? this.task,
     );
   }
 }

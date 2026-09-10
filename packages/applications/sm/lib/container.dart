@@ -18,11 +18,12 @@ Future<void> initSm() async {
   // ViewModel
   sl.registerFactory(
     () => HomeViewModel(
+      logoutUseCase: sl(),
       getSystemsUseCase: sl(),
       createSystemUseCase: sl(),
       updateSystemByIdUseCase: sl(),
       removeSystemByIdUseCase: sl(),
-      loginRepo: sl(),
+      getRoleUseCase: sl(),
     ),
   );
 

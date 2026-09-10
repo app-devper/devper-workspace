@@ -7,9 +7,11 @@ import 'package:pos/domain/usecase/product/add_product_price_use_case.dart';
 import 'package:pos/domain/usecase/product/get_product_prices_by_product_id_use_case.dart';
 import 'package:pos/domain/usecase/product/remove_product_price_by_id_use_case.dart';
 import 'package:pos/domain/usecase/product/update_product_price_by_id_use_case.dart';
+import 'package:pos/presentation/product/price/product_price_state.dart';
 import 'package:pos/presentation/product/price/product_price_view_model.dart';
 
-ProductPrice price(String id, double amount, {String customerType = 'GENERAL'}) {
+ProductPrice price(String id, double amount,
+    {String customerType = 'GENERAL'}) {
   return ProductPrice(
     id: id,
     productId: 'p1',
@@ -23,7 +25,7 @@ class FakeProductRepository implements ProductRepository {
   FakeProductRepository({this.prices = const [], this.throws});
 
   final List<ProductPrice> prices;
-  final Object? throws;
+  Object? throws;
   final List<String> calls = [];
 
   void _guard(String call) {
@@ -33,7 +35,8 @@ class FakeProductRepository implements ProductRepository {
   }
 
   @override
-  Future<List<ProductPrice>> getProductPricesByProductId(String productId) async {
+  Future<List<ProductPrice>> getProductPricesByProductId(
+      String productId) async {
     _guard('get:$productId');
     return prices;
   }
@@ -64,8 +67,10 @@ class FakeProductRepository implements ProductRepository {
 ProductPriceViewModel buildViewModel(FakeProductRepository repo) {
   return ProductPriceViewModel(
     addProductPriceUseCase: AddProductPriceUseCase(productRepo: repo),
-    updateProductPriceByIdUseCase: UpdateProductPriceByIdUseCase(productRepo: repo),
-    removeProductPriceByIdUseCase: RemoveProductPriceByIdUseCase(productRepo: repo),
+    updateProductPriceByIdUseCase:
+        UpdateProductPriceByIdUseCase(productRepo: repo),
+    removeProductPriceByIdUseCase:
+        RemoveProductPriceByIdUseCase(productRepo: repo),
     getProductPricesByProductIdUseCase:
         GetProductPricesByProductIdUseCase(productRepo: repo),
   );
@@ -165,5 +170,56 @@ void main() {
 
     viewModel.consumeCompleted();
     expect(viewModel.state.value.completed, isNull);
+  });
+
+  group('one flow at a time', () {
+    test('reloading the list drops the tier the last write completed',
+        () async {
+      final repo = FakeProductRepository(prices: [price('a', 25)]);
+      final viewModel = buildViewModel(repo);
+
+      await viewModel.addProductPrice(ProductPriceParam(
+        productId: 'p1',
+        unitId: 'u1',
+        customerType: 'WHOLESALE',
+        price: 18.5,
+      ));
+      expect(viewModel.state.value.completed, isNotNull);
+
+      await viewModel.getProductPrice('p1');
+
+      expect(viewModel.state.value.items, hasLength(1),
+          reason: 'the list is data and survives');
+      expect(viewModel.state.value.completed, isNull,
+          reason: 'the write result belongs to the write that produced it');
+      expect(viewModel.state.value.task, isA<ProductPriceIdle>());
+    });
+
+    test('a failure drops the previous result but keeps the list', () async {
+      final repo = FakeProductRepository(prices: [price('a', 25)]);
+      final viewModel = buildViewModel(repo);
+
+      await viewModel.getProductPrice('p1');
+      await viewModel.addProductPrice(ProductPriceParam(
+        productId: 'p1',
+        unitId: 'u1',
+        customerType: 'WHOLESALE',
+        price: 18.5,
+      ));
+      expect(viewModel.state.value.completed, isNotNull);
+
+      repo.throws = const NetworkException(message: 'offline');
+      await viewModel.addProductPrice(ProductPriceParam(
+        productId: 'p1',
+        unitId: 'u1',
+        customerType: 'RETAIL',
+        price: 20,
+      ));
+
+      expect(viewModel.state.value.error, isNotNull);
+      expect(viewModel.state.value.completed, isNull);
+      expect(viewModel.state.value.loading, isFalse);
+      expect(viewModel.state.value.items, hasLength(1));
+    });
   });
 }

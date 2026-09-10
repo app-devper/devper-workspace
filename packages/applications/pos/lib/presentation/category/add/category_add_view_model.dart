@@ -21,24 +21,25 @@ class CategoryAddViewModel {
   ValueListenable<CategoryAddState> get state => _state;
 
   Future<void> createCategory(CategoryParam param) async {
-    _state.value = _state.value.copyWith(saving: true, clearError: true, clearCreated: true);
+    _state.value = _state.value.copyWith(task: const CategoryAddRunning());
     try {
       final created = await createCategoryUseCase(param);
-      _state.value = _state.value.copyWith(saving: false, created: created);
+      _state.value = _state.value.copyWith(task: CategoryAddCreated(created));
     } on Exception catch (e) {
-      _state.value = _state.value.copyWith(saving: false, error: toFailure(e).getMessage());
+      _state.value =
+          _state.value.copyWith(task: CategoryAddFailed(toFailure(e)));
     }
   }
 
   void consumeError() {
-    if (_state.value.error != null) {
-      _state.value = _state.value.copyWith(clearError: true);
+    if (_state.value.task is CategoryAddFailed) {
+      _state.value = _state.value.copyWith(task: const CategoryAddTask());
     }
   }
 
   void consumeCreated() {
-    if (_state.value.created != null) {
-      _state.value = _state.value.copyWith(clearCreated: true);
+    if (_state.value.task is CategoryAddCreated) {
+      _state.value = _state.value.copyWith(task: const CategoryAddTask());
     }
   }
 

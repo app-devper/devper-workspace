@@ -3,7 +3,7 @@ import 'package:flutter/foundation.dart';
 
 // Package imports:
 import 'package:common/core/error/failure.dart';
-import 'package:um/domain/repositories/login_repository.dart';
+import 'package:um/domain/usecase/auth_use_cases.dart';
 
 // Project imports:
 import 'package:sm/domain/model/system/param.dart';
@@ -18,14 +18,16 @@ class HomeViewModel {
   final CreateSystemUseCase createSystemUseCase;
   final UpdateSystemByIdUseCase updateSystemByIdUseCase;
   final RemoveSystemByIdUseCase removeSystemByIdUseCase;
-  final LoginRepository loginRepo;
+  final GetRoleUseCase getRoleUseCase;
+  final LogoutUseCase logoutUseCase;
 
   HomeViewModel({
     required this.getSystemsUseCase,
     required this.createSystemUseCase,
     required this.updateSystemByIdUseCase,
     required this.removeSystemByIdUseCase,
-    required this.loginRepo,
+    required this.getRoleUseCase,
+    required this.logoutUseCase,
   });
 
   final _state = ValueNotifier<HomeState>(const HomeState());
@@ -34,7 +36,7 @@ class HomeViewModel {
 
   Future<void> loadRole() async {
     try {
-      _state.value = _state.value.copyWith(role: await loginRepo.getRole());
+      _state.value = _state.value.copyWith(role: await getRoleUseCase());
     } on Exception catch (_) {
       _state.value = _state.value.copyWith(role: '');
     }
@@ -46,7 +48,8 @@ class HomeViewModel {
       final items = await getSystemsUseCase();
       _state.value = _state.value.copyWith(loading: false, items: items);
     } on Exception catch (e) {
-      _state.value = _state.value.copyWith(loading: false, error: toFailure(e).getMessage());
+      _state.value = _state.value
+          .copyWith(loading: false, error: toFailure(e).getMessage());
     }
   }
 
@@ -56,7 +59,8 @@ class HomeViewModel {
       await createSystemUseCase(param);
       await getSystems();
     } on Exception catch (e) {
-      _state.value = _state.value.copyWith(loading: false, error: toFailure(e).getMessage());
+      _state.value = _state.value
+          .copyWith(loading: false, error: toFailure(e).getMessage());
     }
   }
 
@@ -66,7 +70,8 @@ class HomeViewModel {
       await updateSystemByIdUseCase(param);
       await getSystems();
     } on Exception catch (e) {
-      _state.value = _state.value.copyWith(loading: false, error: toFailure(e).getMessage());
+      _state.value = _state.value
+          .copyWith(loading: false, error: toFailure(e).getMessage());
     }
   }
 
@@ -76,13 +81,14 @@ class HomeViewModel {
       await removeSystemByIdUseCase(systemId);
       await getSystems();
     } on Exception catch (e) {
-      _state.value = _state.value.copyWith(loading: false, error: toFailure(e).getMessage());
+      _state.value = _state.value
+          .copyWith(loading: false, error: toFailure(e).getMessage());
     }
   }
 
   Future<void> logout() async {
     try {
-      await loginRepo.logoutUser();
+      await logoutUseCase();
     } on Exception catch (_) {
       // Log out locally even when the server call fails.
     }

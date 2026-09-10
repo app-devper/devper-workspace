@@ -6,6 +6,7 @@ import 'package:pos/domain/repositories/category_repository.dart';
 import 'package:pos/domain/usecase/category/get_category_by_id_use_case.dart';
 import 'package:pos/domain/usecase/category/remove_category_by_id_use_case.dart';
 import 'package:pos/domain/usecase/category/update_category_by_id_use_case.dart';
+import 'package:pos/presentation/category/edit/category_edit_state.dart';
 import 'package:pos/presentation/category/edit/category_edit_view_model.dart';
 
 class FakeCategoryRepository implements CategoryRepository {
@@ -25,7 +26,8 @@ class FakeCategoryRepository implements CategoryRepository {
   }
 
   @override
-  Future<Category> updateCategoryById(String categoryId, CategoryParam param) async {
+  Future<Category> updateCategoryById(
+      String categoryId, CategoryParam param) async {
     final error = throws;
     if (error != null) {
       throw error;
@@ -45,7 +47,8 @@ class FakeCategoryRepository implements CategoryRepository {
   }
 
   @override
-  Future<Category> createCategory(CategoryParam param) => throw UnimplementedError();
+  Future<Category> createCategory(CategoryParam param) =>
+      throw UnimplementedError();
 
   @override
   Future<List<Category>> getCategories() => throw UnimplementedError();
@@ -54,10 +57,12 @@ class FakeCategoryRepository implements CategoryRepository {
   Future<List<Category>> getLocalCategories() => throw UnimplementedError();
 
   @override
-  Future<Category> updateDefaultCategoryById(String categoryId) => throw UnimplementedError();
+  Future<Category> updateDefaultCategoryById(String categoryId) =>
+      throw UnimplementedError();
 
   @override
-  Future<bool> requireCustomerOrder(String? value) => throw UnimplementedError();
+  Future<bool> requireCustomerOrder(String? value) =>
+      throw UnimplementedError();
 }
 
 Category buildCategory(String id) {
@@ -72,7 +77,8 @@ Category buildCategory(String id) {
 }
 
 CategoryParam buildParam() {
-  return CategoryParam(name: 'ยาสามัญ', value: 'GENERAL', requireCustomerOrder: false);
+  return CategoryParam(
+      name: 'ยาสามัญ', value: 'GENERAL', requireCustomerOrder: false);
 }
 
 CategoryEditViewModel buildViewModel(CategoryRepository repo) {
@@ -107,7 +113,8 @@ void main() {
 
   test('updateCategoryById maps a typed exception to state.error', () async {
     final vm = buildViewModel(
-      FakeCategoryRepository(throws: const NetworkException(message: 'offline')),
+      FakeCategoryRepository(
+          throws: const NetworkException(message: 'offline')),
     );
 
     await vm.updateCategoryById('7', buildParam());
@@ -130,7 +137,8 @@ void main() {
 
   test('getCategoryById maps a typed exception to state.error', () async {
     final vm = buildViewModel(
-      FakeCategoryRepository(throws: const NetworkException(message: 'offline')),
+      FakeCategoryRepository(
+          throws: const NetworkException(message: 'offline')),
     );
 
     await vm.getCategoryById('1');
@@ -151,7 +159,8 @@ void main() {
 
   test('consumeError clears the error', () async {
     final vm = buildViewModel(
-      FakeCategoryRepository(throws: const NetworkException(message: 'offline')),
+      FakeCategoryRepository(
+          throws: const NetworkException(message: 'offline')),
     );
 
     await vm.updateCategoryById('7', buildParam());
@@ -160,5 +169,33 @@ void main() {
     vm.consumeError();
 
     expect(vm.state.value.error, isNull);
+  });
+
+  test('an update result and a delete result cannot both be present', () async {
+    final vm = buildViewModel(FakeCategoryRepository());
+
+    await vm.updateCategoryById('7', buildParam());
+    expect(vm.state.value.updated, isNotNull);
+    expect(vm.state.value.removed, isNull);
+
+    await vm.removeCategoryById('9');
+
+    expect(vm.state.value, isA<CategoryEditRemoved>());
+    expect(vm.state.value.removed?.id, '9');
+    expect(vm.state.value.updated, isNull,
+        reason: 'the stale update result must not survive a delete');
+  });
+
+  test('consumeRemoved returns the screen to idle', () async {
+    final vm = buildViewModel(FakeCategoryRepository());
+
+    await vm.removeCategoryById('9');
+    expect(vm.state.value.removed, isNotNull);
+
+    vm.consumeRemoved();
+
+    expect(vm.state.value, isA<CategoryEditIdle>());
+    expect(vm.state.value.removed, isNull);
+    expect(vm.state.value.loading, isFalse);
   });
 }

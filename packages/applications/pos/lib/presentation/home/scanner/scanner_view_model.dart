@@ -20,28 +20,30 @@ class ScannerViewModel {
   ValueListenable<ScannerState> get state => _state;
 
   Future<void> getProductBySerialNumber(String serialNumber) async {
-    _state.value = _state.value.copyWith(loading: true, clearError: true, clearLoaded: true);
+    _state.value = _state.value.copyWith(task: const ScannerRunning());
     try {
       final result = await getProductByBarcodeUseCase(serialNumber);
       if (result == null) {
-        _state.value = _state.value.copyWith(loading: false, error: "ไม่พบสินค้า");
+        _state.value =
+            _state.value.copyWith(task: const ScannerRejected("ไม่พบสินค้า"));
         return;
       }
-      _state.value = _state.value.copyWith(loading: false, loaded: result);
+      _state.value = _state.value.copyWith(task: ScannerLoaded(result));
     } on Exception catch (e) {
-      _state.value = _state.value.copyWith(loading: false, error: toFailure(e).getMessage());
+      _state.value = _state.value.copyWith(task: ScannerFailed(toFailure(e)));
     }
   }
 
   void consumeError() {
-    if (_state.value.error != null) {
-      _state.value = _state.value.copyWith(clearError: true);
+    if (_state.value.task is ScannerFailed ||
+        _state.value.task is ScannerRejected) {
+      _state.value = _state.value.copyWith(task: const ScannerTask());
     }
   }
 
   void consumeLoaded() {
-    if (_state.value.loaded != null) {
-      _state.value = _state.value.copyWith(clearLoaded: true);
+    if (_state.value.task is ScannerLoaded) {
+      _state.value = _state.value.copyWith(task: const ScannerTask());
     }
   }
 

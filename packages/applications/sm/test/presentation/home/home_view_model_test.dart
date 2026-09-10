@@ -1,3 +1,4 @@
+import 'package:um/domain/usecase/auth_use_cases.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sm/domain/model/system/param.dart';
 import 'package:sm/domain/model/system/system.dart';
@@ -45,7 +46,8 @@ class FakeSystemRepository implements SystemRepository {
   }
 
   @override
-  Future<System> getSystemById(String systemId) async => _system(systemId, 'POS');
+  Future<System> getSystemById(String systemId) async =>
+      _system(systemId, 'POS');
 
   @override
   Future<System> updateSystemById(UpdateSystemParam param) async {
@@ -90,7 +92,8 @@ class FakeLoginRepository implements LoginRepository {
   Future<List<UserSession>> getSessions() => throw UnimplementedError();
 
   @override
-  Future<bool> revokeSessionById(String sessionId) => throw UnimplementedError();
+  Future<bool> revokeSessionById(String sessionId) =>
+      throw UnimplementedError();
 
   @override
   Future<int> revokeOtherSessions() => throw UnimplementedError();
@@ -102,13 +105,15 @@ class FakeLoginRepository implements LoginRepository {
   String getClientId() => 'C1';
 }
 
-HomeViewModel buildViewModel(FakeSystemRepository repo, FakeLoginRepository login) {
+HomeViewModel buildViewModel(
+    FakeSystemRepository repo, FakeLoginRepository login) {
   return HomeViewModel(
     getSystemsUseCase: GetSystemsUseCase(systemRepo: repo),
     createSystemUseCase: CreateSystemUseCase(systemRepo: repo),
     updateSystemByIdUseCase: UpdateSystemByIdUseCase(systemRepo: repo),
     removeSystemByIdUseCase: RemoveSystemByIdUseCase(systemRepo: repo),
-    loginRepo: login,
+    getRoleUseCase: GetRoleUseCase(login),
+    logoutUseCase: LogoutUseCase(login),
   );
 }
 
@@ -176,8 +181,8 @@ void main() {
   });
 
   test('SUPER can manage both systems and users', () async {
-    final viewModel =
-        buildViewModel(FakeSystemRepository(), FakeLoginRepository(role: 'SUPER'));
+    final viewModel = buildViewModel(
+        FakeSystemRepository(), FakeLoginRepository(role: 'SUPER'));
 
     await viewModel.loadRole();
 
@@ -186,8 +191,8 @@ void main() {
   });
 
   test('ADMIN can manage users but not systems', () async {
-    final viewModel =
-        buildViewModel(FakeSystemRepository(), FakeLoginRepository(role: 'ADMIN'));
+    final viewModel = buildViewModel(
+        FakeSystemRepository(), FakeLoginRepository(role: 'ADMIN'));
 
     await viewModel.loadRole();
 
@@ -196,8 +201,8 @@ void main() {
   });
 
   test('USER can manage neither', () async {
-    final viewModel =
-        buildViewModel(FakeSystemRepository(), FakeLoginRepository(role: 'USER'));
+    final viewModel = buildViewModel(
+        FakeSystemRepository(), FakeLoginRepository(role: 'USER'));
 
     await viewModel.loadRole();
 
