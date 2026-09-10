@@ -21,24 +21,25 @@ class SupplierAddViewModel {
   ValueListenable<SupplierAddState> get state => _state;
 
   Future<void> createSupplier(SupplierParam param) async {
-    _state.value = _state.value.copyWith(saving: true, clearError: true, clearCreated: true);
+    _state.value = _state.value.copyWith(task: const SupplierAddRunning());
     try {
       final created = await createSupplierUseCase(param);
-      _state.value = _state.value.copyWith(saving: false, created: created);
+      _state.value = _state.value.copyWith(task: SupplierAddCreated(created));
     } on Exception catch (e) {
-      _state.value = _state.value.copyWith(saving: false, error: toFailure(e).getMessage());
+      _state.value =
+          _state.value.copyWith(task: SupplierAddFailed(toFailure(e)));
     }
   }
 
   void consumeError() {
-    if (_state.value.error != null) {
-      _state.value = _state.value.copyWith(clearError: true);
+    if (_state.value.task is SupplierAddFailed) {
+      _state.value = _state.value.copyWith(task: const SupplierAddTask());
     }
   }
 
   void consumeCreated() {
-    if (_state.value.created != null) {
-      _state.value = _state.value.copyWith(clearCreated: true);
+    if (_state.value.task is SupplierAddCreated) {
+      _state.value = _state.value.copyWith(task: const SupplierAddTask());
     }
   }
 

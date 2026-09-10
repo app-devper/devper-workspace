@@ -34,8 +34,10 @@ class ProductStockViewModel {
     await _run(() => addProductStockUseCase(param));
   }
 
-  Future<void> updateProductStockById(String id, ProductStockParam param) async {
-    await _run(() => updateProductStockByIdUseCase(ProductStockUpdateParam(stockId: id, param: param)));
+  Future<void> updateProductStockById(
+      String id, ProductStockParam param) async {
+    await _run(() => updateProductStockByIdUseCase(
+        ProductStockUpdateParam(stockId: id, param: param)));
   }
 
   Future<void> removeProductStockById(String id) async {
@@ -43,34 +45,38 @@ class ProductStockViewModel {
   }
 
   Future<void> getProductStocks(String productId) async {
-    _state.value = _state.value.copyWith(loading: true, clearError: true);
+    _state.value = _state.value.copyWith(task: const ProductStockRunning());
     try {
       final items = await getProductStocksByProductIdUseCase(productId);
-      _state.value = _state.value.copyWith(loading: false, items: items);
+      _state.value =
+          _state.value.copyWith(task: const ProductStockTask(), items: items);
     } on Exception catch (e) {
-      _state.value = _state.value.copyWith(loading: false, error: toFailure(e).getMessage());
+      _state.value =
+          _state.value.copyWith(task: ProductStockFailed(toFailure(e)));
     }
   }
 
   Future<void> _run(Future<ProductStock> Function() action) async {
-    _state.value = _state.value.copyWith(loading: true, clearError: true, clearCompleted: true);
+    _state.value = _state.value.copyWith(task: const ProductStockRunning());
     try {
       final completed = await action();
-      _state.value = _state.value.copyWith(loading: false, completed: completed);
+      _state.value =
+          _state.value.copyWith(task: ProductStockCompleted(completed));
     } on Exception catch (e) {
-      _state.value = _state.value.copyWith(loading: false, error: toFailure(e).getMessage());
+      _state.value =
+          _state.value.copyWith(task: ProductStockFailed(toFailure(e)));
     }
   }
 
   void consumeError() {
-    if (_state.value.error != null) {
-      _state.value = _state.value.copyWith(clearError: true);
+    if (_state.value.task is ProductStockFailed) {
+      _state.value = _state.value.copyWith(task: const ProductStockTask());
     }
   }
 
   void consumeCompleted() {
-    if (_state.value.completed != null) {
-      _state.value = _state.value.copyWith(clearCompleted: true);
+    if (_state.value.task is ProductStockCompleted) {
+      _state.value = _state.value.copyWith(task: const ProductStockTask());
     }
   }
 

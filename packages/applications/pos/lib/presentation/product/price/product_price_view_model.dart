@@ -34,8 +34,10 @@ class ProductPriceViewModel {
     await _run(() => addProductPriceUseCase(param));
   }
 
-  Future<void> updateProductPriceById(String id, ProductPriceParam param) async {
-    await _run(() => updateProductPriceByIdUseCase(ProductPriceUpdateParam(priceId: id, param: param)));
+  Future<void> updateProductPriceById(
+      String id, ProductPriceParam param) async {
+    await _run(() => updateProductPriceByIdUseCase(
+        ProductPriceUpdateParam(priceId: id, param: param)));
   }
 
   Future<void> removeProductPriceById(String id) async {
@@ -43,34 +45,38 @@ class ProductPriceViewModel {
   }
 
   Future<void> getProductPrice(String productId) async {
-    _state.value = _state.value.copyWith(loading: true, clearError: true);
+    _state.value = _state.value.copyWith(task: const ProductPriceRunning());
     try {
       final items = await getProductPricesByProductIdUseCase(productId);
-      _state.value = _state.value.copyWith(loading: false, items: items);
+      _state.value =
+          _state.value.copyWith(task: const ProductPriceTask(), items: items);
     } on Exception catch (e) {
-      _state.value = _state.value.copyWith(loading: false, error: toFailure(e).getMessage());
+      _state.value =
+          _state.value.copyWith(task: ProductPriceFailed(toFailure(e)));
     }
   }
 
   Future<void> _run(Future<ProductPrice> Function() action) async {
-    _state.value = _state.value.copyWith(loading: true, clearError: true, clearCompleted: true);
+    _state.value = _state.value.copyWith(task: const ProductPriceRunning());
     try {
       final completed = await action();
-      _state.value = _state.value.copyWith(loading: false, completed: completed);
+      _state.value =
+          _state.value.copyWith(task: ProductPriceCompleted(completed));
     } on Exception catch (e) {
-      _state.value = _state.value.copyWith(loading: false, error: toFailure(e).getMessage());
+      _state.value =
+          _state.value.copyWith(task: ProductPriceFailed(toFailure(e)));
     }
   }
 
   void consumeError() {
-    if (_state.value.error != null) {
-      _state.value = _state.value.copyWith(clearError: true);
+    if (_state.value.task is ProductPriceFailed) {
+      _state.value = _state.value.copyWith(task: const ProductPriceTask());
     }
   }
 
   void consumeCompleted() {
-    if (_state.value.completed != null) {
-      _state.value = _state.value.copyWith(clearCompleted: true);
+    if (_state.value.task is ProductPriceCompleted) {
+      _state.value = _state.value.copyWith(task: const ProductPriceTask());
     }
   }
 
