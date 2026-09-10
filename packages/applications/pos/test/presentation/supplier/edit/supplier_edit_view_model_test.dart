@@ -5,6 +5,7 @@ import 'package:pos/domain/model/supplier/supplier.dart';
 import 'package:pos/domain/repositories/supplier_repository.dart';
 import 'package:pos/domain/usecase/supplier/remove_supplier_by_id_use_case.dart';
 import 'package:pos/domain/usecase/supplier/update_supplier_by_id_use_case.dart';
+import 'package:pos/presentation/supplier/edit/supplier_edit_state.dart';
 import 'package:pos/presentation/supplier/edit/supplier_edit_view_model.dart';
 
 class FakeSupplierRepository implements SupplierRepository {
@@ -15,7 +16,8 @@ class FakeSupplierRepository implements SupplierRepository {
   FakeSupplierRepository({this.throws});
 
   @override
-  Future<Supplier> updateSupplierById(String supplierId, SupplierParam param) async {
+  Future<Supplier> updateSupplierById(
+      String supplierId, SupplierParam param) async {
     final error = throws;
     if (error != null) {
       throw error;
@@ -35,10 +37,12 @@ class FakeSupplierRepository implements SupplierRepository {
   }
 
   @override
-  Future<Supplier> createSupplier(SupplierParam param) => throw UnimplementedError();
+  Future<Supplier> createSupplier(SupplierParam param) =>
+      throw UnimplementedError();
 
   @override
-  Future<Supplier> updateSupplierInfo(SupplierParam param) => throw UnimplementedError();
+  Future<Supplier> updateSupplierInfo(SupplierParam param) =>
+      throw UnimplementedError();
 
   @override
   Future<Supplier> getSupplierInfo() => throw UnimplementedError();
@@ -50,10 +54,12 @@ class FakeSupplierRepository implements SupplierRepository {
   Future<List<Supplier>> getLocalSuppliers() => throw UnimplementedError();
 
   @override
-  Future<Supplier> getSupplierById(String supplierId) => throw UnimplementedError();
+  Future<Supplier> getSupplierById(String supplierId) =>
+      throw UnimplementedError();
 
   @override
-  Future<Supplier?> getLocalSupplierById(String supplierId) => throw UnimplementedError();
+  Future<Supplier?> getLocalSupplierById(String supplierId) =>
+      throw UnimplementedError();
 }
 
 Supplier buildSupplier(String id) {
@@ -61,7 +67,8 @@ Supplier buildSupplier(String id) {
 }
 
 SupplierParam buildParam() {
-  return SupplierParam(name: 'บริษัทยา จำกัด', address: '', phone: '', taxId: '');
+  return SupplierParam(
+      name: 'บริษัทยา จำกัด', address: '', phone: '', taxId: '');
 }
 
 SupplierEditViewModel buildViewModel(SupplierRepository repo) {
@@ -86,7 +93,8 @@ void main() {
 
   test('updateSupplierById maps a typed exception to state.error', () async {
     final vm = buildViewModel(
-      FakeSupplierRepository(throws: const NetworkException(message: 'offline')),
+      FakeSupplierRepository(
+          throws: const NetworkException(message: 'offline')),
     );
 
     await vm.updateSupplierById('7', buildParam());
@@ -120,7 +128,8 @@ void main() {
 
   test('consumeError clears the error', () async {
     final vm = buildViewModel(
-      FakeSupplierRepository(throws: const NetworkException(message: 'offline')),
+      FakeSupplierRepository(
+          throws: const NetworkException(message: 'offline')),
     );
 
     await vm.updateSupplierById('7', buildParam());
@@ -129,5 +138,33 @@ void main() {
     vm.consumeError();
 
     expect(vm.state.value.error, isNull);
+  });
+
+  test('an update result and a delete result cannot both be present', () async {
+    final vm = buildViewModel(FakeSupplierRepository());
+
+    await vm.updateSupplierById('7', buildParam());
+    expect(vm.state.value.updated, isNotNull);
+    expect(vm.state.value.removed, isNull);
+
+    await vm.removeSupplierById('9');
+
+    expect(vm.state.value, isA<SupplierEditRemoved>());
+    expect(vm.state.value.removed?.id, '9');
+    expect(vm.state.value.updated, isNull,
+        reason: 'the stale update result must not survive a delete');
+  });
+
+  test('consumeRemoved returns the screen to idle', () async {
+    final vm = buildViewModel(FakeSupplierRepository());
+
+    await vm.removeSupplierById('9');
+    expect(vm.state.value.removed, isNotNull);
+
+    vm.consumeRemoved();
+
+    expect(vm.state.value, isA<SupplierEditIdle>());
+    expect(vm.state.value.removed, isNull);
+    expect(vm.state.value.loading, isFalse);
   });
 }

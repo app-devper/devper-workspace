@@ -5,6 +5,7 @@ import 'package:pos/domain/model/customer/param.dart';
 import 'package:pos/domain/repositories/customer_repository.dart';
 import 'package:pos/domain/usecase/customer/remove_customer_by_id_use_case.dart';
 import 'package:pos/domain/usecase/customer/update_customer_by_id_use_case.dart';
+import 'package:pos/presentation/customer/edit/customer_edit_state.dart';
 import 'package:pos/presentation/customer/edit/customer_edit_view_model.dart';
 
 class FakeCustomerRepository implements CustomerRepository {
@@ -15,7 +16,8 @@ class FakeCustomerRepository implements CustomerRepository {
   FakeCustomerRepository({this.throws});
 
   @override
-  Future<Customer> updateCustomerById(String customerId, CustomerParam param) async {
+  Future<Customer> updateCustomerById(
+      String customerId, CustomerParam param) async {
     final error = throws;
     if (error != null) {
       throw error;
@@ -35,7 +37,8 @@ class FakeCustomerRepository implements CustomerRepository {
   }
 
   @override
-  Future<Customer> createCustomer(CustomerParam param) => throw UnimplementedError();
+  Future<Customer> createCustomer(CustomerParam param) =>
+      throw UnimplementedError();
 
   @override
   Future<List<Customer>> getCustomers() => throw UnimplementedError();
@@ -44,10 +47,12 @@ class FakeCustomerRepository implements CustomerRepository {
   Future<List<Customer>> getLocalCustomers() => throw UnimplementedError();
 
   @override
-  Future<Customer> getCustomerById(String customerId) => throw UnimplementedError();
+  Future<Customer> getCustomerById(String customerId) =>
+      throw UnimplementedError();
 
   @override
-  Future<Customer> getCustomerByCode(String customerCode) => throw UnimplementedError();
+  Future<Customer> getCustomerByCode(String customerCode) =>
+      throw UnimplementedError();
 }
 
 Customer buildCustomer(String id) {
@@ -64,7 +69,12 @@ Customer buildCustomer(String id) {
 }
 
 CustomerParam buildParam() {
-  return CustomerParam(name: 'สมหญิง', address: '', phone: '', email: '', customerType: 'GENERAL');
+  return CustomerParam(
+      name: 'สมหญิง',
+      address: '',
+      phone: '',
+      email: '',
+      customerType: 'GENERAL');
 }
 
 CustomerEditViewModel buildViewModel(CustomerRepository repo) {
@@ -89,7 +99,8 @@ void main() {
 
   test('updateCustomerById maps a typed exception to state.error', () async {
     final vm = buildViewModel(
-      FakeCustomerRepository(throws: const NetworkException(message: 'offline')),
+      FakeCustomerRepository(
+          throws: const NetworkException(message: 'offline')),
     );
 
     await vm.updateCustomerById('7', buildParam());
@@ -134,7 +145,8 @@ void main() {
 
   test('consumeError clears the error', () async {
     final vm = buildViewModel(
-      FakeCustomerRepository(throws: const NetworkException(message: 'offline')),
+      FakeCustomerRepository(
+          throws: const NetworkException(message: 'offline')),
     );
 
     await vm.updateCustomerById('7', buildParam());
@@ -143,5 +155,33 @@ void main() {
     vm.consumeError();
 
     expect(vm.state.value.error, isNull);
+  });
+
+  test('an update result and a delete result cannot both be present', () async {
+    final vm = buildViewModel(FakeCustomerRepository());
+
+    await vm.updateCustomerById('7', buildParam());
+    expect(vm.state.value.updated, isNotNull);
+    expect(vm.state.value.removed, isNull);
+
+    await vm.removeCustomerById('9');
+
+    expect(vm.state.value, isA<CustomerEditRemoved>());
+    expect(vm.state.value.removed?.id, '9');
+    expect(vm.state.value.updated, isNull,
+        reason: 'the stale update result must not survive a delete');
+  });
+
+  test('consumeRemoved returns the screen to idle', () async {
+    final vm = buildViewModel(FakeCustomerRepository());
+
+    await vm.removeCustomerById('9');
+    expect(vm.state.value.removed, isNotNull);
+
+    vm.consumeRemoved();
+
+    expect(vm.state.value, isA<CustomerEditIdle>());
+    expect(vm.state.value.removed, isNull);
+    expect(vm.state.value.loading, isFalse);
   });
 }

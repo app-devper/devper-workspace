@@ -24,42 +24,44 @@ class CustomerEditViewModel {
   ValueListenable<CustomerEditState> get state => _state;
 
   Future<void> updateCustomerById(String customerId, CustomerParam param) async {
-    _state.value = _state.value.copyWith(loading: true, clearError: true, clearUpdated: true);
+    if (_state.value is CustomerEditSaving) return;
+    _state.value = const CustomerEditSaving();
     try {
       final updated = await updateCustomerByIdUseCase(
         CustomerUpdateParam(customerId: customerId, param: param),
       );
-      _state.value = _state.value.copyWith(loading: false, updated: updated);
+      _state.value = CustomerEditUpdated(updated);
     } on Exception catch (e) {
-      _state.value = _state.value.copyWith(loading: false, error: toFailure(e).getMessage());
+      _state.value = CustomerEditFailed(toFailure(e));
     }
   }
 
   Future<void> removeCustomerById(String customerId) async {
-    _state.value = _state.value.copyWith(loading: true, clearError: true, clearRemoved: true);
+    if (_state.value is CustomerEditDeleting) return;
+    _state.value = const CustomerEditDeleting();
     try {
       final removed = await removeCustomerByIdUseCase(customerId);
-      _state.value = _state.value.copyWith(loading: false, removed: removed);
+      _state.value = CustomerEditRemoved(removed);
     } on Exception catch (e) {
-      _state.value = _state.value.copyWith(loading: false, error: toFailure(e).getMessage());
+      _state.value = CustomerEditFailed(toFailure(e));
     }
   }
 
   void consumeError() {
-    if (_state.value.error != null) {
-      _state.value = _state.value.copyWith(clearError: true);
+    if (_state.value is CustomerEditFailed) {
+      _state.value = const CustomerEditState();
     }
   }
 
   void consumeUpdated() {
-    if (_state.value.updated != null) {
-      _state.value = _state.value.copyWith(clearUpdated: true);
+    if (_state.value is CustomerEditUpdated) {
+      _state.value = const CustomerEditState();
     }
   }
 
   void consumeRemoved() {
-    if (_state.value.removed != null) {
-      _state.value = _state.value.copyWith(clearRemoved: true);
+    if (_state.value is CustomerEditRemoved) {
+      _state.value = const CustomerEditState();
     }
   }
 

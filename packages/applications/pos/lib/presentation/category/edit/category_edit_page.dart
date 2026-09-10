@@ -76,7 +76,9 @@ class _CategoryEditPageState extends State<CategoryEditPage> {
       _viewModel.consumeUpdated();
     }
     if (state.removed != null) {
-      Navigator.pop(context, state.removed);
+      final data = state.removed!;
+      _viewModel.consumeRemoved();
+      Navigator.pop(context, data);
     }
   }
 
