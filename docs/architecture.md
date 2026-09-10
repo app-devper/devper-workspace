@@ -79,6 +79,9 @@ read-only UI projections, not independently writable flags.
 UM mutation lifecycle uses a local enum and never transitions from disposed back
 to idle after an async completion.
 
+The category, customer and supplier edit screens follow this too: one sealed
+type each, named for its own entity, rather than a shared generic command state.
+
 CartState now follows this: checkout is a sealed CheckoutState carrying the
 OrderResult, sitting beside the cart's own loading/error rather than merging with
 it, because a barcode lookup and a submit are different operations.
@@ -92,9 +95,11 @@ Outstanding findings, not yet migrated:
 - OrderDetailState: eleven fields, three booleans and two separate error strings
   (error and supplierError) for what are several distinct operations sharing one
   state. The largest remaining offender.
-- Four edit screens repeat one shape — category, customer, supplier and product
-  each carry loaded/updated/removed with clear flags. They are close enough to
-  migrate together.
+- ProductEditState: loaded/updated/removed plus a categories list and a scanner
+  serialNumber event. Category, customer and supplier edit have been sealed; this
+  one was left out of that batch because it is not the same shape — it mixes two
+  commands with screen data and a scanner event, so it needs its flows separated
+  first rather than one sealed type bolted over all of it.
 - SM HomeState: loading/error and loggedOut are separate concerns. Use a typed
   systems query state and a session/navigation result rather than a single enum
   that combines every possible screen condition.

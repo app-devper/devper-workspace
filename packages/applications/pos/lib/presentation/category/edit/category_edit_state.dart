@@ -1,37 +1,58 @@
-// Flutter imports:
-import 'package:flutter/foundation.dart' hide Category;
+// Package imports:
+import 'package:common/core/error/failure.dart';
 
 // Project imports:
 import 'package:pos/domain/model/category/category.dart';
 
-@immutable
-class CategoryEditState {
-  final bool loading;
-  final String? error;
-  final Category? updated;
-  final Category? removed;
+/// The mutually exclusive states of this screen's two commands.
+///
+/// Saving and deleting share the screen but not a slot: an update result and a
+/// delete result can never both be present, which is what the four independent
+/// nullable fields used to allow.
+sealed class CategoryEditState {
+  const CategoryEditState._();
+  const factory CategoryEditState() = CategoryEditIdle;
 
-  const CategoryEditState({
-    this.loading = false,
-    this.error,
-    this.updated,
-    this.removed,
-  });
+  // Derived UI projections; no independently writable flags.
+  bool get loading =>
+      this is CategoryEditSaving || this is CategoryEditDeleting;
+  String? get error => switch (this) {
+        CategoryEditFailed(:final failure) => failure.getMessage(),
+        _ => null,
+      };
+  Category? get updated => switch (this) {
+        CategoryEditUpdated(:final category) => category,
+        _ => null,
+      };
+  Category? get removed => switch (this) {
+        CategoryEditRemoved(:final category) => category,
+        _ => null,
+      };
+}
 
-  CategoryEditState copyWith({
-    bool? loading,
-    String? error,
-    Category? updated,
-    Category? removed,
-    bool clearError = false,
-    bool clearUpdated = false,
-    bool clearRemoved = false,
-  }) {
-    return CategoryEditState(
-      loading: loading ?? this.loading,
-      error: clearError ? null : (error ?? this.error),
-      updated: clearUpdated ? null : (updated ?? this.updated),
-      removed: clearRemoved ? null : (removed ?? this.removed),
-    );
-  }
+final class CategoryEditIdle extends CategoryEditState {
+  const CategoryEditIdle() : super._();
+}
+
+final class CategoryEditSaving extends CategoryEditState {
+  const CategoryEditSaving() : super._();
+}
+
+final class CategoryEditDeleting extends CategoryEditState {
+  const CategoryEditDeleting() : super._();
+}
+
+final class CategoryEditUpdated extends CategoryEditState {
+  final Category category;
+  const CategoryEditUpdated(this.category) : super._();
+}
+
+final class CategoryEditRemoved extends CategoryEditState {
+  final Category category;
+  const CategoryEditRemoved(this.category) : super._();
+}
+
+final class CategoryEditFailed extends CategoryEditState {
+  final Failure failure;
+  const CategoryEditFailed(this.failure) : super._();
 }

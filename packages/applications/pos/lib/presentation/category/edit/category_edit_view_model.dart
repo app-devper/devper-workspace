@@ -30,41 +30,49 @@ class CategoryEditViewModel {
     try {
       await getCategoryByIdUseCase(categoryId);
     } on Exception catch (e) {
-      _state.value = _state.value.copyWith(error: toFailure(e).getMessage());
+      _state.value = CategoryEditFailed(toFailure(e));
     }
   }
 
   Future<void> updateCategoryById(String categoryId, CategoryParam param) async {
-    _state.value = _state.value.copyWith(loading: true, clearError: true, clearUpdated: true);
+    if (_state.value is CategoryEditSaving) return;
+    _state.value = const CategoryEditSaving();
     try {
       final updated = await updateCategoryByIdUseCase(
         CategoryUpdateParam(categoryId: categoryId, param: param),
       );
-      _state.value = _state.value.copyWith(loading: false, updated: updated);
+      _state.value = CategoryEditUpdated(updated);
     } on Exception catch (e) {
-      _state.value = _state.value.copyWith(loading: false, error: toFailure(e).getMessage());
+      _state.value = CategoryEditFailed(toFailure(e));
     }
   }
 
   Future<void> removeCategoryById(String categoryId) async {
-    _state.value = _state.value.copyWith(loading: true, clearError: true, clearRemoved: true);
+    if (_state.value is CategoryEditDeleting) return;
+    _state.value = const CategoryEditDeleting();
     try {
       final removed = await removeCategoryByIdUseCase(categoryId);
-      _state.value = _state.value.copyWith(loading: false, removed: removed);
+      _state.value = CategoryEditRemoved(removed);
     } on Exception catch (e) {
-      _state.value = _state.value.copyWith(loading: false, error: toFailure(e).getMessage());
+      _state.value = CategoryEditFailed(toFailure(e));
     }
   }
 
   void consumeError() {
-    if (_state.value.error != null) {
-      _state.value = _state.value.copyWith(clearError: true);
+    if (_state.value is CategoryEditFailed) {
+      _state.value = const CategoryEditState();
     }
   }
 
   void consumeUpdated() {
-    if (_state.value.updated != null) {
-      _state.value = _state.value.copyWith(clearUpdated: true);
+    if (_state.value is CategoryEditUpdated) {
+      _state.value = const CategoryEditState();
+    }
+  }
+
+  void consumeRemoved() {
+    if (_state.value is CategoryEditRemoved) {
+      _state.value = const CategoryEditState();
     }
   }
 

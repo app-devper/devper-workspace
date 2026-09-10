@@ -24,36 +24,44 @@ class SupplierEditViewModel {
   ValueListenable<SupplierEditState> get state => _state;
 
   Future<void> updateSupplierById(String supplierId, SupplierParam param) async {
-    _state.value = _state.value.copyWith(loading: true, clearError: true, clearUpdated: true);
+    if (_state.value is SupplierEditSaving) return;
+    _state.value = const SupplierEditSaving();
     try {
       final updated = await updateSupplierByIdUseCase(
         SupplierUpdateParam(supplierId: supplierId, param: param),
       );
-      _state.value = _state.value.copyWith(loading: false, updated: updated);
+      _state.value = SupplierEditUpdated(updated);
     } on Exception catch (e) {
-      _state.value = _state.value.copyWith(loading: false, error: toFailure(e).getMessage());
+      _state.value = SupplierEditFailed(toFailure(e));
     }
   }
 
   Future<void> removeSupplierById(String supplierId) async {
-    _state.value = _state.value.copyWith(loading: true, clearError: true, clearRemoved: true);
+    if (_state.value is SupplierEditDeleting) return;
+    _state.value = const SupplierEditDeleting();
     try {
       final removed = await removeSupplierByIdUseCase(supplierId);
-      _state.value = _state.value.copyWith(loading: false, removed: removed);
+      _state.value = SupplierEditRemoved(removed);
     } on Exception catch (e) {
-      _state.value = _state.value.copyWith(loading: false, error: toFailure(e).getMessage());
+      _state.value = SupplierEditFailed(toFailure(e));
     }
   }
 
   void consumeError() {
-    if (_state.value.error != null) {
-      _state.value = _state.value.copyWith(clearError: true);
+    if (_state.value is SupplierEditFailed) {
+      _state.value = const SupplierEditState();
     }
   }
 
   void consumeUpdated() {
-    if (_state.value.updated != null) {
-      _state.value = _state.value.copyWith(clearUpdated: true);
+    if (_state.value is SupplierEditUpdated) {
+      _state.value = const SupplierEditState();
+    }
+  }
+
+  void consumeRemoved() {
+    if (_state.value is SupplierEditRemoved) {
+      _state.value = const SupplierEditState();
     }
   }
 

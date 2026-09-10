@@ -1,37 +1,58 @@
-// Flutter imports:
-import 'package:flutter/foundation.dart';
+// Package imports:
+import 'package:common/core/error/failure.dart';
 
 // Project imports:
 import 'package:pos/domain/model/customer/customer.dart';
 
-@immutable
-class CustomerEditState {
-  final bool loading;
-  final String? error;
-  final Customer? updated;
-  final Customer? removed;
+/// The mutually exclusive states of this screen's two commands.
+///
+/// Saving and deleting share the screen but not a slot: an update result and a
+/// delete result can never both be present, which is what the four independent
+/// nullable fields used to allow.
+sealed class CustomerEditState {
+  const CustomerEditState._();
+  const factory CustomerEditState() = CustomerEditIdle;
 
-  const CustomerEditState({
-    this.loading = false,
-    this.error,
-    this.updated,
-    this.removed,
-  });
+  // Derived UI projections; no independently writable flags.
+  bool get loading =>
+      this is CustomerEditSaving || this is CustomerEditDeleting;
+  String? get error => switch (this) {
+        CustomerEditFailed(:final failure) => failure.getMessage(),
+        _ => null,
+      };
+  Customer? get updated => switch (this) {
+        CustomerEditUpdated(:final customer) => customer,
+        _ => null,
+      };
+  Customer? get removed => switch (this) {
+        CustomerEditRemoved(:final customer) => customer,
+        _ => null,
+      };
+}
 
-  CustomerEditState copyWith({
-    bool? loading,
-    String? error,
-    Customer? updated,
-    Customer? removed,
-    bool clearError = false,
-    bool clearUpdated = false,
-    bool clearRemoved = false,
-  }) {
-    return CustomerEditState(
-      loading: loading ?? this.loading,
-      error: clearError ? null : (error ?? this.error),
-      updated: clearUpdated ? null : (updated ?? this.updated),
-      removed: clearRemoved ? null : (removed ?? this.removed),
-    );
-  }
+final class CustomerEditIdle extends CustomerEditState {
+  const CustomerEditIdle() : super._();
+}
+
+final class CustomerEditSaving extends CustomerEditState {
+  const CustomerEditSaving() : super._();
+}
+
+final class CustomerEditDeleting extends CustomerEditState {
+  const CustomerEditDeleting() : super._();
+}
+
+final class CustomerEditUpdated extends CustomerEditState {
+  final Customer customer;
+  const CustomerEditUpdated(this.customer) : super._();
+}
+
+final class CustomerEditRemoved extends CustomerEditState {
+  final Customer customer;
+  const CustomerEditRemoved(this.customer) : super._();
+}
+
+final class CustomerEditFailed extends CustomerEditState {
+  final Failure failure;
+  const CustomerEditFailed(this.failure) : super._();
 }
