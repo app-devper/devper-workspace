@@ -213,12 +213,6 @@ class ReceiveManageViewModel {
     }
   }
 
-  void consumeRemovedItem() {
-    if (_state.value.removedItem != null) {
-      _state.value = _state.value.copyWith(clearRemovedItem: true);
-    }
-  }
-
   double _calculateTotalCost(List<ReceiveItem> data) {
     double total = 0;
     for (var x in data) {

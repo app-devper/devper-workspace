@@ -79,14 +79,22 @@ read-only UI projections, not independently writable flags.
 UM mutation lifecycle uses a local enum and never transitions from disposed back
 to idle after an async completion.
 
+CartState now follows this: checkout is a sealed CheckoutState carrying the
+OrderResult, sitting beside the cart's own loading/error rather than merging with
+it, because a barcode lookup and a submit are different operations.
+
 Outstanding findings, not yet migrated:
 
 - ReceiveManageState: multiple load flags plus created/updated/removed payloads
   and clear flags. Separate document/items load states from a typed command result
   (create/update/import/remove), retaining the rule that saving requires loaded items.
-- CartState: orderSaving/orderResult/orderError allow contradictory checkout states.
-  Define checkout-specific state variants carrying OrderResult; keep product lookup separate
-  because those are distinct operations, not one global progress enum.
+  The unused removedItem slot has been removed; the rest stands.
+- OrderDetailState: eleven fields, three booleans and two separate error strings
+  (error and supplierError) for what are several distinct operations sharing one
+  state. The largest remaining offender.
+- Four edit screens repeat one shape — category, customer, supplier and product
+  each carry loaded/updated/removed with clear flags. They are close enough to
+  migrate together.
 - SM HomeState: loading/error and loggedOut are separate concerns. Use a typed
   systems query state and a session/navigation result rather than a single enum
   that combines every possible screen condition.

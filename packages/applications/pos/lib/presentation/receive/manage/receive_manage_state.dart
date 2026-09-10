@@ -25,7 +25,6 @@ class ReceiveManageState {
   final Receive? created;
   final Receive? updated;
   final Receive? removed;
-  final ReceiveItem? removedItem;
 
   const ReceiveManageState({
     this.loading = false,
@@ -41,7 +40,6 @@ class ReceiveManageState {
     this.created,
     this.updated,
     this.removed,
-    this.removedItem,
   });
 
   ReceiveManageState copyWith({
@@ -58,14 +56,12 @@ class ReceiveManageState {
     Receive? created,
     Receive? updated,
     Receive? removed,
-    ReceiveItem? removedItem,
     bool clearError = false,
     bool clearReceive = false,
     bool clearSuppliersEvent = false,
     bool clearCreated = false,
     bool clearUpdated = false,
     bool clearRemoved = false,
-    bool clearRemovedItem = false,
   }) {
     return ReceiveManageState(
       loading: loading ?? this.loading,
@@ -82,7 +78,6 @@ class ReceiveManageState {
       created: clearCreated ? null : (created ?? this.created),
       updated: clearUpdated ? null : (updated ?? this.updated),
       removed: clearRemoved ? null : (removed ?? this.removed),
-      removedItem: clearRemovedItem ? null : (removedItem ?? this.removedItem),
     );
   }
 }
