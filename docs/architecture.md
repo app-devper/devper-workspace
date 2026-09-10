@@ -82,6 +82,14 @@ to idle after an async completion.
 The category, customer and supplier edit screens follow this too: one sealed
 type each, named for its own entity, rather than a shared generic command state.
 
+OrderDetailState shows the other half of the rule: a screen with several
+unrelated flows gets one sealed type per flow, not one per screen. Its order
+commands are an OrderTask and its supplier profile fetch a SupplierLookup, while
+`logged` and `totalCostUpdated` stay plain booleans because each is a single
+one-shot signal rather than a command with flags. Naming the variants also
+settled what the code meant: a missing supplier profile is SupplierNotConfigured,
+a state the screen acts on, not an error it reports.
+
 CartState now follows this: checkout is a sealed CheckoutState carrying the
 OrderResult, sitting beside the cart's own loading/error rather than merging with
 it, because a barcode lookup and a submit are different operations.
@@ -92,9 +100,6 @@ Outstanding findings, not yet migrated:
   and clear flags. Separate document/items load states from a typed command result
   (create/update/import/remove), retaining the rule that saving requires loaded items.
   The unused removedItem slot has been removed; the rest stands.
-- OrderDetailState: eleven fields, three booleans and two separate error strings
-  (error and supplierError) for what are several distinct operations sharing one
-  state. The largest remaining offender.
 - ProductEditState: loaded/updated/removed plus a categories list and a scanner
   serialNumber event. Category, customer and supplier edit have been sealed; this
   one was left out of that batch because it is not the same shape — it mixes two

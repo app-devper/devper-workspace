@@ -13,6 +13,7 @@ import 'package:pos/domain/usecase/order/get_order_by_id_use_case.dart';
 import 'package:pos/domain/usecase/order/remove_order_by_id_use_case.dart';
 import 'package:pos/domain/usecase/order/remove_order_item_by_id_use_case.dart';
 import 'package:pos/domain/usecase/supplier/get_supplier_info_use_case.dart';
+import 'package:pos/presentation/order/detail/order_detail_state.dart';
 import 'package:pos/presentation/order/detail/order_detail_view_model.dart';
 import 'package:um/domain/repositories/login_repository.dart';
 
@@ -135,6 +136,19 @@ Customer _buildCustomer(String code) {
 Supplier _buildSupplier() {
   return Supplier(
       id: 's1', name: 'Test Supplier', address: '', phone: '', taxId: '');
+}
+
+OrderItemDetail _buildOrderItem(String id) {
+  return OrderItemDetail(
+    id: id,
+    product: null,
+    quantity: 1,
+    price: 10,
+    costPrice: 5,
+    discount: 0,
+    createdDate: '2026-01-01T00:00:00.000Z',
+    order: null,
+  );
 }
 
 OrderDetail _buildOrderDetail(String id) {
@@ -370,5 +384,98 @@ void main() {
 
     vm.consumeTotalCostUpdated();
     expect(vm.state.value.totalCostUpdated, isFalse);
+  });
+
+  group('one task at a time', () {
+    test('reloading after removing an item drops the stale delete result',
+        () async {
+      final vm = _buildViewModel(
+        orderRepo: FakeOrderRepository(
+          orderDetail: _buildOrderDetail('order-1'),
+          removedItem: _buildOrderItem('item-1'),
+        ),
+      );
+
+      await vm.removeOrderItem('item-1');
+      expect(vm.state.value.removedItem, isNotNull);
+
+      await vm.getOrderById('order-1');
+
+      expect(vm.state.value.loaded, isNotNull);
+      expect(vm.state.value.removedItem, isNull,
+          reason:
+              'a delete result must not survive the reload that follows it');
+      expect(vm.state.value.task, isA<OrderLoaded>());
+    });
+
+    test('deleting the order drops a stale loaded document', () async {
+      final vm = _buildViewModel(
+        orderRepo:
+            FakeOrderRepository(orderDetail: _buildOrderDetail('order-1')),
+      );
+
+      await vm.getOrderById('order-1');
+      expect(vm.state.value.loaded, isNotNull);
+
+      await vm.removeOrderById('order-1');
+
+      expect(vm.state.value.removedOrder, isNotNull);
+      expect(vm.state.value.loaded, isNull);
+    });
+
+    test('a failure leaves no result behind', () async {
+      final vm = _buildViewModel(
+        orderRepo: FakeOrderRepository(
+          orderDetail: _buildOrderDetail('order-1'),
+          removeThrows: const NetworkException(message: 'offline'),
+        ),
+      );
+
+      await vm.getOrderById('order-1');
+      expect(vm.state.value.loaded, isNotNull);
+
+      await vm.removeOrderById('order-1');
+
+      expect(vm.state.value.error, isNotNull);
+      expect(vm.state.value.loaded, isNull);
+      expect(vm.state.value.removedOrder, isNull);
+      expect(vm.state.value.loading, isFalse);
+    });
+  });
+
+  group('supplier lookup', () {
+    test('a found profile and a missing one cannot both be present', () async {
+      final vm = _buildViewModel(
+        supplierRepo: FakeSupplierRepository(
+            throws: const NetworkException(message: 'offline')),
+      );
+
+      await vm.getSupplier('C1');
+
+      expect(vm.state.value.supplierError, isNotNull);
+      expect(vm.state.value.supplierResult, isNull);
+      expect(vm.state.value.supplier, isA<SupplierNotConfigured>());
+
+      vm.consumeSupplierError();
+
+      expect(vm.state.value.supplier, isA<SupplierLookupIdle>());
+    });
+
+    test('the supplier lookup does not disturb the order task', () async {
+      final vm = _buildViewModel(
+        orderRepo:
+            FakeOrderRepository(orderDetail: _buildOrderDetail('order-1')),
+        supplierRepo: FakeSupplierRepository(
+            throws: const NetworkException(message: 'offline')),
+      );
+
+      await vm.getOrderById('order-1');
+      await vm.getSupplier('C1');
+
+      expect(vm.state.value.loaded, isNotNull,
+          reason: 'the two flows have separate slots');
+      expect(vm.state.value.error, isNull);
+      expect(vm.state.value.supplierError, isNotNull);
+    });
   });
 }
