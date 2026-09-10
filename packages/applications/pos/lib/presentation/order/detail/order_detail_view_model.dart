@@ -40,44 +40,40 @@ class OrderDetailViewModel {
       final role = await getRoleUseCase();
       _state.value = _state.value.copyWith(logged: role == "ADMIN");
     } on Exception catch (e) {
-      _state.value = _state.value.copyWith(error: toFailure(e).getMessage());
+      _state.value = _state.value.copyWith(task: OrderTaskFailed(toFailure(e)));
     }
   }
 
   Future<void> getOrderById(String orderId) async {
-    _state.value = _state.value.copyWith(loading: true, clearError: true);
+    if (_state.value.task is OrderTaskRunning) return;
+    _state.value = _state.value.copyWith(task: const OrderTaskRunning());
     try {
       final loaded = await getOrderByIdUseCase(orderId);
-      _state.value = _state.value.copyWith(loading: false, loaded: loaded);
+      _state.value = _state.value.copyWith(task: OrderLoaded(loaded));
     } on Exception catch (e) {
-      _state.value = _state.value
-          .copyWith(loading: false, error: toFailure(e).getMessage());
+      _state.value = _state.value.copyWith(task: OrderTaskFailed(toFailure(e)));
     }
   }
 
   Future<void> removeOrderById(String orderId) async {
-    _state.value = _state.value
-        .copyWith(loading: true, clearError: true, clearRemovedOrder: true);
+    if (_state.value.task is OrderTaskRunning) return;
+    _state.value = _state.value.copyWith(task: const OrderTaskRunning());
     try {
       final removed = await removeOrderByIdUseCase(orderId);
-      _state.value =
-          _state.value.copyWith(loading: false, removedOrder: removed);
+      _state.value = _state.value.copyWith(task: OrderRemoved(removed));
     } on Exception catch (e) {
-      _state.value = _state.value
-          .copyWith(loading: false, error: toFailure(e).getMessage());
+      _state.value = _state.value.copyWith(task: OrderTaskFailed(toFailure(e)));
     }
   }
 
   Future<void> removeOrderItem(String id) async {
-    _state.value = _state.value
-        .copyWith(loading: true, clearError: true, clearRemovedItem: true);
+    if (_state.value.task is OrderTaskRunning) return;
+    _state.value = _state.value.copyWith(task: const OrderTaskRunning());
     try {
       final removed = await removeOrderItemByIdUseCase(id);
-      _state.value =
-          _state.value.copyWith(loading: false, removedItem: removed);
+      _state.value = _state.value.copyWith(task: OrderItemRemoved(removed));
     } on Exception catch (e) {
-      _state.value = _state.value
-          .copyWith(loading: false, error: toFailure(e).getMessage());
+      _state.value = _state.value.copyWith(task: OrderTaskFailed(toFailure(e)));
     }
   }
 
@@ -95,17 +91,19 @@ class OrderDetailViewModel {
     try {
       final supplier = await getSupplierInfoUseCase();
       _state.value = _state.value.copyWith(
-        supplierResult: SupplierResult(supplier: supplier, customer: customer),
+        supplier: SupplierFound(
+          SupplierResult(supplier: supplier, customer: customer),
+        ),
       );
     } on Exception catch (e) {
       _state.value =
-          _state.value.copyWith(supplierError: toFailure(e).getMessage());
+          _state.value.copyWith(supplier: SupplierNotConfigured(toFailure(e)));
     }
   }
 
   void consumeError() {
-    if (_state.value.error != null) {
-      _state.value = _state.value.copyWith(clearError: true);
+    if (_state.value.task is OrderTaskFailed) {
+      _state.value = _state.value.copyWith(task: const OrderTask());
     }
   }
 
@@ -116,20 +114,20 @@ class OrderDetailViewModel {
   }
 
   void consumeLoaded() {
-    if (_state.value.loaded != null) {
-      _state.value = _state.value.copyWith(clearLoaded: true);
+    if (_state.value.task is OrderLoaded) {
+      _state.value = _state.value.copyWith(task: const OrderTask());
     }
   }
 
   void consumeRemovedOrder() {
-    if (_state.value.removedOrder != null) {
-      _state.value = _state.value.copyWith(clearRemovedOrder: true);
+    if (_state.value.task is OrderRemoved) {
+      _state.value = _state.value.copyWith(task: const OrderTask());
     }
   }
 
   void consumeRemovedItem() {
-    if (_state.value.removedItem != null) {
-      _state.value = _state.value.copyWith(clearRemovedItem: true);
+    if (_state.value.task is OrderItemRemoved) {
+      _state.value = _state.value.copyWith(task: const OrderTask());
     }
   }
 
@@ -140,14 +138,14 @@ class OrderDetailViewModel {
   }
 
   void consumeSupplierResult() {
-    if (_state.value.supplierResult != null) {
-      _state.value = _state.value.copyWith(clearSupplierResult: true);
+    if (_state.value.supplier is SupplierFound) {
+      _state.value = _state.value.copyWith(supplier: const SupplierLookup());
     }
   }
 
   void consumeSupplierError() {
-    if (_state.value.supplierError != null) {
-      _state.value = _state.value.copyWith(clearSupplierError: true);
+    if (_state.value.supplier is SupplierNotConfigured) {
+      _state.value = _state.value.copyWith(supplier: const SupplierLookup());
     }
   }
 
