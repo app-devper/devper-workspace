@@ -17,7 +17,10 @@ import 'package:pos/domain/usecase/product/get_product_units_by_product_id_use_c
 import 'package:pos/domain/usecase/product/import_product_csv_use_case.dart';
 import 'package:pos/domain/usecase/product/remove_product_by_id_use_case.dart';
 import 'package:pos/domain/usecase/product/update_product_by_id_use_case.dart';
+import 'package:pos/presentation/product/add/product_add_state.dart';
 import 'package:pos/presentation/product/add/product_add_view_model.dart';
+import 'package:pos/presentation/product/edit/product_edit_state.dart';
+import 'package:pos/presentation/product/main/product_state.dart';
 import 'package:pos/presentation/product/edit/product_edit_view_model.dart';
 import 'package:pos/presentation/product/main/product_view_model.dart';
 
@@ -312,6 +315,65 @@ void main() {
       expect(vm.state.value.loading, isFalse);
       expect(vm.state.value.importResult, isNull);
       expect(vm.state.value.error, isNotNull);
+    });
+  });
+
+  group('one task at a time', () {
+    test('a serial number does not survive the save that follows it', () async {
+      final vm = buildAddViewModel(
+          FakeProductRepository(product: buildProduct()),
+          FakeCategoryRepository());
+
+      await vm.generateSerialNumber();
+      expect(vm.state.value.serialNumber, 'SN-1');
+
+      await vm.addProduct(buildCreateParam());
+
+      expect(vm.state.value.created, isNotNull);
+      expect(vm.state.value.serialNumber, isNull,
+          reason:
+              'the generated number belongs to the request that asked for it');
+      expect(vm.state.value.task, isA<ProductCreated>());
+    });
+
+    test('deleting a product drops the document it was editing', () async {
+      final vm = buildEditViewModel(
+          FakeProductRepository(product: buildProduct()),
+          FakeCategoryRepository());
+
+      await vm.getProductById('p1');
+      expect(vm.state.value.loaded, isNotNull);
+
+      await vm.removeProductById('p1');
+
+      expect(vm.state.value.removed, isNotNull);
+      expect(vm.state.value.loaded, isNull);
+    });
+
+    test('a missing product reads as missing, not as a failed request',
+        () async {
+      final vm =
+          buildEditViewModel(FakeProductRepository(), FakeCategoryRepository());
+
+      await vm.getProductById('gone');
+
+      expect(vm.state.value.task, isA<ProductMissing>());
+      expect(vm.state.value.error, 'Product not found');
+      expect(vm.state.value.loaded, isNull);
+    });
+
+    test('an import result does not linger past the next lookup', () async {
+      final vm =
+          buildProductViewModel(FakeProductRepository(product: buildProduct()));
+
+      await vm.importCSV(bytes: const [1], filename: 'p.csv');
+      expect(vm.state.value.importResult, isNotNull);
+
+      await vm.getProduct('p1');
+
+      expect(vm.state.value.loaded, isNotNull);
+      expect(vm.state.value.importResult, isNull);
+      expect(vm.state.value.task, isA<ProductFound>());
     });
   });
 }

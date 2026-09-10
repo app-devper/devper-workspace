@@ -12,7 +12,8 @@ import 'package:pos/domain/usecase/product/update_product_lot_quantity_by_lot_id
 import 'package:pos/presentation/product/lot_edit/product_lot_edit_state.dart';
 
 class ProductLotEditViewModel {
-  final UpdateProductLotQuantityByLotIdUseCase updateProductLotQuantityByLotIdUseCase;
+  final UpdateProductLotQuantityByLotIdUseCase
+      updateProductLotQuantityByLotIdUseCase;
   final GetLocalProductByIdUseCase getLocalProductByIdUseCase;
 
   ProductLotEditViewModel({
@@ -20,42 +21,46 @@ class ProductLotEditViewModel {
     required this.getLocalProductByIdUseCase,
   });
 
-  final _state = ValueNotifier<ProductLotEditState>(const ProductLotEditState());
+  final _state =
+      ValueNotifier<ProductLotEditState>(const ProductLotEditState());
 
   ValueListenable<ProductLotEditState> get state => _state;
 
   void getProductLot(ProductLot lot) {
-    _state.value = _state.value.copyWith(loaded: lot);
+    _state.value = _state.value.copyWith(task: ProductLotLoaded(lot));
   }
 
-  Future<void> updateProductLot(String lotId, UpdateProductLotQuantityParam param) async {
-    _state.value = _state.value.copyWith(loading: true, clearError: true, clearUpdated: true);
+  Future<void> updateProductLot(
+      String lotId, UpdateProductLotQuantityParam param) async {
+    if (_state.value.task is ProductLotEditRunning) return;
+    _state.value = _state.value.copyWith(task: const ProductLotEditRunning());
     try {
       final updated = await updateProductLotQuantityByLotIdUseCase(
         ProductLotQuantityUpdateParam(lotId: lotId, param: param),
       );
       updated.product = await getLocalProductByIdUseCase(updated.productId);
-      _state.value = _state.value.copyWith(loading: false, updated: updated);
+      _state.value = _state.value.copyWith(task: ProductLotUpdated(updated));
     } on Exception catch (e) {
-      _state.value = _state.value.copyWith(loading: false, error: toFailure(e).getMessage());
+      _state.value =
+          _state.value.copyWith(task: ProductLotEditFailed(toFailure(e)));
     }
   }
 
   void consumeError() {
-    if (_state.value.error != null) {
-      _state.value = _state.value.copyWith(clearError: true);
+    if (_state.value.task is ProductLotEditFailed) {
+      _state.value = _state.value.copyWith(task: const ProductLotEditTask());
     }
   }
 
   void consumeLoaded() {
-    if (_state.value.loaded != null) {
-      _state.value = _state.value.copyWith(clearLoaded: true);
+    if (_state.value.task is ProductLotLoaded) {
+      _state.value = _state.value.copyWith(task: const ProductLotEditTask());
     }
   }
 
   void consumeUpdated() {
-    if (_state.value.updated != null) {
-      _state.value = _state.value.copyWith(clearUpdated: true);
+    if (_state.value.task is ProductLotUpdated) {
+      _state.value = _state.value.copyWith(task: const ProductLotEditTask());
     }
   }
 

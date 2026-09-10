@@ -33,69 +33,68 @@ class ProductViewModel {
   Future<void> getProduct(String productId) async {
     try {
       final data = await getLocalProductByIdUseCase(productId);
-      if (data == null) {
-        _state.value = _state.value.copyWith(error: "Product not found");
-      } else {
-        _state.value = _state.value.copyWith(loaded: data);
-      }
+      _state.value = _state.value.copyWith(
+          task: data == null ? const ProductNotFound() : ProductFound(data));
     } on Exception catch (e) {
-      _state.value = _state.value.copyWith(error: toFailure(e).getMessage());
+      _state.value =
+          _state.value.copyWith(task: ProductTaskFailed(toFailure(e)));
     }
   }
 
   Future<void> exportProducts() async {
-    _state.value = _state.value.copyWith(clearError: true);
+    _state.value = _state.value.copyWith(task: const ProductTask());
     try {
       final result = await getLocalProductsUseCase();
       ExportCsv.downloadProducts(result);
     } on Exception catch (e) {
-      _state.value = _state.value.copyWith(error: toFailure(e).getMessage());
+      _state.value =
+          _state.value.copyWith(task: ProductTaskFailed(toFailure(e)));
     }
   }
 
   Future<void> importCSV(
       {required List<int> bytes, required String filename}) async {
-    _state.value = _state.value
-        .copyWith(loading: true, clearError: true, clearImportResult: true);
+    if (_state.value.task is ProductTaskRunning) return;
+    _state.value = _state.value.copyWith(task: const ProductTaskRunning());
     try {
       final result = await importProductCSVUseCase(
         ImportProductCSVParam(bytes: bytes, filename: filename),
       );
-      _state.value =
-          _state.value.copyWith(loading: false, importResult: result);
+      _state.value = _state.value.copyWith(task: ImportFinished(result));
     } on Exception catch (e) {
-      _state.value = _state.value
-          .copyWith(loading: false, error: toFailure(e).getMessage());
+      _state.value =
+          _state.value.copyWith(task: ProductTaskFailed(toFailure(e)));
     }
   }
 
   Future<void> clearSoldFirst(String productId) async {
-    _state.value = _state.value
-        .copyWith(loading: true, clearError: true, clearLoaded: true);
+    if (_state.value.task is ProductTaskRunning) return;
+    _state.value = _state.value.copyWith(task: const ProductTaskRunning());
     try {
       final result = await clearQuantitySoldFirstByIdUseCase(productId);
-      _state.value = _state.value.copyWith(loading: false, loaded: result);
+      _state.value = _state.value.copyWith(task: ProductFound(result));
     } on Exception catch (e) {
-      _state.value = _state.value
-          .copyWith(loading: false, error: toFailure(e).getMessage());
+      _state.value =
+          _state.value.copyWith(task: ProductTaskFailed(toFailure(e)));
     }
   }
 
   void consumeError() {
-    if (_state.value.error != null) {
-      _state.value = _state.value.copyWith(clearError: true);
+    if (_state.value.task is ProductTaskFailed ||
+        _state.value.task is ProductNotFound) {
+      _state.value = _state.value.copyWith(task: const ProductTask());
     }
   }
 
   void consumeLoaded() {
-    if (_state.value.loaded != null) {
-      _state.value = _state.value.copyWith(clearLoaded: true);
+    if (_state.value.task is ProductFound) {
+      _state.value = _state.value.copyWith(task: const ProductTask());
     }
   }
 
   void consumeImportResult() {
-    if (_state.value.importResult != null) {
-      _state.value = _state.value.copyWith(clearImportResult: true);
+    if (_state.value.task is ImportFinished) {
+      _state.value = _state.value.copyWith(task: const ProductTask());
     }
   }
 

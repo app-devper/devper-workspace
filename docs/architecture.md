@@ -96,15 +96,19 @@ it, because a barcode lookup and a submit are different operations.
 
 Outstanding findings, not yet migrated:
 
-- ReceiveManageState: multiple load flags plus created/updated/removed payloads
-  and clear flags. Separate document/items load states from a typed command result
-  (create/update/import/remove), retaining the rule that saving requires loaded items.
-  The unused removedItem slot has been removed; the rest stands.
-- ProductEditState: loaded/updated/removed plus a categories list and a scanner
-  serialNumber event. Category, customer and supplier edit have been sealed; this
-  one was left out of that batch because it is not the same shape — it mixes two
-  commands with screen data and a scanner event, so it needs its flows separated
-  first rather than one sealed type bolted over all of it.
+- Thirteen screens still share one small shape: a busy boolean, an error string
+  and a single command result with its clear flag. Mechanical to convert, and
+  worth doing as one batch rather than one at a time.
+- Twelve list screens carry loading/items/error. These are the weakest case for
+  the rule: `items` is data that has to survive a reload, not a command result,
+  so only loading and error are in tension, and no view model can currently
+  produce both. Converting them buys a sealed status beside the data, not a
+  smaller state.
+- OrderState looks like an offender by field count but is not one. `logged`,
+  `initialized` and `rangeSelection` are three unrelated one-shot signals rather
+  than competing results of one command, and the rest is screen data.
+- POS HomeState is likewise fine: `isAdmin` is the permission predicate the rule
+  explicitly allows, and `loggedOut` is a navigation signal.
 - SM HomeState: loading/error and loggedOut are separate concerns. Use a typed
   systems query state and a session/navigation result rather than a single enum
   that combines every possible screen condition.
