@@ -59,7 +59,9 @@ class ProductsExpiredViewModel {
         _endDate = DateTime(now.year, now.month, now.day);
         break;
       case Range.today:
-        _startDate = DateTime(now.year, now.month, now.day).add(const Duration(days: 1));
+        // Start at midnight today, not tomorrow: the window has to contain
+        // today for "หมดอายุวันนี้" to return the lots expiring today.
+        _startDate = DateTime(now.year, now.month, now.day);
         _endDate = DateTime(now.year, now.month, now.day + 1);
         break;
       case Range.before30Days:
