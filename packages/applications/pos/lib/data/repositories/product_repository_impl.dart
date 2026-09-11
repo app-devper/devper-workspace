@@ -1,9 +1,5 @@
-// Dart imports:
-import 'dart:convert';
-
 // Package imports:
 import 'package:common/core/network/error_mapper.dart';
-import 'package:common/core/network/exception.dart';
 
 // Project imports:
 import 'package:pos/data/datasource/network/pos_service.dart';
@@ -45,13 +41,9 @@ class ProductRepositoryImpl implements ProductRepository {
   Future<List<Product>> getProducts() async {
     final mapper = ProductMapper();
     final response = await posService.getProducts();
-    if (response.isSuccessful) {
-      final result = mapper.toProductsDomain(jsonDecode(response.body));
-      cache.fill(result);
-      return cache.items;
-    } else {
-      throw toAppException(response);
-    }
+    final result = mapper.toProductsDomain(jsonOrThrow(response));
+    cache.fill(result);
+    return cache.items;
   }
 
   @override
@@ -74,13 +66,9 @@ class ProductRepositoryImpl implements ProductRepository {
     final mapper = ProductMapper();
     final request = mapper.toCreateProductRequest(param);
     final response = await posService.createProduct(request);
-    if (response.isSuccessful) {
-      final product = mapper.toProductDomain(jsonDecode(response.body));
-      cache.items.add(product);
-      return product;
-    } else {
-      throw toAppException(response);
-    }
+    final product = mapper.toProductDomain(jsonOrThrow(response));
+    cache.items.add(product);
+    return product;
   }
 
   @override
@@ -89,45 +77,37 @@ class ProductRepositoryImpl implements ProductRepository {
     final mapper = ProductMapper();
     final request = mapper.toUpdateProductRequest(param);
     final response = await posService.updateProductById(productId, request);
-    if (response.isSuccessful) {
-      final product = mapper.toProductDomain(jsonDecode(response.body));
-      for (var element in cache.items) {
-        if (element.id == product.id) {
-          element.name = product.name;
-          element.nameEn = product.nameEn;
-          element.description = product.description;
-          element.price = product.price;
-          element.costPrice = product.costPrice;
-          element.unit = product.unit;
-          element.quantity = product.quantity;
-          element.soldFirst = product.soldFirst;
-          element.serialNumber = product.serialNumber;
-          element.category = product.category;
-          element.minStock = product.minStock;
-          element.drugInfo = product.drugInfo;
-          element.drugRegistrations = product.drugRegistrations;
-          element.createdDate = product.createdDate;
-          element.status = product.status;
-          break;
-        }
+    final product = mapper.toProductDomain(jsonOrThrow(response));
+    for (var element in cache.items) {
+      if (element.id == product.id) {
+        element.name = product.name;
+        element.nameEn = product.nameEn;
+        element.description = product.description;
+        element.price = product.price;
+        element.costPrice = product.costPrice;
+        element.unit = product.unit;
+        element.quantity = product.quantity;
+        element.soldFirst = product.soldFirst;
+        element.serialNumber = product.serialNumber;
+        element.category = product.category;
+        element.minStock = product.minStock;
+        element.drugInfo = product.drugInfo;
+        element.drugRegistrations = product.drugRegistrations;
+        element.createdDate = product.createdDate;
+        element.status = product.status;
+        break;
       }
-      return product;
-    } else {
-      throw toAppException(response);
     }
+    return product;
   }
 
   @override
   Future<Product> removeProductById(String productId) async {
     final mapper = ProductMapper();
     final response = await posService.removeProductById(productId);
-    if (response.isSuccessful) {
-      final product = mapper.toProductDomain(jsonDecode(response.body));
-      cache.items.removeWhere((element) => element.id == product.id);
-      return product;
-    } else {
-      throw toAppException(response);
-    }
+    final product = mapper.toProductDomain(jsonOrThrow(response));
+    cache.items.removeWhere((element) => element.id == product.id);
+    return product;
   }
 
   @override
@@ -155,13 +135,9 @@ class ProductRepositoryImpl implements ProductRepository {
   Future<List<ProductLot>> getProductLotsExpired() async {
     final mapper = ProductMapper();
     final response = await posService.getProductLotsExpired();
-    if (response.isSuccessful) {
-      final json = jsonDecode(response.body);
-      final data = json is Map<String, dynamic> ? json['data'] : json;
-      return mapper.toProductLotsDomain(data ?? []);
-    } else {
-      throw toAppException(response);
-    }
+    final json = jsonOrThrow(response);
+    final data = json is Map<String, dynamic> ? json['data'] : json;
+    return mapper.toProductLotsDomain(data ?? []);
   }
 
   @override
@@ -195,18 +171,14 @@ class ProductRepositoryImpl implements ProductRepository {
     final mapper = ProductMapper();
     final response =
         await posService.addProductPrice(mapper.toProductPriceRequest(param));
-    if (response.isSuccessful) {
-      final price = mapper.toProductPriceDomain(jsonDecode(response.body));
-      for (var element in cache.items) {
-        if (element.id == price.productId) {
-          element.prices.add(price);
-          break;
-        }
+    final price = mapper.toProductPriceDomain(jsonOrThrow(response));
+    for (var element in cache.items) {
+      if (element.id == price.productId) {
+        element.prices.add(price);
+        break;
       }
-      return price;
-    } else {
-      throw toAppException(response);
     }
+    return price;
   }
 
   @override
@@ -215,42 +187,34 @@ class ProductRepositoryImpl implements ProductRepository {
     final mapper = ProductMapper();
     final response = await posService.updateProductPriceById(
         id, mapper.toProductPriceRequest(param));
-    if (response.isSuccessful) {
-      final price = mapper.toProductPriceDomain(jsonDecode(response.body));
-      for (var element in cache.items) {
-        if (element.id == price.productId) {
-          for (var priceElement in element.prices) {
-            if (priceElement.id == price.id) {
-              priceElement.price = price.price;
-              priceElement.customerType = price.customerType;
-              break;
-            }
+    final price = mapper.toProductPriceDomain(jsonOrThrow(response));
+    for (var element in cache.items) {
+      if (element.id == price.productId) {
+        for (var priceElement in element.prices) {
+          if (priceElement.id == price.id) {
+            priceElement.price = price.price;
+            priceElement.customerType = price.customerType;
+            break;
           }
-          break;
         }
+        break;
       }
-      return price;
-    } else {
-      throw toAppException(response);
     }
+    return price;
   }
 
   @override
   Future<ProductPrice> removeProductPriceById(String id) async {
     final mapper = ProductMapper();
     final response = await posService.removeProductPriceById(id);
-    if (response.isSuccessful) {
-      final price = mapper.toProductPriceDomain(jsonDecode(response.body));
-      for (var element in cache.items) {
-        if (element.id == price.productId) {
-          element.prices.removeWhere((element) => element.id == price.id);
-          break;
-        }
+    final price = mapper.toProductPriceDomain(jsonOrThrow(response));
+    for (var element in cache.items) {
+      if (element.id == price.productId) {
+        element.prices.removeWhere((element) => element.id == price.id);
+        break;
       }
-      return price;
-    } else {
-      throw toAppException(response);
     }
+    return price;
   }
 
   @override
@@ -258,18 +222,14 @@ class ProductRepositoryImpl implements ProductRepository {
       String productId) async {
     final mapper = ProductMapper();
     final response = await posService.getProductPricesByProductId(productId);
-    if (response.isSuccessful) {
-      final prices = mapper.toProductPricesDomain(jsonDecode(response.body));
-      for (var element in cache.items) {
-        if (element.id == productId) {
-          element.prices = prices;
-          break;
-        }
+    final prices = mapper.toProductPricesDomain(jsonOrThrow(response));
+    for (var element in cache.items) {
+      if (element.id == productId) {
+        element.prices = prices;
+        break;
       }
-      return prices;
-    } else {
-      throw toAppException(response);
     }
+    return prices;
   }
 
   @override
@@ -277,18 +237,14 @@ class ProductRepositoryImpl implements ProductRepository {
     final mapper = ProductMapper();
     final response =
         await posService.addProductUnit(mapper.toProductUnitRequest(param));
-    if (response.isSuccessful) {
-      final unit = mapper.toProductUnitDomain(jsonDecode(response.body));
-      for (var element in cache.items) {
-        if (element.id == unit.productId) {
-          element.units.add(unit);
-          break;
-        }
+    final unit = mapper.toProductUnitDomain(jsonOrThrow(response));
+    for (var element in cache.items) {
+      if (element.id == unit.productId) {
+        element.units.add(unit);
+        break;
       }
-      return unit;
-    } else {
-      throw toAppException(response);
     }
+    return unit;
   }
 
   @override
@@ -297,64 +253,52 @@ class ProductRepositoryImpl implements ProductRepository {
     final mapper = ProductMapper();
     final response = await posService.updateProductUnitById(
         id, mapper.toProductUnitRequest(param));
-    if (response.isSuccessful) {
-      final unit = mapper.toProductUnitDomain(jsonDecode(response.body));
-      for (var element in cache.items) {
-        if (element.id == unit.productId) {
-          for (var unitElement in element.units) {
-            if (unitElement.id == unit.id) {
-              unitElement.unit = unit.unit;
-              unitElement.costPrice = unit.costPrice;
-              unitElement.size = unit.size;
-              unitElement.barcode = unit.barcode;
-              unitElement.volume = unit.volume;
-              unitElement.volumeUnit = unit.volumeUnit;
-              break;
-            }
+    final unit = mapper.toProductUnitDomain(jsonOrThrow(response));
+    for (var element in cache.items) {
+      if (element.id == unit.productId) {
+        for (var unitElement in element.units) {
+          if (unitElement.id == unit.id) {
+            unitElement.unit = unit.unit;
+            unitElement.costPrice = unit.costPrice;
+            unitElement.size = unit.size;
+            unitElement.barcode = unit.barcode;
+            unitElement.volume = unit.volume;
+            unitElement.volumeUnit = unit.volumeUnit;
+            break;
           }
-          break;
         }
+        break;
       }
-      return unit;
-    } else {
-      throw toAppException(response);
     }
+    return unit;
   }
 
   @override
   Future<ProductUnit> removeProductUnitById(String id) async {
     final mapper = ProductMapper();
     final response = await posService.removeProductUnitById(id);
-    if (response.isSuccessful) {
-      final unit = mapper.toProductUnitDomain(jsonDecode(response.body));
-      for (var element in cache.items) {
-        if (element.id == unit.productId) {
-          element.units.removeWhere((element) => element.id == unit.id);
-          break;
-        }
+    final unit = mapper.toProductUnitDomain(jsonOrThrow(response));
+    for (var element in cache.items) {
+      if (element.id == unit.productId) {
+        element.units.removeWhere((element) => element.id == unit.id);
+        break;
       }
-      return unit;
-    } else {
-      throw toAppException(response);
     }
+    return unit;
   }
 
   @override
   Future<List<ProductUnit>> getProductUnitsByProductId(String productId) async {
     final mapper = ProductMapper();
     final response = await posService.getProductUnitsByProductId(productId);
-    if (response.isSuccessful) {
-      final units = mapper.toProductUnitsDomain(jsonDecode(response.body));
-      for (var element in cache.items) {
-        if (element.id == productId) {
-          element.units = units;
-          break;
-        }
+    final units = mapper.toProductUnitsDomain(jsonOrThrow(response));
+    for (var element in cache.items) {
+      if (element.id == productId) {
+        element.units = units;
+        break;
       }
-      return units;
-    } else {
-      throw toAppException(response);
     }
+    return units;
   }
 
   @override
@@ -362,18 +306,14 @@ class ProductRepositoryImpl implements ProductRepository {
     final mapper = ProductMapper();
     final response =
         await posService.addProductStock(mapper.toProductStockRequest(param));
-    if (response.isSuccessful) {
-      final stock = mapper.toProductStockDomain(jsonDecode(response.body));
-      for (var element in cache.items) {
-        if (element.id == stock.productId) {
-          element.stocks.add(stock);
-          break;
-        }
+    final stock = mapper.toProductStockDomain(jsonOrThrow(response));
+    for (var element in cache.items) {
+      if (element.id == stock.productId) {
+        element.stocks.add(stock);
+        break;
       }
-      return stock;
-    } else {
-      throw toAppException(response);
     }
+    return stock;
   }
 
   @override
@@ -382,47 +322,39 @@ class ProductRepositoryImpl implements ProductRepository {
     final mapper = ProductMapper();
     final response = await posService.updateProductStockById(
         id, mapper.toProductStockRequest(param));
-    if (response.isSuccessful) {
-      final stock = mapper.toProductStockDomain(jsonDecode(response.body));
-      for (var element in cache.items) {
-        if (element.id == stock.productId) {
-          for (var stockElement in element.stocks) {
-            if (stockElement.id == stock.id) {
-              stockElement.quantity = stock.quantity;
-              stockElement.costPrice = stock.costPrice;
-              stockElement.price = stock.price;
-              stockElement.expireDate = stock.expireDate;
-              stockElement.importDate = stock.importDate;
-              stockElement.lotNumber = stock.lotNumber;
-              stockElement.sequence = stock.sequence;
-              break;
-            }
+    final stock = mapper.toProductStockDomain(jsonOrThrow(response));
+    for (var element in cache.items) {
+      if (element.id == stock.productId) {
+        for (var stockElement in element.stocks) {
+          if (stockElement.id == stock.id) {
+            stockElement.quantity = stock.quantity;
+            stockElement.costPrice = stock.costPrice;
+            stockElement.price = stock.price;
+            stockElement.expireDate = stock.expireDate;
+            stockElement.importDate = stock.importDate;
+            stockElement.lotNumber = stock.lotNumber;
+            stockElement.sequence = stock.sequence;
+            break;
           }
-          break;
         }
+        break;
       }
-      return stock;
-    } else {
-      throw toAppException(response);
     }
+    return stock;
   }
 
   @override
   Future<ProductStock> removeProductStockById(String id) async {
     final mapper = ProductMapper();
     final response = await posService.removeProductStockById(id);
-    if (response.isSuccessful) {
-      final stock = mapper.toProductStockDomain(jsonDecode(response.body));
-      for (var element in cache.items) {
-        if (element.id == stock.productId) {
-          element.stocks.removeWhere((element) => element.id == stock.id);
-          break;
-        }
+    final stock = mapper.toProductStockDomain(jsonOrThrow(response));
+    for (var element in cache.items) {
+      if (element.id == stock.productId) {
+        element.stocks.removeWhere((element) => element.id == stock.id);
+        break;
       }
-      return stock;
-    } else {
-      throw toAppException(response);
     }
+    return stock;
   }
 
   @override
@@ -430,18 +362,14 @@ class ProductRepositoryImpl implements ProductRepository {
       String productId) async {
     final mapper = ProductMapper();
     final response = await posService.getProductStocksByProductId(productId);
-    if (response.isSuccessful) {
-      final stocks = mapper.toProductStocksDomain(jsonDecode(response.body));
-      for (var element in cache.items) {
-        if (element.id == productId) {
-          element.stocks = stocks;
-          break;
-        }
+    final stocks = mapper.toProductStocksDomain(jsonOrThrow(response));
+    for (var element in cache.items) {
+      if (element.id == productId) {
+        element.stocks = stocks;
+        break;
       }
-      return stocks;
-    } else {
-      throw toAppException(response);
     }
+    return stocks;
   }
 
   @override
@@ -450,23 +378,19 @@ class ProductRepositoryImpl implements ProductRepository {
     final mapper = ProductMapper();
     final response = await posService.updateProductStockQuantityById(
         id, mapper.toUpdateProductStockQuantityRequest(param));
-    if (response.isSuccessful) {
-      final stock = mapper.toProductStockDomain(jsonDecode(response.body));
-      for (var element in cache.items) {
-        if (element.id == stock.productId) {
-          for (var stockElement in element.stocks) {
-            if (stockElement.id == stock.id) {
-              stockElement.quantity = stock.quantity;
-              break;
-            }
+    final stock = mapper.toProductStockDomain(jsonOrThrow(response));
+    for (var element in cache.items) {
+      if (element.id == stock.productId) {
+        for (var stockElement in element.stocks) {
+          if (stockElement.id == stock.id) {
+            stockElement.quantity = stock.quantity;
+            break;
           }
-          break;
         }
+        break;
       }
-      return stock;
-    } else {
-      throw toAppException(response);
     }
+    return stock;
   }
 
   @override
@@ -475,18 +399,14 @@ class ProductRepositoryImpl implements ProductRepository {
     final mapper = ProductMapper();
     final response = await posService.updateProductStockSequence(
         mapper.toUpdateProductStockSequenceRequest(param));
-    if (response.isSuccessful) {
-      final stocks = mapper.toProductStocksDomain(jsonDecode(response.body));
-      for (var element in cache.items) {
-        if (element.id == param.productId) {
-          element.stocks = stocks;
-          break;
-        }
+    final stocks = mapper.toProductStocksDomain(jsonOrThrow(response));
+    for (var element in cache.items) {
+      if (element.id == param.productId) {
+        element.stocks = stocks;
+        break;
       }
-      return stocks;
-    } else {
-      throw toAppException(response);
     }
+    return stocks;
   }
 
   @override
@@ -555,18 +475,14 @@ class ProductRepositoryImpl implements ProductRepository {
   Future<Product> clearQuantitySoldFirstById(String productId) async {
     final mapper = ProductMapper();
     final response = await posService.clearQuantitySoldFirstById(productId);
-    if (response.isSuccessful) {
-      final product = mapper.toProductDomain(jsonDecode(response.body));
-      for (var element in cache.items) {
-        if (element.id == product.id) {
-          element.soldFirst = product.soldFirst;
-          break;
-        }
+    final product = mapper.toProductDomain(jsonOrThrow(response));
+    for (var element in cache.items) {
+      if (element.id == product.id) {
+        element.soldFirst = product.soldFirst;
+        break;
       }
-      return product;
-    } else {
-      throw toAppException(response);
     }
+    return product;
   }
 
   @override
@@ -575,12 +491,8 @@ class ProductRepositoryImpl implements ProductRepository {
     final mapper = ProductMapper();
     final request = mapper.toDrugInteractionCheckRequest(productIds);
     final response = await posService.checkDrugInteractions(request);
-    if (response.isSuccessful) {
-      final json = jsonDecode(response.body);
-      return mapper.toDrugInteractionResultsDomain(json['interactions'] ?? []);
-    } else {
-      throw toAppException(response);
-    }
+    final json = jsonOrThrow(response);
+    return mapper.toDrugInteractionResultsDomain(json['interactions'] ?? []);
   }
 
   @override

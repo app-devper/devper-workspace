@@ -1,9 +1,5 @@
-// Dart imports:
-import 'dart:convert';
-
 // Package imports:
 import 'package:common/core/network/error_mapper.dart';
-import 'package:common/core/network/exception.dart';
 
 // Project imports:
 import 'package:pos/data/datasource/network/pos_service.dart';
@@ -34,13 +30,9 @@ class CategoryRepositoryImpl implements CategoryRepository {
   Future<List<Category>> getCategories() async {
     final mapper = CategoryMapper();
     final response = await posService.getCategories();
-    if (response.isSuccessful) {
-      final categories = mapper.toCategoriesDomain(jsonDecode(response.body));
-      _categories.fill(categories);
-      return categories;
-    } else {
-      throw toAppException(response);
-    }
+    final categories = mapper.toCategoriesDomain(jsonOrThrow(response));
+    _categories.fill(categories);
+    return categories;
   }
 
   @override
