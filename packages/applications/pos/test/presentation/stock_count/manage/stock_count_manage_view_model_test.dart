@@ -14,9 +14,6 @@ class FakeProductRepository implements ProductRepository {
   var invalidated = 0;
 
   @override
-  void invalidateProductsCache() => invalidated++;
-
-  @override
   dynamic noSuchMethod(Invocation invocation) => throw UnimplementedError();
 }
 
@@ -82,7 +79,6 @@ StockCountManageViewModel buildViewModel(StockCountRepository repository) {
   return StockCountManageViewModel(
     createStockCountUseCase: CreateStockCountUseCase(
       stockCountRepo: repository,
-          productRepo: FakeProductRepository(),
     ),
     getStockCountByIdUseCase: GetStockCountByIdUseCase(
       stockCountRepo: repository,

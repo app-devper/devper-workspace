@@ -4,7 +4,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:pos/data/datasource/network/pos_service.dart';
+import 'package:pos/data/repositories/cached_list.dart';
 import 'package:pos/data/repositories/product_repository_impl.dart';
+import 'package:pos/domain/model/product/product.dart';
 import 'package:pos/domain/usecase/product/get_local_products_use_case.dart';
 import 'package:pos/presentation/home/main/product_search_view_model.dart';
 import 'category_repository_impl_test.dart' show FakeNetworkConfig;
@@ -43,6 +45,7 @@ void main() {
               ]),
               200)));
       final repo = ProductRepositoryImpl(
+          cache: CachedList<Product>(),
           posService:
               PosService(networkConfig: FakeNetworkConfig(), client: client));
       await repo.getProducts();

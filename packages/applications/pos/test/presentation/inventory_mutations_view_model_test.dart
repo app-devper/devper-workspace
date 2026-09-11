@@ -18,9 +18,6 @@ class FakeProductRepository implements ProductRepository {
   var invalidated = 0;
 
   @override
-  void invalidateProductsCache() => invalidated++;
-
-  @override
   dynamic noSuchMethod(Invocation invocation) => throw UnimplementedError();
 }
 
@@ -111,7 +108,6 @@ void main() {
       final vm = ProductReturnViewModel(
         createProductReturnUseCase: CreateProductReturnUseCase(
           productReturnRepo: repository,
-          productRepo: FakeProductRepository(),
         ),
       );
       final param = CreateProductReturnParam(
@@ -142,7 +138,6 @@ void main() {
           productReturnRepo: FakeProductReturnRepository(
             error: const NetworkException(message: 'offline'),
           ),
-          productRepo: FakeProductRepository(),
         ),
       );
 
@@ -169,7 +164,6 @@ void main() {
       final vm = StockAdjustmentViewModel(
         createStockAdjustmentUseCase: CreateStockAdjustmentUseCase(
           stockAdjustmentRepo: repository,
-          productRepo: FakeProductRepository(),
         ),
       );
       final param = CreateStockAdjustmentParam(
@@ -198,7 +192,6 @@ void main() {
             stockAdjustmentRepo: FakeStockAdjustmentRepository(
               error: const NetworkException(message: 'offline'),
             ),
-            productRepo: FakeProductRepository(),
           ),
         );
 

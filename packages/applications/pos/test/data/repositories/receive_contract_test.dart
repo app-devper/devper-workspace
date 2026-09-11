@@ -5,6 +5,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:pos/data/datasource/network/pos_service.dart';
+import 'package:pos/data/repositories/cached_list.dart';
+import 'package:pos/domain/model/product/product.dart';
 import 'package:pos/data/repositories/product_repository_impl.dart';
 import 'package:pos/data/repositories/receive_repository_impl.dart';
 import 'package:pos/domain/model/product/param.dart';
@@ -108,7 +110,9 @@ void main() {
   test(
       'expiry quantity edit updates stock and handles stock response without notify',
       () async {
-    final repo = ProductRepositoryImpl(posService: service((r) {
+    final repo = ProductRepositoryImpl(
+        cache: CachedList<Product>(),
+        posService: service((r) {
       expect(r.method, 'PATCH');
       expect(r.url.path, '/api/pos/v1/products/stocks/stock1/quantity');
       expect(jsonDecode(r.body), {'quantity': 0});

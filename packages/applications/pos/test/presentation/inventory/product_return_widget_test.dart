@@ -13,8 +13,6 @@ import 'package:pos/presentation/order/return/product_return_widget.dart';
 
 class Products implements ProductRepository {
   @override
-  void invalidateProductsCache() {}
-  @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
@@ -37,7 +35,7 @@ void main() {
   setUp(() {
     repo = ReturnRepo();
     vm = ProductReturnViewModel(createProductReturnUseCase:
-      CreateProductReturnUseCase(productReturnRepo: repo, productRepo: Products()));
+      CreateProductReturnUseCase(productReturnRepo: repo));
     sl.registerFactory<ProductReturnViewModel>(() => vm);
   });
   tearDown(() async { await sl.reset(); });
