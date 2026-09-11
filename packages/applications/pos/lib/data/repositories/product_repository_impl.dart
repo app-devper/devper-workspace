@@ -29,17 +29,14 @@ class ProductRepositoryImpl implements ProductRepository {
 
   @override
   Future<Product?> getProductByBarcode(String barcode) async {
-    if (_productsDirty) await getProducts();
-    if (_products.isNotEmpty) {
-      final result = _products.where((product) {
-        return product.status == productStatusActive &&
-            product.units.any((unit) => unit.barcode == barcode);
-      }).firstOrNull;
-      if (result != null) {
-        return result;
-      }
-    }
-    return null;
+    // An empty cache is not an answer. Returning null here made a failed
+    // inventory load read as "no such product" at the till, so fill it first
+    // and let a network failure surface as one.
+    if (_productsDirty || _products.isEmpty) await getProducts();
+    return _products.where((product) {
+      return product.status == productStatusActive &&
+          product.units.any((unit) => unit.barcode == barcode);
+    }).firstOrNull;
   }
 
   @override
@@ -150,12 +147,8 @@ class ProductRepositoryImpl implements ProductRepository {
 
   @override
   Future<Product?> getLocalProductById(String productId) async {
-    if (_productsDirty) await getProducts();
-    final product = _products.where((item) => item.id == productId).firstOrNull;
-    if (product != null) {
-      return Future.value(product);
-    }
-    return null;
+    if (_productsDirty || _products.isEmpty) await getProducts();
+    return _products.where((item) => item.id == productId).firstOrNull;
   }
 
   @override
