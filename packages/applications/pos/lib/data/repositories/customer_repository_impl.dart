@@ -1,9 +1,5 @@
-// Dart imports:
-import 'dart:convert';
-
 // Package imports:
 import 'package:common/core/network/error_mapper.dart';
-import 'package:common/core/network/exception.dart';
 
 // Project imports:
 import 'package:pos/data/datasource/network/pos_service.dart';
@@ -25,26 +21,18 @@ class CustomerRepositoryImpl implements CustomerRepository {
   Future<Customer> createCustomer(CustomerParam param) async {
     final mapper = CustomerMapper();
     final response = await posService.createCustomer(mapper.toCustomerRequest(param));
-    if (response.isSuccessful) {
-      final result = mapper.toCustomerDomain(jsonDecode(response.body));
-      _customers.invalidate();
-      return result;
-    } else {
-      throw toAppException(response);
-    }
+    final result = mapper.toCustomerDomain(jsonOrThrow(response));
+    _customers.invalidate();
+    return result;
   }
 
   @override
   Future<List<Customer>> getCustomers() async {
     final mapper = CustomerMapper();
     final response = await posService.getCustomers();
-    if (response.isSuccessful) {
-      final customers = mapper.toCustomersDomain(jsonDecode(response.body));
-      _customers.fill(customers);
-      return customers;
-    } else {
-      throw toAppException(response);
-    }
+    final customers = mapper.toCustomersDomain(jsonOrThrow(response));
+    _customers.fill(customers);
+    return customers;
   }
 
   @override
@@ -73,26 +61,18 @@ class CustomerRepositoryImpl implements CustomerRepository {
   Future<Customer> removeCustomerById(String customerId) async {
     final mapper = CustomerMapper();
     final response = await posService.removeCustomerById(customerId);
-    if (response.isSuccessful) {
-      final result = mapper.toCustomerDomain(jsonDecode(response.body));
-      _customers.invalidate();
-      return result;
-    } else {
-      throw toAppException(response);
-    }
+    final result = mapper.toCustomerDomain(jsonOrThrow(response));
+    _customers.invalidate();
+    return result;
   }
 
   @override
   Future<Customer> updateCustomerById(String customerId, CustomerParam param) async {
     final mapper = CustomerMapper();
     final response = await posService.updateCustomerById(customerId, mapper.toCustomerRequest(param));
-    if (response.isSuccessful) {
-      final result = mapper.toCustomerDomain(jsonDecode(response.body));
-      _customers.invalidate();
-      return result;
-    } else {
-      throw toAppException(response);
-    }
+    final result = mapper.toCustomerDomain(jsonOrThrow(response));
+    _customers.invalidate();
+    return result;
   }
 
   @override
