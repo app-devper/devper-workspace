@@ -7,6 +7,7 @@ import 'package:common/core/network/exception.dart';
 
 // Project imports:
 import 'package:pos/data/datasource/network/pos_service.dart';
+import 'package:pos/data/repositories/cached_list.dart';
 import 'package:pos/data/repositories/product_mapper.dart';
 import 'package:pos/domain/model/core/core.dart';
 import 'package:pos/domain/model/product/param.dart';
@@ -17,14 +18,15 @@ import 'package:pos/domain/repositories/product_repository.dart';
 
 class ProductRepositoryImpl implements ProductRepository {
   final PosService posService;
-  List<Product> _products = [];
-  bool _productsDirty = false;
 
-  @override
-  void invalidateProductsCache() => _productsDirty = true;
+  /// Shared with the repositories whose writes move stock — a return, for one —
+  /// so they can mark the catalogue stale without the domain layer having to
+  /// know a cache exists.
+  final CachedList<Product> cache;
 
   ProductRepositoryImpl({
     required this.posService,
+    required this.cache,
   });
 
   @override
@@ -32,8 +34,8 @@ class ProductRepositoryImpl implements ProductRepository {
     // An empty cache is not an answer. Returning null here made a failed
     // inventory load read as "no such product" at the till, so fill it first
     // and let a network failure surface as one.
-    if (_productsDirty || _products.isEmpty) await getProducts();
-    return _products.where((product) {
+    if (cache.needsRefresh) await getProducts();
+    return cache.items.where((product) {
       return product.status == productStatusActive &&
           product.units.any((unit) => unit.barcode == barcode);
     }).firstOrNull;
@@ -45,9 +47,8 @@ class ProductRepositoryImpl implements ProductRepository {
     final response = await posService.getProducts();
     if (response.isSuccessful) {
       final result = mapper.toProductsDomain(jsonDecode(response.body));
-      _products = result;
-      _productsDirty = false;
-      return _products;
+      cache.fill(result);
+      return cache.items;
     } else {
       throw toAppException(response);
     }
@@ -75,7 +76,7 @@ class ProductRepositoryImpl implements ProductRepository {
     final response = await posService.createProduct(request);
     if (response.isSuccessful) {
       final product = mapper.toProductDomain(jsonDecode(response.body));
-      _products.add(product);
+      cache.items.add(product);
       return product;
     } else {
       throw toAppException(response);
@@ -90,7 +91,7 @@ class ProductRepositoryImpl implements ProductRepository {
     final response = await posService.updateProductById(productId, request);
     if (response.isSuccessful) {
       final product = mapper.toProductDomain(jsonDecode(response.body));
-      for (var element in _products) {
+      for (var element in cache.items) {
         if (element.id == product.id) {
           element.name = product.name;
           element.nameEn = product.nameEn;
@@ -122,7 +123,7 @@ class ProductRepositoryImpl implements ProductRepository {
     final response = await posService.removeProductById(productId);
     if (response.isSuccessful) {
       final product = mapper.toProductDomain(jsonDecode(response.body));
-      _products.removeWhere((element) => element.id == product.id);
+      cache.items.removeWhere((element) => element.id == product.id);
       return product;
     } else {
       throw toAppException(response);
@@ -131,11 +132,10 @@ class ProductRepositoryImpl implements ProductRepository {
 
   @override
   Future<List<Product>> getLocalProducts() {
-    if (_productsDirty || _products.isEmpty) {
+    if (cache.needsRefresh) {
       return getProducts();
-    } else {
-      return Future.value(_products);
     }
+    return Future.value(cache.items);
   }
 
   @override
@@ -147,8 +147,8 @@ class ProductRepositoryImpl implements ProductRepository {
 
   @override
   Future<Product?> getLocalProductById(String productId) async {
-    if (_productsDirty || _products.isEmpty) await getProducts();
-    return _products.where((item) => item.id == productId).firstOrNull;
+    if (cache.needsRefresh) await getProducts();
+    return cache.items.where((item) => item.id == productId).firstOrNull;
   }
 
   @override
@@ -197,7 +197,7 @@ class ProductRepositoryImpl implements ProductRepository {
         await posService.addProductPrice(mapper.toProductPriceRequest(param));
     if (response.isSuccessful) {
       final price = mapper.toProductPriceDomain(jsonDecode(response.body));
-      for (var element in _products) {
+      for (var element in cache.items) {
         if (element.id == price.productId) {
           element.prices.add(price);
           break;
@@ -217,7 +217,7 @@ class ProductRepositoryImpl implements ProductRepository {
         id, mapper.toProductPriceRequest(param));
     if (response.isSuccessful) {
       final price = mapper.toProductPriceDomain(jsonDecode(response.body));
-      for (var element in _products) {
+      for (var element in cache.items) {
         if (element.id == price.productId) {
           for (var priceElement in element.prices) {
             if (priceElement.id == price.id) {
@@ -241,7 +241,7 @@ class ProductRepositoryImpl implements ProductRepository {
     final response = await posService.removeProductPriceById(id);
     if (response.isSuccessful) {
       final price = mapper.toProductPriceDomain(jsonDecode(response.body));
-      for (var element in _products) {
+      for (var element in cache.items) {
         if (element.id == price.productId) {
           element.prices.removeWhere((element) => element.id == price.id);
           break;
@@ -260,7 +260,7 @@ class ProductRepositoryImpl implements ProductRepository {
     final response = await posService.getProductPricesByProductId(productId);
     if (response.isSuccessful) {
       final prices = mapper.toProductPricesDomain(jsonDecode(response.body));
-      for (var element in _products) {
+      for (var element in cache.items) {
         if (element.id == productId) {
           element.prices = prices;
           break;
@@ -279,7 +279,7 @@ class ProductRepositoryImpl implements ProductRepository {
         await posService.addProductUnit(mapper.toProductUnitRequest(param));
     if (response.isSuccessful) {
       final unit = mapper.toProductUnitDomain(jsonDecode(response.body));
-      for (var element in _products) {
+      for (var element in cache.items) {
         if (element.id == unit.productId) {
           element.units.add(unit);
           break;
@@ -299,7 +299,7 @@ class ProductRepositoryImpl implements ProductRepository {
         id, mapper.toProductUnitRequest(param));
     if (response.isSuccessful) {
       final unit = mapper.toProductUnitDomain(jsonDecode(response.body));
-      for (var element in _products) {
+      for (var element in cache.items) {
         if (element.id == unit.productId) {
           for (var unitElement in element.units) {
             if (unitElement.id == unit.id) {
@@ -327,7 +327,7 @@ class ProductRepositoryImpl implements ProductRepository {
     final response = await posService.removeProductUnitById(id);
     if (response.isSuccessful) {
       final unit = mapper.toProductUnitDomain(jsonDecode(response.body));
-      for (var element in _products) {
+      for (var element in cache.items) {
         if (element.id == unit.productId) {
           element.units.removeWhere((element) => element.id == unit.id);
           break;
@@ -345,7 +345,7 @@ class ProductRepositoryImpl implements ProductRepository {
     final response = await posService.getProductUnitsByProductId(productId);
     if (response.isSuccessful) {
       final units = mapper.toProductUnitsDomain(jsonDecode(response.body));
-      for (var element in _products) {
+      for (var element in cache.items) {
         if (element.id == productId) {
           element.units = units;
           break;
@@ -364,7 +364,7 @@ class ProductRepositoryImpl implements ProductRepository {
         await posService.addProductStock(mapper.toProductStockRequest(param));
     if (response.isSuccessful) {
       final stock = mapper.toProductStockDomain(jsonDecode(response.body));
-      for (var element in _products) {
+      for (var element in cache.items) {
         if (element.id == stock.productId) {
           element.stocks.add(stock);
           break;
@@ -384,7 +384,7 @@ class ProductRepositoryImpl implements ProductRepository {
         id, mapper.toProductStockRequest(param));
     if (response.isSuccessful) {
       final stock = mapper.toProductStockDomain(jsonDecode(response.body));
-      for (var element in _products) {
+      for (var element in cache.items) {
         if (element.id == stock.productId) {
           for (var stockElement in element.stocks) {
             if (stockElement.id == stock.id) {
@@ -413,7 +413,7 @@ class ProductRepositoryImpl implements ProductRepository {
     final response = await posService.removeProductStockById(id);
     if (response.isSuccessful) {
       final stock = mapper.toProductStockDomain(jsonDecode(response.body));
-      for (var element in _products) {
+      for (var element in cache.items) {
         if (element.id == stock.productId) {
           element.stocks.removeWhere((element) => element.id == stock.id);
           break;
@@ -432,7 +432,7 @@ class ProductRepositoryImpl implements ProductRepository {
     final response = await posService.getProductStocksByProductId(productId);
     if (response.isSuccessful) {
       final stocks = mapper.toProductStocksDomain(jsonDecode(response.body));
-      for (var element in _products) {
+      for (var element in cache.items) {
         if (element.id == productId) {
           element.stocks = stocks;
           break;
@@ -452,7 +452,7 @@ class ProductRepositoryImpl implements ProductRepository {
         id, mapper.toUpdateProductStockQuantityRequest(param));
     if (response.isSuccessful) {
       final stock = mapper.toProductStockDomain(jsonDecode(response.body));
-      for (var element in _products) {
+      for (var element in cache.items) {
         if (element.id == stock.productId) {
           for (var stockElement in element.stocks) {
             if (stockElement.id == stock.id) {
@@ -477,7 +477,7 @@ class ProductRepositoryImpl implements ProductRepository {
         mapper.toUpdateProductStockSequenceRequest(param));
     if (response.isSuccessful) {
       final stocks = mapper.toProductStocksDomain(jsonDecode(response.body));
-      for (var element in _products) {
+      for (var element in cache.items) {
         if (element.id == param.productId) {
           element.stocks = stocks;
           break;
@@ -491,7 +491,7 @@ class ProductRepositoryImpl implements ProductRepository {
 
   @override
   Future<void> updateProductStock(ProductStock stock) async {
-    for (var product in _products) {
+    for (var product in cache.items) {
       if (product.id == stock.productId) {
         for (var stockElement in product.stocks) {
           if (stockElement.id == stock.id) {
@@ -557,7 +557,7 @@ class ProductRepositoryImpl implements ProductRepository {
     final response = await posService.clearQuantitySoldFirstById(productId);
     if (response.isSuccessful) {
       final product = mapper.toProductDomain(jsonDecode(response.body));
-      for (var element in _products) {
+      for (var element in cache.items) {
         if (element.id == product.id) {
           element.soldFirst = product.soldFirst;
           break;

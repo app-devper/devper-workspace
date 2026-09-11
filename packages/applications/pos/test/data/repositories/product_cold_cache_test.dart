@@ -6,6 +6,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:pos/data/datasource/network/pos_service.dart';
+import 'package:pos/data/repositories/cached_list.dart';
+import 'package:pos/domain/model/product/product.dart';
 import 'package:pos/data/repositories/product_repository_impl.dart';
 
 import 'category_repository_impl_test.dart' show FakeNetworkConfig;
@@ -45,6 +47,7 @@ ProductRepositoryImpl _buildRepo(http.Response Function(http.Request) handler,
     return handler(request);
   }));
   return ProductRepositoryImpl(
+    cache: CachedList<Product>(),
     posService: PosService(networkConfig: FakeNetworkConfig(), client: client),
   );
 }

@@ -2,19 +2,11 @@ import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pos/domain/model/stock_count/param.dart';
 import 'package:pos/domain/model/stock_count/stock_count.dart';
-import 'package:pos/domain/repositories/product_repository.dart';
 import 'package:pos/domain/repositories/stock_count_repository.dart';
 import 'package:pos/domain/usecase/stock_count/create_stock_count_use_case.dart';
 import 'package:pos/domain/usecase/stock_count/get_stock_count_by_id_use_case.dart';
 import 'package:pos/presentation/stock_count/manage/stock_count_manage_view_model.dart';
 
-class Products implements ProductRepository {
-  int invalidations = 0;
-  @override
-  void invalidateProductsCache() { invalidations++; }
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
 class Counts implements StockCountRepository {
   int calls = 0;
   final pending = Completer<StockCount>();
@@ -29,11 +21,10 @@ class Counts implements StockCountRepository {
 StockCountItemParam item(int counted) => StockCountItemParam(productId: 'p1', stockId: 's1', counted: counted, productName: 'Product', lotNumber: 'LOT', systemQuantity: 5);
 void main() {
   late Counts repo;
-  late Products products;
   late StockCountManageViewModel vm;
   setUp(() {
-    repo = Counts(); products = Products();
-    vm = StockCountManageViewModel(createStockCountUseCase: CreateStockCountUseCase(stockCountRepo: repo, productRepo: products), getStockCountByIdUseCase: GetStockCountByIdUseCase(stockCountRepo: repo));
+    repo = Counts();
+    vm = StockCountManageViewModel(createStockCountUseCase: CreateStockCountUseCase(stockCountRepo: repo), getStockCountByIdUseCase: GetStockCountByIdUseCase(stockCountRepo: repo));
   });
   tearDown(() => vm.dispose());
   test('duplicate lot is rejected and original quantity preserved', () {
@@ -49,15 +40,15 @@ void main() {
     expect(repo.calls, 0);
     expect(vm.state.value.error, isNotNull);
   });
-  test('zero is valid, pending submit is single and success invalidates cache', () async {
+  // Invalidating the product cache moved to StockCountRepositoryImpl, where it
+  // belongs; cache_invalidation_test covers it. This is about the submit.
+  test('zero is valid and a pending submit is single', () async {
     vm.addItem(item(0));
     final request = vm.createStockCount('');
     await vm.createStockCount('');
     expect(repo.calls, 1);
-    expect(products.invalidations, 0);
     repo.pending.complete(StockCount(id: 'c1', countNo: 'SC1', note: '', items: [], createdDate: '2026-09-07'));
     await request;
-    expect(products.invalidations, 1);
     expect(vm.state.value.created?.id, 'c1');
   });
 }
