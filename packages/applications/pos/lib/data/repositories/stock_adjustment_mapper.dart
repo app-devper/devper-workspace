@@ -5,18 +5,17 @@ import 'dart:convert';
 import 'package:pos/domain/model/stock_adjustment/param.dart';
 import 'package:pos/domain/model/stock_adjustment/stock_adjustment.dart';
 
-class StockAdjustmentMapper {
-  String toStockAdjustmentRequest(CreateStockAdjustmentParam param) {
-    return jsonEncode({
-      'productId': param.productId,
-      'stockId': param.stockId,
-      'reason': param.reason,
-      'note': param.note,
-      'delta': param.delta,
-    });
-  }
+/// Extension methods, not a mapper object: there was never any state to hold,
+/// and they only exist where this file is imported, so the repositories see
+/// them and nothing else does.
+///
+/// jsonOrThrow returns dynamic and an extension cannot be reached through a
+/// dynamic receiver — it compiles and then throws NoSuchMethodError. The casts
+/// at the call sites are what keep that a compile error instead.
+extension StockAdjustmentJson on Map<String, dynamic> {
+  StockAdjustment toStockAdjustmentDomain() {
+    final json = this;
 
-  StockAdjustment toStockAdjustmentDomain(Map<String, dynamic> json) {
     return StockAdjustment(
       id: json['id'],
       code: json['code'] ?? '',
@@ -30,8 +29,28 @@ class StockAdjustmentMapper {
       createdDate: json['createdDate'],
     );
   }
+}
 
-  List<StockAdjustment> toStockAdjustmentsDomain(List json) {
-    return json.map((data) => toStockAdjustmentDomain(data)).toList();
+extension StockAdjustmentListJson on List {
+  List<StockAdjustment> toStockAdjustmentsDomain() {
+    final json = this;
+
+    return json
+        .map((data) => (data as Map<String, dynamic>).toStockAdjustmentDomain())
+        .toList();
+  }
+}
+
+extension CreateStockAdjustmentParamRequest on CreateStockAdjustmentParam {
+  String toStockAdjustmentRequest() {
+    final param = this;
+
+    return jsonEncode({
+      'productId': param.productId,
+      'stockId': param.stockId,
+      'reason': param.reason,
+      'note': param.note,
+      'delta': param.delta,
+    });
   }
 }

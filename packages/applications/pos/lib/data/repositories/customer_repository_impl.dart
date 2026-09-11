@@ -19,25 +19,23 @@ class CustomerRepositoryImpl implements CustomerRepository {
 
   @override
   Future<Customer> createCustomer(CustomerParam param) async {
-    final mapper = CustomerMapper();
-    final response = await posService.createCustomer(mapper.toCustomerRequest(param));
-    final result = mapper.toCustomerDomain(jsonOrThrow(response));
+    final response = await posService.createCustomer(param.toCustomerRequest());
+    final result =
+        (jsonOrThrow(response) as Map<String, dynamic>).toCustomerDomain();
     _customers.invalidate();
     return result;
   }
 
   @override
   Future<List<Customer>> getCustomers() async {
-    final mapper = CustomerMapper();
     final response = await posService.getCustomers();
-    final customers = mapper.toCustomersDomain(jsonOrThrow(response));
+    final customers = (jsonOrThrow(response) as List).toCustomersDomain();
     _customers.fill(customers);
     return customers;
   }
 
   @override
   Future<Customer> getCustomerById(String customerId) async {
-    final mapper = CustomerMapper();
     final cached = _customers.needsRefresh
         ? null
         : _customers.items
@@ -47,30 +45,31 @@ class CustomerRepositoryImpl implements CustomerRepository {
       return cached;
     }
     final response = await posService.getCustomerById(customerId);
-    return mapper.toCustomerDomain(jsonOrThrow(response));
+    return (jsonOrThrow(response) as Map<String, dynamic>).toCustomerDomain();
   }
 
   @override
   Future<Customer> getCustomerByCode(String customerCode) async {
-    final mapper = CustomerMapper();
     final response = await posService.getCustomerByCode(customerCode);
-    return mapper.toCustomerDomain(jsonOrThrow(response));
+    return (jsonOrThrow(response) as Map<String, dynamic>).toCustomerDomain();
   }
 
   @override
   Future<Customer> removeCustomerById(String customerId) async {
-    final mapper = CustomerMapper();
     final response = await posService.removeCustomerById(customerId);
-    final result = mapper.toCustomerDomain(jsonOrThrow(response));
+    final result =
+        (jsonOrThrow(response) as Map<String, dynamic>).toCustomerDomain();
     _customers.invalidate();
     return result;
   }
 
   @override
-  Future<Customer> updateCustomerById(String customerId, CustomerParam param) async {
-    final mapper = CustomerMapper();
-    final response = await posService.updateCustomerById(customerId, mapper.toCustomerRequest(param));
-    final result = mapper.toCustomerDomain(jsonOrThrow(response));
+  Future<Customer> updateCustomerById(
+      String customerId, CustomerParam param) async {
+    final response = await posService.updateCustomerById(
+        customerId, param.toCustomerRequest());
+    final result =
+        (jsonOrThrow(response) as Map<String, dynamic>).toCustomerDomain();
     _customers.invalidate();
     return result;
   }

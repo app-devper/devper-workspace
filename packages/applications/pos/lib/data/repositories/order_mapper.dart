@@ -10,8 +10,132 @@ import 'package:pos/domain/model/order/param.dart';
 import 'package:pos/domain/model/product/product.dart';
 import 'product_mapper.dart';
 
-class OrderMapper {
-  String toOrderRequest(CreateOrderParam param) {
+/// Extension methods, not a mapper object: there was never any state to hold,
+/// and they only exist where this file is imported, so the repositories see
+/// them and nothing else does.
+///
+/// jsonOrThrow returns dynamic and an extension cannot be reached through a
+/// dynamic receiver — it compiles and then throws NoSuchMethodError. The casts
+/// at the call sites are what keep that a compile error instead.
+extension OrderJson on Map<String, dynamic> {
+  Order toOrderDomain() {
+    final json = this;
+
+    return Order(
+      id: json["id"],
+      code: json["code"] ?? "",
+      customerCode: json["customerCode"],
+      customerName: json["customerName"],
+      patientId: json["patientId"],
+      pharmacistName: json["pharmacistName"],
+      licenseNo: json["licenseNo"],
+      prescriberName: json["prescriberName"],
+      buyerName: json["buyerName"],
+      buyerIdCard: json["buyerIdCard"],
+      createdDate: json["createdDate"],
+      total: (json["total"] ?? 0).toDouble(),
+      totalCost: (json["totalCost"] ?? 0).toDouble(),
+      discount: (json["discount"] ?? 0).toDouble(),
+      type: json["type"] ?? "Cash",
+    );
+  }
+
+  OrderResult toOrderResultDomain() {
+    final json = this;
+    return OrderResult(
+      data: (json["data"] as Map<String, dynamic>).toOrderDomain(),
+      stocks: json["stocks"] != null
+          ? (json["stocks"] as List).toProductStocksDomain()
+          : [],
+    );
+  }
+
+  OrderSummary toOrderSummaryDomain() {
+    final json = this;
+
+    return OrderSummary(
+      id: json["id"],
+      code: json["code"] ?? "",
+      customerCode: json["customerCode"],
+      customerName: json["customerName"],
+      createdDate: json["createdDate"],
+      total: json["total"].toDouble(),
+      totalCost: json["totalCost"]?.toDouble() ?? 0,
+      discount: json["discount"]?.toDouble() ?? 0,
+      type: json["type"] ?? "Cash",
+    );
+  }
+
+  OrderDetail toOrderDetailDomain() {
+    final json = this;
+
+    return OrderDetail(
+      id: json["id"],
+      createdDate: json["createdDate"],
+      total: json["total"]?.toDouble() ?? 0,
+      totalCost: json["totalCost"]?.toDouble() ?? 0,
+      discount: json["discount"]?.toDouble() ?? 0,
+      type: json["type"] ?? "Cash",
+      items: (json["items"] as List).toOrderItemDetailsDomain(),
+      code: json["code"] ?? "",
+      customerCode: json["customerCode"],
+      customerName: json["customerName"],
+      patientId: json["patientId"],
+      pharmacistName: json["pharmacistName"],
+      licenseNo: json["licenseNo"],
+      prescriberName: json["prescriberName"],
+      buyerName: json["buyerName"],
+      buyerIdCard: json["buyerIdCard"],
+    );
+  }
+
+  OrderItemDetail toOrderItemDetailDomain() {
+    final json = this;
+    Product? product = json["product"] != null
+        ? (json["product"] as Map<String, dynamic>).toProductDomain()
+        : null;
+    Order? order = json["order"] != null
+        ? (json["order"] as Map<String, dynamic>).toOrderDomain()
+        : null;
+    return OrderItemDetail(
+      id: json["id"],
+      product: product,
+      quantity: json["quantity"],
+      price: json["price"].toDouble(),
+      costPrice: json["costPrice"].toDouble(),
+      discount: json["discount"]?.toDouble() ?? 0,
+      createdDate: json["createdDate"],
+      order: order,
+      oversoldQty: json["oversoldQty"] ?? 0,
+      returnedQty: json["returnedQty"] ?? 0,
+    );
+  }
+}
+
+extension OrderListJson on List {
+  List<OrderSummary> toOrderSummariesDomain() {
+    final json = this;
+
+    final items = json
+        .map((data) => (data as Map<String, dynamic>).toOrderSummaryDomain())
+        .toList();
+    return items;
+  }
+
+  List<OrderItemDetail> toOrderItemDetailsDomain() {
+    final json = this;
+
+    final items = json
+        .map((data) => (data as Map<String, dynamic>).toOrderItemDetailDomain())
+        .toList();
+    return items;
+  }
+}
+
+extension CreateOrderParamRequest on CreateOrderParam {
+  String toOrderRequest() {
+    final param = this;
+
     final payments = param.payments.isNotEmpty
         ? param.payments
         : [
@@ -58,100 +182,5 @@ class OrderMapper {
       'message': param.getMessage(),
       'change': param.amount - param.getTotal(),
     });
-  }
-
-  Order toOrderDomain(Map<String, dynamic> json) {
-    return Order(
-      id: json["id"],
-      code: json["code"] ?? "",
-      customerCode: json["customerCode"],
-      customerName: json["customerName"],
-      patientId: json["patientId"],
-      pharmacistName: json["pharmacistName"],
-      licenseNo: json["licenseNo"],
-      prescriberName: json["prescriberName"],
-      buyerName: json["buyerName"],
-      buyerIdCard: json["buyerIdCard"],
-      createdDate: json["createdDate"],
-      total: (json["total"] ?? 0).toDouble(),
-      totalCost: (json["totalCost"] ?? 0).toDouble(),
-      discount: (json["discount"] ?? 0).toDouble(),
-      type: json["type"] ?? "Cash",
-    );
-  }
-
-  OrderResult toOrderResultDomain(Map<String, dynamic> json) {
-    final mapper = ProductMapper();
-    return OrderResult(
-      data: toOrderDomain(json["data"]),
-      stocks: json["stocks"] != null
-          ? mapper.toProductStocksDomain(json["stocks"])
-          : [],
-    );
-  }
-
-  List<OrderSummary> toOrderSummariesDomain(List json) {
-    final items = json.map((data) => toOrderSummaryDomain(data)).toList();
-    return items;
-  }
-
-  OrderSummary toOrderSummaryDomain(Map<String, dynamic> json) {
-    return OrderSummary(
-      id: json["id"],
-      code: json["code"] ?? "",
-      customerCode: json["customerCode"],
-      customerName: json["customerName"],
-      createdDate: json["createdDate"],
-      total: json["total"].toDouble(),
-      totalCost: json["totalCost"]?.toDouble() ?? 0,
-      discount: json["discount"]?.toDouble() ?? 0,
-      type: json["type"] ?? "Cash",
-    );
-  }
-
-  OrderDetail toOrderDetailDomain(Map<String, dynamic> json) {
-    return OrderDetail(
-      id: json["id"],
-      createdDate: json["createdDate"],
-      total: json["total"]?.toDouble() ?? 0,
-      totalCost: json["totalCost"]?.toDouble() ?? 0,
-      discount: json["discount"]?.toDouble() ?? 0,
-      type: json["type"] ?? "Cash",
-      items: toOrderItemDetailsDomain(json["items"]),
-      code: json["code"] ?? "",
-      customerCode: json["customerCode"],
-      customerName: json["customerName"],
-      patientId: json["patientId"],
-      pharmacistName: json["pharmacistName"],
-      licenseNo: json["licenseNo"],
-      prescriberName: json["prescriberName"],
-      buyerName: json["buyerName"],
-      buyerIdCard: json["buyerIdCard"],
-    );
-  }
-
-  OrderItemDetail toOrderItemDetailDomain(Map<String, dynamic> json) {
-    final mapper = ProductMapper();
-    Product? product = json["product"] != null
-        ? mapper.toProductDomain(json["product"])
-        : null;
-    Order? order = json["order"] != null ? toOrderDomain(json["order"]) : null;
-    return OrderItemDetail(
-      id: json["id"],
-      product: product,
-      quantity: json["quantity"],
-      price: json["price"].toDouble(),
-      costPrice: json["costPrice"].toDouble(),
-      discount: json["discount"]?.toDouble() ?? 0,
-      createdDate: json["createdDate"],
-      order: order,
-      oversoldQty: json["oversoldQty"] ?? 0,
-      returnedQty: json["returnedQty"] ?? 0,
-    );
-  }
-
-  List<OrderItemDetail> toOrderItemDetailsDomain(List json) {
-    final items = json.map((data) => toOrderItemDetailDomain(data)).toList();
-    return items;
   }
 }

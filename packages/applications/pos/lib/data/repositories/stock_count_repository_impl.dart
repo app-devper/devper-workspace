@@ -23,24 +23,23 @@ class StockCountRepositoryImpl implements StockCountRepository {
 
   @override
   Future<StockCount> createStockCount(CreateStockCountParam param) async {
-    final mapper = StockCountMapper();
-    final response = await posService.createStockCount(mapper.toStockCountRequest(param));
-    final result = mapper.toStockCountDomain(jsonOrThrow(response));
+    final response =
+        await posService.createStockCount(param.toStockCountRequest());
+    final result =
+        (jsonOrThrow(response) as Map<String, dynamic>).toStockCountDomain();
     productCache.invalidate();
     return result;
   }
 
   @override
   Future<List<StockCount>> getStockCounts() async {
-    final mapper = StockCountMapper();
     final response = await posService.getStockCounts();
-    return mapper.toStockCountsDomain(jsonOrThrow(response));
+    return (jsonOrThrow(response) as List).toStockCountsDomain();
   }
 
   @override
   Future<StockCount> getStockCountById(String stockCountId) async {
-    final mapper = StockCountMapper();
     final response = await posService.getStockCountById(stockCountId);
-    return mapper.toStockCountDomain(jsonOrThrow(response));
+    return (jsonOrThrow(response) as Map<String, dynamic>).toStockCountDomain();
   }
 }

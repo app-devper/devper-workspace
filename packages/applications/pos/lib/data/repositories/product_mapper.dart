@@ -8,13 +8,17 @@ import 'package:pos/domain/model/product/product_history.dart';
 import 'package:pos/domain/model/product/product_lot.dart';
 import 'package:pos/domain/model/product/request_drug_info.dart';
 
-class ProductMapper {
-  List<Product> toProductsDomain(List json) {
-    final products = json.map((data) => toProductDomain(data)).toList();
-    return products;
-  }
+/// Extension methods, not a mapper object: there was never any state to hold,
+/// and they only exist where this file is imported, so the repositories see
+/// them and nothing else does.
+///
+/// jsonOrThrow returns dynamic and an extension cannot be reached through a
+/// dynamic receiver — it compiles and then throws NoSuchMethodError. The casts
+/// at the call sites are what keep that a compile error instead.
+extension ProductJson on Map<String, dynamic> {
+  Product toProductDomain() {
+    final json = this;
 
-  Product toProductDomain(Map<String, dynamic> json) {
     // API/CSV imports use uppercase; older POS records use title case.
     final rawStatus = (json['status'] as String?)?.trim() ?? '';
     final status = switch (rawStatus.toUpperCase()) {
@@ -38,17 +42,19 @@ class ProductMapper {
       category: json['category'],
       minStock: json['minStock'] ?? 0,
       drugInfo: json['drugInfo'] != null
-          ? toRequestDrugInfoDomain(json['drugInfo'])
+          ? (json['drugInfo'] as Map<String, dynamic>).toRequestDrugInfoDomain()
           : null,
       drugRegistrations:
           (json['drugRegistrations'] as List?)?.cast<String>() ?? [],
-      units: toProductUnitsDomain(json['units'] ?? []),
-      prices: toProductPricesDomain(json['prices'] ?? []),
-      stocks: toProductStocksDomain(json['stocks'] ?? []),
+      units: ((json['units'] ?? []) as List).toProductUnitsDomain(),
+      prices: ((json['prices'] ?? []) as List).toProductPricesDomain(),
+      stocks: ((json['stocks'] ?? []) as List).toProductStocksDomain(),
     );
   }
 
-  RequestDrugInfo toRequestDrugInfoDomain(Map<String, dynamic> json) {
+  RequestDrugInfo toRequestDrugInfoDomain() {
+    final json = this;
+
     return RequestDrugInfo(
       genericName: json['genericName'],
       drugType: json['drugType'],
@@ -66,12 +72,9 @@ class ProductMapper {
     );
   }
 
-  List<ProductUnit> toProductUnitsDomain(List json) {
-    final units = json.map((data) => toProductUnitDomain(data)).toList();
-    return units;
-  }
+  ProductUnit toProductUnitDomain() {
+    final json = this;
 
-  ProductUnit toProductUnitDomain(Map<String, dynamic> json) {
     return ProductUnit(
       id: json['id'],
       productId: json['productId'],
@@ -84,7 +87,9 @@ class ProductMapper {
     );
   }
 
-  ProductPrice toProductPriceDomain(Map<String, dynamic> json) {
+  ProductPrice toProductPriceDomain() {
+    final json = this;
+
     return ProductPrice(
       id: json['id'],
       productId: json['productId'],
@@ -94,17 +99,9 @@ class ProductMapper {
     );
   }
 
-  List<ProductPrice> toProductPricesDomain(List json) {
-    final prices = json.map((data) => toProductPriceDomain(data)).toList();
-    return prices;
-  }
+  ProductStock toProductStockDomain() {
+    final json = this;
 
-  List<ProductStock> toProductStocksDomain(List json) {
-    final stocks = json.map((data) => toProductStockDomain(data)).toList();
-    return stocks;
-  }
-
-  ProductStock toProductStockDomain(Map<String, dynamic> json) {
     return ProductStock(
       id: json['id'],
       unitId: json['unitId'],
@@ -121,12 +118,9 @@ class ProductMapper {
     );
   }
 
-  List<ProductLot> toProductLotsDomain(List json) {
-    final lots = json.map((data) => toProductLotDomain(data)).toList();
-    return lots;
-  }
+  ProductLot toProductLotDomain() {
+    final json = this;
 
-  ProductLot toProductLotDomain(Map<String, dynamic> json) {
     return ProductLot(
       id: json['id'],
       costPrice: json['costPrice'].toDouble(),
@@ -138,153 +132,15 @@ class ProductMapper {
     );
   }
 
-  String toSerialNumberDomain(Map<String, dynamic> json) {
+  String toSerialNumberDomain() {
+    final json = this;
+
     return json['serialNumber'];
   }
 
-  String toCreateProductLotRequest(CreateProductLotParam param) {
-    return jsonEncode({
-      'productId': param.productId,
-      'quantity': param.quantity,
-      'lotNumber': param.lotNumber,
-      'expireDate': param.expireDate,
-      'costPrice': param.costPrice,
-    });
-  }
+  ProductHistory toProductHistoryDomain() {
+    final json = this;
 
-  String toUpdateProductLotRequest(UpdateProductLotParam param) {
-    return jsonEncode({
-      'quantity': param.quantity,
-      'lotNumber': param.lotNumber,
-      'expireDate': param.expireDate,
-      'costPrice': param.costPrice,
-    });
-  }
-
-  String toProductRequest(ProductParam param) {
-    return jsonEncode({
-      'name': param.name,
-      'nameEn': param.nameEn,
-      'description': param.description,
-      'price': param.price,
-      'costPrice': param.costPrice ?? 0,
-      'quantity': param.quantity,
-      'unit': param.unit,
-      'serialNumber': param.serialNumber,
-      'lotNumber': param.lotNumber,
-      'category': param.category,
-      'expireDate': param.expireDate,
-      'receiveId': param.receiveId,
-      'status': param.status,
-      'minStock': param.minStock,
-      'drugInfo': param.drugInfo == null
-          ? null
-          : toRequestDrugInfoRequest(param.drugInfo!),
-      'drugRegistrations': param.drugRegistrations,
-    });
-  }
-
-  String toUpdateProductRequest(ProductParam param) {
-    return jsonEncode({
-      'name': param.name,
-      'nameEn': param.nameEn,
-      'description': param.description,
-      'category': param.category,
-      'status': param.status,
-      'minStock': param.minStock,
-      'drugInfo': param.drugInfo == null
-          ? null
-          : toRequestDrugInfoRequest(param.drugInfo!),
-      'drugRegistrations': param.drugRegistrations,
-    });
-  }
-
-  String toUpdateProductLotQuantityRequest(
-      UpdateProductLotQuantityParam param) {
-    return jsonEncode({
-      'quantity': param.quantity,
-    });
-  }
-
-  String toProductPriceRequest(ProductPriceParam param) {
-    return jsonEncode({
-      'productId': param.productId,
-      'unitId': param.unitId,
-      'customerType': param.customerType,
-      'price': param.price,
-    });
-  }
-
-  String toProductUnitRequest(ProductUnitParam param) {
-    return jsonEncode({
-      'productId': param.productId,
-      'unit': param.unit,
-      'costPrice': param.costPrice,
-      'price': param.price,
-      'size': param.size,
-      'barcode': param.barcode,
-      'volume': param.volume,
-      'volumeUnit': param.volumeUnit,
-    });
-  }
-
-  String toProductStockRequest(ProductStockParam param) {
-    return jsonEncode({
-      'unitId': param.unitId,
-      'productId': param.productId,
-      'lotNumber': param.lotNumber,
-      'costPrice': param.costPrice,
-      'price': param.price,
-      'quantity': param.quantity,
-      'expireDate': param.expireDate,
-      'importDate': param.importDate,
-    });
-  }
-
-  String toUpdateProductStockQuantityRequest(
-      UpdateProductStockQuantityParam param) {
-    return jsonEncode({
-      'quantity': param.quantity,
-    });
-  }
-
-  String toUpdateProductStockSequenceRequest(
-      UpdateProductStockSequenceParam param) {
-    return jsonEncode({
-      'stocks': param.stocks
-          .map((stock) => {
-                'stockId': stock.stockId,
-                'sequence': stock.sequence,
-              })
-          .toList(),
-    });
-  }
-
-  String toCreateProductRequest(CreateProductParam param) {
-    return jsonEncode({
-      'name': param.name,
-      'nameEn': param.nameEn,
-      'description': param.description,
-      'category': param.category,
-      'unit': param.unit,
-      'costPrice': param.costPrice,
-      'price': param.price,
-      'serialNumber': param.serialNumber,
-      'status': param.status,
-      'minStock': param.minStock,
-      'drugInfo': param.drugInfo == null
-          ? null
-          : toRequestDrugInfoRequest(param.drugInfo!),
-      'drugRegistrations': param.drugRegistrations,
-    });
-  }
-
-  // Product History mappers
-  List<ProductHistory> toProductHistoriesDomain(List json) {
-    return json.map((data) => toProductHistoryDomain(data)).toList();
-  }
-
-  ProductHistory toProductHistoryDomain(Map<String, dynamic> json) {
     return ProductHistory(
       id: json['id'],
       productId: json['productId'],
@@ -301,11 +157,75 @@ class ProductMapper {
   }
 
   // Drug Interaction mappers
-  String toDrugInteractionCheckRequest(List<String> productIds) {
-    return jsonEncode({'productIds': productIds});
+  CSVImportResult toCSVImportResultDomain() {
+    final json = this;
+
+    return CSVImportResult(
+      total: json['total'] ?? 0,
+      success: json['success'] ?? 0,
+      failed: json['failed'] ?? 0,
+      errors: (json['errors'] as List?)?.cast<String>() ?? [],
+    );
+  }
+}
+
+extension ProductListJson on List {
+  List<Product> toProductsDomain() {
+    final json = this;
+
+    final products = json
+        .map((data) => (data as Map<String, dynamic>).toProductDomain())
+        .toList();
+    return products;
   }
 
-  List<DrugInteractionResult> toDrugInteractionResultsDomain(List json) {
+  List<ProductUnit> toProductUnitsDomain() {
+    final json = this;
+
+    final units = json
+        .map((data) => (data as Map<String, dynamic>).toProductUnitDomain())
+        .toList();
+    return units;
+  }
+
+  List<ProductPrice> toProductPricesDomain() {
+    final json = this;
+
+    final prices = json
+        .map((data) => (data as Map<String, dynamic>).toProductPriceDomain())
+        .toList();
+    return prices;
+  }
+
+  List<ProductStock> toProductStocksDomain() {
+    final json = this;
+
+    final stocks = json
+        .map((data) => (data as Map<String, dynamic>).toProductStockDomain())
+        .toList();
+    return stocks;
+  }
+
+  List<ProductLot> toProductLotsDomain() {
+    final json = this;
+
+    final lots = json
+        .map((data) => (data as Map<String, dynamic>).toProductLotDomain())
+        .toList();
+    return lots;
+  }
+
+  List<ProductHistory> toProductHistoriesDomain() {
+    final json = this;
+
+    return json
+        .map((data) => (data as Map<String, dynamic>).toProductHistoryDomain())
+        .toList();
+  }
+
+  List<DrugInteractionResult> toDrugInteractionResultsDomain() {
+    final json = this;
+
     return json
         .map((data) => DrugInteractionResult(
               productAId: data['productAId'] ?? '',
@@ -318,16 +238,195 @@ class ProductMapper {
   }
 
   // CSV Import mapper
-  CSVImportResult toCSVImportResultDomain(Map<String, dynamic> json) {
-    return CSVImportResult(
-      total: json['total'] ?? 0,
-      success: json['success'] ?? 0,
-      failed: json['failed'] ?? 0,
-      errors: (json['errors'] as List?)?.cast<String>() ?? [],
-    );
+}
+
+extension ProductStringListJson on List<String> {
+  String toDrugInteractionCheckRequest() {
+    final productIds = this;
+
+    return jsonEncode({'productIds': productIds});
+  }
+}
+
+extension CreateProductLotParamRequest on CreateProductLotParam {
+  String toCreateProductLotRequest() {
+    final param = this;
+
+    return jsonEncode({
+      'productId': param.productId,
+      'quantity': param.quantity,
+      'lotNumber': param.lotNumber,
+      'expireDate': param.expireDate,
+      'costPrice': param.costPrice,
+    });
+  }
+}
+
+extension UpdateProductLotParamRequest on UpdateProductLotParam {
+  String toUpdateProductLotRequest() {
+    final param = this;
+
+    return jsonEncode({
+      'quantity': param.quantity,
+      'lotNumber': param.lotNumber,
+      'expireDate': param.expireDate,
+      'costPrice': param.costPrice,
+    });
+  }
+}
+
+extension ProductParamRequest on ProductParam {
+  String toProductRequest() {
+    final param = this;
+
+    return jsonEncode({
+      'name': param.name,
+      'nameEn': param.nameEn,
+      'description': param.description,
+      'price': param.price,
+      'costPrice': param.costPrice ?? 0,
+      'quantity': param.quantity,
+      'unit': param.unit,
+      'serialNumber': param.serialNumber,
+      'lotNumber': param.lotNumber,
+      'category': param.category,
+      'expireDate': param.expireDate,
+      'receiveId': param.receiveId,
+      'status': param.status,
+      'minStock': param.minStock,
+      'drugInfo': param.drugInfo?.toRequestDrugInfoRequest(),
+      'drugRegistrations': param.drugRegistrations,
+    });
   }
 
-  Map<String, dynamic> toRequestDrugInfoRequest(RequestDrugInfo param) {
+  String toUpdateProductRequest() {
+    final param = this;
+
+    return jsonEncode({
+      'name': param.name,
+      'nameEn': param.nameEn,
+      'description': param.description,
+      'category': param.category,
+      'status': param.status,
+      'minStock': param.minStock,
+      'drugInfo': param.drugInfo?.toRequestDrugInfoRequest(),
+      'drugRegistrations': param.drugRegistrations,
+    });
+  }
+}
+
+extension UpdateProductLotQuantityParamRequest
+    on UpdateProductLotQuantityParam {
+  String toUpdateProductLotQuantityRequest() {
+    final param = this;
+
+    return jsonEncode({
+      'quantity': param.quantity,
+    });
+  }
+}
+
+extension ProductPriceParamRequest on ProductPriceParam {
+  String toProductPriceRequest() {
+    final param = this;
+
+    return jsonEncode({
+      'productId': param.productId,
+      'unitId': param.unitId,
+      'customerType': param.customerType,
+      'price': param.price,
+    });
+  }
+}
+
+extension ProductUnitParamRequest on ProductUnitParam {
+  String toProductUnitRequest() {
+    final param = this;
+
+    return jsonEncode({
+      'productId': param.productId,
+      'unit': param.unit,
+      'costPrice': param.costPrice,
+      'price': param.price,
+      'size': param.size,
+      'barcode': param.barcode,
+      'volume': param.volume,
+      'volumeUnit': param.volumeUnit,
+    });
+  }
+}
+
+extension ProductStockParamRequest on ProductStockParam {
+  String toProductStockRequest() {
+    final param = this;
+
+    return jsonEncode({
+      'unitId': param.unitId,
+      'productId': param.productId,
+      'lotNumber': param.lotNumber,
+      'costPrice': param.costPrice,
+      'price': param.price,
+      'quantity': param.quantity,
+      'expireDate': param.expireDate,
+      'importDate': param.importDate,
+    });
+  }
+}
+
+extension UpdateProductStockQuantityParamRequest
+    on UpdateProductStockQuantityParam {
+  String toUpdateProductStockQuantityRequest() {
+    final param = this;
+
+    return jsonEncode({
+      'quantity': param.quantity,
+    });
+  }
+}
+
+extension UpdateProductStockSequenceParamRequest
+    on UpdateProductStockSequenceParam {
+  String toUpdateProductStockSequenceRequest() {
+    final param = this;
+
+    return jsonEncode({
+      'stocks': param.stocks
+          .map((stock) => {
+                'stockId': stock.stockId,
+                'sequence': stock.sequence,
+              })
+          .toList(),
+    });
+  }
+}
+
+extension CreateProductParamRequest on CreateProductParam {
+  String toCreateProductRequest() {
+    final param = this;
+
+    return jsonEncode({
+      'name': param.name,
+      'nameEn': param.nameEn,
+      'description': param.description,
+      'category': param.category,
+      'unit': param.unit,
+      'costPrice': param.costPrice,
+      'price': param.price,
+      'serialNumber': param.serialNumber,
+      'status': param.status,
+      'minStock': param.minStock,
+      'drugInfo': param.drugInfo?.toRequestDrugInfoRequest(),
+      'drugRegistrations': param.drugRegistrations,
+    });
+  }
+
+  // Product History mappers
+}
+
+extension RequestDrugInfoRequest on RequestDrugInfo {
+  Map<String, dynamic> toRequestDrugInfoRequest() {
+    final param = this;
+
     return {
       'genericName': param.genericName,
       'drugType': param.drugType,

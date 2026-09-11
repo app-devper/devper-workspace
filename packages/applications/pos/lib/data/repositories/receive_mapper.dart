@@ -6,13 +6,17 @@ import 'package:pos/domain/model/receive/param.dart';
 import 'package:pos/domain/model/receive/receive.dart';
 import 'package:pos/domain/model/receive/receive_item.dart';
 
-class ReceiveMapper {
-  List<Receive> toReceivesDomain(List json) {
-    final lists = json.map((data) => toReceiveDomain(data)).toList();
-    return lists;
-  }
+/// Extension methods, not a mapper object: there was never any state to hold,
+/// and they only exist where this file is imported, so the repositories see
+/// them and nothing else does.
+///
+/// jsonOrThrow returns dynamic and an extension cannot be reached through a
+/// dynamic receiver — it compiles and then throws NoSuchMethodError. The casts
+/// at the call sites are what keep that a compile error instead.
+extension ReceiveJson on Map<String, dynamic> {
+  Receive toReceiveDomain() {
+    final json = this;
 
-  Receive toReceiveDomain(Map<String, dynamic> json) {
     return Receive(
       id: json['id'],
       supplierId: json['supplierId'],
@@ -21,51 +25,74 @@ class ReceiveMapper {
       totalCost: json['totalCost'].toDouble(),
       createdDate: json['createdDate'],
       status: json['status'] ?? 'ACTIVE',
-      items: toReceiveItemsDomain(json['items'] ?? [], receiveId: json['id']),
+      items: ((json['items'] ?? []) as List)
+          .toReceiveItemsDomain(receiveId: json['id']),
     );
   }
+}
 
-  String toReceiveRequest(ReceiveParam param) {
-    return jsonEncode({
-      'supplierId': param.supplierId,
-      'reference': param.reference,
-    });
-  }
+extension ReceiveItemListJson on List {
+  /// receiveId comes from the parent document; the item rows do not carry it.
+  List<ReceiveItem> toReceiveItemsDomain({required String receiveId}) =>
+      map((data) => (data as Map<String, dynamic>)
+          .toReceiveItemDomain(receiveId: receiveId)).toList();
+}
 
-  String toUpdateReceiveRequest(UpdateReceiveParam param) {
-    return jsonEncode({
-      'supplierId': param.supplierId,
-      'reference': param.reference,
-      'items': param.items.map(toReceiveItemRequest).toList(),
-    });
-  }
-
-  Map<String, dynamic> toReceiveItemRequest(ReceiveItem item) => {
-        'productId': item.productId,
-        'quantity': item.quantity,
-        'costPrice': item.costPrice,
-        'lotNumber': item.lotNumber,
-        'expireDate': item.expireDate,
-        'unitId': item.unitId,
-        'baseQuantity': item.baseQuantity,
+extension ReceiveItemRequest on ReceiveItem {
+  Map<String, dynamic> toReceiveItemRequest() => {
+        'productId': productId,
+        'quantity': quantity,
+        'costPrice': costPrice,
+        'lotNumber': lotNumber,
+        'expireDate': expireDate,
+        'unitId': unitId,
+        'baseQuantity': baseQuantity,
       };
+}
 
-  List<ReceiveItem> toReceiveItemsDomain(List json,
-          {required String receiveId}) =>
-      json
-          .map((data) => toReceiveItemDomain(data, receiveId: receiveId))
-          .toList();
+extension ReceiveListJson on List {
+  List<Receive> toReceivesDomain() {
+    final json = this;
 
-  ReceiveItem toReceiveItemDomain(Map<String, dynamic> json,
-          {required String receiveId}) =>
-      ReceiveItem(
+    final lists = json
+        .map((data) => (data as Map<String, dynamic>).toReceiveDomain())
+        .toList();
+    return lists;
+  }
+}
+
+extension ReceiveItemJson on Map<String, dynamic> {
+  ReceiveItem toReceiveItemDomain({required String receiveId}) => ReceiveItem(
         receiveId: receiveId,
-        productId: json['productId'],
-        quantity: json['quantity'],
-        costPrice: (json['costPrice'] as num).toDouble(),
-        lotNumber: json['lotNumber'] ?? '',
-        expireDate: json['expireDate'] ?? '',
-        unitId: json['unitId'] ?? '',
-        baseQuantity: json['baseQuantity'] ?? 0,
+        productId: this['productId'],
+        quantity: this['quantity'],
+        costPrice: (this['costPrice'] as num).toDouble(),
+        lotNumber: this['lotNumber'] ?? '',
+        expireDate: this['expireDate'] ?? '',
+        unitId: this['unitId'] ?? '',
+        baseQuantity: this['baseQuantity'] ?? 0,
       );
+}
+
+extension ReceiveParamRequest on ReceiveParam {
+  String toReceiveRequest() {
+    final param = this;
+
+    return jsonEncode({
+      'supplierId': param.supplierId,
+      'reference': param.reference,
+    });
+  }
+}
+
+extension UpdateReceiveParamRequest on UpdateReceiveParam {
+  String toUpdateReceiveRequest() {
+    final param = this;
+
+    return jsonEncode({
+      'supplierId': param.supplierId,
+      'reference': param.reference,
+      'items': param.items.map((e) => e.toReceiveItemRequest()).toList(),
+    });
+  }
 }
