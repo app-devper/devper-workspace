@@ -11,6 +11,10 @@ import 'package:pos/domain/model/product/product.dart';
 import 'product_mapper.dart';
 
 class OrderMapper {
+  const OrderMapper();
+
+  static const _productMapper = ProductMapper();
+
   String toOrderRequest(CreateOrderParam param) {
     final payments = param.payments.isNotEmpty
         ? param.payments
@@ -81,11 +85,10 @@ class OrderMapper {
   }
 
   OrderResult toOrderResultDomain(Map<String, dynamic> json) {
-    final mapper = ProductMapper();
     return OrderResult(
       data: toOrderDomain(json["data"]),
       stocks: json["stocks"] != null
-          ? mapper.toProductStocksDomain(json["stocks"])
+          ? _productMapper.toProductStocksDomain(json["stocks"])
           : [],
     );
   }
@@ -131,9 +134,8 @@ class OrderMapper {
   }
 
   OrderItemDetail toOrderItemDetailDomain(Map<String, dynamic> json) {
-    final mapper = ProductMapper();
     Product? product = json["product"] != null
-        ? mapper.toProductDomain(json["product"])
+        ? _productMapper.toProductDomain(json["product"])
         : null;
     Order? order = json["order"] != null ? toOrderDomain(json["order"]) : null;
     return OrderItemDetail(

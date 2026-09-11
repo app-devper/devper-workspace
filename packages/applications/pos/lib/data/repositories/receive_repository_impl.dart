@@ -10,6 +10,8 @@ import 'package:pos/domain/model/receive/receive_item.dart';
 import 'package:pos/domain/repositories/receive_repository.dart';
 
 class ReceiveRepositoryImpl implements ReceiveRepository {
+  static const _mapper = ReceiveMapper();
+
   final PosService posService;
 
   ReceiveRepositoryImpl({
@@ -18,10 +20,9 @@ class ReceiveRepositoryImpl implements ReceiveRepository {
 
   @override
   Future<Receive> createReceive(ReceiveParam param) async {
-    final mapper = ReceiveMapper();
     final response =
-        await posService.createReceive(mapper.toReceiveRequest(param));
-    return mapper.toReceiveDomain(jsonOrThrow(response));
+        await posService.createReceive(_mapper.toReceiveRequest(param));
+    return _mapper.toReceiveDomain(jsonOrThrow(response));
   }
 
   @override
@@ -31,38 +32,34 @@ class ReceiveRepositoryImpl implements ReceiveRepository {
 
   @override
   Future<Receive> getReceiveById(String receiveId) async {
-    final mapper = ReceiveMapper();
     final response = await posService.getReceiveById(receiveId);
-    return mapper.toReceiveDomain(jsonOrThrow(response));
+    return _mapper.toReceiveDomain(jsonOrThrow(response));
   }
 
   @override
   Future<List<Receive>> getReceives(GetReceivesRangeParam param) async {
-    final mapper = ReceiveMapper();
     final response =
         await posService.getReceives(param.startDate, param.endDate);
-    return mapper.toReceivesDomain(jsonOrThrow(response));
+    return _mapper.toReceivesDomain(jsonOrThrow(response));
   }
 
   @override
   Future<Receive> removeReceiveById(String receiveId) async {
-    final mapper = ReceiveMapper();
     final response = await posService.removeReceiveById(receiveId);
-    return mapper.toReceiveDomain(jsonOrThrow(response));
+    return _mapper.toReceiveDomain(jsonOrThrow(response));
   }
 
   @override
   Future<Receive> importReceiveById(String receiveId) async {
     final response = await posService.importReceiveById(receiveId);
-    return ReceiveMapper().toReceiveDomain(jsonOrThrow(response));
+    return _mapper.toReceiveDomain(jsonOrThrow(response));
   }
 
   @override
   Future<Receive> updateReceiveById(
       String receiveId, UpdateReceiveParam param) async {
-    final mapper = ReceiveMapper();
     final response = await posService.updateReceiveById(
-        receiveId, mapper.toUpdateReceiveRequest(param));
-    return mapper.toReceiveDomain(jsonOrThrow(response));
+        receiveId, _mapper.toUpdateReceiveRequest(param));
+    return _mapper.toReceiveDomain(jsonOrThrow(response));
   }
 }

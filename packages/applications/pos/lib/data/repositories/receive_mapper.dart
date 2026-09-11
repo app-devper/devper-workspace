@@ -7,6 +7,8 @@ import 'package:pos/domain/model/receive/receive.dart';
 import 'package:pos/domain/model/receive/receive_item.dart';
 
 class ReceiveMapper {
+  const ReceiveMapper();
+
   List<Receive> toReceivesDomain(List json) {
     final lists = json.map((data) => toReceiveDomain(data)).toList();
     return lists;

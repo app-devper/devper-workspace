@@ -6,6 +6,8 @@ import 'package:pos/domain/model/supplier/param.dart';
 import 'package:pos/domain/model/supplier/supplier.dart';
 
 class SupplierMapper {
+  const SupplierMapper();
+
   List<Supplier> toSuppliersDomain(List json) {
     final lists = json.map((data) => toSupplierDomain(data)).toList();
     return lists;

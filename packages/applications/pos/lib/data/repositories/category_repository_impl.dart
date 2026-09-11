@@ -10,6 +10,8 @@ import 'package:pos/domain/model/category/param.dart';
 import 'package:pos/domain/repositories/category_repository.dart';
 
 class CategoryRepositoryImpl implements CategoryRepository {
+  static const _mapper = CategoryMapper();
+
   final PosService posService;
   final _categories = CachedList<Category>();
 
@@ -19,52 +21,46 @@ class CategoryRepositoryImpl implements CategoryRepository {
 
   @override
   Future<Category> createCategory(CategoryParam param) async {
-    final mapper = CategoryMapper();
-    final response = await posService.createCategory(mapper.toCategoryRequest(param));
-    final result = mapper.toCategoryDomain(jsonOrThrow(response));
+    final response = await posService.createCategory(_mapper.toCategoryRequest(param));
+    final result = _mapper.toCategoryDomain(jsonOrThrow(response));
     _categories.invalidate();
     return result;
   }
 
   @override
   Future<List<Category>> getCategories() async {
-    final mapper = CategoryMapper();
     final response = await posService.getCategories();
-    final categories = mapper.toCategoriesDomain(jsonOrThrow(response));
+    final categories = _mapper.toCategoriesDomain(jsonOrThrow(response));
     _categories.fill(categories);
     return categories;
   }
 
   @override
   Future<Category> getCategoryById(String categoryId) async {
-    final mapper = CategoryMapper();
     final response = await posService.getCategoryById(categoryId);
-    return mapper.toCategoryDomain(jsonOrThrow(response));
+    return _mapper.toCategoryDomain(jsonOrThrow(response));
   }
 
   @override
   Future<Category> removeCategoryById(String categoryId) async {
-    final mapper = CategoryMapper();
     final response = await posService.removeCategoryById(categoryId);
-    final result = mapper.toCategoryDomain(jsonOrThrow(response));
+    final result = _mapper.toCategoryDomain(jsonOrThrow(response));
     _categories.invalidate();
     return result;
   }
 
   @override
   Future<Category> updateCategoryById(String categoryId, CategoryParam param) async {
-    final mapper = CategoryMapper();
-    final response = await posService.updateCategoryById(categoryId, mapper.toCategoryRequest(param));
-    final result = mapper.toCategoryDomain(jsonOrThrow(response));
+    final response = await posService.updateCategoryById(categoryId, _mapper.toCategoryRequest(param));
+    final result = _mapper.toCategoryDomain(jsonOrThrow(response));
     _categories.invalidate();
     return result;
   }
 
   @override
   Future<Category> updateDefaultCategoryById(String categoryId) async {
-    final mapper = CategoryMapper();
     final response = await posService.updateDefaultCategoryId(categoryId);
-    final result = mapper.toCategoryDomain(jsonOrThrow(response));
+    final result = _mapper.toCategoryDomain(jsonOrThrow(response));
     _categories.invalidate();
     return result;
   }

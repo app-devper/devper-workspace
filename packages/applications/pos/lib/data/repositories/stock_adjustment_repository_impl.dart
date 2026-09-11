@@ -11,6 +11,8 @@ import 'package:pos/domain/model/stock_adjustment/stock_adjustment.dart';
 import 'package:pos/domain/repositories/stock_adjustment_repository.dart';
 
 class StockAdjustmentRepositoryImpl implements StockAdjustmentRepository {
+  static const _mapper = StockAdjustmentMapper();
+
   final PosService posService;
 
   /// This write moves stock, so the catalogue cache has to be marked stale.
@@ -23,17 +25,15 @@ class StockAdjustmentRepositoryImpl implements StockAdjustmentRepository {
 
   @override
   Future<StockAdjustment> createStockAdjustment(CreateStockAdjustmentParam param) async {
-    final mapper = StockAdjustmentMapper();
-    final response = await posService.createStockAdjustment(mapper.toStockAdjustmentRequest(param));
-    final result = mapper.toStockAdjustmentDomain(jsonOrThrow(response));
+    final response = await posService.createStockAdjustment(_mapper.toStockAdjustmentRequest(param));
+    final result = _mapper.toStockAdjustmentDomain(jsonOrThrow(response));
     productCache.invalidate();
     return result;
   }
 
   @override
   Future<List<StockAdjustment>> getStockAdjustmentsByProductId(String productId) async {
-    final mapper = StockAdjustmentMapper();
     final response = await posService.getStockAdjustmentsByProductId(productId);
-    return mapper.toStockAdjustmentsDomain(jsonOrThrow(response));
+    return _mapper.toStockAdjustmentsDomain(jsonOrThrow(response));
   }
 }

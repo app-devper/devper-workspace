@@ -6,6 +6,8 @@ import 'package:pos/domain/model/stock_adjustment/param.dart';
 import 'package:pos/domain/model/stock_adjustment/stock_adjustment.dart';
 
 class StockAdjustmentMapper {
+  const StockAdjustmentMapper();
+
   String toStockAdjustmentRequest(CreateStockAdjustmentParam param) {
     return jsonEncode({
       'productId': param.productId,

@@ -6,6 +6,8 @@ import 'package:pos/domain/model/stock_count/param.dart';
 import 'package:pos/domain/model/stock_count/stock_count.dart';
 
 class StockCountMapper {
+  const StockCountMapper();
+
   String toStockCountRequest(CreateStockCountParam param) {
     return jsonEncode({
       'note': param.note,

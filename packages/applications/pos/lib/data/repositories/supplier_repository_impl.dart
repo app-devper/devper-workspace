@@ -10,6 +10,8 @@ import 'package:pos/domain/model/supplier/supplier.dart';
 import 'package:pos/domain/repositories/supplier_repository.dart';
 
 class SupplierRepositoryImpl implements SupplierRepository {
+  static const _mapper = SupplierMapper();
+
   final PosService posService;
   final _suppliers = CachedList<Supplier>();
 
@@ -19,25 +21,22 @@ class SupplierRepositoryImpl implements SupplierRepository {
 
   @override
   Future<Supplier> updateSupplierInfo(SupplierParam param) async {
-    final mapper = SupplierMapper();
-    final response = await posService.updateSupplierInfo(mapper.toSupplierRequest(param));
-    final result = mapper.toSupplierDomain(jsonOrThrow(response));
+    final response = await posService.updateSupplierInfo(_mapper.toSupplierRequest(param));
+    final result = _mapper.toSupplierDomain(jsonOrThrow(response));
     _suppliers.invalidate();
     return result;
   }
 
   @override
   Future<Supplier> getSupplierInfo() async {
-    final mapper = SupplierMapper();
     final response = await posService.getSupplierInfo();
-    return mapper.toSupplierDomain(jsonOrThrow(response));
+    return _mapper.toSupplierDomain(jsonOrThrow(response));
   }
 
   @override
   Future<List<Supplier>> getSuppliers() async {
-    final mapper = SupplierMapper();
     final response = await posService.getSuppliers();
-    final suppliers = mapper.toSuppliersDomain(jsonOrThrow(response));
+    final suppliers = _mapper.toSuppliersDomain(jsonOrThrow(response));
     _suppliers.fill(suppliers);
     return suppliers;
   }
@@ -52,25 +51,22 @@ class SupplierRepositoryImpl implements SupplierRepository {
 
   @override
   Future<Supplier> getSupplierById(String supplierId) async {
-    final mapper = SupplierMapper();
     final response = await posService.getSupplierById(supplierId);
-    return mapper.toSupplierDomain(jsonOrThrow(response));
+    return _mapper.toSupplierDomain(jsonOrThrow(response));
   }
 
   @override
   Future<Supplier> removeSupplierById(String supplierId) async {
-    final mapper = SupplierMapper();
     final response = await posService.removeSupplierById(supplierId);
-    final result = mapper.toSupplierDomain(jsonOrThrow(response));
+    final result = _mapper.toSupplierDomain(jsonOrThrow(response));
     _suppliers.invalidate();
     return result;
   }
 
   @override
   Future<Supplier> updateSupplierById(String supplierId, SupplierParam param) async {
-    final mapper = SupplierMapper();
-    final response = await posService.updateSupplierById(supplierId, mapper.toSupplierRequest(param));
-    final result = mapper.toSupplierDomain(jsonOrThrow(response));
+    final response = await posService.updateSupplierById(supplierId, _mapper.toSupplierRequest(param));
+    final result = _mapper.toSupplierDomain(jsonOrThrow(response));
     _suppliers.invalidate();
     return result;
   }
@@ -83,9 +79,8 @@ class SupplierRepositoryImpl implements SupplierRepository {
 
   @override
   Future<Supplier> createSupplier(SupplierParam param) async {
-    final mapper = SupplierMapper();
-    final response = await posService.createSupplier(mapper.toSupplierRequest(param));
-    final result = mapper.toSupplierDomain(jsonOrThrow(response));
+    final response = await posService.createSupplier(_mapper.toSupplierRequest(param));
+    final result = _mapper.toSupplierDomain(jsonOrThrow(response));
     _suppliers.invalidate();
     return result;
   }

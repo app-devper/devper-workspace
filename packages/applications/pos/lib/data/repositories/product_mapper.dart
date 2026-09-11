@@ -9,6 +9,8 @@ import 'package:pos/domain/model/product/product_lot.dart';
 import 'package:pos/domain/model/product/request_drug_info.dart';
 
 class ProductMapper {
+  const ProductMapper();
+
   List<Product> toProductsDomain(List json) {
     final products = json.map((data) => toProductDomain(data)).toList();
     return products;

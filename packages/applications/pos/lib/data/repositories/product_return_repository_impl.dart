@@ -11,6 +11,8 @@ import 'package:pos/domain/model/product_return/product_return.dart';
 import 'package:pos/domain/repositories/product_return_repository.dart';
 
 class ProductReturnRepositoryImpl implements ProductReturnRepository {
+  static const _mapper = ProductReturnMapper();
+
   final PosService posService;
 
   /// The same catalogue cache ProductRepositoryImpl reads from. Returning
@@ -25,17 +27,15 @@ class ProductReturnRepositoryImpl implements ProductReturnRepository {
 
   @override
   Future<ProductReturn> createProductReturn(CreateProductReturnParam param) async {
-    final mapper = ProductReturnMapper();
-    final response = await posService.createProductReturn(mapper.toProductReturnRequest(param));
-    final result = mapper.toProductReturnDomain(jsonOrThrow(response));
+    final response = await posService.createProductReturn(_mapper.toProductReturnRequest(param));
+    final result = _mapper.toProductReturnDomain(jsonOrThrow(response));
     productCache.invalidate();
     return result;
   }
 
   @override
   Future<List<ProductReturn>> getProductReturnsByOrderId(String orderId) async {
-    final mapper = ProductReturnMapper();
     final response = await posService.getProductReturnsByOrderId(orderId);
-    return mapper.toProductReturnsDomain(jsonOrThrow(response));
+    return _mapper.toProductReturnsDomain(jsonOrThrow(response));
   }
 }

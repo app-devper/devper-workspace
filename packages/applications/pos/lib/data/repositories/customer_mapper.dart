@@ -6,6 +6,8 @@ import 'package:pos/domain/model/customer/customer.dart';
 import 'package:pos/domain/model/customer/param.dart';
 
 class CustomerMapper {
+  const CustomerMapper();
+
   List<Customer> toCustomersDomain(List json) {
     final lists = json.map((data) => toCustomerDomain(data)).toList();
     return lists;

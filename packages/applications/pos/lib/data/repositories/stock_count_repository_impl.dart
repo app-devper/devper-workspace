@@ -11,6 +11,8 @@ import 'package:pos/domain/model/stock_count/stock_count.dart';
 import 'package:pos/domain/repositories/stock_count_repository.dart';
 
 class StockCountRepositoryImpl implements StockCountRepository {
+  static const _mapper = StockCountMapper();
+
   final PosService posService;
 
   /// This write moves stock, so the catalogue cache has to be marked stale.
@@ -23,24 +25,21 @@ class StockCountRepositoryImpl implements StockCountRepository {
 
   @override
   Future<StockCount> createStockCount(CreateStockCountParam param) async {
-    final mapper = StockCountMapper();
-    final response = await posService.createStockCount(mapper.toStockCountRequest(param));
-    final result = mapper.toStockCountDomain(jsonOrThrow(response));
+    final response = await posService.createStockCount(_mapper.toStockCountRequest(param));
+    final result = _mapper.toStockCountDomain(jsonOrThrow(response));
     productCache.invalidate();
     return result;
   }
 
   @override
   Future<List<StockCount>> getStockCounts() async {
-    final mapper = StockCountMapper();
     final response = await posService.getStockCounts();
-    return mapper.toStockCountsDomain(jsonOrThrow(response));
+    return _mapper.toStockCountsDomain(jsonOrThrow(response));
   }
 
   @override
   Future<StockCount> getStockCountById(String stockCountId) async {
-    final mapper = StockCountMapper();
     final response = await posService.getStockCountById(stockCountId);
-    return mapper.toStockCountDomain(jsonOrThrow(response));
+    return _mapper.toStockCountDomain(jsonOrThrow(response));
   }
 }

@@ -6,6 +6,8 @@ import 'package:pos/domain/model/product_return/param.dart';
 import 'package:pos/domain/model/product_return/product_return.dart';
 
 class ProductReturnMapper {
+  const ProductReturnMapper();
+
   String toProductReturnRequest(CreateProductReturnParam param) {
     return jsonEncode({
       'orderId': param.orderId,
