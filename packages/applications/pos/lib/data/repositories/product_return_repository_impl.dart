@@ -24,18 +24,19 @@ class ProductReturnRepositoryImpl implements ProductReturnRepository {
   });
 
   @override
-  Future<ProductReturn> createProductReturn(CreateProductReturnParam param) async {
-    final mapper = ProductReturnMapper();
-    final response = await posService.createProductReturn(mapper.toProductReturnRequest(param));
-    final result = mapper.toProductReturnDomain(jsonOrThrow(response));
+  Future<ProductReturn> createProductReturn(
+      CreateProductReturnParam param) async {
+    final response =
+        await posService.createProductReturn(param.toProductReturnRequest());
+    final result =
+        (jsonOrThrow(response) as Map<String, dynamic>).toProductReturnDomain();
     productCache.invalidate();
     return result;
   }
 
   @override
   Future<List<ProductReturn>> getProductReturnsByOrderId(String orderId) async {
-    final mapper = ProductReturnMapper();
     final response = await posService.getProductReturnsByOrderId(orderId);
-    return mapper.toProductReturnsDomain(jsonOrThrow(response));
+    return (jsonOrThrow(response) as List).toProductReturnsDomain();
   }
 }

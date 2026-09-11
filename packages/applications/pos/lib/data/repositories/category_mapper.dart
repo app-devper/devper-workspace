@@ -5,29 +5,41 @@ import 'dart:convert';
 import 'package:pos/domain/model/category/category.dart';
 import 'package:pos/domain/model/category/param.dart';
 
-class CategoryMapper {
-  List<Category> toCategoriesDomain(List json) {
-    final lists = json.map((data) => toCategoryDomain(data)).toList();
-    return lists;
-  }
-
-  Category toCategoryDomain(Map<String, dynamic> json) {
+/// Extension methods, not a mapper object: there was never any state to hold,
+/// and these only exist where this file is imported, so the repositories see
+/// them and nothing else does.
+///
+/// Note the casts at the call sites. jsonOrThrow returns dynamic, and an
+/// extension method cannot be reached through a dynamic receiver — it compiles
+/// and then throws NoSuchMethodError at runtime. Casting first is what keeps
+/// that mistake a compile error.
+extension CategoryJson on Map<String, dynamic> {
+  Category toCategoryDomain() {
     return Category(
-      id: json['id'],
-      name: json['name'],
-      value: json['value'],
-      description: json['description'],
-      isDefault: json['default'],
-      requireCustomerOrder: json['requireCustomerOrder'] ?? false,
+      id: this['id'],
+      name: this['name'],
+      value: this['value'],
+      description: this['description'],
+      isDefault: this['default'],
+      requireCustomerOrder: this['requireCustomerOrder'] ?? false,
     );
   }
+}
 
-  String toCategoryRequest(CategoryParam param) {
+extension CategoryListJson on List {
+  List<Category> toCategoriesDomain() {
+    return map((data) => (data as Map<String, dynamic>).toCategoryDomain())
+        .toList();
+  }
+}
+
+extension CategoryRequest on CategoryParam {
+  String toCategoryRequest() {
     return jsonEncode({
-      'name': param.name,
-      'value': param.value,
-      'description': param.description,
-      'requireCustomerOrder': param.requireCustomerOrder,
+      'name': name,
+      'value': value,
+      'description': description,
+      'requireCustomerOrder': requireCustomerOrder,
     });
   }
 }
