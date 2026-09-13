@@ -1,3 +1,5 @@
+import 'dart:async';
+
 // Flutter imports:
 import 'package:flutter/material.dart';
 
@@ -30,8 +32,19 @@ class _ProductStockQuantityWidgetState extends State<ProductStockQuantityWidget>
   String number = "";
 
   late ProductStockQuantityViewModel _viewModel;
+  late StreamSubscription<String> _errors;
+  late StreamSubscription<ProductStock> _updated;
 
   bool _loadingShown = false;
+
+  void _showError(String message) {
+    showAlertDialog(context, message, () {});
+  }
+
+  void _onUpdated(ProductStock data) {
+    Navigator.pop(context);
+    widget.onComplete(data);
+  }
 
   void _onStateChanged() {
     final state = _viewModel.state.value;
@@ -42,29 +55,22 @@ class _ProductStockQuantityWidgetState extends State<ProductStockQuantityWidget>
       _loadingShown = false;
       hideLoadingDialog(context);
     }
-    if (state.error != null) {
-      final message = state.error!;
-      _viewModel.consumeError();
-      showAlertDialog(context, message, () {});
-    }
-    if (state.updated != null) {
-      final data = state.updated!;
-      _viewModel.consumeUpdated();
-      Navigator.pop(context);
-      widget.onComplete(data);
-    }
   }
 
   @override
   void initState() {
     _viewModel = sl<ProductStockQuantityViewModel>();
     _viewModel.state.addListener(_onStateChanged);
+    _errors = _viewModel.errors.listen(_showError);
+    _updated = _viewModel.updated.listen(_onUpdated);
     super.initState();
   }
 
   @override
   void dispose() {
     _viewModel.state.removeListener(_onStateChanged);
+    _errors.cancel();
+    _updated.cancel();
     _viewModel.dispose();
     super.dispose();
   }

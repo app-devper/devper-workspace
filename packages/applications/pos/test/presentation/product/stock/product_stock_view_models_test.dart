@@ -178,48 +178,48 @@ void main() {
     test('a corrected count reaches the addressed lot', () async {
       final repo = FakeProductRepository();
       final viewModel = build(repo);
+      final updated = <ProductStock>[];
+      viewModel.updated.listen(updated.add);
 
       await viewModel.updateProductStockQuantityById(
           'stock-1', UpdateProductStockQuantityParam(quantity: 7));
+      await Future<void>.delayed(Duration.zero);
 
       expect(repo.calls, ['quantity:stock-1=7']);
-      expect(viewModel.state.value.updated?.quantity, 7);
+      expect(updated.single.quantity, 7);
       expect(viewModel.state.value.loading, isFalse);
     });
 
     test('zero is a legitimate count, not an empty update', () async {
       final repo = FakeProductRepository();
       final viewModel = build(repo);
+      final updated = <ProductStock>[];
+      viewModel.updated.listen(updated.add);
 
       await viewModel.updateProductStockQuantityById(
           'stock-1', UpdateProductStockQuantityParam(quantity: 0));
+      await Future<void>.delayed(Duration.zero);
 
       expect(repo.calls, ['quantity:stock-1=0']);
-      expect(viewModel.state.value.updated?.quantity, 0);
+      expect(updated.single.quantity, 0);
     });
 
-    test('a rejected correction leaves nothing marked as updated', () async {
+    test('a rejected correction emits an error and no result', () async {
       final repo = FakeProductRepository(
         throws: const ValidationException(message: 'invalid', code: 'VA-400'),
       );
       final viewModel = build(repo);
+      final updated = <ProductStock>[];
+      final errors = <String>[];
+      viewModel.updated.listen(updated.add);
+      viewModel.errors.listen(errors.add);
 
       await viewModel.updateProductStockQuantityById(
           'stock-1', UpdateProductStockQuantityParam(quantity: -1));
+      await Future<void>.delayed(Duration.zero);
 
-      expect(viewModel.state.value.updated, isNull);
-      expect(viewModel.state.value.error, isNotNull);
-    });
-
-    test('consumeUpdated clears the one-shot result', () async {
-      final viewModel = build(FakeProductRepository());
-
-      await viewModel.updateProductStockQuantityById(
-          'stock-1', UpdateProductStockQuantityParam(quantity: 4));
-      expect(viewModel.state.value.updated, isNotNull);
-
-      viewModel.consumeUpdated();
-      expect(viewModel.state.value.updated, isNull);
+      expect(updated, isEmpty);
+      expect(errors, hasLength(1));
     });
   });
 }

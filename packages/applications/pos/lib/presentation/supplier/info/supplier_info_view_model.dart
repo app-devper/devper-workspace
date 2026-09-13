@@ -3,8 +3,10 @@ import 'package:flutter/foundation.dart';
 
 // Package imports:
 import 'package:common/core/error/failure.dart';
+import 'package:common/core/state/one_shot.dart';
 
 // Project imports:
+import 'package:pos/domain/model/supplier/supplier.dart';
 import 'package:pos/domain/model/supplier/param.dart';
 import 'package:pos/domain/usecase/supplier/get_supplier_info_use_case.dart';
 import 'package:pos/domain/usecase/supplier/update_supplier_info_use_case.dart';
@@ -21,43 +23,44 @@ class SupplierInfoViewModel {
 
   final _state = ValueNotifier<SupplierInfoState>(const SupplierInfoState());
 
+  /// Delivered once: the screen closes on it, nothing draws it.
+  final _updated = OneShot<Supplier>();
+  final _errors = OneShot<String>();
+
   ValueListenable<SupplierInfoState> get state => _state;
 
+  Stream<Supplier> get updated => _updated.stream;
+
+  Stream<String> get errors => _errors.stream;
+
+  /// Loading the record is not a command with an outcome — the supplier lands
+  /// in state, where the form renders it.
   Future<void> getSupplierInfo() async {
-    _state.value = _state.value.copyWith(task: const SupplierInfoTask());
     try {
       final supplier = await getSupplierInfoUseCase();
       _state.value = _state.value.copyWith(supplier: supplier);
     } on Exception catch (e) {
-      _state.value =
-          _state.value.copyWith(task: SupplierInfoFailed(toFailure(e)));
+      _errors.emit(toFailure(e).getMessage());
     }
   }
 
   Future<void> updateSupplierInfo(SupplierParam param) async {
-    _state.value = _state.value.copyWith(task: const SupplierInfoRunning());
+    _state.value = _state.value.copyWith(saving: true);
     try {
       final updated = await updateSupplierInfoUseCase(param);
-      _state.value = _state.value.copyWith(task: SupplierInfoUpdated(updated));
+      _updated.emit(updated);
     } on Exception catch (e) {
-      _state.value =
-          _state.value.copyWith(task: SupplierInfoFailed(toFailure(e)));
+      _errors.emit(toFailure(e).getMessage());
+    } finally {
+      _state.value = _state.value.copyWith(saving: false);
     }
   }
 
-  void consumeError() {
-    if (_state.value.task is SupplierInfoFailed) {
-      _state.value = _state.value.copyWith(task: const SupplierInfoTask());
-    }
-  }
 
-  void consumeUpdated() {
-    if (_state.value.task is SupplierInfoUpdated) {
-      _state.value = _state.value.copyWith(task: const SupplierInfoTask());
-    }
-  }
 
   void dispose() {
     _state.dispose();
+    _updated.dispose();
+    _errors.dispose();
   }
 }

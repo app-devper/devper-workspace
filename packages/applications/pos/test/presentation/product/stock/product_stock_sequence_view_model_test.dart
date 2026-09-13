@@ -4,7 +4,6 @@ import 'package:pos/domain/model/product/param.dart';
 import 'package:pos/domain/model/product/product.dart';
 import 'package:pos/domain/repositories/product_repository.dart';
 import 'package:pos/domain/usecase/product/update_product_stock_sequence_use_case.dart';
-import 'package:pos/presentation/product/stock/product_stock_sequence_state.dart';
 import 'package:pos/presentation/product/stock/product_stock_sequence_view_model.dart';
 
 class FakeProductRepository implements ProductRepository {
@@ -66,63 +65,67 @@ ProductStockSequenceViewModel buildViewModel(ProductRepository repo) {
 }
 
 void main() {
-  test('a reorder publishes the stocks in their new sequence', () async {
+  test('a reorder emits the stocks in their new sequence', () async {
     final repo = FakeProductRepository();
     final vm = buildViewModel(repo);
+    final updated = <List<ProductStock>>[];
+    vm.updated.listen(updated.add);
 
     await vm.updateProductStockSequenceById(buildParam());
+    await Future<void>.delayed(Duration.zero);
 
-    expect(vm.state.value.task, isA<ProductStockSequenceUpdated>());
-    expect(vm.state.value.updated?.map((e) => e.id), ['stock-b', 'stock-a']);
-    expect(vm.state.value.updated?.map((e) => e.sequence), [1, 2]);
+    expect(updated.single.map((e) => e.id), ['stock-b', 'stock-a']);
+    expect(updated.single.map((e) => e.sequence), [1, 2]);
     expect(vm.state.value.loading, isFalse);
     expect(repo.received?.productId, 'product-1');
   });
 
-  test('a failure leaves no result behind', () async {
+  test('a failure emits an error and no result', () async {
     final vm = buildViewModel(
       FakeProductRepository(throws: const NetworkException(message: 'offline')),
     );
+    final updated = <List<ProductStock>>[];
+    final errors = <String>[];
+    vm.updated.listen(updated.add);
+    vm.errors.listen(errors.add);
 
     await vm.updateProductStockSequenceById(buildParam());
+    await Future<void>.delayed(Duration.zero);
 
-    expect(vm.state.value.task, isA<ProductStockSequenceFailed>());
-    expect(vm.state.value.error, isNotNull);
-    expect(vm.state.value.updated, isNull);
+    expect(errors, hasLength(1));
+    expect(updated, isEmpty);
     expect(vm.state.value.loading, isFalse);
   });
 
-  test('a retry after a failure clears the error', () async {
+  test('a retry after a failure reports each attempt on its own channel',
+      () async {
     final failing = buildViewModel(
       FakeProductRepository(throws: const NetworkException(message: 'offline')),
     );
+    final errors = <String>[];
+    failing.errors.listen(errors.add);
     await failing.updateProductStockSequenceById(buildParam());
-    expect(failing.state.value.error, isNotNull);
 
-    final vm = buildViewModel(FakeProductRepository());
-    await vm.updateProductStockSequenceById(buildParam());
-    expect(vm.state.value.updated, isNotNull);
+    final retry = buildViewModel(FakeProductRepository());
+    final updated = <List<ProductStock>>[];
+    retry.updated.listen(updated.add);
+    await retry.updateProductStockSequenceById(buildParam());
+    await Future<void>.delayed(Duration.zero);
+
+    expect(errors, hasLength(1));
+    expect(updated, hasLength(1),
+        reason: 'each attempt reports on its own channel, once');
   });
 
-  test('consumeUpdated returns the screen to idle', () async {
+  test('the result is delivered once, with nothing to clear', () async {
     final vm = buildViewModel(FakeProductRepository());
+    final updated = <List<ProductStock>>[];
+    vm.updated.listen(updated.add);
 
     await vm.updateProductStockSequenceById(buildParam());
-    expect(vm.state.value.updated, isNotNull);
+    await Future<void>.delayed(Duration.zero);
+    await Future<void>.delayed(Duration.zero);
 
-    vm.consumeUpdated();
-
-    expect(vm.state.value.task, isA<ProductStockSequenceIdle>());
-    expect(vm.state.value.updated, isNull);
-  });
-
-  test('consumeError leaves an unread result alone', () async {
-    final vm = buildViewModel(FakeProductRepository());
-
-    await vm.updateProductStockSequenceById(buildParam());
-    vm.consumeError();
-
-    expect(vm.state.value.updated, isNotNull,
-        reason: 'consuming an error must not discard an unread result');
+    expect(updated, hasLength(1));
   });
 }
