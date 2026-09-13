@@ -6,7 +6,6 @@ import 'package:pos/domain/repositories/category_repository.dart';
 import 'package:pos/domain/usecase/category/get_category_by_id_use_case.dart';
 import 'package:pos/domain/usecase/category/remove_category_by_id_use_case.dart';
 import 'package:pos/domain/usecase/category/update_category_by_id_use_case.dart';
-import 'package:pos/presentation/category/edit/category_edit_state.dart';
 import 'package:pos/presentation/category/edit/category_edit_view_model.dart';
 
 class FakeCategoryRepository implements CategoryRepository {
@@ -90,108 +89,82 @@ CategoryEditViewModel buildViewModel(CategoryRepository repo) {
 }
 
 void main() {
-  test('initial state is not loading with no result', () {
-    final vm = buildViewModel(FakeCategoryRepository());
-
-    expect(vm.state.value.loading, isFalse);
-    expect(vm.state.value.updated, isNull);
-    expect(vm.state.value.removed, isNull);
-  });
-
-  test('updateCategoryById sets updated on success', () async {
+  test('a save emits the updated record once', () async {
     final repo = FakeCategoryRepository();
     final vm = buildViewModel(repo);
+    final updated = <Category>[];
+    final errors = <String>[];
+    vm.updated.listen(updated.add);
+    vm.errors.listen(errors.add);
 
     await vm.updateCategoryById('7', buildParam());
+    await Future<void>.delayed(Duration.zero);
 
-    expect(vm.state.value.loading, isFalse);
-    expect(vm.state.value.updated?.id, '7');
+    expect(updated.single.id, '7');
+    expect(errors, isEmpty);
+    expect(vm.state.value.busy, isFalse);
     expect(repo.updatedCategoryId, '7');
   });
 
-  test('updateCategoryById maps a typed exception to state.error', () async {
-    final vm = buildViewModel(
-      FakeCategoryRepository(
-          throws: const NetworkException(message: 'offline')),
-    );
-
-    await vm.updateCategoryById('7', buildParam());
-
-    expect(vm.state.value.loading, isFalse);
-    expect(vm.state.value.updated, isNull);
-    expect(vm.state.value.error, isNotNull);
-  });
-
-  test('removeCategoryById sets removed on success', () async {
+  test('a delete emits on its own channel, not the save one', () async {
     final repo = FakeCategoryRepository();
     final vm = buildViewModel(repo);
+    final updated = <Category>[];
+    final removed = <Category>[];
+    vm.updated.listen(updated.add);
+    vm.removed.listen(removed.add);
 
     await vm.removeCategoryById('9');
+    await Future<void>.delayed(Duration.zero);
 
-    expect(vm.state.value.loading, isFalse);
-    expect(vm.state.value.removed?.id, '9');
+    expect(removed.single.id, '9');
+    expect(updated, isEmpty,
+        reason: 'the two outcomes cannot be mistaken for each other');
     expect(repo.removedCategoryId, '9');
   });
 
-  test('getCategoryById maps a typed exception to state.error', () async {
+  test('a save then a delete deliver both, in order', () async {
+    final vm = buildViewModel(FakeCategoryRepository());
+    final seen = <String>[];
+    vm.updated.listen((e) => seen.add('updated:${e.id}'));
+    vm.removed.listen((e) => seen.add('removed:${e.id}'));
+
+    await vm.updateCategoryById('7', buildParam());
+    await vm.removeCategoryById('9');
+    await Future<void>.delayed(Duration.zero);
+
+    expect(seen, ['updated:7', 'removed:9'],
+        reason: 'the old shape had one slot, so the second replaced the first');
+  });
+
+  test('a failure emits an error and no outcome', () async {
     final vm = buildViewModel(
       FakeCategoryRepository(
           throws: const NetworkException(message: 'offline')),
     );
-
-    await vm.getCategoryById('1');
-
-    expect(vm.state.value.error, isNotNull);
-  });
-
-  test('consumeUpdated clears the updated result', () async {
-    final vm = buildViewModel(FakeCategoryRepository());
+    final updated = <Category>[];
+    final errors = <String>[];
+    vm.updated.listen(updated.add);
+    vm.errors.listen(errors.add);
 
     await vm.updateCategoryById('7', buildParam());
-    expect(vm.state.value.updated, isNotNull);
+    await Future<void>.delayed(Duration.zero);
 
-    vm.consumeUpdated();
-
-    expect(vm.state.value.updated, isNull);
+    expect(errors, hasLength(1));
+    expect(updated, isEmpty);
+    expect(vm.state.value.busy, isFalse);
   });
 
-  test('consumeError clears the error', () async {
-    final vm = buildViewModel(
-      FakeCategoryRepository(
-          throws: const NetworkException(message: 'offline')),
-    );
-
-    await vm.updateCategoryById('7', buildParam());
-    expect(vm.state.value.error, isNotNull);
-
-    vm.consumeError();
-  });
-
-  test('an update result and a delete result cannot both be present', () async {
+  test('a second command while one is in flight is ignored', () async {
     final vm = buildViewModel(FakeCategoryRepository());
+    final updated = <Category>[];
+    vm.updated.listen(updated.add);
 
+    final first = vm.updateCategoryById('7', buildParam());
     await vm.updateCategoryById('7', buildParam());
-    expect(vm.state.value.updated, isNotNull);
-    expect(vm.state.value.removed, isNull);
+    await first;
+    await Future<void>.delayed(Duration.zero);
 
-    await vm.removeCategoryById('9');
-
-    expect(vm.state.value, isA<CategoryEditRemoved>());
-    expect(vm.state.value.removed?.id, '9');
-    expect(vm.state.value.updated, isNull,
-        reason: 'the stale update result must not survive a delete');
-  });
-
-  test('consumeRemoved returns the screen to idle', () async {
-    final vm = buildViewModel(FakeCategoryRepository());
-
-    await vm.removeCategoryById('9');
-    expect(vm.state.value.removed, isNotNull);
-
-    vm.consumeRemoved();
-
-    expect(vm.state.value, isA<CategoryEditIdle>());
-    expect(vm.state.value.removed, isNull);
-    expect(vm.state.value.loading, isFalse);
+    expect(updated, hasLength(1));
   });
 }

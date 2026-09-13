@@ -1,3 +1,5 @@
+import 'dart:async';
+
 // Flutter imports:
 import 'package:flutter/material.dart';
 
@@ -41,6 +43,9 @@ class _CategoryEditPageState extends State<CategoryEditPage> {
 
   late CustomSnackBar _snackBar;
   late CategoryEditViewModel _viewModel;
+  late StreamSubscription<String> _errors;
+  late StreamSubscription<Category> _updated;
+  late StreamSubscription<Category> _removed;
 
   bool _loadingShown = false;
   bool? _requireCustomerOrder = false;
@@ -50,10 +55,27 @@ class _CategoryEditPageState extends State<CategoryEditPage> {
     super.initState();
     _viewModel = sl<CategoryEditViewModel>();
     _viewModel.state.addListener(_onStateChanged);
+    _errors = _viewModel.errors.listen(_showError);
+    _updated = _viewModel.updated.listen(_onUpdated);
+    _removed = _viewModel.removed.listen(_onRemoved);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _setupCategory(widget.category);
       _viewModel.getCategoryById(widget.category.id);
     });
+  }
+
+  void _showError(String message) {
+    _snackBar.hideAll();
+    _snackBar.showErrorSnackBar(message);
+  }
+
+  void _onUpdated(Category category) {
+    _snackBar.hideAll();
+    _snackBar.showSnackBar(text: "Update ${category.name} success");
+  }
+
+  void _onRemoved(Category category) {
+    Navigator.pop(context, category);
   }
 
   void _onStateChanged() {
@@ -65,26 +87,14 @@ class _CategoryEditPageState extends State<CategoryEditPage> {
       _loadingShown = false;
       hideLoadingDialog(context);
     }
-    if (state.error != null) {
-      _snackBar.hideAll();
-      _snackBar.showErrorSnackBar(state.error!);
-      _viewModel.consumeError();
-    }
-    if (state.updated != null) {
-      _snackBar.hideAll();
-      _snackBar.showSnackBar(text: "Update ${state.updated!.name} success");
-      _viewModel.consumeUpdated();
-    }
-    if (state.removed != null) {
-      final data = state.removed!;
-      _viewModel.consumeRemoved();
-      Navigator.pop(context, data);
-    }
   }
 
   @override
   void dispose() {
     _viewModel.state.removeListener(_onStateChanged);
+    _errors.cancel();
+    _updated.cancel();
+    _removed.cancel();
     _nameNode.dispose();
     _valueNode.dispose();
     _descriptionNode.dispose();
