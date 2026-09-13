@@ -37,15 +37,18 @@ class ReceivesViewModel {
     _state.value = _state.value.copyWith(loading: true, clearError: true);
     try {
       final now = DateTime.now();
-      final startDate = DateTime(now.year, now.month, now.day).subtract(const Duration(days: 365));
+      final startDate = DateTime(now.year, now.month, now.day)
+          .subtract(const Duration(days: 365));
       final param = GetReceivesRangeParam(
         startDate: startDate.toUtc().toIso8601String(),
         endDate: now.toUtc().toIso8601String(),
       );
       _all = await getReceivesUseCase(param);
-      _state.value = _state.value.copyWith(loading: false, items: _filter(_query));
+      _state.value =
+          _state.value.copyWith(loading: false, items: _filter(_query));
     } on Exception catch (e) {
-      _state.value = _state.value.copyWith(loading: false, error: toFailure(e).getMessage());
+      _state.value = _state.value
+          .copyWith(loading: false, error: toFailure(e).getMessage());
     }
   }
 
@@ -54,13 +57,9 @@ class ReceivesViewModel {
       return _all;
     }
     final lower = query.toLowerCase();
-    return _all.where((item) => item.code.toLowerCase().contains(lower)).toList();
-  }
-
-  void consumeError() {
-    if (_state.value.error != null) {
-      _state.value = _state.value.copyWith(clearError: true);
-    }
+    return _all
+        .where((item) => item.code.toLowerCase().contains(lower))
+        .toList();
   }
 
   void dispose() {

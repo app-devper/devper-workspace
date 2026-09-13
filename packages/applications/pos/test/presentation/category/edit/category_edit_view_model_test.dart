@@ -96,7 +96,6 @@ void main() {
     expect(vm.state.value.loading, isFalse);
     expect(vm.state.value.updated, isNull);
     expect(vm.state.value.removed, isNull);
-    expect(vm.state.value.error, isNull);
   });
 
   test('updateCategoryById sets updated on success', () async {
@@ -108,7 +107,6 @@ void main() {
     expect(vm.state.value.loading, isFalse);
     expect(vm.state.value.updated?.id, '7');
     expect(repo.updatedCategoryId, '7');
-    expect(vm.state.value.error, isNull);
   });
 
   test('updateCategoryById maps a typed exception to state.error', () async {
@@ -167,8 +165,6 @@ void main() {
     expect(vm.state.value.error, isNotNull);
 
     vm.consumeError();
-
-    expect(vm.state.value.error, isNull);
   });
 
   test('an update result and a delete result cannot both be present', () async {

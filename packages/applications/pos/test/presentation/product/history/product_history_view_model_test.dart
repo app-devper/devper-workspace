@@ -62,7 +62,6 @@ void main() {
     expect(vm.state.value.items, hasLength(2));
     expect(vm.state.value.items.last.balance, 20);
     expect(vm.state.value.loading, isFalse);
-    expect(vm.state.value.error, isNull);
     expect(repo.requestedProductId, 'product-1');
   });
 
@@ -72,7 +71,6 @@ void main() {
     await vm.getHistoriesByProductId('product-1');
 
     expect(vm.state.value.items, isEmpty);
-    expect(vm.state.value.error, isNull);
   });
 
   test('a failed read surfaces rather than reading as an empty ledger',
@@ -89,7 +87,10 @@ void main() {
     expect(vm.state.value.loading, isFalse);
   });
 
-  test('consumeError clears the error', () async {
+  test('the error stays put, because the widget renders it', () async {
+    // This screen shows its failure inline rather than as a snackbar, so the
+    // message belongs in state until the next attempt replaces it. There is
+    // no consume step to forget.
     final vm = buildViewModel(
       FakeProductRepository(throws: const NetworkException(message: 'offline')),
     );
@@ -97,8 +98,9 @@ void main() {
     await vm.getHistoriesByProductId('product-1');
     expect(vm.state.value.error, isNotNull);
 
-    vm.consumeError();
+    await vm.getHistoriesByProductId('product-1');
 
-    expect(vm.state.value.error, isNull);
+    expect(vm.state.value.error, isNotNull,
+        reason: 'a second failure leaves a message on screen, not a blank');
   });
 }

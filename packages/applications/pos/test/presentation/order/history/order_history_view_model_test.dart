@@ -56,7 +56,6 @@ void main() {
 
     expect(vm.state.value.items, hasLength(2));
     expect(vm.state.value.loading, isFalse);
-    expect(vm.state.value.error, isNull);
     expect(repo.requestedProductId, 'product-1');
   });
 
@@ -65,8 +64,12 @@ void main() {
 
     await vm.getOrderItemByProductId('product-1');
 
+    final errors = <String>[];
+    vm.errors.listen(errors.add);
+    await Future<void>.delayed(Duration.zero);
+
     expect(vm.state.value.items, isEmpty);
-    expect(vm.state.value.error, isNull,
+    expect(errors, isEmpty,
         reason: 'a product that has never sold is a normal answer');
   });
 
@@ -75,34 +78,30 @@ void main() {
       FakeOrderRepository(throws: const NetworkException(message: 'offline')),
     );
 
-    await vm.getOrderItemByProductId('product-1');
+    final errors = <String>[];
+    vm.errors.listen(errors.add);
 
-    expect(vm.state.value.error, isNotNull);
+    await vm.getOrderItemByProductId('product-1');
+    await Future<void>.delayed(Duration.zero);
+
+    expect(errors, hasLength(1));
     expect(vm.state.value.loading, isFalse);
     expect(vm.state.value.items, isEmpty);
   });
 
-  test('a retry clears the previous error before it starts', () async {
+  test('a retry reports the first failure once and then succeeds', () async {
     final repo = _FlakyOrderRepository();
     final vm = buildViewModel(repo);
+    final errors = <String>[];
+    vm.errors.listen(errors.add);
 
     await vm.getOrderItemByProductId('product-1');
-    expect(vm.state.value.error, isNotNull);
-
     await vm.getOrderItemByProductId('product-1');
+    await Future<void>.delayed(Duration.zero);
 
-    expect(vm.state.value.error, isNull);
+    expect(errors, hasLength(1),
+        reason: 'the failed attempt is reported, the successful one is not');
     expect(vm.state.value.items, hasLength(1));
-  });
-
-  test('consumeError clears the error and leaves the items', () async {
-    final repo = _FlakyOrderRepository();
-    final vm = buildViewModel(repo);
-
-    await vm.getOrderItemByProductId('product-1');
-    vm.consumeError();
-
-    expect(vm.state.value.error, isNull);
   });
 }
 

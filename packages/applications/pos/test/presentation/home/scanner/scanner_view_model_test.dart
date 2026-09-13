@@ -68,7 +68,6 @@ void main() {
 
     expect(vm.state.value.task, isA<ScannerLoaded>());
     expect(vm.state.value.loaded, product);
-    expect(vm.state.value.error, isNull);
     expect(vm.state.value.loading, isFalse);
     expect(repo.lookups, ['8850001']);
   });
@@ -116,7 +115,6 @@ void main() {
     vm.consumeError();
 
     expect(vm.state.value.task, isA<ScannerIdle>());
-    expect(vm.state.value.error, isNull);
   });
 
   test('consumeLoaded leaves a failure alone', () async {

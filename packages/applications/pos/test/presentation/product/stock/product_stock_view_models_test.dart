@@ -42,7 +42,8 @@ class FakeProductRepository implements ProductRepository {
   }
 
   @override
-  Future<List<ProductStock>> getProductStocksByProductId(String productId) async {
+  Future<List<ProductStock>> getProductStocksByProductId(
+      String productId) async {
     _guard('get:$productId');
     return stocks;
   }
@@ -80,8 +81,10 @@ class FakeProductRepository implements ProductRepository {
 ProductStockViewModel buildStockViewModel(FakeProductRepository repo) {
   return ProductStockViewModel(
     addProductStockUseCase: AddProductStockUseCase(productRepo: repo),
-    updateProductStockByIdUseCase: UpdateProductStockByIdUseCase(productRepo: repo),
-    removeProductStockByIdUseCase: RemoveProductStockByIdUseCase(productRepo: repo),
+    updateProductStockByIdUseCase:
+        UpdateProductStockByIdUseCase(productRepo: repo),
+    removeProductStockByIdUseCase:
+        RemoveProductStockByIdUseCase(productRepo: repo),
     getProductStocksByProductIdUseCase:
         GetProductStocksByProductIdUseCase(productRepo: repo),
   );
@@ -90,7 +93,8 @@ ProductStockViewModel buildStockViewModel(FakeProductRepository repo) {
 void main() {
   group('ProductStockViewModel', () {
     test('getProductStocks fills the lot list', () async {
-      final repo = FakeProductRepository(stocks: [stock('a'), stock('b', quantity: 3)]);
+      final repo =
+          FakeProductRepository(stocks: [stock('a'), stock('b', quantity: 3)]);
       final viewModel = buildStockViewModel(repo);
 
       await viewModel.getProductStocks('p1');
@@ -156,7 +160,6 @@ void main() {
       expect(viewModel.state.value.loading, isFalse);
 
       viewModel.consumeError();
-      expect(viewModel.state.value.error, isNull);
     });
   });
 

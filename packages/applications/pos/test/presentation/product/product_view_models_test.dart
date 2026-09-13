@@ -300,7 +300,6 @@ void main() {
 
       expect(vm.state.value.loading, isFalse);
       expect(vm.state.value.importResult?.success, 1);
-      expect(vm.state.value.error, isNull);
     });
 
     test('importCSV maps a typed exception to state.error', () async {

@@ -15,7 +15,8 @@ class ProductReturnsHistoryViewModel {
     required this.getProductReturnsByOrderIdUseCase,
   });
 
-  final _state = ValueNotifier<ProductReturnsHistoryState>(const ProductReturnsHistoryState());
+  final _state = ValueNotifier<ProductReturnsHistoryState>(
+      const ProductReturnsHistoryState());
 
   ValueListenable<ProductReturnsHistoryState> get state => _state;
 
@@ -25,13 +26,8 @@ class ProductReturnsHistoryViewModel {
       final items = await getProductReturnsByOrderIdUseCase(orderId);
       _state.value = _state.value.copyWith(loading: false, items: items);
     } on Exception catch (e) {
-      _state.value = _state.value.copyWith(loading: false, error: toFailure(e).getMessage());
-    }
-  }
-
-  void consumeError() {
-    if (_state.value.error != null) {
-      _state.value = _state.value.copyWith(clearError: true);
+      _state.value = _state.value
+          .copyWith(loading: false, error: toFailure(e).getMessage());
     }
   }
 

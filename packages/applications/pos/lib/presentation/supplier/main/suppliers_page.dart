@@ -1,3 +1,5 @@
+import 'dart:async';
+
 // Flutter imports:
 import 'package:flutter/material.dart';
 
@@ -27,29 +29,26 @@ class _SuppliersPageState extends State<SuppliersPage> {
 
   late CustomSnackBar _snackBar;
   late SuppliersViewModel _viewModel;
+  late StreamSubscription<String> _errors;
 
   @override
   void initState() {
     super.initState();
     _viewModel = sl<SuppliersViewModel>();
-    _viewModel.state.addListener(_onStateChanged);
+    _errors = _viewModel.errors.listen(_showError);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _viewModel.getSuppliers();
     });
   }
 
-  void _onStateChanged() {
-    final error = _viewModel.state.value.error;
-    if (error != null) {
-      _snackBar.hideAll();
-      _snackBar.showErrorSnackBar(error);
-      _viewModel.consumeError();
-    }
+  void _showError(String message) {
+    _snackBar.hideAll();
+    _snackBar.showErrorSnackBar(message);
   }
 
   @override
   void dispose() {
-    _viewModel.state.removeListener(_onStateChanged);
+    _errors.cancel();
     _viewModel.dispose();
     super.dispose();
   }
@@ -130,8 +129,10 @@ class _SuppliersPageState extends State<SuppliersPage> {
     );
   }
 
-  Future<void> _nextToSupplierEdit(BuildContext context, Supplier content) async {
-    var _ = await Navigator.pushNamed(context, supplierEditRoute, arguments: SupplierArgument(content));
+  Future<void> _nextToSupplierEdit(
+      BuildContext context, Supplier content) async {
+    var _ = await Navigator.pushNamed(context, supplierEditRoute,
+        arguments: SupplierArgument(content));
     _viewModel.getSuppliers();
   }
 

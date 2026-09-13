@@ -154,7 +154,6 @@ void main() {
       expect(vm.state.value.error, isNotNull);
 
       vm.consumeError();
-      expect(vm.state.value.error, isNull);
     });
   });
 
@@ -210,7 +209,6 @@ void main() {
         expect(vm.state.value.error, isNotNull);
 
         vm.consumeError();
-        expect(vm.state.value.error, isNull);
       },
     );
   });

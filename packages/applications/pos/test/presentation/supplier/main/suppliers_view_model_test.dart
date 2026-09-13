@@ -22,10 +22,12 @@ class FakeSupplierRepository implements SupplierRepository {
   }
 
   @override
-  Future<Supplier> createSupplier(SupplierParam param) => throw UnimplementedError();
+  Future<Supplier> createSupplier(SupplierParam param) =>
+      throw UnimplementedError();
 
   @override
-  Future<Supplier> updateSupplierInfo(SupplierParam param) => throw UnimplementedError();
+  Future<Supplier> updateSupplierInfo(SupplierParam param) =>
+      throw UnimplementedError();
 
   @override
   Future<Supplier> getSupplierInfo() => throw UnimplementedError();
@@ -34,16 +36,20 @@ class FakeSupplierRepository implements SupplierRepository {
   Future<List<Supplier>> getLocalSuppliers() => throw UnimplementedError();
 
   @override
-  Future<Supplier> getSupplierById(String supplierId) => throw UnimplementedError();
+  Future<Supplier> getSupplierById(String supplierId) =>
+      throw UnimplementedError();
 
   @override
-  Future<Supplier?> getLocalSupplierById(String supplierId) => throw UnimplementedError();
+  Future<Supplier?> getLocalSupplierById(String supplierId) =>
+      throw UnimplementedError();
 
   @override
-  Future<Supplier> updateSupplierById(String supplierId, SupplierParam param) => throw UnimplementedError();
+  Future<Supplier> updateSupplierById(String supplierId, SupplierParam param) =>
+      throw UnimplementedError();
 
   @override
-  Future<Supplier> removeSupplierById(String supplierId) => throw UnimplementedError();
+  Future<Supplier> removeSupplierById(String supplierId) =>
+      throw UnimplementedError();
 }
 
 Supplier buildSupplier(String id) {
@@ -59,38 +65,31 @@ SuppliersViewModel buildViewModel(SupplierRepository repo) {
 void main() {
   test('getSuppliers populates items and clears loading', () async {
     final vm = buildViewModel(
-      FakeSupplierRepository(suppliers: [buildSupplier('1'), buildSupplier('2')]),
+      FakeSupplierRepository(
+          suppliers: [buildSupplier('1'), buildSupplier('2')]),
     );
 
     await vm.getSuppliers();
 
     expect(vm.state.value.loading, isFalse);
     expect(vm.state.value.items, hasLength(2));
-    expect(vm.state.value.error, isNull);
   });
 
-  test('getSuppliers maps a typed exception to state.error', () async {
+  test('getSuppliers a failure is emitted once on the error channel', () async {
     final vm = buildViewModel(
-      FakeSupplierRepository(throws: const NetworkException(message: 'offline')),
+      FakeSupplierRepository(
+          throws: const NetworkException(message: 'offline')),
     );
 
+    final errors = <String>[];
+    vm.errors.listen(errors.add);
+
     await vm.getSuppliers();
+    await Future<void>.delayed(Duration.zero);
 
     expect(vm.state.value.loading, isFalse);
-    expect(vm.state.value.error, isNotNull);
+    expect(errors, hasLength(1),
+        reason: 'the message goes out once, with nothing left to clear');
     expect(vm.state.value.items, isEmpty);
-  });
-
-  test('consumeError clears the error', () async {
-    final vm = buildViewModel(
-      FakeSupplierRepository(throws: const NetworkException(message: 'offline')),
-    );
-
-    await vm.getSuppliers();
-    expect(vm.state.value.error, isNotNull);
-
-    vm.consumeError();
-
-    expect(vm.state.value.error, isNull);
   });
 }

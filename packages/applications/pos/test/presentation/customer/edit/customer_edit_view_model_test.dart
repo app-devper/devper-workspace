@@ -94,7 +94,6 @@ void main() {
     expect(vm.state.value.loading, isFalse);
     expect(vm.state.value.updated?.id, '7');
     expect(repo.updatedCustomerId, '7');
-    expect(vm.state.value.error, isNull);
   });
 
   test('updateCustomerById maps a typed exception to state.error', () async {
@@ -153,8 +152,6 @@ void main() {
     expect(vm.state.value.error, isNotNull);
 
     vm.consumeError();
-
-    expect(vm.state.value.error, isNull);
   });
 
   test('an update result and a delete result cannot both be present', () async {

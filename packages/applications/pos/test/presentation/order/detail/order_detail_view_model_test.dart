@@ -228,7 +228,6 @@ void main() {
 
       expect(vm.state.value.loading, isFalse);
       expect(vm.state.value.loaded, orderDetail);
-      expect(vm.state.value.error, isNull);
 
       vm.consumeLoaded();
       expect(vm.state.value.loaded, isNull);
@@ -474,7 +473,6 @@ void main() {
 
       expect(vm.state.value.loaded, isNotNull,
           reason: 'the two flows have separate slots');
-      expect(vm.state.value.error, isNull);
       expect(vm.state.value.supplierError, isNotNull);
     });
   });

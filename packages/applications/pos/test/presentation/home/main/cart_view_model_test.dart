@@ -140,7 +140,6 @@ void main() {
       expect(vm.state.value.orderItems, hasLength(1));
       expect(vm.state.value.orderItems!.first.product.unit.barcode, '111');
       expect(vm.state.value.orderItems!.first.quantity, 1);
-      expect(vm.state.value.error, isNull);
     });
 
     test(

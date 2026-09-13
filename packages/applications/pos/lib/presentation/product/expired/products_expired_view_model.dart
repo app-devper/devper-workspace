@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 
 // Package imports:
 import 'package:common/core/error/failure.dart';
+import 'package:common/core/state/one_shot.dart';
 
 // Project imports:
 import 'package:pos/domain/model/product/param.dart';
@@ -21,9 +22,16 @@ class ProductsExpiredViewModel {
     required this.getLocalProductByIdUseCase,
   });
 
-  final _state = ValueNotifier<ProductsExpiredState>(const ProductsExpiredState());
+  final _state =
+      ValueNotifier<ProductsExpiredState>(const ProductsExpiredState());
+
+  /// Shown as a snackbar and then gone. It never belonged in state: a message
+  /// the view had to remember to clear is one it can forget to clear.
+  final _errors = OneShot<String>();
 
   ValueListenable<ProductsExpiredState> get state => _state;
+
+  Stream<String> get errors => _errors.stream;
 
   late DateTime _startDate;
   late DateTime _endDate;
@@ -47,15 +55,18 @@ class ProductsExpiredViewModel {
     final now = DateTime.now();
     switch (range) {
       case Range.expired90Day:
-        _startDate = DateTime(now.year, now.month, now.day).subtract(const Duration(days: 90));
+        _startDate = DateTime(now.year, now.month, now.day)
+            .subtract(const Duration(days: 90));
         _endDate = DateTime(now.year, now.month, now.day);
         break;
       case Range.expired60Day:
-        _startDate = DateTime(now.year, now.month, now.day).subtract(const Duration(days: 60));
+        _startDate = DateTime(now.year, now.month, now.day)
+            .subtract(const Duration(days: 60));
         _endDate = DateTime(now.year, now.month, now.day);
         break;
       case Range.expired30Day:
-        _startDate = DateTime(now.year, now.month, now.day).subtract(const Duration(days: 30));
+        _startDate = DateTime(now.year, now.month, now.day)
+            .subtract(const Duration(days: 30));
         _endDate = DateTime(now.year, now.month, now.day);
         break;
       case Range.today:
@@ -65,31 +76,41 @@ class ProductsExpiredViewModel {
         _endDate = DateTime(now.year, now.month, now.day + 1);
         break;
       case Range.before30Days:
-        _startDate = DateTime(now.year, now.month, now.day).add(const Duration(days: 1));
-        _endDate = DateTime(now.year, now.month, now.day).add(const Duration(days: 31));
+        _startDate =
+            DateTime(now.year, now.month, now.day).add(const Duration(days: 1));
+        _endDate = DateTime(now.year, now.month, now.day)
+            .add(const Duration(days: 31));
         break;
       case Range.before60Days:
-        _startDate = DateTime(now.year, now.month, now.day).add(const Duration(days: 1));
-        _endDate = DateTime(now.year, now.month, now.day).add(const Duration(days: 61));
+        _startDate =
+            DateTime(now.year, now.month, now.day).add(const Duration(days: 1));
+        _endDate = DateTime(now.year, now.month, now.day)
+            .add(const Duration(days: 61));
         break;
       case Range.before90Days:
-        _startDate = DateTime(now.year, now.month, now.day).add(const Duration(days: 1));
-        _endDate = DateTime(now.year, now.month, now.day).add(const Duration(days: 91));
+        _startDate =
+            DateTime(now.year, now.month, now.day).add(const Duration(days: 1));
+        _endDate = DateTime(now.year, now.month, now.day)
+            .add(const Duration(days: 91));
         break;
       case Range.before180Days:
-        _startDate = DateTime(now.year, now.month, now.day).add(const Duration(days: 1));
-        _endDate = DateTime(now.year, now.month, now.day).add(const Duration(days: 181));
+        _startDate =
+            DateTime(now.year, now.month, now.day).add(const Duration(days: 1));
+        _endDate = DateTime(now.year, now.month, now.day)
+            .add(const Duration(days: 181));
         break;
       case Range.before240Days:
-        _startDate = DateTime(now.year, now.month, now.day).add(const Duration(days: 1));
-        _endDate = DateTime(now.year, now.month, now.day).add(const Duration(days: 241));
+        _startDate =
+            DateTime(now.year, now.month, now.day).add(const Duration(days: 1));
+        _endDate = DateTime(now.year, now.month, now.day)
+            .add(const Duration(days: 241));
         break;
     }
     await _getProductLots();
   }
 
   Future<void> _getProductLots() async {
-    _state.value = _state.value.copyWith(loading: true, clearError: true);
+    _state.value = _state.value.copyWith(loading: true);
     try {
       final param = GetLotsRangeParam(
         startDate: _startDate.toUtc().toIso8601String(),
@@ -105,7 +126,8 @@ class ProductsExpiredViewModel {
         totalCost: _calculateTotalCost(items),
       );
     } on Exception catch (e) {
-      _state.value = _state.value.copyWith(loading: false, error: toFailure(e).getMessage());
+      _state.value = _state.value.copyWith(loading: false);
+      _errors.emit(toFailure(e).getMessage());
     }
   }
 
@@ -117,13 +139,8 @@ class ProductsExpiredViewModel {
     return total;
   }
 
-  void consumeError() {
-    if (_state.value.error != null) {
-      _state.value = _state.value.copyWith(clearError: true);
-    }
-  }
-
   void dispose() {
     _state.dispose();
+    _errors.dispose();
   }
 }
