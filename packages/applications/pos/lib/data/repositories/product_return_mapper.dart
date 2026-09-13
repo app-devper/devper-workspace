@@ -1,6 +1,9 @@
 // Dart imports:
 import 'dart:convert';
 
+// Package imports:
+import 'package:common/core/ext/json_ext.dart';
+
 // Project imports:
 import 'package:pos/domain/model/product_return/param.dart';
 import 'package:pos/domain/model/product_return/product_return.dart';
@@ -23,7 +26,7 @@ extension ProductReturnJson on Map<String, dynamic> {
       customerCode: json['customerCode'] ?? '',
       reason: json['reason'] ?? '',
       items: ((json['items'] ?? []) as List).toProductReturnItemsDomain(),
-      totalRefund: (json['totalRefund'] ?? 0).toDouble(),
+      totalRefund: json.readDouble('totalRefund'),
       createdDate: json['createdDate'],
     );
   }
@@ -35,8 +38,8 @@ extension ProductReturnJson on Map<String, dynamic> {
       orderItemId: json['orderItemId'],
       productId: json['productId'],
       quantity: json['quantity'],
-      price: (json['price'] ?? 0).toDouble(),
-      refund: (json['refund'] ?? 0).toDouble(),
+      price: json.readDouble('price'),
+      refund: json.readDouble('refund'),
     );
   }
 }

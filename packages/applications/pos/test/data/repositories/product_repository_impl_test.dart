@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:common/core/error/exception.dart';
 import 'package:common/core/network/custom_client.dart';
+import 'package:common/core/network/unauthorized_interceptor.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
@@ -428,6 +429,29 @@ void main() {
 
       await expectLater(
           built.repo.getProductById('nope'), throwsA(isA<NotFoundException>()));
+    });
+
+    test('a 401 on the CSV import still logs the user out', () async {
+      // The upload sends a MultipartRequest, which used to go out on its own
+      // connection and skip every interceptor — so an expired session showed a
+      // generic error here instead of returning to login.
+      var loggedOut = 0;
+      final client = CustomClient(
+          inner:
+              MockClient((_) async => http.Response('{"code":"UM-401"}', 401)));
+      client.addInterceptor(
+          UnauthorizedInterceptor(onUnauthorized: () async => loggedOut++));
+      final repo = ProductRepositoryImpl(
+        cache: CachedList<Product>(),
+        posService:
+            PosService(networkConfig: FakeNetworkConfig(), client: client),
+      );
+
+      await expectLater(
+        repo.importProductCSV(bytes: const [1], filename: 'p.csv'),
+        throwsA(isA<AuthException>()),
+      );
+      expect(loggedOut, 1);
     });
   });
 }

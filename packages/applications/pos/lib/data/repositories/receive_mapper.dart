@@ -1,6 +1,9 @@
 // Dart imports:
 import 'dart:convert';
 
+// Package imports:
+import 'package:common/core/ext/json_ext.dart';
+
 // Project imports:
 import 'package:pos/domain/model/receive/param.dart';
 import 'package:pos/domain/model/receive/receive.dart';
@@ -22,7 +25,7 @@ extension ReceiveJson on Map<String, dynamic> {
       supplierId: json['supplierId'],
       code: json['code'],
       reference: json['reference'],
-      totalCost: json['totalCost'].toDouble(),
+      totalCost: json.readDouble('totalCost'),
       createdDate: json['createdDate'],
       status: json['status'] ?? 'ACTIVE',
       items: ((json['items'] ?? []) as List)
@@ -66,7 +69,7 @@ extension ReceiveItemJson on Map<String, dynamic> {
         receiveId: receiveId,
         productId: this['productId'],
         quantity: this['quantity'],
-        costPrice: (this['costPrice'] as num).toDouble(),
+        costPrice: readDouble('costPrice'),
         lotNumber: this['lotNumber'] ?? '',
         expireDate: this['expireDate'] ?? '',
         unitId: this['unitId'] ?? '',

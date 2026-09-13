@@ -1,6 +1,9 @@
 // Dart imports:
 import 'dart:convert';
 
+// Package imports:
+import 'package:common/core/ext/json_ext.dart';
+
 // Project imports:
 import 'package:pos/domain/model/product/param.dart';
 import 'package:pos/domain/model/product/product.dart';
@@ -31,8 +34,8 @@ extension ProductJson on Map<String, dynamic> {
       name: json['name'],
       nameEn: json['nameEn'],
       description: json['description'],
-      price: (json['price'] ?? 0).toDouble(),
-      costPrice: (json['costPrice'] ?? 0).toDouble(),
+      price: json.readDouble('price'),
+      costPrice: json.readDouble('costPrice'),
       unit: json['unit'] ?? '',
       quantity: json['quantity'] ?? 0,
       soldFirst: json['soldFirst'] ?? 0,
@@ -79,10 +82,10 @@ extension ProductJson on Map<String, dynamic> {
       id: json['id'],
       productId: json['productId'],
       unit: json['unit'],
-      costPrice: json['costPrice'].toDouble(),
+      costPrice: json.readDouble('costPrice'),
       size: json['size'],
       barcode: json['barcode'],
-      volume: json['volume'].toDouble(),
+      volume: json.readDouble('volume'),
       volumeUnit: json['volumeUnit'],
     );
   }
@@ -95,7 +98,7 @@ extension ProductJson on Map<String, dynamic> {
       productId: json['productId'],
       unitId: json['unitId'],
       customerType: json['customerType'],
-      price: json['price'].toDouble(),
+      price: json.readDouble('price'),
     );
   }
 
@@ -109,8 +112,8 @@ extension ProductJson on Map<String, dynamic> {
       receiveCode: json['receiveCode'],
       sequence: json['sequence'],
       lotNumber: json['lotNumber'],
-      costPrice: json['costPrice'].toDouble(),
-      price: json['price'].toDouble(),
+      costPrice: json.readDouble('costPrice'),
+      price: json.readDouble('price'),
       import: json['import'],
       quantity: json['quantity'],
       expireDate: json['expireDate'],
@@ -123,7 +126,7 @@ extension ProductJson on Map<String, dynamic> {
 
     return ProductLot(
       id: json['id'],
-      costPrice: json['costPrice'].toDouble(),
+      costPrice: json.readDouble('costPrice'),
       quantity: json['quantity'],
       productId: json['productId'],
       lotNumber: json['lotNumber'],
@@ -149,8 +152,8 @@ extension ProductJson on Map<String, dynamic> {
       unit: json['unit'] ?? '',
       import: json['import'] ?? 0,
       quantity: json['quantity'] ?? 0,
-      costPrice: (json['costPrice'] ?? 0).toDouble(),
-      price: (json['price'] ?? 0).toDouble(),
+      costPrice: json.readDouble('costPrice'),
+      price: json.readDouble('price'),
       balance: json['balance'] ?? 0,
       createdDate: json['createdDate'] ?? '',
     );

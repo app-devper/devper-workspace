@@ -455,11 +455,10 @@ class PosService {
     request.headers.addAll(networkConfig.getHeaders(url));
     request.files
         .add(http.MultipartFile.fromBytes('file', bytes, filename: filename));
-    // Through `client`, not request.send(): the latter opens its own connection
-    // and ignores everything configured here, which also made this the one
-    // endpoint no test could observe.
-    final streamedResponse = await client.send(request);
-    return http.Response.fromStream(streamedResponse);
+    // sendUnary, not request.send(): the latter opens its own connection and
+    // ignores everything configured here, and plain send() would skip the
+    // interceptors — so a 401 on an import would not log the user out.
+    return client.sendUnary(request);
   }
 
   Future<http.Response> updateProductStockSequence(

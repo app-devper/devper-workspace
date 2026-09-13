@@ -266,6 +266,34 @@ void main() {
       );
     });
 
+    test('a price sent as unreadable text names the field', () async {
+      // This used to be NoSuchMethodError: Class 'String' has no instance
+      // method 'toDouble' — true, but it never said which field or which row.
+      final recorder = _Recorder(
+          body: jsonEncode([
+        {..._orderJson, 'total': 'หนึ่งร้อยยี่สิบ'}
+      ]));
+
+      await expectLater(
+        _repo(recorder).getOrderRange(
+            GetOrderRangeParam(startDate: '2026-09-01', endDate: '2026-09-30')),
+        throwsA(isA<FormatException>().having((e) => e.message, 'message',
+            allOf(contains('total'), contains('a number')))),
+      );
+    });
+
+    test('a number sent as text is still read', () async {
+      final recorder = _Recorder(
+          body: jsonEncode([
+        {..._orderJson, 'total': '120.50'}
+      ]));
+
+      final summaries = await _repo(recorder).getOrderRange(
+          GetOrderRangeParam(startDate: '2026-09-01', endDate: '2026-09-30'));
+
+      expect(summaries.single.total, 120.5);
+    });
+
     test('a 409 on checkout carries the message the till must show', () async {
       final recorder = _Recorder(
           status: 409, body: '{"code":"POS-409","message":"สต็อกไม่พอ"}');
