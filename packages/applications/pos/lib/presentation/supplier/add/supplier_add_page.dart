@@ -1,3 +1,5 @@
+import 'dart:async';
+
 // Flutter imports:
 import 'package:flutter/material.dart';
 
@@ -11,6 +13,7 @@ import 'package:design_system/widgets/page_container.dart';
 
 // Project imports:
 import 'package:pos/container.dart';
+import 'package:pos/domain/model/supplier/supplier.dart';
 import 'package:pos/domain/model/supplier/param.dart';
 import 'package:pos/localizations/language/languages.dart';
 import 'package:pos/presentation/constants.dart';
@@ -39,6 +42,8 @@ class _SupplierAddPageState extends State<SupplierAddPage> {
 
   late CustomSnackBar _snackBar;
   late SupplierAddViewModel _viewModel;
+  late StreamSubscription<String> _errors;
+  late StreamSubscription<Supplier> _created;
 
   bool _loadingShown = false;
 
@@ -47,6 +52,22 @@ class _SupplierAddPageState extends State<SupplierAddPage> {
     super.initState();
     _viewModel = sl<SupplierAddViewModel>();
     _viewModel.state.addListener(_onStateChanged);
+    _errors = _viewModel.errors.listen(_showError);
+    _created = _viewModel.created.listen(_onCreated);
+  }
+
+  void _showError(String message) {
+    _snackBar.hideAll();
+    _snackBar.showErrorSnackBar(message);
+  }
+
+  void _onCreated(Supplier supplier) {
+    _snackBar.hideAll();
+    _snackBar.showSnackBar(text: "Add ${supplier.name} success");
+    _nameEditingController.text = "";
+    _addressEditingController.text = "";
+    _phoneEditingController.text = "";
+    _taxIdEditingController.text = "";
   }
 
   void _onStateChanged() {
@@ -58,25 +79,13 @@ class _SupplierAddPageState extends State<SupplierAddPage> {
       _loadingShown = false;
       hideLoadingDialog(context);
     }
-    if (state.error != null) {
-      _snackBar.hideAll();
-      _snackBar.showErrorSnackBar(state.error!);
-      _viewModel.consumeError();
-    }
-    if (state.created != null) {
-      _snackBar.hideAll();
-      _snackBar.showSnackBar(text: "Add ${state.created!.name} success");
-      _nameEditingController.text = "";
-      _addressEditingController.text = "";
-      _phoneEditingController.text = "";
-      _taxIdEditingController.text = "";
-      _viewModel.consumeCreated();
-    }
   }
 
   @override
   void dispose() {
     _viewModel.state.removeListener(_onStateChanged);
+    _errors.cancel();
+    _created.cancel();
     _viewNode.dispose();
     _nameNode.dispose();
     _addressNode.dispose();

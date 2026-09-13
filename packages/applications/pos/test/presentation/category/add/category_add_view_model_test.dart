@@ -68,57 +68,71 @@ CategoryAddViewModel buildViewModel(CategoryRepository repo) {
 }
 
 void main() {
-  test('initial state is not saving with no result', () {
+  test('initial state is not saving', () {
     final vm = buildViewModel(FakeCategoryRepository());
 
     expect(vm.state.value.saving, isFalse);
-    expect(vm.state.value.created, isNull);
   });
 
-  test('createCategory sets created on success', () async {
+  test('a successful save emits the category once', () async {
     final repo = FakeCategoryRepository();
     final vm = buildViewModel(repo);
+    final created = <Category>[];
+    final errors = <String>[];
+    vm.created.listen(created.add);
+    vm.errors.listen(errors.add);
 
     await vm.createCategory(buildParam());
+    await Future<void>.delayed(Duration.zero);
 
     expect(vm.state.value.saving, isFalse);
-    expect(vm.state.value.created?.name, 'ยาสามัญ');
+    expect(created.single.name, 'ยาสามัญ');
+    expect(errors, isEmpty);
     expect(repo.createdParam?.value, 'GENERAL');
   });
 
-  test('createCategory maps a typed exception to state.error', () async {
+  test('a failure emits on the error channel and nothing on created', () async {
     final vm = buildViewModel(
       FakeCategoryRepository(
           throws: const NetworkException(message: 'offline')),
     );
+    final created = <Category>[];
+    final errors = <String>[];
+    vm.created.listen(created.add);
+    vm.errors.listen(errors.add);
 
     await vm.createCategory(buildParam());
+    await Future<void>.delayed(Duration.zero);
 
     expect(vm.state.value.saving, isFalse);
-    expect(vm.state.value.created, isNull);
-    expect(vm.state.value.error, isNotNull);
+    expect(errors, hasLength(1));
+    expect(created, isEmpty);
   });
 
-  test('consumeCreated clears the created result', () async {
+  test('an outcome is delivered once, with nothing to clear', () async {
     final vm = buildViewModel(FakeCategoryRepository());
+    final created = <Category>[];
+    vm.created.listen(created.add);
 
     await vm.createCategory(buildParam());
-    expect(vm.state.value.created, isNotNull);
+    await Future<void>.delayed(Duration.zero);
+    await Future<void>.delayed(Duration.zero);
 
-    vm.consumeCreated();
-
-    expect(vm.state.value.created, isNull);
+    expect(created, hasLength(1),
+        reason: 'the old shape needed consumeCreated to stop it repeating');
   });
 
-  test('consumeError clears the error', () async {
-    final vm = buildViewModel(
-      FakeCategoryRepository(
-          throws: const NetworkException(message: 'offline')),
-    );
+  test('a second save while one is in flight is ignored', () async {
+    final repo = FakeCategoryRepository();
+    final vm = buildViewModel(repo);
+    final created = <Category>[];
+    vm.created.listen(created.add);
 
+    final first = vm.createCategory(buildParam());
     await vm.createCategory(buildParam());
-    expect(vm.state.value.error, isNotNull);
+    await first;
+    await Future<void>.delayed(Duration.zero);
 
-    vm.consumeError();
+    expect(created, hasLength(1));
   });
 }

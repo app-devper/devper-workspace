@@ -1,3 +1,5 @@
+import 'dart:async';
+
 // Flutter imports:
 import 'package:flutter/material.dart';
 import 'package:design_system/theme/app_colors.dart';
@@ -11,6 +13,7 @@ import 'package:design_system/widgets/page_container.dart';
 
 // Project imports:
 import 'package:pos/container.dart';
+import 'package:pos/domain/model/customer/customer.dart';
 import 'package:pos/domain/model/core/core.dart';
 import 'package:pos/domain/model/customer/param.dart';
 import 'package:pos/presentation/core/core_widget.dart';
@@ -44,6 +47,8 @@ class _CustomerAddPageState extends State<CustomerAddPage> {
   final _emailNode = FocusNode();
 
   late CustomerAddViewModel _viewModel;
+  late StreamSubscription<String> _errors;
+  late StreamSubscription<Customer> _created;
 
   ItemType? _customer = customerTypes.first;
   final List<ItemType> _customers = customerTypes;
@@ -55,6 +60,16 @@ class _CustomerAddPageState extends State<CustomerAddPage> {
     super.initState();
     _viewModel = sl<CustomerAddViewModel>();
     _viewModel.state.addListener(_onStateChanged);
+    _errors = _viewModel.errors.listen(_showError);
+    _created = _viewModel.created.listen(_onCreated);
+  }
+
+  void _showError(String message) {
+    showAlertDialog(context, message, () {});
+  }
+
+  void _onCreated(Customer customer) {
+    widget.onAdd();
   }
 
   void _onStateChanged() {
@@ -66,19 +81,13 @@ class _CustomerAddPageState extends State<CustomerAddPage> {
       _loadingShown = false;
       hideLoadingDialog(context);
     }
-    if (state.error != null) {
-      showAlertDialog(context, state.error!, () {});
-      _viewModel.consumeError();
-    }
-    if (state.created != null) {
-      _viewModel.consumeCreated();
-      widget.onAdd();
-    }
   }
 
   @override
   void dispose() {
     _viewModel.state.removeListener(_onStateChanged);
+    _errors.cancel();
+    _created.cancel();
     _nameNode.dispose();
     _addressNode.dispose();
     _phoneNode.dispose();
