@@ -1,58 +1,21 @@
-// Package imports:
-import 'package:common/core/error/failure.dart';
+// Flutter imports:
+import 'package:flutter/foundation.dart' hide Category;
 
-// Project imports:
-import 'package:pos/domain/model/category/category.dart';
-
-/// The mutually exclusive states of this screen's two commands.
+/// What this screen renders: whether a command is in flight.
 ///
-/// Saving and deleting share the screen but not a slot: an update result and a
-/// delete result can never both be present, which is what the four independent
-/// nullable fields used to allow.
-sealed class CategoryEditState {
-  const CategoryEditState._();
-  const factory CategoryEditState() = CategoryEditIdle;
+/// Saving and deleting used to be separate states in a sealed type that also
+/// carried the outcome, and the view cleared the outcome once it had acted.
+/// The outcomes are events now, and one flag is enough here — the screen runs
+/// one command at a time, and starting a delete mid-save was never wanted.
+@immutable
+class CategoryEditState {
+  final bool busy;
 
-  // Derived UI projections; no independently writable flags.
-  bool get loading =>
-      this is CategoryEditSaving || this is CategoryEditDeleting;
-  String? get error => switch (this) {
-        CategoryEditFailed(:final failure) => failure.getMessage(),
-        _ => null,
-      };
-  Category? get updated => switch (this) {
-        CategoryEditUpdated(:final category) => category,
-        _ => null,
-      };
-  Category? get removed => switch (this) {
-        CategoryEditRemoved(:final category) => category,
-        _ => null,
-      };
-}
+  const CategoryEditState({this.busy = false});
 
-final class CategoryEditIdle extends CategoryEditState {
-  const CategoryEditIdle() : super._();
-}
+  bool get loading => busy;
 
-final class CategoryEditSaving extends CategoryEditState {
-  const CategoryEditSaving() : super._();
-}
-
-final class CategoryEditDeleting extends CategoryEditState {
-  const CategoryEditDeleting() : super._();
-}
-
-final class CategoryEditUpdated extends CategoryEditState {
-  final Category category;
-  const CategoryEditUpdated(this.category) : super._();
-}
-
-final class CategoryEditRemoved extends CategoryEditState {
-  final Category category;
-  const CategoryEditRemoved(this.category) : super._();
-}
-
-final class CategoryEditFailed extends CategoryEditState {
-  final Failure failure;
-  const CategoryEditFailed(this.failure) : super._();
+  CategoryEditState copyWith({bool? busy}) {
+    return CategoryEditState(busy: busy ?? this.busy);
+  }
 }

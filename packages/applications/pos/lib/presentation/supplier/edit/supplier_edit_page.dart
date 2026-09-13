@@ -1,3 +1,5 @@
+import 'dart:async';
+
 // Flutter imports:
 import 'package:flutter/material.dart';
 
@@ -43,6 +45,9 @@ class _SupplierEditPageState extends State<SupplierEditPage> {
   late CustomSnackBar _snackBar;
 
   late SupplierEditViewModel _viewModel;
+  late StreamSubscription<String> _errors;
+  late StreamSubscription<Supplier> _updated;
+  late StreamSubscription<Supplier> _removed;
 
   bool _loadingShown = false;
 
@@ -51,9 +56,26 @@ class _SupplierEditPageState extends State<SupplierEditPage> {
     super.initState();
     _viewModel = sl<SupplierEditViewModel>();
     _viewModel.state.addListener(_onStateChanged);
+    _errors = _viewModel.errors.listen(_showError);
+    _updated = _viewModel.updated.listen(_onUpdated);
+    _removed = _viewModel.removed.listen(_onRemoved);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _setupData(widget.supplier);
     });
+  }
+
+  void _showError(String message) {
+    _snackBar.hideAll();
+    _snackBar.showErrorSnackBar(message);
+  }
+
+  void _onUpdated(Supplier supplier) {
+    _snackBar.hideAll();
+    _snackBar.showSnackBar(text: "Update ${supplier.name} success");
+  }
+
+  void _onRemoved(Supplier supplier) {
+    Navigator.pop(context, supplier);
   }
 
   void _onStateChanged() {
@@ -65,26 +87,14 @@ class _SupplierEditPageState extends State<SupplierEditPage> {
       _loadingShown = false;
       hideLoadingDialog(context);
     }
-    if (state.error != null) {
-      _snackBar.hideAll();
-      _snackBar.showErrorSnackBar(state.error!);
-      _viewModel.consumeError();
-    }
-    if (state.updated != null) {
-      _snackBar.hideAll();
-      _snackBar.showSnackBar(text: "Update ${state.updated!.name} success");
-      _viewModel.consumeUpdated();
-    }
-    if (state.removed != null) {
-      final data = state.removed!;
-      _viewModel.consumeRemoved();
-      Navigator.pop(context, data);
-    }
   }
 
   @override
   void dispose() {
     _viewModel.state.removeListener(_onStateChanged);
+    _errors.cancel();
+    _updated.cancel();
+    _removed.cancel();
     _viewNode.dispose();
     _nameNode.dispose();
     _addressNode.dispose();

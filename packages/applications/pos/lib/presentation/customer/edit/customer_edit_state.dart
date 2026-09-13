@@ -1,58 +1,21 @@
-// Package imports:
-import 'package:common/core/error/failure.dart';
+// Flutter imports:
+import 'package:flutter/foundation.dart';
 
-// Project imports:
-import 'package:pos/domain/model/customer/customer.dart';
-
-/// The mutually exclusive states of this screen's two commands.
+/// What this screen renders: whether a command is in flight.
 ///
-/// Saving and deleting share the screen but not a slot: an update result and a
-/// delete result can never both be present, which is what the four independent
-/// nullable fields used to allow.
-sealed class CustomerEditState {
-  const CustomerEditState._();
-  const factory CustomerEditState() = CustomerEditIdle;
+/// Saving and deleting used to be separate states in a sealed type that also
+/// carried the outcome, and the view cleared the outcome once it had acted.
+/// The outcomes are events now, and one flag is enough here — the screen runs
+/// one command at a time, and starting a delete mid-save was never wanted.
+@immutable
+class CustomerEditState {
+  final bool busy;
 
-  // Derived UI projections; no independently writable flags.
-  bool get loading =>
-      this is CustomerEditSaving || this is CustomerEditDeleting;
-  String? get error => switch (this) {
-        CustomerEditFailed(:final failure) => failure.getMessage(),
-        _ => null,
-      };
-  Customer? get updated => switch (this) {
-        CustomerEditUpdated(:final customer) => customer,
-        _ => null,
-      };
-  Customer? get removed => switch (this) {
-        CustomerEditRemoved(:final customer) => customer,
-        _ => null,
-      };
-}
+  const CustomerEditState({this.busy = false});
 
-final class CustomerEditIdle extends CustomerEditState {
-  const CustomerEditIdle() : super._();
-}
+  bool get loading => busy;
 
-final class CustomerEditSaving extends CustomerEditState {
-  const CustomerEditSaving() : super._();
-}
-
-final class CustomerEditDeleting extends CustomerEditState {
-  const CustomerEditDeleting() : super._();
-}
-
-final class CustomerEditUpdated extends CustomerEditState {
-  final Customer customer;
-  const CustomerEditUpdated(this.customer) : super._();
-}
-
-final class CustomerEditRemoved extends CustomerEditState {
-  final Customer customer;
-  const CustomerEditRemoved(this.customer) : super._();
-}
-
-final class CustomerEditFailed extends CustomerEditState {
-  final Failure failure;
-  const CustomerEditFailed(this.failure) : super._();
+  CustomerEditState copyWith({bool? busy}) {
+    return CustomerEditState(busy: busy ?? this.busy);
+  }
 }
