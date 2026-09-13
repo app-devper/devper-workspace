@@ -4,7 +4,6 @@ import 'package:pos/domain/model/product/param.dart';
 import 'package:pos/domain/model/product/product.dart';
 import 'package:pos/domain/repositories/product_repository.dart';
 import 'package:pos/domain/usecase/product/update_product_stock_sequence_use_case.dart';
-import 'package:pos/presentation/product/stock/product_stock_sequence_state.dart';
 import 'package:pos/presentation/product/stock/product_stock_sequence_view_model.dart';
 
 class FakeProductRepository implements ProductRepository {
