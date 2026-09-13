@@ -1,3 +1,5 @@
+import 'dart:async';
+
 // Flutter imports:
 import 'package:flutter/material.dart';
 
@@ -27,29 +29,26 @@ class _CategoryPageState extends State<CategoryPage> {
 
   late CustomSnackBar _snackBar;
   late CategoryViewModel _viewModel;
+  late StreamSubscription<String> _errors;
 
   @override
   void initState() {
     super.initState();
     _viewModel = sl<CategoryViewModel>();
-    _viewModel.state.addListener(_onStateChanged);
+    _errors = _viewModel.errors.listen(_showError);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _viewModel.getCategories();
     });
   }
 
-  void _onStateChanged() {
-    final error = _viewModel.state.value.error;
-    if (error != null) {
-      _snackBar.hideAll();
-      _snackBar.showErrorSnackBar(error);
-      _viewModel.consumeError();
-    }
+  void _showError(String message) {
+    _snackBar.hideAll();
+    _snackBar.showErrorSnackBar(message);
   }
 
   @override
   void dispose() {
-    _viewModel.state.removeListener(_onStateChanged);
+    _errors.cancel();
     _viewModel.dispose();
     super.dispose();
   }
@@ -128,8 +127,10 @@ class _CategoryPageState extends State<CategoryPage> {
     );
   }
 
-  Future<void> _nextToCategoryEdit(BuildContext context, Category content) async {
-    var _ = await Navigator.pushNamed(context, categoryEditRoute, arguments: CategoryArgument(content));
+  Future<void> _nextToCategoryEdit(
+      BuildContext context, Category content) async {
+    var _ = await Navigator.pushNamed(context, categoryEditRoute,
+        arguments: CategoryArgument(content));
     _viewModel.getCategories();
   }
 

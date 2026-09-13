@@ -34,22 +34,27 @@ class FakeCategoryRepository implements CategoryRepository {
   }
 
   @override
-  Future<Category> createCategory(CategoryParam param) => throw UnimplementedError();
+  Future<Category> createCategory(CategoryParam param) =>
+      throw UnimplementedError();
 
   @override
   Future<List<Category>> getLocalCategories() => throw UnimplementedError();
 
   @override
-  Future<Category> getCategoryById(String categoryId) => throw UnimplementedError();
+  Future<Category> getCategoryById(String categoryId) =>
+      throw UnimplementedError();
 
   @override
-  Future<Category> updateCategoryById(String categoryId, CategoryParam param) => throw UnimplementedError();
+  Future<Category> updateCategoryById(String categoryId, CategoryParam param) =>
+      throw UnimplementedError();
 
   @override
-  Future<Category> removeCategoryById(String categoryId) => throw UnimplementedError();
+  Future<Category> removeCategoryById(String categoryId) =>
+      throw UnimplementedError();
 
   @override
-  Future<bool> requireCustomerOrder(String? value) => throw UnimplementedError();
+  Future<bool> requireCustomerOrder(String? value) =>
+      throw UnimplementedError();
 }
 
 Category buildCategory(String id) {
@@ -66,7 +71,8 @@ Category buildCategory(String id) {
 CategoryViewModel buildViewModel(CategoryRepository repo) {
   return CategoryViewModel(
     getCategoriesUseCase: GetCategoriesUseCase(categoryRepo: repo),
-    updateDefaultCategoryByIdUseCase: UpdateDefaultCategoryByIdUseCase(categoryRepo: repo),
+    updateDefaultCategoryByIdUseCase:
+        UpdateDefaultCategoryByIdUseCase(categoryRepo: repo),
   );
 }
 
@@ -76,44 +82,37 @@ void main() {
 
     expect(vm.state.value.items, isEmpty);
     expect(vm.state.value.loading, isFalse);
-    expect(vm.state.value.error, isNull);
   });
 
   test('getCategories populates items and clears loading', () async {
     final vm = buildViewModel(
-      FakeCategoryRepository(categories: [buildCategory('1'), buildCategory('2')]),
+      FakeCategoryRepository(
+          categories: [buildCategory('1'), buildCategory('2')]),
     );
 
     await vm.getCategories();
 
     expect(vm.state.value.loading, isFalse);
     expect(vm.state.value.items, hasLength(2));
-    expect(vm.state.value.error, isNull);
   });
 
-  test('getCategories maps a typed exception to state.error', () async {
+  test('getCategories a failure is emitted once on the error channel',
+      () async {
     final vm = buildViewModel(
-      FakeCategoryRepository(throws: const NetworkException(message: 'offline')),
+      FakeCategoryRepository(
+          throws: const NetworkException(message: 'offline')),
     );
 
+    final errors = <String>[];
+    vm.errors.listen(errors.add);
+
     await vm.getCategories();
+    await Future<void>.delayed(Duration.zero);
 
     expect(vm.state.value.loading, isFalse);
-    expect(vm.state.value.error, isNotNull);
+    expect(errors, hasLength(1),
+        reason: 'the message goes out once, with nothing left to clear');
     expect(vm.state.value.items, isEmpty);
-  });
-
-  test('consumeError clears the error', () async {
-    final vm = buildViewModel(
-      FakeCategoryRepository(throws: const NetworkException(message: 'offline')),
-    );
-
-    await vm.getCategories();
-    expect(vm.state.value.error, isNotNull);
-
-    vm.consumeError();
-
-    expect(vm.state.value.error, isNull);
   });
 
   test('updateDefaultCategoryById reloads the list on success', () async {

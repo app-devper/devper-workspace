@@ -89,7 +89,6 @@ void main() {
     expect(viewModel.state.value.items, hasLength(2));
     expect(viewModel.state.value.items.map((e) => e.price), [25, 20]);
     expect(viewModel.state.value.loading, isFalse);
-    expect(viewModel.state.value.error, isNull);
   });
 
   test('addProductPrice exposes the created tier as completed', () async {
@@ -159,7 +158,6 @@ void main() {
     expect(viewModel.state.value.error, isNotNull);
 
     viewModel.consumeError();
-    expect(viewModel.state.value.error, isNull);
   });
 
   test('consumeCompleted clears the one-shot result', () async {

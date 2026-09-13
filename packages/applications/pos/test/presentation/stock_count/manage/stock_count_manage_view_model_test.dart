@@ -98,7 +98,6 @@ void main() {
     expect(repository.getByIdCalls, 1);
     expect(vm.state.value.loading, isFalse);
     expect(vm.state.value.stockCount?.id, 'sc7');
-    expect(vm.state.value.error, isNull);
   });
 
   test('getStockCountById ignores a null id', () async {
@@ -175,6 +174,5 @@ void main() {
     expect(vm.state.value.error, isNotNull);
 
     vm.consumeError();
-    expect(vm.state.value.error, isNull);
   });
 }

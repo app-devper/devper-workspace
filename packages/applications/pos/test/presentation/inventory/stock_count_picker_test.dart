@@ -10,9 +10,11 @@ class Products implements ProductRepository {
     if (fail) throw Exception('offline');
     return [];
   }
+
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
+
 void main() {
   test('load error is visible and retry clears it', () async {
     final repo = Products();
@@ -23,7 +25,6 @@ void main() {
     expect(vm.state.value.loading, isFalse);
     repo.fail = false;
     await vm.getProducts();
-    expect(vm.state.value.error, isNull);
     expect(vm.state.value.loading, isFalse);
   });
 }

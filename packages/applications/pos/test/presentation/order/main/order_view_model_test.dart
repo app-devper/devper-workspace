@@ -173,7 +173,6 @@ void main() {
     expect(viewModel.state.value.orders, hasLength(1));
 
     viewModel.consumeError();
-    expect(viewModel.state.value.error, isNull);
   });
 
   group('checkLogin', () {

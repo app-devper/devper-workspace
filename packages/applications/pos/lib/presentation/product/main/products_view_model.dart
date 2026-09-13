@@ -27,9 +27,11 @@ class ProductsViewModel {
       if (sortBalance) {
         result.sort((a, b) => a.getQuantity().compareTo(b.getQuantity()));
       }
-      _state.value = _state.value.copyWith(loading: false, items: result, clearError: true);
+      _state.value = _state.value
+          .copyWith(loading: false, items: result, clearError: true);
     } on Exception catch (e) {
-      _state.value = _state.value.copyWith(loading: false, error: toFailure(e).getMessage());
+      _state.value = _state.value
+          .copyWith(loading: false, error: toFailure(e).getMessage());
     }
   }
 
@@ -43,12 +45,6 @@ class ProductsViewModel {
             item.name.toLowerCase().contains(lower) ||
             item.units.any((element) => element.barcode.contains(param)))
         .toList();
-  }
-
-  void consumeError() {
-    if (_state.value.error != null) {
-      _state.value = _state.value.copyWith(clearError: true);
-    }
   }
 
   void dispose() {

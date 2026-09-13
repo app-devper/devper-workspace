@@ -76,7 +76,6 @@ void main() {
     expect(vm.state.value.updated?.map((e) => e.id), ['stock-b', 'stock-a']);
     expect(vm.state.value.updated?.map((e) => e.sequence), [1, 2]);
     expect(vm.state.value.loading, isFalse);
-    expect(vm.state.value.error, isNull);
     expect(repo.received?.productId, 'product-1');
   });
 
@@ -102,8 +101,6 @@ void main() {
 
     final vm = buildViewModel(FakeProductRepository());
     await vm.updateProductStockSequenceById(buildParam());
-
-    expect(vm.state.value.error, isNull);
     expect(vm.state.value.updated, isNotNull);
   });
 

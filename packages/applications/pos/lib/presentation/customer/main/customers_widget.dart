@@ -12,9 +12,9 @@ import 'package:pos/presentation/customer/main/customers_state.dart';
 import 'package:pos/presentation/customer/main/customers_view_model.dart';
 import 'package:design_system/theme/app_colors.dart';
 import 'package:design_system/theme/color.dart';
+import 'package:design_system/widgets/error_state.dart';
 
 // Package imports:
-
 
 class CustomersWidget extends StatefulWidget {
   final Function(Customer) onSelected;
@@ -112,10 +112,22 @@ class _CustomersWidgetState extends State<CustomersWidget> {
     );
   }
 
+  void _retry() => _viewModel.getCustomers();
+
   ValueListenableBuilder<CustomersState> _buildCustomerList() {
     return ValueListenableBuilder<CustomersState>(
       valueListenable: _viewModel.state,
       builder: (BuildContext context, CustomersState state, _) {
+        // A failed load used to fall through to an empty list, which reads as
+        // "there is nothing" rather than "we could not find out".
+        if (state.error != null && state.items.isEmpty) {
+          return Expanded(
+            child: ErrorState(
+              message: state.error!,
+              onRetry: _retry,
+            ),
+          );
+        }
         if (state.loading && state.items.isEmpty) {
           return const Expanded(
             child: Center(

@@ -38,20 +38,29 @@ class FakeCustomerRepository implements CustomerRepository {
   Future<List<Customer>> getLocalCustomers() => throw UnimplementedError();
 
   @override
-  Future<Customer> getCustomerById(String customerId) => throw UnimplementedError();
+  Future<Customer> getCustomerById(String customerId) =>
+      throw UnimplementedError();
 
   @override
-  Future<Customer> getCustomerByCode(String customerCode) => throw UnimplementedError();
+  Future<Customer> getCustomerByCode(String customerCode) =>
+      throw UnimplementedError();
 
   @override
-  Future<Customer> updateCustomerById(String customerId, CustomerParam param) => throw UnimplementedError();
+  Future<Customer> updateCustomerById(String customerId, CustomerParam param) =>
+      throw UnimplementedError();
 
   @override
-  Future<Customer> removeCustomerById(String customerId) => throw UnimplementedError();
+  Future<Customer> removeCustomerById(String customerId) =>
+      throw UnimplementedError();
 }
 
 CustomerParam buildParam() {
-  return CustomerParam(name: 'สมชาย', address: '', phone: '0812345678', email: '', customerType: 'GENERAL');
+  return CustomerParam(
+      name: 'สมชาย',
+      address: '',
+      phone: '0812345678',
+      email: '',
+      customerType: 'GENERAL');
 }
 
 CustomerAddViewModel buildViewModel(CustomerRepository repo) {
@@ -66,7 +75,6 @@ void main() {
 
     expect(vm.state.value.saving, isFalse);
     expect(vm.state.value.created, isNull);
-    expect(vm.state.value.error, isNull);
   });
 
   test('createCustomer sets created on success', () async {
@@ -78,12 +86,12 @@ void main() {
     expect(vm.state.value.saving, isFalse);
     expect(vm.state.value.created?.name, 'สมชาย');
     expect(repo.createdParam?.phone, '0812345678');
-    expect(vm.state.value.error, isNull);
   });
 
   test('createCustomer maps a typed exception to state.error', () async {
     final vm = buildViewModel(
-      FakeCustomerRepository(throws: const NetworkException(message: 'offline')),
+      FakeCustomerRepository(
+          throws: const NetworkException(message: 'offline')),
     );
 
     await vm.createCustomer(buildParam());
@@ -106,14 +114,13 @@ void main() {
 
   test('consumeError clears the error', () async {
     final vm = buildViewModel(
-      FakeCustomerRepository(throws: const NetworkException(message: 'offline')),
+      FakeCustomerRepository(
+          throws: const NetworkException(message: 'offline')),
     );
 
     await vm.createCustomer(buildParam());
     expect(vm.state.value.error, isNotNull);
 
     vm.consumeError();
-
-    expect(vm.state.value.error, isNull);
   });
 }

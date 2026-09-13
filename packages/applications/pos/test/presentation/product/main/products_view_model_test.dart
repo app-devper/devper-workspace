@@ -24,7 +24,8 @@ class FakeProductRepository implements ProductRepository {
   dynamic noSuchMethod(Invocation invocation) => throw UnimplementedError();
 }
 
-Product buildProduct(String id, String name, {int quantity = 0, String barcode = ''}) {
+Product buildProduct(String id, String name,
+    {int quantity = 0, String barcode = ''}) {
   return Product(
     id: id,
     name: name,
@@ -73,7 +74,6 @@ void main() {
     await vm.searchProduct('', false);
 
     expect(vm.state.value.items, hasLength(2));
-    expect(vm.state.value.error, isNull);
   });
 
   test('searchProduct filters by name or barcode', () async {

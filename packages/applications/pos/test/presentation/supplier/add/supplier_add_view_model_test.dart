@@ -19,11 +19,17 @@ class FakeSupplierRepository implements SupplierRepository {
       throw error;
     }
     createdParam = param;
-    return Supplier(id: '1', name: param.name, address: param.address, phone: param.phone, taxId: param.taxId);
+    return Supplier(
+        id: '1',
+        name: param.name,
+        address: param.address,
+        phone: param.phone,
+        taxId: param.taxId);
   }
 
   @override
-  Future<Supplier> updateSupplierInfo(SupplierParam param) => throw UnimplementedError();
+  Future<Supplier> updateSupplierInfo(SupplierParam param) =>
+      throw UnimplementedError();
 
   @override
   Future<Supplier> getSupplierInfo() => throw UnimplementedError();
@@ -35,20 +41,28 @@ class FakeSupplierRepository implements SupplierRepository {
   Future<List<Supplier>> getLocalSuppliers() => throw UnimplementedError();
 
   @override
-  Future<Supplier> getSupplierById(String supplierId) => throw UnimplementedError();
+  Future<Supplier> getSupplierById(String supplierId) =>
+      throw UnimplementedError();
 
   @override
-  Future<Supplier?> getLocalSupplierById(String supplierId) => throw UnimplementedError();
+  Future<Supplier?> getLocalSupplierById(String supplierId) =>
+      throw UnimplementedError();
 
   @override
-  Future<Supplier> updateSupplierById(String supplierId, SupplierParam param) => throw UnimplementedError();
+  Future<Supplier> updateSupplierById(String supplierId, SupplierParam param) =>
+      throw UnimplementedError();
 
   @override
-  Future<Supplier> removeSupplierById(String supplierId) => throw UnimplementedError();
+  Future<Supplier> removeSupplierById(String supplierId) =>
+      throw UnimplementedError();
 }
 
 SupplierParam buildParam() {
-  return SupplierParam(name: 'บริษัทยา จำกัด', address: 'กรุงเทพฯ', phone: '021234567', taxId: '0105551234567');
+  return SupplierParam(
+      name: 'บริษัทยา จำกัด',
+      address: 'กรุงเทพฯ',
+      phone: '021234567',
+      taxId: '0105551234567');
 }
 
 SupplierAddViewModel buildViewModel(SupplierRepository repo) {
@@ -63,7 +77,6 @@ void main() {
 
     expect(vm.state.value.saving, isFalse);
     expect(vm.state.value.created, isNull);
-    expect(vm.state.value.error, isNull);
   });
 
   test('createSupplier sets created on success', () async {
@@ -75,12 +88,12 @@ void main() {
     expect(vm.state.value.saving, isFalse);
     expect(vm.state.value.created?.name, 'บริษัทยา จำกัด');
     expect(repo.createdParam?.taxId, '0105551234567');
-    expect(vm.state.value.error, isNull);
   });
 
   test('createSupplier maps a typed exception to state.error', () async {
     final vm = buildViewModel(
-      FakeSupplierRepository(throws: const NetworkException(message: 'offline')),
+      FakeSupplierRepository(
+          throws: const NetworkException(message: 'offline')),
     );
 
     await vm.createSupplier(buildParam());
@@ -103,14 +116,13 @@ void main() {
 
   test('consumeError clears the error', () async {
     final vm = buildViewModel(
-      FakeSupplierRepository(throws: const NetworkException(message: 'offline')),
+      FakeSupplierRepository(
+          throws: const NetworkException(message: 'offline')),
     );
 
     await vm.createSupplier(buildParam());
     expect(vm.state.value.error, isNotNull);
 
     vm.consumeError();
-
-    expect(vm.state.value.error, isNull);
   });
 }

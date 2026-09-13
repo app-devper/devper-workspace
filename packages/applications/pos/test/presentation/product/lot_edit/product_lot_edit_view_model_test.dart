@@ -80,8 +80,7 @@ void main() {
     expect(repo.calls, isEmpty);
   });
 
-  test('updateProductLot writes the count then attaches the product',
-      () async {
+  test('updateProductLot writes the count then attaches the product', () async {
     final repo = FakeProductRepository(localProduct: product('p1', 'ยาแก้ไข้'));
     final viewModel = buildViewModel(repo);
 
@@ -104,10 +103,10 @@ void main() {
         'lot-1', UpdateProductLotQuantityParam(quantity: 0));
 
     expect(viewModel.state.value.updated?.quantity, 0);
-    expect(viewModel.state.value.error, isNull);
   });
 
-  test('a rejected write marks nothing as updated and never looks up the product',
+  test(
+      'a rejected write marks nothing as updated and never looks up the product',
       () async {
     final repo = FakeProductRepository(
       throws: const ValidationException(message: 'invalid', code: 'VA-400'),

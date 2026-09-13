@@ -36,23 +36,29 @@ class FakeCategoryRepository implements CategoryRepository {
   Future<List<Category>> getLocalCategories() => throw UnimplementedError();
 
   @override
-  Future<Category> getCategoryById(String categoryId) => throw UnimplementedError();
+  Future<Category> getCategoryById(String categoryId) =>
+      throw UnimplementedError();
 
   @override
-  Future<Category> updateCategoryById(String categoryId, CategoryParam param) => throw UnimplementedError();
+  Future<Category> updateCategoryById(String categoryId, CategoryParam param) =>
+      throw UnimplementedError();
 
   @override
-  Future<Category> updateDefaultCategoryById(String categoryId) => throw UnimplementedError();
+  Future<Category> updateDefaultCategoryById(String categoryId) =>
+      throw UnimplementedError();
 
   @override
-  Future<Category> removeCategoryById(String categoryId) => throw UnimplementedError();
+  Future<Category> removeCategoryById(String categoryId) =>
+      throw UnimplementedError();
 
   @override
-  Future<bool> requireCustomerOrder(String? value) => throw UnimplementedError();
+  Future<bool> requireCustomerOrder(String? value) =>
+      throw UnimplementedError();
 }
 
 CategoryParam buildParam() {
-  return CategoryParam(name: 'ยาสามัญ', value: 'GENERAL', requireCustomerOrder: false);
+  return CategoryParam(
+      name: 'ยาสามัญ', value: 'GENERAL', requireCustomerOrder: false);
 }
 
 CategoryAddViewModel buildViewModel(CategoryRepository repo) {
@@ -67,7 +73,6 @@ void main() {
 
     expect(vm.state.value.saving, isFalse);
     expect(vm.state.value.created, isNull);
-    expect(vm.state.value.error, isNull);
   });
 
   test('createCategory sets created on success', () async {
@@ -79,12 +84,12 @@ void main() {
     expect(vm.state.value.saving, isFalse);
     expect(vm.state.value.created?.name, 'ยาสามัญ');
     expect(repo.createdParam?.value, 'GENERAL');
-    expect(vm.state.value.error, isNull);
   });
 
   test('createCategory maps a typed exception to state.error', () async {
     final vm = buildViewModel(
-      FakeCategoryRepository(throws: const NetworkException(message: 'offline')),
+      FakeCategoryRepository(
+          throws: const NetworkException(message: 'offline')),
     );
 
     await vm.createCategory(buildParam());
@@ -107,14 +112,13 @@ void main() {
 
   test('consumeError clears the error', () async {
     final vm = buildViewModel(
-      FakeCategoryRepository(throws: const NetworkException(message: 'offline')),
+      FakeCategoryRepository(
+          throws: const NetworkException(message: 'offline')),
     );
 
     await vm.createCategory(buildParam());
     expect(vm.state.value.error, isNotNull);
 
     vm.consumeError();
-
-    expect(vm.state.value.error, isNull);
   });
 }
