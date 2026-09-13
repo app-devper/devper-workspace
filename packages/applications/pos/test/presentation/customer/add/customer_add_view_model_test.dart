@@ -70,57 +70,70 @@ CustomerAddViewModel buildViewModel(CustomerRepository repo) {
 }
 
 void main() {
-  test('initial state is not saving with no result', () {
+  test('initial state is not saving', () {
     final vm = buildViewModel(FakeCustomerRepository());
 
     expect(vm.state.value.saving, isFalse);
-    expect(vm.state.value.created, isNull);
   });
 
-  test('createCustomer sets created on success', () async {
+  test('a successful save emits the customer once', () async {
     final repo = FakeCustomerRepository();
     final vm = buildViewModel(repo);
+    final created = <Customer>[];
+    final errors = <String>[];
+    vm.created.listen(created.add);
+    vm.errors.listen(errors.add);
 
     await vm.createCustomer(buildParam());
+    await Future<void>.delayed(Duration.zero);
 
     expect(vm.state.value.saving, isFalse);
-    expect(vm.state.value.created?.name, 'สมชาย');
-    expect(repo.createdParam?.phone, '0812345678');
+    expect(created.single.name, isNotEmpty);
+    expect(errors, isEmpty);
+    expect(repo.createdParam, isNotNull);
   });
 
-  test('createCustomer maps a typed exception to state.error', () async {
+  test('a failure emits on the error channel and nothing on created', () async {
     final vm = buildViewModel(
       FakeCustomerRepository(
           throws: const NetworkException(message: 'offline')),
     );
+    final created = <Customer>[];
+    final errors = <String>[];
+    vm.created.listen(created.add);
+    vm.errors.listen(errors.add);
 
     await vm.createCustomer(buildParam());
+    await Future<void>.delayed(Duration.zero);
 
     expect(vm.state.value.saving, isFalse);
-    expect(vm.state.value.created, isNull);
-    expect(vm.state.value.error, isNotNull);
+    expect(errors, hasLength(1));
+    expect(created, isEmpty);
   });
 
-  test('consumeCreated clears the created result', () async {
+  test('an outcome is delivered once, with nothing to clear', () async {
     final vm = buildViewModel(FakeCustomerRepository());
+    final created = <Customer>[];
+    vm.created.listen(created.add);
 
     await vm.createCustomer(buildParam());
-    expect(vm.state.value.created, isNotNull);
+    await Future<void>.delayed(Duration.zero);
+    await Future<void>.delayed(Duration.zero);
 
-    vm.consumeCreated();
-
-    expect(vm.state.value.created, isNull);
+    expect(created, hasLength(1),
+        reason: 'the old shape needed consumeCreated to stop it repeating');
   });
 
-  test('consumeError clears the error', () async {
-    final vm = buildViewModel(
-      FakeCustomerRepository(
-          throws: const NetworkException(message: 'offline')),
-    );
+  test('a second save while one is in flight is ignored', () async {
+    final vm = buildViewModel(FakeCustomerRepository());
+    final created = <Customer>[];
+    vm.created.listen(created.add);
 
+    final first = vm.createCustomer(buildParam());
     await vm.createCustomer(buildParam());
-    expect(vm.state.value.error, isNotNull);
+    await first;
+    await Future<void>.delayed(Duration.zero);
 
-    vm.consumeError();
+    expect(created, hasLength(1));
   });
 }

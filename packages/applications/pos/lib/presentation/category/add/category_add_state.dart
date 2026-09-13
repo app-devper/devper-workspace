@@ -1,67 +1,19 @@
 // Flutter imports:
-import 'package:flutter/foundation.dart' hide Category;
+import 'package:flutter/foundation.dart';
 
-// Package imports:
-import 'package:common/core/error/failure.dart';
-
-// Project imports:
-import 'package:pos/domain/model/category/category.dart';
-
-/// The one thing this screen does, as a flow rather than a bag of flags:
-/// it is idle, running, finished with a result, or failed. Never two at once.
-sealed class CategoryAddTask {
-  const CategoryAddTask._();
-  const factory CategoryAddTask() = CategoryAddIdle;
-
-  // Derived UI projections; no independently writable flags.
-  bool get running => this is CategoryAddRunning;
-  String? get error => switch (this) {
-        CategoryAddFailed(:final failure) => failure.getMessage(),
-        _ => null,
-      };
-  Category? get created => switch (this) {
-        CategoryAddCreated(:final result) => result,
-        _ => null,
-      };
-}
-
-final class CategoryAddIdle extends CategoryAddTask {
-  const CategoryAddIdle() : super._();
-}
-
-final class CategoryAddRunning extends CategoryAddTask {
-  const CategoryAddRunning() : super._();
-}
-
-final class CategoryAddCreated extends CategoryAddTask {
-  final Category result;
-  const CategoryAddCreated(this.result) : super._();
-}
-
-final class CategoryAddFailed extends CategoryAddTask {
-  final Failure failure;
-  const CategoryAddFailed(this.failure) : super._();
-}
-
+/// What this screen renders: whether a save is in flight.
+///
+/// It used to carry the outcome too — a sealed task holding Created or Failed,
+/// with the view clearing it afterwards. Those are things the screen reacts to
+/// once, not things it draws, so they go out on the view model's event channel
+/// and the whole hierarchy collapses to this.
 @immutable
 class CategoryAddState {
-  final CategoryAddTask task;
+  final bool saving;
 
-  const CategoryAddState({
-    this.task = const CategoryAddIdle(),
-  });
+  const CategoryAddState({this.saving = false});
 
-  bool get saving => task.running;
-
-  String? get error => task.error;
-
-  Category? get created => task.created;
-
-  CategoryAddState copyWith({
-    CategoryAddTask? task,
-  }) {
-    return CategoryAddState(
-      task: task ?? this.task,
-    );
+  CategoryAddState copyWith({bool? saving}) {
+    return CategoryAddState(saving: saving ?? this.saving);
   }
 }

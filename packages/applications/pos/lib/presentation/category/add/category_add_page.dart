@@ -1,3 +1,5 @@
+import 'dart:async';
+
 // Flutter imports:
 import 'package:flutter/material.dart';
 
@@ -11,6 +13,7 @@ import 'package:design_system/widgets/page_container.dart';
 
 // Project imports:
 import 'package:pos/container.dart';
+import 'package:pos/domain/model/category/category.dart';
 import 'package:pos/domain/model/category/param.dart';
 import 'package:pos/localizations/language/languages.dart';
 import 'package:pos/presentation/constants.dart';
@@ -39,6 +42,8 @@ class _CategoryAddPageState extends State<CategoryAddPage> {
   late CustomSnackBar _snackBar;
 
   late CategoryAddViewModel _viewModel;
+  late StreamSubscription<String> _errors;
+  late StreamSubscription<Category> _created;
 
   bool _loadingShown = false;
   bool? _requireCustomerOrder = false;
@@ -48,6 +53,8 @@ class _CategoryAddPageState extends State<CategoryAddPage> {
     super.initState();
     _viewModel = sl<CategoryAddViewModel>();
     _viewModel.state.addListener(_onStateChanged);
+    _errors = _viewModel.errors.listen(_showError);
+    _created = _viewModel.created.listen(_onCreated);
   }
 
   void _onStateChanged() {
@@ -59,25 +66,27 @@ class _CategoryAddPageState extends State<CategoryAddPage> {
       _loadingShown = false;
       hideLoadingDialog(context);
     }
-    if (state.error != null) {
-      _snackBar.hideAll();
-      _snackBar.showErrorSnackBar(state.error!);
-      _viewModel.consumeError();
-    }
-    if (state.created != null) {
-      _snackBar.hideAll();
-      _snackBar.showSnackBar(text: "Add ${state.created!.name} success");
-      _nameEditingController.text = "";
-      _valueEditingController.text = "";
-      _descriptionEditingController.text = "";
-      FocusScope.of(context).requestFocus(_nameNode);
-      _viewModel.consumeCreated();
-    }
+  }
+
+  void _showError(String message) {
+    _snackBar.hideAll();
+    _snackBar.showErrorSnackBar(message);
+  }
+
+  void _onCreated(Category category) {
+    _snackBar.hideAll();
+    _snackBar.showSnackBar(text: "Add ${category.name} success");
+    _nameEditingController.text = "";
+    _valueEditingController.text = "";
+    _descriptionEditingController.text = "";
+    FocusScope.of(context).requestFocus(_nameNode);
   }
 
   @override
   void dispose() {
     _viewModel.state.removeListener(_onStateChanged);
+    _errors.cancel();
+    _created.cancel();
     _nameNode.dispose();
     _valueNode.dispose();
     _descriptionNode.dispose();
