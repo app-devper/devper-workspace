@@ -455,7 +455,10 @@ class PosService {
     request.headers.addAll(networkConfig.getHeaders(url));
     request.files
         .add(http.MultipartFile.fromBytes('file', bytes, filename: filename));
-    final streamedResponse = await request.send();
+    // Through `client`, not request.send(): the latter opens its own connection
+    // and ignores everything configured here, which also made this the one
+    // endpoint no test could observe.
+    final streamedResponse = await client.send(request);
     return http.Response.fromStream(streamedResponse);
   }
 
