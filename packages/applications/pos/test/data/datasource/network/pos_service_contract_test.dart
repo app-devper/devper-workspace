@@ -93,10 +93,10 @@ void main() {
     );
   });
 
-  /// Drives every method that routes through CustomClient. `importProductCSV`
-  /// is absent on purpose — it builds its own MultipartRequest and sends it
-  /// through the default client, so nothing here can observe it. It is asserted
-  /// separately below.
+  /// Drives every endpoint the service exposes. importProductCSV used to be
+  /// absent here because it sent its MultipartRequest through the default
+  /// client rather than the injected one; now that it goes through `client`,
+  /// the recorder sees it like everything else.
   Future<void> callEveryEndpoint() async {
     const id = _sentinel;
     const body = '{}';
@@ -189,6 +189,8 @@ void main() {
 
     await service.createProductReturn(body);
     await service.getProductReturnsByOrderId(id);
+
+    await service.importProductCSV(bytes: const [1, 2], filename: 'p.csv');
   }
 
   test('every path the client calls exists on pos-api', () async {
@@ -208,20 +210,18 @@ void main() {
     );
   });
 
-  test('the CSV import path exists on pos-api', () {
-    // importProductCSV bypasses CustomClient with its own MultipartRequest, so
-    // it cannot be recorded. Its path is asserted by hand instead; if the
-    // method's URL changes, change this line with it.
-    expect(_loadManifest(), contains('POST /api/pos/v1/products/import-csv'));
+  test('the CSV import path is recorded like every other', () async {
+    await callEveryEndpoint();
+
+    expect(recorder.calls, contains('POST /api/pos/v1/products/import-csv'));
   });
 
   test('the contract covers every endpoint the client exposes', () async {
     await callEveryEndpoint();
 
-    // One recorded call per driven method, plus importProductCSV which cannot
-    // be. If someone adds a method to PosService without adding it above, this
-    // is what notices.
-    final driven = recorder.calls.length + 1;
+    // One recorded call per driven method. If someone adds a method to
+    // PosService without adding it above, this is what notices.
+    final driven = recorder.calls.length;
     final declared = RegExp(r'Future<http\.Response>\s+\w+\(')
         .allMatches(_resolve(_serviceSource).readAsStringSync())
         .length;
