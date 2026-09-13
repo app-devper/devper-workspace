@@ -1,6 +1,9 @@
 // Dart imports:
 import 'dart:convert';
 
+// Package imports:
+import 'package:common/core/ext/json_ext.dart';
+
 // Project imports:
 import 'package:pos/domain/model/order/order.dart';
 import 'package:pos/domain/model/order/order_detail.dart';
@@ -33,9 +36,9 @@ extension OrderJson on Map<String, dynamic> {
       buyerName: json["buyerName"],
       buyerIdCard: json["buyerIdCard"],
       createdDate: json["createdDate"],
-      total: (json["total"] ?? 0).toDouble(),
-      totalCost: (json["totalCost"] ?? 0).toDouble(),
-      discount: (json["discount"] ?? 0).toDouble(),
+      total: json.readDouble("total"),
+      totalCost: json.readDouble("totalCost"),
+      discount: json.readDouble("discount"),
       type: json["type"] ?? "Cash",
     );
   }
@@ -59,9 +62,9 @@ extension OrderJson on Map<String, dynamic> {
       customerCode: json["customerCode"],
       customerName: json["customerName"],
       createdDate: json["createdDate"],
-      total: json["total"].toDouble(),
-      totalCost: json["totalCost"]?.toDouble() ?? 0,
-      discount: json["discount"]?.toDouble() ?? 0,
+      total: json.readDouble("total"),
+      totalCost: json.readDouble("totalCost"),
+      discount: json.readDouble("discount"),
       type: json["type"] ?? "Cash",
     );
   }
@@ -72,9 +75,9 @@ extension OrderJson on Map<String, dynamic> {
     return OrderDetail(
       id: json["id"],
       createdDate: json["createdDate"],
-      total: json["total"]?.toDouble() ?? 0,
-      totalCost: json["totalCost"]?.toDouble() ?? 0,
-      discount: json["discount"]?.toDouble() ?? 0,
+      total: json.readDouble("total"),
+      totalCost: json.readDouble("totalCost"),
+      discount: json.readDouble("discount"),
       type: json["type"] ?? "Cash",
       items: (json["items"] as List).toOrderItemDetailsDomain(),
       code: json["code"] ?? "",
@@ -101,9 +104,9 @@ extension OrderJson on Map<String, dynamic> {
       id: json["id"],
       product: product,
       quantity: json["quantity"],
-      price: json["price"].toDouble(),
-      costPrice: json["costPrice"].toDouble(),
-      discount: json["discount"]?.toDouble() ?? 0,
+      price: json.readDouble("price"),
+      costPrice: json.readDouble("costPrice"),
+      discount: json.readDouble("discount"),
       createdDate: json["createdDate"],
       order: order,
       oversoldQty: json["oversoldQty"] ?? 0,
