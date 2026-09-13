@@ -108,6 +108,8 @@ void main() {
         () async {
       final repo = FakeProductRepository();
       final viewModel = buildStockViewModel(repo);
+      final completed = <ProductStock>[];
+      viewModel.completed.listen(completed.add);
 
       await viewModel.addProductStock(ProductStockParam(
         productId: 'p1',
@@ -120,9 +122,11 @@ void main() {
         importDate: '2026-01-01T00:00:00Z',
       ));
 
+      await Future<void>.delayed(Duration.zero);
+
       expect(repo.calls, ['add:24']);
-      expect(viewModel.state.value.completed?.quantity, 24);
-      expect(viewModel.state.value.completed?.price, 30);
+      expect(completed.single.quantity, 24);
+      expect(completed.single.price, 30);
     });
 
     test('update and remove address the lot they were given', () async {
@@ -147,19 +151,19 @@ void main() {
       expect(repo.calls, ['update:stock-3', 'remove:stock-4']);
     });
 
-    test('a failed load surfaces the error and consumeError clears it',
-        () async {
+    test('a failed load is emitted once on the error channel', () async {
       final repo = FakeProductRepository(
         throws: const ServerException(message: 'boom', code: 'SERVER_ERROR'),
       );
       final viewModel = buildStockViewModel(repo);
+      final errors = <String>[];
+      viewModel.errors.listen(errors.add);
 
       await viewModel.getProductStocks('p1');
+      await Future<void>.delayed(Duration.zero);
 
-      expect(viewModel.state.value.error, isNotNull);
+      expect(errors, hasLength(1));
       expect(viewModel.state.value.loading, isFalse);
-
-      viewModel.consumeError();
     });
   });
 

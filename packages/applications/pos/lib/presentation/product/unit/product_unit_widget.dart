@@ -1,3 +1,5 @@
+import 'dart:async';
+
 // Flutter imports:
 import 'package:flutter/material.dart';
 import 'package:design_system/theme/app_colors.dart';
@@ -47,8 +49,19 @@ class _ProductUnitWidgetState extends State<ProductUnitWidget> {
   String _volumeUnit = 'ml';
 
   late ProductUnitViewModel _viewModel;
+  late StreamSubscription<String> _errors;
+  late StreamSubscription<ProductUnit> _completed;
 
   bool _loadingShown = false;
+
+  void _showError(String message) {
+    showAlertDialog(context, message, () {});
+  }
+
+  void _onCompleted(ProductUnit data) {
+    Navigator.of(context).pop();
+    widget.onComplete(data);
+  }
 
   void _onStateChanged() {
     final state = _viewModel.state.value;
@@ -59,23 +72,14 @@ class _ProductUnitWidgetState extends State<ProductUnitWidget> {
       _loadingShown = false;
       hideLoadingDialog(context);
     }
-    if (state.error != null) {
-      final message = state.error!;
-      _viewModel.consumeError();
-      showAlertDialog(context, message, () {});
-    }
-    if (state.completed != null) {
-      final data = state.completed!;
-      _viewModel.consumeCompleted();
-      Navigator.of(context).pop();
-      widget.onComplete(data);
-    }
   }
 
   @override
   void initState() {
     _viewModel = sl<ProductUnitViewModel>();
     _viewModel.state.addListener(_onStateChanged);
+    _errors = _viewModel.errors.listen(_showError);
+    _completed = _viewModel.completed.listen(_onCompleted);
     if (widget.unit != null) {
       _sizeController.text = widget.unit!.size.toString();
       _unitController.text = widget.unit!.unit;
@@ -96,6 +100,8 @@ class _ProductUnitWidgetState extends State<ProductUnitWidget> {
   @override
   void dispose() {
     _viewModel.state.removeListener(_onStateChanged);
+    _errors.cancel();
+    _completed.cancel();
     _viewModel.dispose();
     _unitController.dispose();
     _unitFocus.dispose();

@@ -7,7 +7,6 @@ import 'package:pos/domain/usecase/product/add_product_unit_use_case.dart';
 import 'package:pos/domain/usecase/product/get_product_units_by_product_id_use_case.dart';
 import 'package:pos/domain/usecase/product/remove_product_unit_by_id_use_case.dart';
 import 'package:pos/domain/usecase/product/update_product_unit_by_id_use_case.dart';
-import 'package:pos/presentation/product/unit/product_unit_state.dart';
 import 'package:pos/presentation/product/unit/product_unit_view_model.dart';
 
 class FakeProductRepository implements ProductRepository {
@@ -98,103 +97,118 @@ ProductUnitViewModel buildViewModel(ProductRepository repo) {
 }
 
 void main() {
-  group('the three commands share one completion slot', () {
-    test('addProductUnit completes', () async {
+  group('the three commands each emit their result', () {
+    test('addProductUnit emits', () async {
       final repo = FakeProductRepository();
       final vm = buildViewModel(repo);
+      final completed = <ProductUnit>[];
+      vm.completed.listen(completed.add);
 
       await vm.addProductUnit(buildParam());
+      await Future<void>.delayed(Duration.zero);
 
-      expect(vm.state.value.task, isA<ProductUnitCompleted>());
-      expect(vm.state.value.completed?.id, 'new-unit');
+      expect(completed.single.id, 'new-unit');
       expect(vm.state.value.loading, isFalse);
       expect(repo.addedProductId, 'product-1');
     });
 
-    test('updateProductUnitById completes', () async {
+    test('updateProductUnitById emits', () async {
       final repo = FakeProductRepository();
       final vm = buildViewModel(repo);
+      final completed = <ProductUnit>[];
+      vm.completed.listen(completed.add);
 
       await vm.updateProductUnitById('unit-7', buildParam());
+      await Future<void>.delayed(Duration.zero);
 
-      expect(vm.state.value.completed?.id, 'unit-7');
+      expect(completed.single.id, 'unit-7');
       expect(repo.updatedUnitId, 'unit-7');
     });
 
-    test('removeProductUnitById completes', () async {
+    test('removeProductUnitById emits', () async {
       final repo = FakeProductRepository();
       final vm = buildViewModel(repo);
+      final completed = <ProductUnit>[];
+      vm.completed.listen(completed.add);
 
       await vm.removeProductUnitById('unit-9');
+      await Future<void>.delayed(Duration.zero);
 
-      expect(vm.state.value.completed?.id, 'unit-9');
+      expect(completed.single.id, 'unit-9');
       expect(repo.removedUnitId, 'unit-9');
     });
 
-    test('a later command replaces the earlier result', () async {
+    test('two commands deliver two results, in order', () async {
       final vm = buildViewModel(FakeProductRepository());
+      final completed = <ProductUnit>[];
+      vm.completed.listen(completed.add);
 
       await vm.addProductUnit(buildParam());
-      expect(vm.state.value.completed?.id, 'new-unit');
-
       await vm.removeProductUnitById('unit-9');
+      await Future<void>.delayed(Duration.zero);
 
-      expect(vm.state.value.completed?.id, 'unit-9',
-          reason: 'one slot, so the previous result cannot linger');
+      expect(completed.map((e) => e.id), ['new-unit', 'unit-9'],
+          reason:
+              'each result reaches the view rather than replacing the last');
     });
   });
 
-  test('getProductUnit fills items and leaves the task idle', () async {
+  test('getProductUnit fills items and emits nothing', () async {
     final vm = buildViewModel(
       FakeProductRepository(units: [buildUnit('unit-1'), buildUnit('unit-2')]),
     );
+    final completed = <ProductUnit>[];
+    vm.completed.listen(completed.add);
 
     await vm.getProductUnit('product-1');
+    await Future<void>.delayed(Duration.zero);
 
     expect(vm.state.value.items, hasLength(2));
-    expect(vm.state.value.task, isA<ProductUnitIdle>(),
+    expect(completed, isEmpty,
         reason: 'loading the list is not a command with a result');
-    expect(vm.state.value.completed, isNull);
   });
 
-  test('a failure leaves no completion behind', () async {
+  test('a failure emits an error and no completion', () async {
     final vm = buildViewModel(
       FakeProductRepository(throws: const NetworkException(message: 'offline')),
     );
+    final completed = <ProductUnit>[];
+    final errors = <String>[];
+    vm.completed.listen(completed.add);
+    vm.errors.listen(errors.add);
 
     await vm.addProductUnit(buildParam());
+    await Future<void>.delayed(Duration.zero);
 
-    expect(vm.state.value.task, isA<ProductUnitFailed>());
-    expect(vm.state.value.error, isNotNull);
-    expect(vm.state.value.completed, isNull);
+    expect(errors, hasLength(1));
+    expect(completed, isEmpty);
     expect(vm.state.value.loading, isFalse);
   });
 
-  test('a failed list load keeps the items already on screen', () async {
-    final good = FakeProductRepository(units: [buildUnit('unit-1')]);
-    final vm = buildViewModel(good);
-    await vm.getProductUnit('product-1');
-    expect(vm.state.value.items, hasLength(1));
-
-    final failing = buildViewModel(
+  test('a failed list load leaves the items empty and reports', () async {
+    final vm = buildViewModel(
       FakeProductRepository(throws: const NetworkException(message: 'offline')),
     );
-    await failing.getProductUnit('product-1');
+    final errors = <String>[];
+    vm.errors.listen(errors.add);
 
-    expect(failing.state.value.items, isEmpty);
-    expect(failing.state.value.error, isNotNull);
+    await vm.getProductUnit('product-1');
+    await Future<void>.delayed(Duration.zero);
+
+    expect(vm.state.value.items, isEmpty);
+    expect(errors, hasLength(1));
   });
 
-  test('consumeError and consumeCompleted each clear only their own state',
-      () async {
+  test('a second command while one is in flight is ignored', () async {
     final vm = buildViewModel(FakeProductRepository());
+    final completed = <ProductUnit>[];
+    vm.completed.listen(completed.add);
 
+    final first = vm.addProductUnit(buildParam());
     await vm.addProductUnit(buildParam());
-    vm.consumeError();
-    expect(vm.state.value.completed, isNotNull,
-        reason: 'consuming an error must not discard an unread result');
+    await first;
+    await Future<void>.delayed(Duration.zero);
 
-    vm.consumeCompleted();
-    expect(vm.state.value.task, isA<ProductUnitIdle>());
+    expect(completed, hasLength(1));
   });
 }

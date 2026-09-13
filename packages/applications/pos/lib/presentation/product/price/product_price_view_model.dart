@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 
 // Package imports:
 import 'package:common/core/error/failure.dart';
+import 'package:common/core/state/one_shot.dart';
 
 // Project imports:
 import 'package:pos/domain/model/product/param.dart';
@@ -28,7 +29,15 @@ class ProductPriceViewModel {
 
   final _state = ValueNotifier<ProductPriceState>(const ProductPriceState());
 
+  /// Delivered once and gone: the sheet closes on it, nothing draws it.
+  final _completed = OneShot<ProductPrice>();
+  final _errors = OneShot<String>();
+
   ValueListenable<ProductPriceState> get state => _state;
+
+  Stream<ProductPrice> get completed => _completed.stream;
+
+  Stream<String> get errors => _errors.stream;
 
   Future<void> addProductPrice(ProductPriceParam param) async {
     await _run(() => addProductPriceUseCase(param));
@@ -45,42 +54,31 @@ class ProductPriceViewModel {
   }
 
   Future<void> getProductPrice(String productId) async {
-    _state.value = _state.value.copyWith(task: const ProductPriceRunning());
+    _state.value = _state.value.copyWith(loading: true);
     try {
       final items = await getProductPricesByProductIdUseCase(productId);
-      _state.value =
-          _state.value.copyWith(task: const ProductPriceTask(), items: items);
+      _state.value = _state.value.copyWith(loading: false, items: items);
     } on Exception catch (e) {
-      _state.value =
-          _state.value.copyWith(task: ProductPriceFailed(toFailure(e)));
+      _state.value = _state.value.copyWith(loading: false);
+      _errors.emit(toFailure(e).getMessage());
     }
   }
 
   Future<void> _run(Future<ProductPrice> Function() action) async {
-    _state.value = _state.value.copyWith(task: const ProductPriceRunning());
+    if (_state.value.loading) return;
+    _state.value = _state.value.copyWith(loading: true);
     try {
-      final completed = await action();
-      _state.value =
-          _state.value.copyWith(task: ProductPriceCompleted(completed));
+      _completed.emit(await action());
     } on Exception catch (e) {
-      _state.value =
-          _state.value.copyWith(task: ProductPriceFailed(toFailure(e)));
-    }
-  }
-
-  void consumeError() {
-    if (_state.value.task is ProductPriceFailed) {
-      _state.value = _state.value.copyWith(task: const ProductPriceTask());
-    }
-  }
-
-  void consumeCompleted() {
-    if (_state.value.task is ProductPriceCompleted) {
-      _state.value = _state.value.copyWith(task: const ProductPriceTask());
+      _errors.emit(toFailure(e).getMessage());
+    } finally {
+      _state.value = _state.value.copyWith(loading: false);
     }
   }
 
   void dispose() {
     _state.dispose();
+    _completed.dispose();
+    _errors.dispose();
   }
 }
