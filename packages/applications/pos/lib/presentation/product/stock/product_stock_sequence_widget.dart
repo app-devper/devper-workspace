@@ -1,3 +1,5 @@
+import 'dart:async';
+
 // Dart imports:
 import 'dart:ui';
 
@@ -37,8 +39,19 @@ class ProductStockSequenceWidget extends StatefulWidget {
 class _ProductStockSequenceWidgetState extends State<ProductStockSequenceWidget> {
   List<ProductStock> _items = [];
   late ProductStockSequenceViewModel _viewModel;
+  late StreamSubscription<String> _errors;
+  late StreamSubscription<List<ProductStock>> _updated;
 
   bool _loadingShown = false;
+
+  void _showError(String message) {
+    showAlertDialog(context, message, () {});
+  }
+
+  void _onUpdated(List<ProductStock> data) {
+    Navigator.pop(context);
+    widget.onComplete(data);
+  }
 
   void _onStateChanged() {
     final state = _viewModel.state.value;
@@ -49,23 +62,14 @@ class _ProductStockSequenceWidgetState extends State<ProductStockSequenceWidget>
       _loadingShown = false;
       hideLoadingDialog(context);
     }
-    if (state.error != null) {
-      final message = state.error!;
-      _viewModel.consumeError();
-      showAlertDialog(context, message, () {});
-    }
-    if (state.updated != null) {
-      final data = state.updated!;
-      _viewModel.consumeUpdated();
-      Navigator.pop(context);
-      widget.onComplete(data);
-    }
   }
 
   @override
   void initState() {
     _viewModel = sl<ProductStockSequenceViewModel>();
     _viewModel.state.addListener(_onStateChanged);
+    _errors = _viewModel.errors.listen(_showError);
+    _updated = _viewModel.updated.listen(_onUpdated);
     _items = widget.stocks;
     _items.sort((a, b) => a.sequence.compareTo(b.sequence));
     super.initState();
@@ -74,6 +78,8 @@ class _ProductStockSequenceWidgetState extends State<ProductStockSequenceWidget>
   @override
   void dispose() {
     _viewModel.state.removeListener(_onStateChanged);
+    _errors.cancel();
+    _updated.cancel();
     _viewModel.dispose();
     super.dispose();
   }
