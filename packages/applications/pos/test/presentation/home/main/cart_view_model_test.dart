@@ -13,7 +13,6 @@ import 'package:pos/domain/usecase/order/create_order_use_case.dart';
 import 'package:pos/domain/usecase/product/get_product_by_barcode_use_case.dart';
 import 'package:pos/domain/usecase/product/update_product_stock_use_case.dart';
 import 'package:pos/presentation/home/main/cart_store.dart';
-import 'package:pos/presentation/home/main/cart_state.dart';
 import 'package:pos/presentation/home/main/cart_view_model.dart';
 
 class FakeProductRepository implements ProductRepository {
@@ -169,23 +168,34 @@ void main() {
         orderRepo: FakeOrderRepository(),
       );
 
-      await vm.addOrderItem('999', <OrderItem>[]);
+      final errors = <String>[];
+      vm.lookupErrors.listen(errors.add);
 
-      expect(vm.state.value.error, 'ไม่พบสินค้า');
+      await vm.addOrderItem('999', <OrderItem>[]);
+      await Future<void>.delayed(Duration.zero);
+
+      expect(errors.single, 'ไม่พบสินค้า');
       expect(vm.state.value.loading, isFalse);
     });
 
-    test('maps a typed exception from the barcode lookup to state.error',
-        () async {
+    test('a failed barcode lookup goes out on the lookup channel', () async {
       final vm = _buildViewModel(
         productRepo: FakeProductRepository(
             getByBarcodeThrows: const NetworkException(message: 'offline')),
         orderRepo: FakeOrderRepository(),
       );
 
-      await vm.addOrderItem('111', <OrderItem>[]);
+      final lookupErrors = <String>[];
+      final checkoutErrors = <String>[];
+      vm.lookupErrors.listen(lookupErrors.add);
+      vm.checkoutErrors.listen(checkoutErrors.add);
 
-      expect(vm.state.value.error, isNotNull);
+      await vm.addOrderItem('111', <OrderItem>[]);
+      await Future<void>.delayed(Duration.zero);
+
+      expect(lookupErrors, hasLength(1));
+      expect(checkoutErrors, isEmpty,
+          reason: 'a scan that failed is not a sale that failed');
       expect(vm.state.value.loading, isFalse);
     });
   });
@@ -213,6 +223,11 @@ void main() {
         orderRepo: FakeOrderRepository(result: orderResult),
       );
 
+      final placed = <OrderResult>[];
+      final errors = <String>[];
+      vm.orderPlaced.listen(placed.add);
+      vm.checkoutErrors.listen(errors.add);
+
       await vm.createOrder(CreateOrderParam(
         customerCode: '',
         customerName: '',
@@ -220,17 +235,17 @@ void main() {
         items: const [],
         type: 'Cash',
       ));
+      await Future<void>.delayed(Duration.zero);
 
       expect(vm.state.value.orderSaving, isFalse);
-      expect(vm.state.value.orderResult, orderResult);
-      expect(vm.state.value.orderError, isNull);
+      expect(placed.single, orderResult);
+      expect(errors, isEmpty);
       expect(productRepo.updatedStocks, hasLength(2));
       expect(productRepo.updatedStocks.map((e) => e.id),
           containsAll(['stock-1', 'stock-2']));
     });
 
-    test('maps a typed exception to state.orderError without touching stock',
-        () async {
+    test('a failed sale reports without touching stock', () async {
       final productRepo = FakeProductRepository(product: _buildProduct('111'));
       final vm = _buildViewModel(
         productRepo: productRepo,
@@ -238,6 +253,11 @@ void main() {
             createThrows: const NetworkException(message: 'offline')),
       );
 
+      final placed = <OrderResult>[];
+      final errors = <String>[];
+      vm.orderPlaced.listen(placed.add);
+      vm.checkoutErrors.listen(errors.add);
+
       await vm.createOrder(CreateOrderParam(
         customerCode: '',
         customerName: '',
@@ -245,14 +265,12 @@ void main() {
         items: const [],
         type: 'Cash',
       ));
+      await Future<void>.delayed(Duration.zero);
 
       expect(vm.state.value.orderSaving, isFalse);
-      expect(vm.state.value.orderError, isNotNull);
+      expect(errors, hasLength(1));
+      expect(placed, isEmpty);
       expect(productRepo.updatedStocks, isEmpty);
-
-      vm.consumeOrderError();
-      expect(vm.state.value.orderError, isNull);
-      expect(vm.state.value.checkout, isA<CheckoutIdle>());
     });
 
     test('a second submit while one is in flight is ignored', () async {
@@ -266,8 +284,11 @@ void main() {
         orderRepo: orderRepo,
       );
 
+      final placed = <OrderResult>[];
+      vm.orderPlaced.listen(placed.add);
+
       final first = vm.createOrder(_buildOrderParam());
-      expect(vm.state.value.checkout, isA<CheckoutSubmitting>());
+      expect(vm.state.value.orderSaving, isTrue);
 
       await vm.createOrder(_buildOrderParam());
       expect(orderRepo.createCalls, 1,
@@ -275,25 +296,29 @@ void main() {
 
       gate.complete();
       await first;
+      await Future<void>.delayed(Duration.zero);
 
-      expect(vm.state.value.checkout, isA<CheckoutSucceeded>());
+      expect(placed, hasLength(1));
+      expect(vm.state.value.orderSaving, isFalse);
       expect(orderRepo.createCalls, 1);
     });
 
-    test('consuming the result returns checkout to idle', () async {
+    test('a completed sale is delivered once', () async {
       final orderResult = _buildOrderResult();
       final vm = _buildViewModel(
         productRepo: FakeProductRepository(product: _buildProduct('111')),
         orderRepo: FakeOrderRepository(result: orderResult),
       );
+      final placed = <OrderResult>[];
+      vm.orderPlaced.listen(placed.add);
 
       await vm.createOrder(_buildOrderParam());
-      expect(vm.state.value.orderResult, orderResult);
+      await Future<void>.delayed(Duration.zero);
+      await Future<void>.delayed(Duration.zero);
 
-      vm.consumeOrderResult();
-
-      expect(vm.state.value.checkout, isA<CheckoutIdle>());
-      expect(vm.state.value.orderResult, isNull);
+      expect(placed, hasLength(1),
+          reason: 'the old shape needed consumeOrderResult to stop it '
+              'emptying the cart twice');
       expect(vm.state.value.orderSaving, isFalse);
     });
   });
