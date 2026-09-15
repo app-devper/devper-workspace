@@ -1,3 +1,5 @@
+import 'dart:async';
+
 // Flutter imports:
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -9,6 +11,7 @@ import 'package:design_system/widgets/title_bar.dart';
 
 // Project imports:
 import 'package:pos/container.dart';
+import 'package:pos/domain/model/stock_adjustment/stock_adjustment.dart';
 import 'package:pos/domain/model/core/core.dart';
 import 'package:pos/domain/model/product/product.dart';
 import 'package:pos/domain/model/stock_adjustment/param.dart';
@@ -42,6 +45,17 @@ class _StockAdjustmentWidgetState extends State<StockAdjustmentWidget> {
   bool _isIncrease = true;
 
   late StockAdjustmentViewModel _viewModel;
+  late StreamSubscription<String> _errors;
+  late StreamSubscription<StockAdjustment> _created;
+
+  void _showError(String message) {
+    showAlertDialog(context, message, () {});
+  }
+
+  void _onCreated(StockAdjustment created) {
+    Navigator.of(context).pop();
+    widget.onComplete();
+  }
 
   void _onStateChanged() {
     final state = _viewModel.state.value;
@@ -52,28 +66,22 @@ class _StockAdjustmentWidgetState extends State<StockAdjustmentWidget> {
       _loadingShown = false;
       hideLoadingDialog(context);
     }
-    if (state.error != null) {
-      final message = state.error!;
-      _viewModel.consumeError();
-      showAlertDialog(context, message, () {});
-    }
-    if (state.created != null) {
-      _viewModel.consumeCreated();
-      Navigator.of(context).pop();
-      widget.onComplete();
-    }
   }
 
   @override
   void initState() {
     _viewModel = sl<StockAdjustmentViewModel>();
     _viewModel.state.addListener(_onStateChanged);
+    _errors = _viewModel.errors.listen(_showError);
+    _created = _viewModel.created.listen(_onCreated);
     super.initState();
   }
 
   @override
   void dispose() {
     _viewModel.state.removeListener(_onStateChanged);
+    _errors.cancel();
+    _created.cancel();
     _deltaController.dispose();
     _deltaFocus.dispose();
     _noteController.dispose();
