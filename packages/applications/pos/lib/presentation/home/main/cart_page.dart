@@ -1,3 +1,5 @@
+import 'dart:async';
+
 // Flutter imports:
 
 // Flutter imports:
@@ -12,6 +14,7 @@ import 'package:design_system/widgets/title_bar.dart';
 
 // Project imports:
 import 'package:pos/container.dart';
+import 'package:pos/domain/model/order/order.dart';
 import 'package:pos/domain/model/customer/customer.dart';
 import 'package:pos/domain/model/order/order_item.dart';
 import 'package:pos/domain/model/order/param.dart';
@@ -38,6 +41,9 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
 
   late CustomSnackBar _snackBar;
   late CartViewModel _viewModel;
+  late StreamSubscription<String> _lookupErrors;
+  late StreamSubscription<String> _checkoutErrors;
+  late StreamSubscription<OrderResult> _orderPlaced;
 
   List<OrderItem> _orderItems = [];
   Function refreshCustomer = () {};
@@ -57,9 +63,32 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
     super.initState();
     _viewModel = sl<CartViewModel>();
     _viewModel.state.addListener(_onStateChanged);
+    _lookupErrors = _viewModel.lookupErrors.listen(_showError);
+    _checkoutErrors = _viewModel.checkoutErrors.listen(_showError);
+    _orderPlaced = _viewModel.orderPlaced.listen(_onOrderPlaced);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _viewModel.prepareData();
     });
+  }
+
+  void _showError(String message) {
+    _snackBar.hideAll();
+    _snackBar.showErrorSnackBar(message);
+  }
+
+  void _onOrderPlaced(OrderResult result) {
+    _snackBar.hideAll();
+    _snackBar.showSnackBar(text: "Order success");
+    _viewModel.clearCart();
+    _viewModel.prepareData();
+    setState(() {
+      _patientId = null;
+      _prescriberName = null;
+      _pharmacistName = null;
+    });
+    if (_alertKey.currentContext != null) {
+      Navigator.of(context).pop();
+    }
   }
 
   void _onStateChanged() {
@@ -79,37 +108,10 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
       _orderSavingShown = false;
       hideLoadingDialog(context);
     }
-    if (state.error != null) {
-      final message = state.error!;
-      _viewModel.consumeError();
-      _snackBar.hideAll();
-      _snackBar.showErrorSnackBar(message);
-    }
     if (state.orderItems != null) {
       setState(() {
         _orderItems = state.orderItems!;
       });
-    }
-    if (state.orderResult != null) {
-      _viewModel.consumeOrderResult();
-      _snackBar.hideAll();
-      _snackBar.showSnackBar(text: "Order success");
-      _viewModel.clearCart();
-      _viewModel.prepareData();
-      setState(() {
-        _patientId = null;
-        _prescriberName = null;
-        _pharmacistName = null;
-      });
-      if (_alertKey.currentContext != null) {
-        Navigator.of(context).pop();
-      }
-    }
-    if (state.orderError != null) {
-      final message = state.orderError!;
-      _viewModel.consumeOrderError();
-      _snackBar.hideAll();
-      _snackBar.showErrorSnackBar(message);
     }
   }
 
@@ -117,6 +119,9 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _viewModel.state.removeListener(_onStateChanged);
+    _lookupErrors.cancel();
+    _checkoutErrors.cancel();
+    _orderPlaced.cancel();
     _viewModel.dispose();
     super.dispose();
   }
