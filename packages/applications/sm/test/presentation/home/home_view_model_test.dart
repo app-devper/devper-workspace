@@ -121,12 +121,15 @@ void main() {
   test('getSystems fills items and clears loading', () async {
     final repo = FakeSystemRepository();
     final viewModel = buildViewModel(repo, FakeLoginRepository());
+    final errors = <String>[];
+    viewModel.errors.listen(errors.add);
 
     await viewModel.getSystems();
+    await _pump();
 
     expect(viewModel.state.value.items, hasLength(1));
     expect(viewModel.state.value.loading, isFalse);
-    expect(viewModel.state.value.error, isNull);
+    expect(errors, isEmpty);
   });
 
   test('createSystem reloads the list so the new system shows up', () async {
@@ -167,17 +170,22 @@ void main() {
     expect(viewModel.state.value.items, isEmpty);
   });
 
-  test('a failing call surfaces an error that consumeError clears', () async {
+  test('a failing call is reported once and stops the spinner', () async {
     final repo = FakeSystemRepository(failWith: Exception('boom'));
     final viewModel = buildViewModel(repo, FakeLoginRepository());
+    final errors = <String>[];
+    viewModel.errors.listen(errors.add);
 
     await viewModel.getSystems();
+    await _pump();
 
     expect(viewModel.state.value.loading, isFalse);
-    expect(viewModel.state.value.error, isNotNull);
+    expect(errors, hasLength(1));
 
-    viewModel.consumeError();
-    expect(viewModel.state.value.error, isNull);
+    // The old shape needed consumeError() here; without it the snack bar came
+    // back on the next notification.
+    await _pump();
+    expect(errors, hasLength(1));
   });
 
   test('SUPER can manage both systems and users', () async {
@@ -210,23 +218,34 @@ void main() {
     expect(viewModel.state.value.canManageUsers, isFalse);
   });
 
-  test('logout marks the session as logged out', () async {
+  test('logout ends the session and sends the screen to the login page',
+      () async {
     final login = FakeLoginRepository();
     final viewModel = buildViewModel(FakeSystemRepository(), login);
+    final loggedOut = <void>[];
+    viewModel.loggedOut.listen(loggedOut.add);
 
     await viewModel.logout();
+    await _pump();
 
     expect(login.loggedOut, isTrue);
-    expect(viewModel.state.value.loggedOut, isTrue);
+    expect(loggedOut, hasLength(1));
   });
 
-  test('logout still logs out locally when the server call fails', () async {
+  test('logout leaves locally even when the server call fails', () async {
     final login = FakeLoginRepository(logoutFails: true);
     final viewModel = buildViewModel(FakeSystemRepository(), login);
+    final loggedOut = <void>[];
+    viewModel.loggedOut.listen(loggedOut.add);
 
     await viewModel.logout();
+    await _pump();
 
     expect(login.loggedOut, isFalse);
-    expect(viewModel.state.value.loggedOut, isTrue);
+    expect(loggedOut, hasLength(1),
+        reason: 'a server that will not take the logout must not trap the '
+            'user in the session');
   });
 }
+
+Future<void> _pump() => Future<void>.delayed(Duration.zero);

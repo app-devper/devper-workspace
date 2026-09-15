@@ -135,7 +135,8 @@ class _SystemFormState extends State<_SystemForm> {
                             child: Text(
                               'Client ID และรหัสระบบแก้ไขไม่ได้หลังสร้างแล้ว',
                               style: TextStyle(
-                                  fontSize: 12, color: AppColors.of(context).textSecondary),
+                                  fontSize: 12,
+                                  color: AppColors.of(context).textSecondary),
                             ),
                           ),
                         ],

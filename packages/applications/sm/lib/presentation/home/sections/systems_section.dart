@@ -130,7 +130,8 @@ class _SystemsSectionState extends State<SystemsSection> {
       padding: const EdgeInsets.only(bottom: 80),
       itemCount: items.length,
       separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.sm),
-      itemBuilder: (context, index) => _buildSystemCard(items[index], canManage),
+      itemBuilder: (context, index) =>
+          _buildSystemCard(items[index], canManage),
     );
   }
 
@@ -227,7 +228,8 @@ class _SystemsSectionState extends State<SystemsSection> {
         Expanded(
           child: Text(
             value,
-            style: TextStyle(fontSize: 13, color: AppColors.of(context).textSecondary),
+            style: TextStyle(
+                fontSize: 13, color: AppColors.of(context).textSecondary),
             overflow: TextOverflow.ellipsis,
           ),
         ),

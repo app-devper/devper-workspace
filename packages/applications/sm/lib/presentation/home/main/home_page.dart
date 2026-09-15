@@ -1,3 +1,5 @@
+import 'dart:async';
+
 // Flutter imports:
 import 'package:flutter/material.dart';
 
@@ -33,11 +35,16 @@ class _HomePageState extends State<HomePage> {
 
   String _selected = _systemsId;
 
+  final _subscriptions = <StreamSubscription<void>>[];
+
   @override
   void initState() {
     super.initState();
     _viewModel = sl<HomeViewModel>();
-    _viewModel.state.addListener(_onStateChanged);
+    _subscriptions.addAll([
+      _viewModel.errors.listen(_showError),
+      _viewModel.loggedOut.listen(_onLoggedOut),
+    ]);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _viewModel.loadRole();
       _viewModel.getSystems();
@@ -52,21 +59,21 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void dispose() {
-    _viewModel.state.removeListener(_onStateChanged);
+    for (final subscription in _subscriptions) {
+      subscription.cancel();
+    }
     _viewModel.dispose();
     super.dispose();
   }
 
-  void _onStateChanged() {
-    final state = _viewModel.state.value;
-    if (state.error != null) {
-      _snackBar.hideAll();
-      _snackBar.showErrorSnackBar(state.error!);
-      _viewModel.consumeError();
-    }
-    if (state.loggedOut && mounted) {
-      Navigator.popAndPushNamed(context, routeLogin);
-    }
+  void _showError(String message) {
+    _snackBar.hideAll();
+    _snackBar.showErrorSnackBar(message);
+  }
+
+  void _onLoggedOut(void _) {
+    if (!mounted) return;
+    Navigator.popAndPushNamed(context, routeLogin);
   }
 
   /// The sidebar only offers what the signed-in role may open, mirroring the
