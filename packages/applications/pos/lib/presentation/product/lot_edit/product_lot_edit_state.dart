@@ -1,71 +1,18 @@
 // Flutter imports:
 import 'package:flutter/foundation.dart';
 
-// Package imports:
-import 'package:common/core/error/failure.dart';
-
-// Project imports:
-import 'package:pos/domain/model/product/product_lot.dart';
-
-/// Handing the lot to the form, and saving it back. Two outcomes, never both.
-sealed class ProductLotEditTask {
-  const ProductLotEditTask._();
-  const factory ProductLotEditTask() = ProductLotEditIdle;
-
-  // Derived UI projections; no independently writable flags.
-  bool get running => this is ProductLotEditRunning;
-  String? get error => switch (this) {
-        ProductLotEditFailed(:final failure) => failure.getMessage(),
-        _ => null,
-      };
-  ProductLot? get loaded => switch (this) {
-        ProductLotLoaded(:final lot) => lot,
-        _ => null,
-      };
-  ProductLot? get updated => switch (this) {
-        ProductLotUpdated(:final lot) => lot,
-        _ => null,
-      };
-}
-
-final class ProductLotEditIdle extends ProductLotEditTask {
-  const ProductLotEditIdle() : super._();
-}
-
-final class ProductLotEditRunning extends ProductLotEditTask {
-  const ProductLotEditRunning() : super._();
-}
-
-final class ProductLotLoaded extends ProductLotEditTask {
-  final ProductLot lot;
-  const ProductLotLoaded(this.lot) : super._();
-}
-
-final class ProductLotUpdated extends ProductLotEditTask {
-  final ProductLot lot;
-  const ProductLotUpdated(this.lot) : super._();
-}
-
-final class ProductLotEditFailed extends ProductLotEditTask {
-  final Failure failure;
-  const ProductLotEditFailed(this.failure) : super._();
-}
-
+/// What this screen renders: whether the save is in flight.
+///
+/// The lot to fill the form with and the saved result used to sit here behind
+/// a sealed task the view cleared. Both are handed over once — one fills the
+/// fields, the other flashes a confirmation — so both go on the event channel.
 @immutable
 class ProductLotEditState {
-  final ProductLotEditTask task;
+  final bool loading;
 
-  const ProductLotEditState({this.task = const ProductLotEditIdle()});
+  const ProductLotEditState({this.loading = false});
 
-  bool get loading => task.running;
-
-  String? get error => task.error;
-
-  ProductLot? get loaded => task.loaded;
-
-  ProductLot? get updated => task.updated;
-
-  ProductLotEditState copyWith({ProductLotEditTask? task}) {
-    return ProductLotEditState(task: task ?? this.task);
+  ProductLotEditState copyWith({bool? loading}) {
+    return ProductLotEditState(loading: loading ?? this.loading);
   }
 }

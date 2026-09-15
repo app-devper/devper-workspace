@@ -1,3 +1,5 @@
+import 'dart:async';
+
 // Flutter imports:
 import 'package:flutter/material.dart';
 
@@ -44,6 +46,9 @@ class _ProductLotEditPageState extends State<ProductLotEditPage> {
 
   late CustomSnackBar _snackBar;
   late ProductLotEditViewModel _viewModel;
+  late StreamSubscription<String> _errors;
+  late StreamSubscription<ProductLot> _loaded;
+  late StreamSubscription<ProductLot> _updated;
 
   bool _loadingShown = false;
 
@@ -52,9 +57,31 @@ class _ProductLotEditPageState extends State<ProductLotEditPage> {
     super.initState();
     _viewModel = sl<ProductLotEditViewModel>();
     _viewModel.state.addListener(_onStateChanged);
+    _errors = _viewModel.errors.listen(_showError);
+    _loaded = _viewModel.loaded.listen(_onLoaded);
+    _updated = _viewModel.updated.listen(_onUpdated);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _viewModel.getProductLot(widget.productLot);
     });
+  }
+
+  void _showError(String message) {
+    _snackBar.hideAll();
+    _snackBar.showErrorSnackBar(message);
+  }
+
+  void _onLoaded(ProductLot data) {
+    _nameEditingController.text = data.product?.name ?? "-";
+    _costPriceEditingController.text = data.costPrice.toString();
+    _quantityEditingController.text = data.quantity.toString();
+    _lotNumberEditingController.text = data.lotNumber;
+    _expireDateEditingController.text = data.getExpireDate();
+    FocusScope.of(context).requestFocus(_quantityNode);
+  }
+
+  void _onUpdated(ProductLot data) {
+    _snackBar.hideAll();
+    _snackBar.showSnackBar(text: "Update success");
   }
 
   void _onStateChanged() {
@@ -67,32 +94,14 @@ class _ProductLotEditPageState extends State<ProductLotEditPage> {
       _loadingShown = false;
       hideLoadingDialog(context);
     }
-    if (state.error != null) {
-      final message = state.error!;
-      _viewModel.consumeError();
-      _snackBar.hideAll();
-      _snackBar.showErrorSnackBar(message);
-    }
-    if (state.loaded != null) {
-      final data = state.loaded!;
-      _viewModel.consumeLoaded();
-      _nameEditingController.text = data.product?.name ?? "-";
-      _costPriceEditingController.text = data.costPrice.toString();
-      _quantityEditingController.text = data.quantity.toString();
-      _lotNumberEditingController.text = data.lotNumber;
-      _expireDateEditingController.text = data.getExpireDate();
-      FocusScope.of(context).requestFocus(_quantityNode);
-    }
-    if (state.updated != null) {
-      _viewModel.consumeUpdated();
-      _snackBar.hideAll();
-      _snackBar.showSnackBar(text: "Update success");
-    }
   }
 
   @override
   void dispose() {
     _viewModel.state.removeListener(_onStateChanged);
+    _errors.cancel();
+    _loaded.cancel();
+    _updated.cancel();
     _viewNode.dispose();
     _nameNode.dispose();
     _costPriceNode.dispose();

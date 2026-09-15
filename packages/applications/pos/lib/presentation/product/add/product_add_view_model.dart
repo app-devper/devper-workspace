@@ -1,10 +1,12 @@
 // Flutter imports:
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' hide Category;
 
 // Package imports:
 import 'package:common/core/error/failure.dart';
+import 'package:common/core/state/one_shot.dart';
 
 // Project imports:
+import 'package:pos/domain/model/product/product.dart';
 import 'package:pos/domain/model/product/param.dart';
 import 'package:pos/domain/usecase/category/get_local_categories_use_case.dart';
 import 'package:pos/domain/usecase/product/add_product_use_case.dart';
@@ -30,63 +32,60 @@ class ProductAddViewModel {
 
   final _state = ValueNotifier<ProductAddState>(const ProductAddState());
 
+  /// The product it created and the serial number it generated. Each is acted
+  /// on once and never drawn.
+  final _created = OneShot<Product>();
+  final _serialNumbers = OneShot<String>();
+  final _errors = OneShot<String>();
+
   ValueListenable<ProductAddState> get state => _state;
 
+  Stream<Product> get created => _created.stream;
+
+  Stream<String> get serialNumbers => _serialNumbers.stream;
+
+  Stream<String> get errors => _errors.stream;
+
   Future<void> getCategories() async {
-    _state.value = _state.value.copyWith(task: const ProductAddTask());
     try {
       final categories = await getLocalCategoriesUseCase();
       _state.value = _state.value.copyWith(categories: categories);
     } on Exception catch (e) {
-      _state.value =
-          _state.value.copyWith(task: ProductAddFailed(toFailure(e)));
+      _errors.emit(toFailure(e).getMessage());
     }
   }
 
   Future<void> generateSerialNumber() async {
-    _state.value = _state.value.copyWith(task: const ProductAddSaving());
+    if (_state.value.saving) return;
+    _state.value = _state.value.copyWith(saving: true);
     try {
-      final serialNumber = await generateSerialNumberUseCase();
-      _state.value =
-          _state.value.copyWith(task: ProductAddSerialNumber(serialNumber));
+      _serialNumbers.emit(await generateSerialNumberUseCase());
     } on Exception catch (e) {
-      _state.value =
-          _state.value.copyWith(task: ProductAddFailed(toFailure(e)));
+      _errors.emit(toFailure(e).getMessage());
+    } finally {
+      _state.value = _state.value.copyWith(saving: false);
     }
   }
 
   Future<void> addProduct(CreateProductParam param) async {
-    _state.value = _state.value.copyWith(task: const ProductAddSaving());
+    if (_state.value.saving) return;
+    _state.value = _state.value.copyWith(saving: true);
     try {
       final created = await addProductUseCase(param);
       await getProductUnitsByProductIdUseCase(created.id);
       await getProductPricesByProductIdUseCase(created.id);
-      _state.value = _state.value.copyWith(task: ProductCreated(created));
+      _created.emit(created);
     } on Exception catch (e) {
-      _state.value =
-          _state.value.copyWith(task: ProductAddFailed(toFailure(e)));
-    }
-  }
-
-  void consumeError() {
-    if (_state.value.task is ProductAddFailed) {
-      _state.value = _state.value.copyWith(task: const ProductAddTask());
-    }
-  }
-
-  void consumeCreated() {
-    if (_state.value.task is ProductCreated) {
-      _state.value = _state.value.copyWith(task: const ProductAddTask());
-    }
-  }
-
-  void consumeSerialNumber() {
-    if (_state.value.task is ProductAddSerialNumber) {
-      _state.value = _state.value.copyWith(task: const ProductAddTask());
+      _errors.emit(toFailure(e).getMessage());
+    } finally {
+      _state.value = _state.value.copyWith(saving: false);
     }
   }
 
   void dispose() {
     _state.dispose();
+    _created.dispose();
+    _serialNumbers.dispose();
+    _errors.dispose();
   }
 }

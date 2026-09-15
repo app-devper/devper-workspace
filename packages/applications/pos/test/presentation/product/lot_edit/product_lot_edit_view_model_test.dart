@@ -68,71 +68,87 @@ ProductLotEditViewModel buildViewModel(FakeProductRepository repo) {
 }
 
 void main() {
-  test('getProductLot puts the chosen lot on screen without a round trip',
-      () async {
+  test('getProductLot emits the chosen lot without a round trip', () async {
     final repo = FakeProductRepository();
     final viewModel = buildViewModel(repo);
+    final loaded = <ProductLot>[];
+    viewModel.loaded.listen(loaded.add);
 
     viewModel.getProductLot(lot('lot-1', quantity: 6));
+    await Future<void>.delayed(Duration.zero);
 
-    expect(viewModel.state.value.loaded?.id, 'lot-1');
-    expect(viewModel.state.value.loaded?.quantity, 6);
+    expect(loaded.single.id, 'lot-1');
+    expect(loaded.single.quantity, 6);
     expect(repo.calls, isEmpty);
   });
 
   test('updateProductLot writes the count then attaches the product', () async {
     final repo = FakeProductRepository(localProduct: product('p1', 'ยาแก้ไข้'));
     final viewModel = buildViewModel(repo);
+    final updated = <ProductLot>[];
+    viewModel.updated.listen(updated.add);
 
     await viewModel.updateProductLot(
         'lot-1', UpdateProductLotQuantityParam(quantity: 3));
+    await Future<void>.delayed(Duration.zero);
 
     // The product lookup has to follow the write: the screen shows the lot
     // with its product name once the count is saved.
     expect(repo.calls, ['quantity:lot-1=3', 'product:p1']);
-    expect(viewModel.state.value.updated?.quantity, 3);
-    expect(viewModel.state.value.updated?.product?.name, 'ยาแก้ไข้');
+    expect(updated.single.quantity, 3);
+    expect(updated.single.product?.name, 'ยาแก้ไข้');
     expect(viewModel.state.value.loading, isFalse);
   });
 
   test('zero is a legitimate count', () async {
     final repo = FakeProductRepository(localProduct: product('p1', 'ยาแก้ไข้'));
     final viewModel = buildViewModel(repo);
+    final updated = <ProductLot>[];
+    viewModel.updated.listen(updated.add);
 
     await viewModel.updateProductLot(
         'lot-1', UpdateProductLotQuantityParam(quantity: 0));
+    await Future<void>.delayed(Duration.zero);
 
-    expect(viewModel.state.value.updated?.quantity, 0);
+    expect(updated.single.quantity, 0);
   });
 
   test(
-      'a rejected write marks nothing as updated and never looks up the product',
+      'a rejected write emits nothing as updated and never looks up the product',
       () async {
     final repo = FakeProductRepository(
       throws: const ValidationException(message: 'invalid', code: 'VA-400'),
     );
     final viewModel = buildViewModel(repo);
+    final updated = <ProductLot>[];
+    final errors = <String>[];
+    viewModel.updated.listen(updated.add);
+    viewModel.errors.listen(errors.add);
 
     await viewModel.updateProductLot(
         'lot-1', UpdateProductLotQuantityParam(quantity: -5));
+    await Future<void>.delayed(Duration.zero);
 
     expect(repo.calls, ['quantity:lot-1=-5']);
-    expect(viewModel.state.value.updated, isNull);
-    expect(viewModel.state.value.error, isNotNull);
+    expect(updated, isEmpty);
+    expect(errors, hasLength(1));
   });
 
-  test('the one-shot results clear when consumed', () async {
+  test('the form lot and the saved lot arrive on their own channels', () async {
     final repo = FakeProductRepository(localProduct: product('p1', 'ยาแก้ไข้'));
     final viewModel = buildViewModel(repo);
+    final loaded = <ProductLot>[];
+    final updated = <ProductLot>[];
+    viewModel.loaded.listen(loaded.add);
+    viewModel.updated.listen(updated.add);
 
     viewModel.getProductLot(lot('lot-1'));
     await viewModel.updateProductLot(
         'lot-1', UpdateProductLotQuantityParam(quantity: 2));
+    await Future<void>.delayed(Duration.zero);
 
-    viewModel.consumeLoaded();
-    viewModel.consumeUpdated();
-
-    expect(viewModel.state.value.loaded, isNull);
-    expect(viewModel.state.value.updated, isNull);
+    expect(loaded, hasLength(1));
+    expect(updated, hasLength(1),
+        reason: 'opening the form and saving it are different events');
   });
 }
