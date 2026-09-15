@@ -61,10 +61,6 @@ void main() {
     await vm.getRole();
 
     expect(vm.state.value.isAdmin, isTrue);
-
-    vm.consumeIsAdmin();
-
-    expect(vm.state.value.isAdmin, isNull);
   });
 
   test('getRole sets isAdmin false for USER', () async {
@@ -79,20 +75,30 @@ void main() {
     expect(vm.state.value.isAdmin, isFalse);
   });
 
-  test('logout sets loggedOut even when the repository fails', () async {
+  test('the menu assumes the smaller role until the answer arrives', () {
+    final vm = HomeViewModel(
+      getRoleUseCase: GetRoleUseCase(FakeLoginRepository(role: 'ADMIN')),
+      logoutUseCase: LogoutUseCase(FakeLoginRepository()),
+    );
+
+    expect(vm.state.value.isAdmin, isFalse,
+        reason: 'it used to be null, which the view had to special-case');
+  });
+
+  test('logout signals once, even when the repository fails', () async {
     final repo = FakeLoginRepository(logoutThrows: true);
     final vm = HomeViewModel(
       getRoleUseCase: GetRoleUseCase(repo),
       logoutUseCase: LogoutUseCase(repo),
     );
+    var signals = 0;
+    vm.loggedOut.listen((_) => signals++);
 
     await vm.logout();
+    await Future<void>.delayed(Duration.zero);
 
     expect(repo.logoutCalls, 1);
-    expect(vm.state.value.loggedOut, isTrue);
-
-    vm.consumeLoggedOut();
-
-    expect(vm.state.value.loggedOut, isFalse);
+    expect(signals, 1,
+        reason: 'the session ends locally whether or not the server agreed');
   });
 }
