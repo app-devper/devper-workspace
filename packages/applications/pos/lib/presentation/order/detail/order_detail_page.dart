@@ -1,3 +1,5 @@
+import 'dart:async';
+
 // Flutter imports:
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -28,6 +30,7 @@ import 'package:pos/presentation/order/return/product_returns_history_widget.dar
 import 'package:pos/presentation/product/argument.dart';
 import 'package:design_system/theme/app_colors.dart';
 import 'package:design_system/theme/color.dart';
+import 'order_detail_state.dart';
 import 'order_detail_view_model.dart';
 
 class OrderDetailPage extends StatefulWidget {
@@ -63,11 +66,19 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
 
   bool _loadingShown = false;
 
+  final _subscriptions = <StreamSubscription<void>>[];
+
   @override
   void initState() {
     super.initState();
     _viewModel = sl<OrderDetailViewModel>();
     _viewModel.state.addListener(_onStateChanged);
+    _subscriptions.addAll([
+      _viewModel.errors.listen(_showError),
+      _viewModel.removals.listen(_onOrderRemoved),
+      _viewModel.receipts.listen(_onReceiptReady),
+      _viewModel.supplierSetups.listen(_onSupplierSetupNeeded),
+    ]);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _viewModel.checkLogin();
       _viewModel.getOrderById(widget.orderId);
@@ -84,53 +95,36 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
       _loadingShown = false;
       _snackBar.hideAll();
     }
-    if (state.error != null) {
-      final message = state.error!;
-      _viewModel.consumeError();
-      _snackBar.hideAll();
-      _snackBar.showErrorSnackBar(message);
-    }
-    if (state.logged != null) {
-      final value = state.logged!;
-      _viewModel.consumeLogged();
-      setState(() {
-        isAdmin = value;
-      });
-    }
-    if (state.loaded != null) {
-      final data = state.loaded!;
-      _viewModel.consumeLoaded();
-      setState(() {
-        order = data;
-        orderItem = data.items;
-      });
-    }
-    if (state.removedOrder != null) {
-      final data = state.removedOrder!;
-      _viewModel.consumeRemovedOrder();
-      Navigator.pop(context, data);
-    }
-    if (state.removedItem != null) {
-      _viewModel.consumeRemovedItem();
-      _viewModel.getOrderById(widget.orderId);
-    }
-    if (state.totalCostUpdated) {
-      _viewModel.consumeTotalCostUpdated();
-      _viewModel.getOrderById(widget.orderId);
-    }
-    if (state.supplierResult != null) {
-      final result = state.supplierResult!;
-      _viewModel.consumeSupplierResult();
-      _showCustomerDialog(result.supplier, result.customer);
-    }
-    if (state.supplierError != null) {
-      _viewModel.consumeSupplierError();
-      _nextToSupplier(context);
-    }
+    setState(() {
+      order = state.order;
+      orderItem = state.items;
+      isAdmin = state.isAdmin;
+    });
+  }
+
+  void _showError(String message) {
+    _snackBar.hideAll();
+    _snackBar.showErrorSnackBar(message);
+  }
+
+  void _onOrderRemoved(OrderDetail removed) {
+    Navigator.pop(context, removed);
+  }
+
+  void _onReceiptReady(SupplierResult result) {
+    _showCustomerDialog(result.supplier, result.customer);
+  }
+
+  void _onSupplierSetupNeeded(void _) {
+    if (!mounted) return;
+    _nextToSupplier(context);
   }
 
   @override
   void dispose() {
+    for (final subscription in _subscriptions) {
+      subscription.cancel();
+    }
     _viewModel.state.removeListener(_onStateChanged);
     _viewModel.dispose();
 
@@ -171,7 +165,10 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
         IconButton(
           splashRadius: 20,
           onPressed: () {
-            _viewModel.updateTotalCost();
+            // The sync button refetches. It used to set a "total cost updated"
+            // flag in state that this page read back and turned into exactly
+            // this call.
+            _viewModel.getOrderById(widget.orderId);
           },
           icon: const Icon(Icons.sync),
         ),
@@ -277,9 +274,12 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
       children: <Widget>[
         Text('${content.quantity}'),
         if (content.oversoldQty > 0)
-          StatusBadge(label: 'เกิน ${content.oversoldQty}', color: Colors.orange),
+          StatusBadge(
+              label: 'เกิน ${content.oversoldQty}', color: Colors.orange),
         if (content.returnedQty > 0)
-          StatusBadge(label: 'คืน ${content.returnedQty}', color: AppColors.of(context).textSecondary),
+          StatusBadge(
+              label: 'คืน ${content.returnedQty}',
+              color: AppColors.of(context).textSecondary),
       ],
     );
   }
@@ -404,13 +404,15 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
     });
   }
 
-  void _showRemoveOrderItemConfirm(BuildContext context, OrderItemDetail orderItem) {
+  void _showRemoveOrderItemConfirm(
+      BuildContext context, OrderItemDetail orderItem) {
     showConfirmDialog(context, "ต้องการลบสินค้าใช่หรือไม่?", () {
-      _viewModel.removeOrderItem(orderItem.id);
+      _viewModel.removeOrderItem(widget.orderId, orderItem.id);
     });
   }
 
-  Future<void> _nextToProductEdit(BuildContext context, Product? product) async {
+  Future<void> _nextToProductEdit(
+      BuildContext context, Product? product) async {
     if (product != null) {
       var result = await Navigator.pushNamed(context, productEditRoute,
           arguments: ProductArgument(product));
@@ -420,7 +422,8 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
     }
   }
 
-  Future<void> _nextToOrderHistory(BuildContext context, Product? product) async {
+  Future<void> _nextToOrderHistory(
+      BuildContext context, Product? product) async {
     if (product != null) {
       var result = await Navigator.pushNamed(context, orderHistoryRoute,
           arguments: OrderHistoryArgument(product));
@@ -453,7 +456,8 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
   void _showProductReturnsHistoryDialog(BuildContext context) {
     showCenterDialog(
       context: context,
-      builder: (context) => ProductReturnsHistoryWidget(orderId: widget.orderId),
+      builder: (context) =>
+          ProductReturnsHistoryWidget(orderId: widget.orderId),
     );
   }
 
