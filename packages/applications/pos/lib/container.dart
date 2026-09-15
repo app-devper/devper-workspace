@@ -233,10 +233,8 @@ Future<void> initPos() async {
   sl.registerFactory(
     () => ProductEditViewModel(
       getLocalProductByIdUseCase: sl(),
-      getLocalCategoriesUseCase: sl(),
       updateProductByIdUseCase: sl(),
       removeProductByIdUseCase: sl(),
-      generateSerialNumberUseCase: sl(),
     ),
   );
   sl.registerFactory(
