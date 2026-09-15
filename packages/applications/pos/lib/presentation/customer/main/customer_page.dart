@@ -1,8 +1,11 @@
+import 'dart:async';
+
 // Flutter imports:
 import 'package:flutter/material.dart';
 import 'package:design_system/theme/app_colors.dart';
 
 // Package imports:
+import 'package:common/core/ext/widget_ext.dart';
 import 'package:design_system/widgets/responsive.dart';
 
 // Project imports:
@@ -26,28 +29,34 @@ class CustomerPage extends StatefulWidget {
 
 class _CustomerPageState extends State<CustomerPage> {
   late CustomerViewModel _viewModel;
+  late StreamSubscription<Customer> _loaded;
+  late StreamSubscription<String> _errors;
   PageState _pageState = MainPage();
 
   @override
   void initState() {
     super.initState();
     _viewModel = sl<CustomerViewModel>();
-    _viewModel.state.addListener(_onStateChanged);
+    _loaded = _viewModel.loaded.listen(_onLoaded);
+    _errors = _viewModel.errors.listen(_showError);
   }
 
-  void _onStateChanged() {
-    final loaded = _viewModel.state.value.loaded;
-    if (loaded != null) {
-      setState(() {
-        _pageState = InfoPage(data: loaded);
-      });
-      _viewModel.consumeLoaded();
-    }
+  void _onLoaded(Customer customer) {
+    setState(() {
+      _pageState = InfoPage(data: customer);
+    });
+  }
+
+  /// The failure used to go nowhere: the panel simply did not change, so a
+  /// lookup that could not reach the server looked like nothing happened.
+  void _showError(String message) {
+    showAlertDialog(context, message, () {});
   }
 
   @override
   void dispose() {
-    _viewModel.state.removeListener(_onStateChanged);
+    _loaded.cancel();
+    _errors.cancel();
     _viewModel.dispose();
     super.dispose();
   }
