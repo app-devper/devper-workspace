@@ -1,37 +1,18 @@
-import 'package:common/core/error/failure.dart';
-import 'package:pos/domain/model/product_return/product_return.dart';
+// Flutter imports:
+import 'package:flutter/foundation.dart';
 
-/// The mutually exclusive states of this screen's submit flow.
-sealed class ProductReturnState {
-  const ProductReturnState._();
-  const factory ProductReturnState() = ProductReturnIdle;
+/// What this screen renders: whether the submit is in flight.
+///
+/// The whole state used to be a sealed flow carrying the outcome, which the
+/// view cleared once it had acted. The outcome closes the sheet and hands the
+/// record back — nothing draws it — so it goes on the event channel.
+@immutable
+class ProductReturnState {
+  final bool loading;
 
-  // Derived UI projections; no independently writable boolean flags.
-  bool get loading => this is ProductReturnSubmitting;
-  String? get error => switch (this) {
-        ProductReturnFailed(:final failure) => failure.getMessage(),
-        _ => null,
-      };
-  ProductReturn? get created => switch (this) {
-        ProductReturnSucceeded(:final result) => result,
-        _ => null,
-      };
-}
+  const ProductReturnState({this.loading = false});
 
-final class ProductReturnIdle extends ProductReturnState {
-  const ProductReturnIdle() : super._();
-}
-
-final class ProductReturnSubmitting extends ProductReturnState {
-  const ProductReturnSubmitting() : super._();
-}
-
-final class ProductReturnSucceeded extends ProductReturnState {
-  final ProductReturn result;
-  const ProductReturnSucceeded(this.result) : super._();
-}
-
-final class ProductReturnFailed extends ProductReturnState {
-  final Failure failure;
-  const ProductReturnFailed(this.failure) : super._();
+  ProductReturnState copyWith({bool? loading}) {
+    return ProductReturnState(loading: loading ?? this.loading);
+  }
 }

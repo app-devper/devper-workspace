@@ -1,3 +1,5 @@
+import 'dart:async';
+
 // Flutter imports:
 import 'package:flutter/material.dart';
 import 'package:design_system/theme/app_colors.dart';
@@ -9,6 +11,7 @@ import 'package:design_system/widgets/title_bar.dart';
 
 // Project imports:
 import 'package:pos/container.dart';
+import 'package:pos/domain/model/product_return/product_return.dart';
 import 'package:pos/domain/model/product_return/param.dart';
 import 'package:pos/presentation/core/core_widget.dart';
 import 'package:pos/presentation/order/return/product_return_view_model.dart';
@@ -44,11 +47,15 @@ class _ProductReturnWidgetState extends State<ProductReturnWidget> {
   final _reasonController = TextEditingController();
 
   late ProductReturnViewModel _viewModel;
+  late StreamSubscription<String> _errors;
+  late StreamSubscription<ProductReturn> _created;
 
   @override
   void initState() {
     _viewModel = sl<ProductReturnViewModel>();
     _viewModel.state.addListener(_onStateChanged);
+    _errors = _viewModel.errors.listen(_showError);
+    _created = _viewModel.created.listen(_onCreated);
     _quantityController.text = widget.maxReturnable.toString();
     _refundController.text = (widget.price * widget.maxReturnable).toStringAsFixed(2);
     _quantityController.addListener(_onQuantityChanged);
@@ -60,6 +67,15 @@ class _ProductReturnWidgetState extends State<ProductReturnWidget> {
     _refundController.text = (widget.price * quantity).toStringAsFixed(2);
   }
 
+  void _showError(String message) {
+    showAlertDialog(context, message, () {});
+  }
+
+  void _onCreated(ProductReturn created) {
+    Navigator.of(context).pop();
+    widget.onComplete();
+  }
+
   void _onStateChanged() {
     final state = _viewModel.state.value;
     if (state.loading && !_loadingShown) {
@@ -69,21 +85,13 @@ class _ProductReturnWidgetState extends State<ProductReturnWidget> {
       _loadingShown = false;
       hideLoadingDialog(context);
     }
-    if (state.error != null) {
-      final message = state.error!;
-      _viewModel.consumeError();
-      showAlertDialog(context, message, () {});
-    }
-    if (state.created != null) {
-      _viewModel.consumeCreated();
-      Navigator.of(context).pop();
-      widget.onComplete();
-    }
   }
 
   @override
   void dispose() {
     _viewModel.state.removeListener(_onStateChanged);
+    _errors.cancel();
+    _created.cancel();
     _quantityController.removeListener(_onQuantityChanged);
     _quantityController.dispose();
     _refundController.dispose();

@@ -122,17 +122,18 @@ void main() {
         ],
       );
 
+      final created = <ProductReturn>[];
+      vm.created.listen(created.add);
+
       await vm.createProductReturn(param);
+      await Future<void>.delayed(Duration.zero);
 
       expect(vm.state.value.loading, isFalse);
-      expect(vm.state.value.created?.id, 'return-1');
+      expect(created.single.id, 'return-1');
       expect(repository.createParam?.items.single.quantity, 2);
-
-      vm.consumeCreated();
-      expect(vm.state.value.created, isNull);
     });
 
-    test('createProductReturn maps a typed exception to state.error', () async {
+    test('a failed return emits an error and no result', () async {
       final vm = ProductReturnViewModel(
         createProductReturnUseCase: CreateProductReturnUseCase(
           productReturnRepo: FakeProductReturnRepository(
@@ -141,6 +142,11 @@ void main() {
         ),
       );
 
+      final created = <ProductReturn>[];
+      final errors = <String>[];
+      vm.created.listen(created.add);
+      vm.errors.listen(errors.add);
+
       await vm.createProductReturn(
         CreateProductReturnParam(
           orderId: 'order-1',
@@ -148,12 +154,11 @@ void main() {
           items: const [],
         ),
       );
+      await Future<void>.delayed(Duration.zero);
 
       expect(vm.state.value.loading, isFalse);
-      expect(vm.state.value.created, isNull);
-      expect(vm.state.value.error, isNotNull);
-
-      vm.consumeError();
+      expect(created, isEmpty);
+      expect(errors, hasLength(1));
     });
   });
 
@@ -173,18 +178,19 @@ void main() {
         delta: -2,
       );
 
+      final created = <StockAdjustment>[];
+      vm.created.listen(created.add);
+
       await vm.createStockAdjustment(param);
+      await Future<void>.delayed(Duration.zero);
 
       expect(vm.state.value.loading, isFalse);
-      expect(vm.state.value.created?.after, 8);
+      expect(created.single.after, 8);
       expect(repository.createParam?.delta, -2);
-
-      vm.consumeCreated();
-      expect(vm.state.value.created, isNull);
     });
 
     test(
-      'createStockAdjustment maps a typed exception to state.error',
+      'a failed adjustment emits an error and no result',
       () async {
         final vm = StockAdjustmentViewModel(
           createStockAdjustmentUseCase: CreateStockAdjustmentUseCase(
@@ -193,6 +199,11 @@ void main() {
             ),
           ),
         );
+
+        final created = <StockAdjustment>[];
+        final errors = <String>[];
+        vm.created.listen(created.add);
+        vm.errors.listen(errors.add);
 
         await vm.createStockAdjustment(
           CreateStockAdjustmentParam(
@@ -203,12 +214,11 @@ void main() {
             delta: -2,
           ),
         );
+        await Future<void>.delayed(Duration.zero);
 
         expect(vm.state.value.loading, isFalse);
-        expect(vm.state.value.created, isNull);
-        expect(vm.state.value.error, isNotNull);
-
-        vm.consumeError();
+        expect(created, isEmpty);
+        expect(errors, hasLength(1));
       },
     );
   });

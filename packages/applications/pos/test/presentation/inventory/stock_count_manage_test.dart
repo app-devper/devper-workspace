@@ -27,28 +27,37 @@ void main() {
     vm = StockCountManageViewModel(createStockCountUseCase: CreateStockCountUseCase(stockCountRepo: repo), getStockCountByIdUseCase: GetStockCountByIdUseCase(stockCountRepo: repo));
   });
   tearDown(() => vm.dispose());
-  test('duplicate lot is rejected and original quantity preserved', () {
+  test('duplicate lot is rejected and original quantity preserved', () async {
+    final errors = <String>[];
+    vm.errors.listen(errors.add);
     vm.addItem(item(5)); vm.addItem(item(2));
+    await Future<void>.delayed(Duration.zero);
     expect(vm.state.value.items, hasLength(1));
     expect(vm.state.value.items.single.counted, 5);
-    expect(vm.state.value.error, isNotNull);
+    expect(errors, hasLength(1));
   });
   test('empty and invalid count never reach the API', () async {
+    final errors = <String>[];
+    vm.errors.listen(errors.add);
     await vm.createStockCount('');
     vm.addItem(item(-1));
     await vm.createStockCount('');
+    await Future<void>.delayed(Duration.zero);
     expect(repo.calls, 0);
-    expect(vm.state.value.error, isNotNull);
+    expect(errors, hasLength(2));
   });
   // Invalidating the product cache moved to StockCountRepositoryImpl, where it
   // belongs; cache_invalidation_test covers it. This is about the submit.
   test('zero is valid and a pending submit is single', () async {
+    final created = <StockCount>[];
+    vm.created.listen(created.add);
     vm.addItem(item(0));
     final request = vm.createStockCount('');
     await vm.createStockCount('');
     expect(repo.calls, 1);
     repo.pending.complete(StockCount(id: 'c1', countNo: 'SC1', note: '', items: [], createdDate: '2026-09-07'));
     await request;
-    expect(vm.state.value.created?.id, 'c1');
+    await Future<void>.delayed(Duration.zero);
+    expect(created.single.id, 'c1');
   });
 }

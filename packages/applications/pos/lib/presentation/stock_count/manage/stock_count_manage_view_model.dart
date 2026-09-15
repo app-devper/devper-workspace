@@ -3,9 +3,11 @@ import 'package:flutter/foundation.dart';
 
 // Package imports:
 import 'package:common/core/error/failure.dart';
+import 'package:common/core/state/one_shot.dart';
 
 // Project imports:
 import 'package:pos/domain/model/stock_count/param.dart';
+import 'package:pos/domain/model/stock_count/stock_count.dart';
 import 'package:pos/domain/usecase/stock_count/create_stock_count_use_case.dart';
 import 'package:pos/domain/usecase/stock_count/get_stock_count_by_id_use_case.dart';
 import 'package:pos/presentation/stock_count/manage/stock_count_manage_state.dart';
@@ -22,29 +24,36 @@ class StockCountManageViewModel {
   final _state =
       ValueNotifier<StockCountManageState>(const StockCountManageState());
 
+  /// A finished count closes the screen; a rejected edit flashes a message.
+  /// Neither is drawn, so neither sits in state waiting to be cleared.
+  final _created = OneShot<StockCount>();
+  final _errors = OneShot<String>();
+
   ValueListenable<StockCountManageState> get state => _state;
+
+  Stream<StockCount> get created => _created.stream;
+
+  Stream<String> get errors => _errors.stream;
 
   Future<void> getStockCountById(String? stockCountId) async {
     if (stockCountId == null) {
       return;
     }
-    _state.value = _state.value.copyWith(task: const StockCountManageRunning());
+    _state.value = _state.value.copyWith(loading: true);
     try {
       final stockCount = await getStockCountByIdUseCase(stockCountId);
-      _state.value = _state.value
-          .copyWith(task: const StockCountManageTask(), stockCount: stockCount);
+      _state.value = _state.value.copyWith(stockCount: stockCount);
     } on Exception catch (e) {
-      _state.value =
-          _state.value.copyWith(task: StockCountManageFailed(toFailure(e)));
+      _errors.emit(toFailure(e).getMessage());
+    } finally {
+      _state.value = _state.value.copyWith(loading: false);
     }
   }
 
   void addItem(StockCountItemParam item) {
     if (_state.value.items
         .any((existing) => existing.stockId == item.stockId)) {
-      _state.value = _state.value.copyWith(
-          task:
-              const StockCountManageRejected("ล็อตนี้อยู่ในรายการตรวจนับแล้ว"));
+      _errors.emit("ล็อตนี้อยู่ในรายการตรวจนับแล้ว");
       return;
     }
     final items = List<StockCountItemParam>.of(_state.value.items)..add(item);
@@ -75,38 +84,25 @@ class StockCountManageViewModel {
     if (_state.value.loading) return;
     if (_state.value.items.isEmpty ||
         _state.value.items.any((item) => item.counted < 0)) {
-      _state.value = _state.value.copyWith(
-          task: const StockCountManageRejected(
-              "โปรดระบุจำนวนตรวจนับเป็นจำนวนเต็มตั้งแต่ 0 ทุกรายการ"));
+      _errors.emit("โปรดระบุจำนวนตรวจนับเป็นจำนวนเต็มตั้งแต่ 0 ทุกรายการ");
       return;
     }
-    _state.value = _state.value.copyWith(task: const StockCountManageRunning());
+    _state.value = _state.value.copyWith(loading: true);
     try {
       final created = await createStockCountUseCase(
         CreateStockCountParam(note: note, items: _state.value.items),
       );
-      _state.value =
-          _state.value.copyWith(task: StockCountManageCreated(created));
+      _created.emit(created);
     } on Exception catch (e) {
-      _state.value =
-          _state.value.copyWith(task: StockCountManageFailed(toFailure(e)));
-    }
-  }
-
-  void consumeError() {
-    if (_state.value.task is StockCountManageFailed ||
-        _state.value.task is StockCountManageRejected) {
-      _state.value = _state.value.copyWith(task: const StockCountManageTask());
-    }
-  }
-
-  void consumeCreated() {
-    if (_state.value.task is StockCountManageCreated) {
-      _state.value = _state.value.copyWith(task: const StockCountManageTask());
+      _errors.emit(toFailure(e).getMessage());
+    } finally {
+      _state.value = _state.value.copyWith(loading: false);
     }
   }
 
   void dispose() {
     _state.dispose();
+    _created.dispose();
+    _errors.dispose();
   }
 }
