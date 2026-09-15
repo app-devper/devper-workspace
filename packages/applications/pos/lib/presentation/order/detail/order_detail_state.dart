@@ -1,15 +1,13 @@
 // Flutter imports:
 import 'package:flutter/foundation.dart';
 
-// Package imports:
-import 'package:common/core/error/failure.dart';
-
 // Project imports:
 import 'package:pos/domain/model/customer/customer.dart';
 import 'package:pos/domain/model/order/order_detail.dart';
 import 'package:pos/domain/model/order/order_item_detail.dart';
 import 'package:pos/domain/model/supplier/supplier.dart';
 
+/// The shop's own details plus the customer to print at the top of a receipt.
 @immutable
 class SupplierResult {
   final Supplier supplier;
@@ -21,143 +19,40 @@ class SupplierResult {
   });
 }
 
-/// The order document's command family: loading it, deleting it, and deleting
-/// one of its items.
+/// What this screen renders: the order document and whether the user is an
+/// admin, plus whether a request is in flight.
 ///
-/// The three produce different results and never coexist, so they share one
-/// slot rather than three nullable fields that could all be set at once.
-sealed class OrderTask {
-  const OrderTask._();
-  const factory OrderTask() = OrderTaskIdle;
-
-  // Derived UI projections; no independently writable flags.
-  bool get running => this is OrderTaskRunning;
-  String? get error => switch (this) {
-        OrderTaskFailed(:final failure) => failure.getMessage(),
-        _ => null,
-      };
-  OrderDetail? get loaded => switch (this) {
-        OrderLoaded(:final order) => order,
-        _ => null,
-      };
-  OrderDetail? get removedOrder => switch (this) {
-        OrderRemoved(:final order) => order,
-        _ => null,
-      };
-  OrderItemDetail? get removedItem => switch (this) {
-        OrderItemRemoved(:final item) => item,
-        _ => null,
-      };
-}
-
-final class OrderTaskIdle extends OrderTask {
-  const OrderTaskIdle() : super._();
-}
-
-final class OrderTaskRunning extends OrderTask {
-  const OrderTaskRunning() : super._();
-}
-
-final class OrderLoaded extends OrderTask {
-  final OrderDetail order;
-  const OrderLoaded(this.order) : super._();
-}
-
-final class OrderRemoved extends OrderTask {
-  final OrderDetail order;
-  const OrderRemoved(this.order) : super._();
-}
-
-final class OrderItemRemoved extends OrderTask {
-  final OrderItemDetail item;
-  const OrderItemRemoved(this.item) : super._();
-}
-
-/// The screen's one error channel. The role probe reports here too, as it did
-/// before this was a sealed type.
-final class OrderTaskFailed extends OrderTask {
-  final Failure failure;
-  const OrderTaskFailed(this.failure) : super._();
-}
-
-/// Looking up the shop's supplier profile before printing a receipt.
-///
-/// A missing profile is not a failure to report — the screen sends the user to
-/// set one up — so the variant says that rather than hiding it in an "error".
-sealed class SupplierLookup {
-  const SupplierLookup._();
-  const factory SupplierLookup() = SupplierLookupIdle;
-
-  SupplierResult? get result => switch (this) {
-        SupplierFound(:final profile) => profile,
-        _ => null,
-      };
-  String? get error => switch (this) {
-        SupplierNotConfigured(:final failure) => failure.getMessage(),
-        _ => null,
-      };
-}
-
-final class SupplierLookupIdle extends SupplierLookup {
-  const SupplierLookupIdle() : super._();
-}
-
-final class SupplierFound extends SupplierLookup {
-  final SupplierResult profile;
-  const SupplierFound(this.profile) : super._();
-}
-
-final class SupplierNotConfigured extends SupplierLookup {
-  final Failure failure;
-  const SupplierNotConfigured(this.failure) : super._();
-}
-
+/// It used to carry six more things — the role answer, an error, the deleted
+/// order, the deleted item, a "total cost updated" flag and the supplier
+/// lookup's two outcomes — each parked here and cleared by a `consume*()` the
+/// page had to remember to call. None of them was ever drawn. They were an
+/// error to show, a screen to pop, and a dialog to open, so they are on the
+/// channel now.
 @immutable
 class OrderDetailState {
-  final OrderTask task;
-  final SupplierLookup supplier;
-
-  /// A one-shot delivery of the role probe's answer, and a one-shot request to
-  /// reload after the total cost was recalculated. Neither is a command flag.
-  final bool? logged;
-  final bool totalCostUpdated;
+  final bool loading;
+  final OrderDetail? order;
+  final bool isAdmin;
 
   const OrderDetailState({
-    this.task = const OrderTaskIdle(),
-    this.supplier = const SupplierLookupIdle(),
-    this.logged,
-    this.totalCostUpdated = false,
+    this.loading = false,
+    this.order,
+    this.isAdmin = false,
   });
 
-  bool get loading => task.running;
-
-  String? get error => task.error;
-
-  OrderDetail? get loaded => task.loaded;
-
-  OrderDetail? get removedOrder => task.removedOrder;
-
-  OrderItemDetail? get removedItem => task.removedItem;
-
-  SupplierResult? get supplierResult => supplier.result;
-
-  String? get supplierError => supplier.error;
+  /// The lines to list. An order that has not arrived yet has none, which is
+  /// what the list renders before the first load finishes.
+  List<OrderItemDetail> get items => order?.items ?? const [];
 
   OrderDetailState copyWith({
-    OrderTask? task,
-    SupplierLookup? supplier,
-    bool? logged,
-    bool? totalCostUpdated,
-    bool clearLogged = false,
-    bool clearTotalCostUpdated = false,
+    bool? loading,
+    OrderDetail? order,
+    bool? isAdmin,
   }) {
     return OrderDetailState(
-      task: task ?? this.task,
-      supplier: supplier ?? this.supplier,
-      logged: clearLogged ? null : (logged ?? this.logged),
-      totalCostUpdated: clearTotalCostUpdated
-          ? false
-          : (totalCostUpdated ?? this.totalCostUpdated),
+      loading: loading ?? this.loading,
+      order: order ?? this.order,
+      isAdmin: isAdmin ?? this.isAdmin,
     );
   }
 }
