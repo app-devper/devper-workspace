@@ -19,7 +19,6 @@ import 'package:pos/domain/usecase/product/remove_product_by_id_use_case.dart';
 import 'package:pos/domain/usecase/product/update_product_by_id_use_case.dart';
 import 'package:pos/presentation/product/add/product_add_view_model.dart';
 import 'package:pos/presentation/product/edit/product_edit_state.dart';
-import 'package:pos/presentation/product/main/product_state.dart';
 import 'package:pos/presentation/product/edit/product_edit_view_model.dart';
 import 'package:pos/presentation/product/main/product_view_model.dart';
 
@@ -291,11 +290,16 @@ void main() {
   group('ProductViewModel', () {
     test('getProduct reports a missing local product', () async {
       final vm = buildProductViewModel(FakeProductRepository());
+      final loaded = <Product>[];
+      final errors = <String>[];
+      vm.loaded.listen(loaded.add);
+      vm.errors.listen(errors.add);
 
       await vm.getProduct('missing');
+      await Future<void>.delayed(Duration.zero);
 
-      expect(vm.state.value.loaded, isNull);
-      expect(vm.state.value.error, isNotNull);
+      expect(loaded, isEmpty);
+      expect(errors, hasLength(1));
     });
 
     test('importCSV exposes the import summary', () async {
@@ -303,24 +307,33 @@ void main() {
         FakeProductRepository(product: buildProduct()),
       );
 
+      final results = <CSVImportResult>[];
+      vm.importResults.listen(results.add);
+
       await vm.importCSV(bytes: [1, 2, 3], filename: 'products.csv');
+      await Future<void>.delayed(Duration.zero);
 
       expect(vm.state.value.loading, isFalse);
-      expect(vm.state.value.importResult?.success, 1);
+      expect(results.single.success, 1);
     });
 
-    test('importCSV maps a typed exception to state.error', () async {
+    test('a failed import emits an error and no summary', () async {
       final vm = buildProductViewModel(
         FakeProductRepository(
           error: const NetworkException(message: 'offline'),
         ),
       );
+      final results = <CSVImportResult>[];
+      final errors = <String>[];
+      vm.importResults.listen(results.add);
+      vm.errors.listen(errors.add);
 
       await vm.importCSV(bytes: [1], filename: 'products.csv');
+      await Future<void>.delayed(Duration.zero);
 
       expect(vm.state.value.loading, isFalse);
-      expect(vm.state.value.importResult, isNull);
-      expect(vm.state.value.error, isNotNull);
+      expect(results, isEmpty);
+      expect(errors, hasLength(1));
     });
   });
 
@@ -369,18 +382,21 @@ void main() {
       expect(vm.state.value.loaded, isNull);
     });
 
-    test('an import result does not linger past the next lookup', () async {
+    test('an import and a lookup each reach the view', () async {
       final vm =
           buildProductViewModel(FakeProductRepository(product: buildProduct()));
+      final results = <CSVImportResult>[];
+      final loaded = <Product>[];
+      vm.importResults.listen(results.add);
+      vm.loaded.listen(loaded.add);
 
       await vm.importCSV(bytes: const [1], filename: 'p.csv');
-      expect(vm.state.value.importResult, isNotNull);
-
       await vm.getProduct('p1');
+      await Future<void>.delayed(Duration.zero);
 
-      expect(vm.state.value.loaded, isNotNull);
-      expect(vm.state.value.importResult, isNull);
-      expect(vm.state.value.task, isA<ProductFound>());
+      expect(results, hasLength(1));
+      expect(loaded, hasLength(1),
+          reason: 'one slot used to mean the lookup erased the import summary');
     });
   });
 }

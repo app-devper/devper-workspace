@@ -1,3 +1,5 @@
+import 'dart:async';
+
 // Flutter imports:
 import 'package:flutter/material.dart';
 
@@ -29,6 +31,7 @@ class _HomePageState extends State<HomePage> {
   final _viewNode = FocusNode();
 
   late HomeViewModel _viewModel;
+  late StreamSubscription<void> _loggedOut;
 
   MenuEvent _menuEvent = MenuEvent.home;
   bool _isAdmin = false;
@@ -38,25 +41,22 @@ class _HomePageState extends State<HomePage> {
     super.initState();
     _viewModel = sl<HomeViewModel>();
     _viewModel.state.addListener(_onStateChanged);
+    _loggedOut = _viewModel.loggedOut.listen(_onLoggedOut);
     _viewModel.prepareData();
   }
 
   void _onStateChanged() {
-    final state = _viewModel.state.value;
-    if (state.isAdmin != null) {
-      final isAdmin = state.isAdmin!;
-      _viewModel.consumeIsAdmin();
-      setState(() => _isAdmin = isAdmin);
-    }
-    if (state.loggedOut) {
-      _viewModel.consumeLoggedOut();
-      if (mounted) Navigator.popAndPushNamed(context, routeLogin);
-    }
+    setState(() => _isAdmin = _viewModel.state.value.isAdmin);
+  }
+
+  void _onLoggedOut(void _) {
+    if (mounted) Navigator.popAndPushNamed(context, routeLogin);
   }
 
   @override
   void dispose() {
     _viewModel.state.removeListener(_onStateChanged);
+    _loggedOut.cancel();
     _viewModel.dispose();
     _viewNode.dispose();
     super.dispose();
