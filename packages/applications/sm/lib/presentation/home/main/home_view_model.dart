@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 
 // Package imports:
 import 'package:common/core/error/failure.dart';
+import 'package:common/core/state/one_shot.dart';
 import 'package:um/domain/usecase/auth_use_cases.dart';
 
 // Project imports:
@@ -31,8 +32,17 @@ class HomeViewModel {
   });
 
   final _state = ValueNotifier<HomeState>(const HomeState());
+  final _errors = OneShot<String>();
+  final _loggedOut = OneShot<void>();
 
   ValueListenable<HomeState> get state => _state;
+
+  Stream<String> get errors => _errors.stream;
+
+  /// The session is over; the screen leaves for the login page. This used to
+  /// be a flag nothing ever cleared, so every later notification would have
+  /// pushed the login route again.
+  Stream<void> get loggedOut => _loggedOut.stream;
 
   Future<void> loadRole() async {
     try {
@@ -43,46 +53,46 @@ class HomeViewModel {
   }
 
   Future<void> getSystems() async {
-    _state.value = _state.value.copyWith(loading: true, clearError: true);
+    _state.value = _state.value.copyWith(loading: true);
     try {
       final items = await getSystemsUseCase();
       _state.value = _state.value.copyWith(loading: false, items: items);
     } on Exception catch (e) {
-      _state.value = _state.value
-          .copyWith(loading: false, error: toFailure(e).getMessage());
+      _state.value = _state.value.copyWith(loading: false);
+      _errors.emit(toFailure(e).getMessage());
     }
   }
 
   Future<void> createSystem(CreateParam param) async {
-    _state.value = _state.value.copyWith(loading: true, clearError: true);
+    _state.value = _state.value.copyWith(loading: true);
     try {
       await createSystemUseCase(param);
       await getSystems();
     } on Exception catch (e) {
-      _state.value = _state.value
-          .copyWith(loading: false, error: toFailure(e).getMessage());
+      _state.value = _state.value.copyWith(loading: false);
+      _errors.emit(toFailure(e).getMessage());
     }
   }
 
   Future<void> updateSystemById(UpdateSystemParam param) async {
-    _state.value = _state.value.copyWith(loading: true, clearError: true);
+    _state.value = _state.value.copyWith(loading: true);
     try {
       await updateSystemByIdUseCase(param);
       await getSystems();
     } on Exception catch (e) {
-      _state.value = _state.value
-          .copyWith(loading: false, error: toFailure(e).getMessage());
+      _state.value = _state.value.copyWith(loading: false);
+      _errors.emit(toFailure(e).getMessage());
     }
   }
 
   Future<void> removeSystemById(String systemId) async {
-    _state.value = _state.value.copyWith(loading: true, clearError: true);
+    _state.value = _state.value.copyWith(loading: true);
     try {
       await removeSystemByIdUseCase(systemId);
       await getSystems();
     } on Exception catch (e) {
-      _state.value = _state.value
-          .copyWith(loading: false, error: toFailure(e).getMessage());
+      _state.value = _state.value.copyWith(loading: false);
+      _errors.emit(toFailure(e).getMessage());
     }
   }
 
@@ -92,16 +102,12 @@ class HomeViewModel {
     } on Exception catch (_) {
       // Log out locally even when the server call fails.
     }
-    _state.value = _state.value.copyWith(loggedOut: true);
-  }
-
-  void consumeError() {
-    if (_state.value.error != null) {
-      _state.value = _state.value.copyWith(clearError: true);
-    }
+    _loggedOut.emit(null);
   }
 
   void dispose() {
     _state.dispose();
+    _errors.dispose();
+    _loggedOut.dispose();
   }
 }

@@ -23,7 +23,8 @@ class ProfileSection extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
-    final snackBar = CustomSnackBar(key: const Key("snackbar"), context: context);
+    final snackBar =
+        CustomSnackBar(key: const Key("snackbar"), context: context);
     final textTheme = Theme.of(context).textTheme;
 
     final userInfo = useUserInfo();
