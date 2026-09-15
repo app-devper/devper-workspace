@@ -17,7 +17,6 @@ import 'package:pos/domain/usecase/product/get_product_units_by_product_id_use_c
 import 'package:pos/domain/usecase/product/import_product_csv_use_case.dart';
 import 'package:pos/domain/usecase/product/remove_product_by_id_use_case.dart';
 import 'package:pos/domain/usecase/product/update_product_by_id_use_case.dart';
-import 'package:pos/presentation/product/add/product_add_state.dart';
 import 'package:pos/presentation/product/add/product_add_view_model.dart';
 import 'package:pos/presentation/product/edit/product_edit_state.dart';
 import 'package:pos/presentation/product/main/product_state.dart';
@@ -232,20 +231,28 @@ void main() {
         ),
       );
 
+      final errors = <String>[];
+      vm.errors.listen(errors.add);
+
       await vm.getCategories();
+      await Future<void>.delayed(Duration.zero);
 
       expect(vm.state.value.categories, isEmpty);
-      expect(vm.state.value.error, isNotNull);
+      expect(errors, hasLength(1));
     });
 
     test('addProduct loads generated units and prices', () async {
       final repository = FakeProductRepository(product: buildProduct());
       final vm = buildAddViewModel(repository, FakeCategoryRepository());
 
+      final created = <Product>[];
+      vm.created.listen(created.add);
+
       await vm.addProduct(buildCreateParam());
+      await Future<void>.delayed(Duration.zero);
 
       expect(vm.state.value.saving, isFalse);
-      expect(vm.state.value.created?.id, 'p1');
+      expect(created.single.id, 'p1');
       expect(repository.unitLoadCalls, 1);
       expect(repository.priceLoadCalls, 1);
     });
@@ -318,21 +325,22 @@ void main() {
   });
 
   group('one task at a time', () {
-    test('a serial number does not survive the save that follows it', () async {
+    test('a serial number and a save arrive on their own channels', () async {
       final vm = buildAddViewModel(
           FakeProductRepository(product: buildProduct()),
           FakeCategoryRepository());
+      final serials = <String>[];
+      final created = <Product>[];
+      vm.serialNumbers.listen(serials.add);
+      vm.created.listen(created.add);
 
       await vm.generateSerialNumber();
-      expect(vm.state.value.serialNumber, 'SN-1');
-
       await vm.addProduct(buildCreateParam());
+      await Future<void>.delayed(Duration.zero);
 
-      expect(vm.state.value.created, isNotNull);
-      expect(vm.state.value.serialNumber, isNull,
-          reason:
-              'the generated number belongs to the request that asked for it');
-      expect(vm.state.value.task, isA<ProductCreated>());
+      expect(serials, ['SN-1']);
+      expect(created, hasLength(1),
+          reason: 'one slot used to mean the save erased the serial number');
     });
 
     test('deleting a product drops the document it was editing', () async {

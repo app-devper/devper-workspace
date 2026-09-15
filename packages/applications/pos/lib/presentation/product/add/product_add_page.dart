@@ -1,3 +1,5 @@
+import 'dart:async';
+
 // Flutter imports:
 import 'package:flutter/material.dart';
 import 'package:design_system/theme/app_colors.dart';
@@ -11,6 +13,7 @@ import 'package:design_system/widgets/page_container.dart';
 
 // Project imports:
 import 'package:pos/container.dart';
+import 'package:pos/domain/model/product/product.dart';
 import 'package:pos/domain/model/core/core.dart';
 import 'package:pos/domain/model/product/param.dart';
 import 'package:pos/presentation/core/core_widget.dart';
@@ -50,6 +53,9 @@ class _ProductAddPageState extends State<ProductAddPage> {
   final _costPriceNode = FocusNode();
 
   late ProductAddViewModel _viewModel;
+  late StreamSubscription<String> _errors;
+  late StreamSubscription<Product> _created;
+  late StreamSubscription<String> _serialNumbers;
 
   ItemType? _category = categoryTypes.first;
   final List<ItemType> _categories = categoryTypes;
@@ -64,7 +70,23 @@ class _ProductAddPageState extends State<ProductAddPage> {
     super.initState();
     _viewModel = sl<ProductAddViewModel>();
     _viewModel.state.addListener(_onStateChanged);
+    _errors = _viewModel.errors.listen(_showError);
+    _created = _viewModel.created.listen(_onCreated);
+    _serialNumbers = _viewModel.serialNumbers.listen(_onSerialNumber);
     _viewModel.getCategories();
+  }
+
+  void _showError(String message) {
+    showAlertDialog(context, message, () {});
+  }
+
+  void _onCreated(Product product) {
+    widget.onAdd();
+  }
+
+  void _onSerialNumber(String serialNumber) {
+    _serialNumberEditingController.text = serialNumber;
+    FocusScope.of(context).requestFocus(_serialNumberNode);
   }
 
   void _onStateChanged() {
@@ -76,26 +98,14 @@ class _ProductAddPageState extends State<ProductAddPage> {
       _loadingShown = false;
       hideLoadingDialog(context);
     }
-    if (state.error != null) {
-      final message = state.error!;
-      _viewModel.consumeError();
-      showAlertDialog(context, message, () {});
-    }
-    if (state.created != null) {
-      _viewModel.consumeCreated();
-      widget.onAdd();
-    }
-    if (state.serialNumber != null) {
-      final serialNumber = state.serialNumber!;
-      _viewModel.consumeSerialNumber();
-      _serialNumberEditingController.text = serialNumber;
-      FocusScope.of(context).requestFocus(_serialNumberNode);
-    }
   }
 
   @override
   void dispose() {
     _viewModel.state.removeListener(_onStateChanged);
+    _errors.cancel();
+    _created.cancel();
+    _serialNumbers.cancel();
     _viewNode.dispose();
     _serialNumberNode.dispose();
     _nameNode.dispose();

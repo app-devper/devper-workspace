@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 
 // Package imports:
 import 'package:common/core/error/failure.dart';
+import 'package:common/core/state/one_shot.dart';
 
 // Project imports:
 import 'package:pos/domain/model/product/param.dart';
@@ -24,47 +25,45 @@ class ProductLotEditViewModel {
   final _state =
       ValueNotifier<ProductLotEditState>(const ProductLotEditState());
 
+  /// The lot the form opens with, and the lot it saved. Each reaches the view
+  /// once; neither is drawn from state.
+  final _loaded = OneShot<ProductLot>();
+  final _updated = OneShot<ProductLot>();
+  final _errors = OneShot<String>();
+
   ValueListenable<ProductLotEditState> get state => _state;
 
+  Stream<ProductLot> get loaded => _loaded.stream;
+
+  Stream<ProductLot> get updated => _updated.stream;
+
+  Stream<String> get errors => _errors.stream;
+
   void getProductLot(ProductLot lot) {
-    _state.value = _state.value.copyWith(task: ProductLotLoaded(lot));
+    _loaded.emit(lot);
   }
 
   Future<void> updateProductLot(
       String lotId, UpdateProductLotQuantityParam param) async {
-    if (_state.value.task is ProductLotEditRunning) return;
-    _state.value = _state.value.copyWith(task: const ProductLotEditRunning());
+    if (_state.value.loading) return;
+    _state.value = _state.value.copyWith(loading: true);
     try {
       final updated = await updateProductLotQuantityByLotIdUseCase(
         ProductLotQuantityUpdateParam(lotId: lotId, param: param),
       );
       updated.product = await getLocalProductByIdUseCase(updated.productId);
-      _state.value = _state.value.copyWith(task: ProductLotUpdated(updated));
+      _updated.emit(updated);
     } on Exception catch (e) {
-      _state.value =
-          _state.value.copyWith(task: ProductLotEditFailed(toFailure(e)));
-    }
-  }
-
-  void consumeError() {
-    if (_state.value.task is ProductLotEditFailed) {
-      _state.value = _state.value.copyWith(task: const ProductLotEditTask());
-    }
-  }
-
-  void consumeLoaded() {
-    if (_state.value.task is ProductLotLoaded) {
-      _state.value = _state.value.copyWith(task: const ProductLotEditTask());
-    }
-  }
-
-  void consumeUpdated() {
-    if (_state.value.task is ProductLotUpdated) {
-      _state.value = _state.value.copyWith(task: const ProductLotEditTask());
+      _errors.emit(toFailure(e).getMessage());
+    } finally {
+      _state.value = _state.value.copyWith(loading: false);
     }
   }
 
   void dispose() {
     _state.dispose();
+    _loaded.dispose();
+    _updated.dispose();
+    _errors.dispose();
   }
 }
