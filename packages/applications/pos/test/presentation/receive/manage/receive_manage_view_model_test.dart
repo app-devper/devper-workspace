@@ -18,7 +18,6 @@ import 'package:pos/domain/usecase/receive/import_receive_use_case.dart';
 import 'package:pos/domain/usecase/receive/update_receive_by_id_use_case.dart';
 import 'package:pos/domain/usecase/supplier/get_local_suppliers_use_case.dart';
 import 'package:pos/domain/usecase/supplier/get_suppliers_use_case.dart';
-import 'package:pos/presentation/receive/manage/receive_manage_state.dart';
 import 'package:pos/presentation/receive/manage/receive_manage_view_model.dart';
 
 class FakeReceiveRepository implements ReceiveRepository {
@@ -26,7 +25,12 @@ class FakeReceiveRepository implements ReceiveRepository {
   final List<ReceiveItem> items;
   final Object? throws;
 
-  FakeReceiveRepository({this.receive, this.items = const [], this.throws});
+  /// Fails only the line fetch, so a test can break it without breaking the
+  /// document load that calls it.
+  final Object? itemsThrows;
+
+  FakeReceiveRepository(
+      {this.receive, this.items = const [], this.throws, this.itemsThrows});
 
   Receive get _result => receive ?? buildReceive('r1');
 
@@ -35,8 +39,13 @@ class FakeReceiveRepository implements ReceiveRepository {
       _maybeThrow(_result);
 
   @override
-  Future<List<ReceiveItem>> getReceiveItemsById(String receiveId) async =>
-      _maybeThrow(items);
+  Future<List<ReceiveItem>> getReceiveItemsById(String receiveId) async {
+    final error = itemsThrows;
+    if (error != null) {
+      throw error;
+    }
+    return _maybeThrow(items);
+  }
 
   @override
   Future<Receive> createReceive(ReceiveParam param) async =>
@@ -126,13 +135,14 @@ ReceiveManageViewModel buildViewModel({
   List<ReceiveItem> items = const [],
   List<Supplier> suppliers = const [],
   Object? throws,
+  Object? itemsThrow,
   Object? suppliersThrows,
 }) {
   final ProductRepository productRepo = FakeProductRepository();
   final SupplierRepository supplierRepo = FakeSupplierRepository(
       suppliers: suppliers, remoteThrows: suppliersThrows);
-  final ReceiveRepository receiveRepo =
-      FakeReceiveRepository(receive: receive, items: items, throws: throws);
+  final ReceiveRepository receiveRepo = FakeReceiveRepository(
+      receive: receive, items: items, throws: throws, itemsThrows: itemsThrow);
   return ReceiveManageViewModel(
     getReceiveByIdUseCase: GetReceiveByIdUseCase(receiveRepo: receiveRepo),
     createReceiveUseCase: CreateReceiveUseCase(receiveRepo: receiveRepo),
@@ -153,88 +163,148 @@ ReceiveManageViewModel buildViewModel({
 }
 
 void main() {
-  test('getReceiveById loads the receive and suppliers', () async {
+  test('loads the document, its suppliers and its lines', () async {
     final vm = buildViewModel(
       receive: buildReceive('7'),
+      items: [buildReceiveItem('7')],
       suppliers: [
         Supplier(id: 's1', name: 'ACME', address: '', phone: '', taxId: '')
       ],
     );
+    final loaded = <Receive>[];
+    vm.loaded.listen(loaded.add);
 
     await vm.getReceiveById('7');
+    await _pump();
 
     expect(vm.state.value.loading, isFalse);
-    expect(vm.state.value.receiveLoaded, isTrue);
     expect(vm.state.value.receive?.id, '7');
     expect(vm.state.value.receiveSuppliers, hasLength(1));
+    expect(vm.state.value.items, hasLength(1));
+    expect(vm.state.value.itemsReady, isTrue);
+    expect(loaded.single.id, '7',
+        reason: 'the form seeds its fields from this');
   });
 
-  test('getReceiveById with a null id marks loaded without a receive',
-      () async {
-    final vm = buildViewModel();
+  test('creating a new one fetches the suppliers and nothing else', () async {
+    final vm = buildViewModel(suppliers: [
+      Supplier(id: 's1', name: 'ACME', address: '', phone: '', taxId: '')
+    ]);
+    final loaded = <Receive>[];
+    vm.loaded.listen(loaded.add);
 
     await vm.getReceiveById(null);
+    await _pump();
 
-    expect(vm.state.value.receiveLoaded, isTrue);
     expect(vm.state.value.receive, isNull);
+    expect(vm.state.value.receiveSuppliers, hasLength(1));
+    expect(loaded, isEmpty, reason: 'there is no document to seed the form');
   });
 
-  test('createReceive sets the created and receive one-shots', () async {
+  test(
+      'a failed line load is reported, not swallowed by the load that '
+      'wraps it', () async {
+    final vm = buildViewModel(
+        receive: buildReceive('7'),
+        itemsThrow: const NetworkException(message: 'offline'));
+    final errors = <String>[];
+    vm.errors.listen(errors.add);
+
+    await vm.getReceiveById('7');
+    await _pump();
+
+    expect(vm.state.value.receive?.id, '7');
+    expect(errors, hasLength(1),
+        reason: 'the outer success used to overwrite this failure, leaving '
+            'an empty list of lines and no message');
+    expect(vm.state.value.itemsReady, isFalse);
+  });
+
+  test('creating announces the new document and makes it editable', () async {
     final vm = buildViewModel(receive: buildReceive('9'));
+    final created = <Receive>[];
+    vm.created.listen(created.add);
 
     await vm.createReceive(ReceiveParam(supplierId: 's1', reference: 'ref'));
+    await _pump();
 
     expect(vm.state.value.loading, isFalse);
-    expect(vm.state.value.created?.id, '9');
     expect(vm.state.value.receive?.id, '9');
-
-    vm.consumeCreated();
-    expect(vm.state.value.created, isNull);
+    expect(vm.state.value.itemsReady, isTrue,
+        reason: 'a document with no lines yet can still be saved');
+    expect(created.single.id, '9');
   });
 
-  test('updateReceiveById sets the updated one-shot', () async {
-    final vm = buildViewModel(receive: buildReceive('9'));
+  test('saving announces the document and reloads its lines', () async {
+    final vm = buildViewModel(
+        receive: buildReceive('9'), items: [buildReceiveItem('9')]);
+    final updated = <Receive>[];
+    vm.updated.listen(updated.add);
 
     await vm.getReceiveById('9');
-    await vm.updateReceiveById(
+    final saved = await vm.updateReceiveById(
         '9',
         UpdateReceiveParam(
             supplierId: 's1', reference: 'ref', totalCost: 0, items: []));
+    await _pump();
 
-    expect(vm.state.value.updated?.id, '9');
+    expect(saved, isTrue);
+    expect(updated.single.id, '9');
+    expect(vm.state.value.items, hasLength(1));
+    expect(vm.state.value.totalCost, 20);
   });
 
-  test('removeReceiveById sets the removed one-shot', () async {
+  test('deleting announces the removed document so the screen can pop with it',
+      () async {
     final vm = buildViewModel(receive: buildReceive('9'));
+    final removed = <Receive>[];
+    vm.removed.listen(removed.add);
 
     await vm.removeReceiveById('9');
+    await _pump();
 
-    expect(vm.state.value.removed?.id, '9');
+    expect(removed.single.id, '9');
+    expect(vm.state.value.loading, isFalse);
   });
 
-  test('import receive publishes the returned document', () async {
+  test('importing announces the document it got back', () async {
     final vm = buildViewModel();
+    final updated = <Receive>[];
+    vm.updated.listen(updated.add);
+
     await vm.getReceiveById('r1');
     await vm.importReceive('r1');
-    expect(vm.state.value.updated?.id, 'r1');
+    await _pump();
+
+    expect(updated.single.id, 'r1');
   });
 
-  test('failed item loading is visible and blocks saving an empty list',
+  test('lines that failed to load block a save that would empty the document',
       () async {
     final vm =
         buildViewModel(throws: const NetworkException(message: 'offline'));
+    final errors = <String>[];
+    final updated = <Receive>[];
+    vm.errors.listen(errors.add);
+    vm.updated.listen(updated.add);
+
     await vm.getReceiveItemsById('r1');
-    expect(vm.state.value.error, isNotNull);
+    await _pump();
+
+    expect(errors, hasLength(1));
     expect(vm.state.value.itemsReady, isFalse);
+
     final saved = await vm.updateReceiveById(
         'r1',
         UpdateReceiveParam(
             supplierId: 's1', reference: '', totalCost: 0, items: []));
+    await _pump();
+
     expect(saved, isFalse);
-    expect(vm.state.value.updated, isNull);
+    expect(updated, isEmpty);
   });
 
-  test('imported documents cannot be edited or imported again', () async {
+  test('an imported document cannot be edited or imported again', () async {
     final vm = buildViewModel(
         receive: Receive(
             id: 'r1',
@@ -244,73 +314,78 @@ void main() {
             totalCost: 0,
             createdDate: '',
             status: 'IMPORTED'));
+    final updated = <Receive>[];
+    vm.updated.listen(updated.add);
+
     await vm.getReceiveById('r1');
     final saved = await vm.updateReceiveById(
         'r1',
         UpdateReceiveParam(
             supplierId: 's1', reference: '', totalCost: 0, items: []));
     await vm.importReceive('r1');
+    await _pump();
+
     expect(saved, isFalse);
-    expect(vm.state.value.updated, isNull);
+    expect(updated, isEmpty);
   });
 
-  test('getReceiveById maps a typed exception to state.error', () async {
+  test('a failed load is reported and stops the spinner', () async {
     final vm =
         buildViewModel(throws: const NetworkException(message: 'offline'));
+    final errors = <String>[];
+    vm.errors.listen(errors.add);
 
     await vm.getReceiveById('7');
+    await _pump();
 
-    expect(vm.state.value.error, isNotNull);
+    expect(errors, hasLength(1));
+    expect(vm.state.value.loading, isFalse);
   });
 
-  group('one command result at a time', () {
-    test('saving after creating drops the stale created result', () async {
-      final vm = buildViewModel(receive: buildReceive('9'));
+  test('refreshing the supplier list replaces the picker options', () async {
+    final vm = buildViewModel(suppliers: [
+      Supplier(id: 's1', name: 'ACME', address: '', phone: '', taxId: '')
+    ]);
 
-      await vm.createReceive(ReceiveParam(supplierId: 's1', reference: 'ref'));
-      expect(vm.state.value.created, isNotNull);
+    await vm.getSuppliers();
 
-      await vm.updateReceiveById(
-          '9',
-          UpdateReceiveParam(
-              supplierId: 's1', reference: 'ref', totalCost: 0, items: []));
+    expect(vm.state.value.receiveSuppliers, hasLength(1),
+        reason: 'this used to arrive as an event the page had to copy');
+  });
 
-      expect(vm.state.value.updated, isNotNull);
-      expect(vm.state.value.created, isNull,
-          reason: 'the create result must not outlive the save that follows');
-      expect(vm.state.value.task, isA<ReceiveUpdated>());
-    });
+  test('a failed supplier refresh is reported and keeps the old options',
+      () async {
+    final vm = buildViewModel(
+      suppliers: [
+        Supplier(id: 's1', name: 'ACME', address: '', phone: '', taxId: '')
+      ],
+      suppliersThrows: const NetworkException(message: 'offline'),
+    );
+    final errors = <String>[];
+    vm.errors.listen(errors.add);
 
-    test('deleting drops a stale save result', () async {
-      final vm = buildViewModel(receive: buildReceive('9'));
+    await vm.getReceiveById(null);
+    await vm.getSuppliers();
+    await _pump();
 
-      await vm.getReceiveById('9');
-      await vm.updateReceiveById(
-          '9',
-          UpdateReceiveParam(
-              supplierId: 's1', reference: 'ref', totalCost: 0, items: []));
-      expect(vm.state.value.updated, isNotNull);
+    expect(errors, hasLength(1));
+    expect(vm.state.value.receiveSuppliers, hasLength(1),
+        reason: 'the picker must not empty itself because a refresh failed');
+  });
 
-      await vm.removeReceiveById('9');
+  test('a second command is refused while one is in flight', () async {
+    final vm = buildViewModel(receive: buildReceive('9'));
+    final removed = <Receive>[];
+    vm.removed.listen(removed.add);
 
-      expect(vm.state.value.removed, isNotNull);
-      expect(vm.state.value.updated, isNull);
-    });
+    final creating =
+        vm.createReceive(ReceiveParam(supplierId: 's1', reference: 'ref'));
+    await vm.removeReceiveById('9');
+    await creating;
+    await _pump();
 
-    test('a failure leaves no command result behind', () async {
-      final vm = buildViewModel(
-        receive: buildReceive('9'),
-        suppliersThrows: const NetworkException(message: 'offline'),
-      );
-
-      await vm.createReceive(ReceiveParam(supplierId: 's1', reference: 'ref'));
-      expect(vm.state.value.created, isNotNull);
-
-      await vm.getSuppliers();
-
-      expect(vm.state.value.error, isNotNull);
-      expect(vm.state.value.created, isNull);
-      expect(vm.state.value.loading, isFalse);
-    });
+    expect(removed, isEmpty);
   });
 }
+
+Future<void> _pump() => Future<void>.delayed(Duration.zero);

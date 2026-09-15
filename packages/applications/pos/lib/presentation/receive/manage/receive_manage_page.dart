@@ -1,3 +1,5 @@
+import 'dart:async';
+
 // Flutter imports:
 import 'package:flutter/material.dart';
 
@@ -20,6 +22,7 @@ import 'package:pos/localizations/language/languages.dart';
 import 'package:pos/presentation/constants.dart';
 import 'package:pos/domain/usecase/product/get_products_use_case.dart';
 import 'receive_item_dialog.dart';
+import 'receive_manage_state.dart';
 import 'receive_manage_view_model.dart';
 
 class ReceiveManagePage extends StatefulWidget {
@@ -43,20 +46,39 @@ class _ReceiveManagePageState extends State<ReceiveManagePage> {
   late CustomSnackBar _snackBar;
   late ReceiveManageViewModel _viewModel;
 
-  Receive? _receive;
-  Supplier? _supplier;
+  final _subscriptions = <StreamSubscription<void>>[];
 
-  List<Supplier> _suppliers = [];
-  List<ReceiveItem> _receiveItems = [];
+  /// The only thing on this screen the view model does not own: which supplier
+  /// the user has picked. Everything else is read from state.
+  String? _supplierId;
 
-  double _totalCost = 0;
   bool _loadingShown = false;
+
+  ReceiveManageState get _state => _viewModel.state.value;
+
+  Receive? get _receive => _state.receive;
+
+  List<Supplier> get _suppliers => _state.receiveSuppliers;
+
+  List<ReceiveItem> get _receiveItems => _state.items;
+
+  double get _totalCost => _state.totalCost;
+
+  Supplier? get _supplier =>
+      _suppliers.where((item) => item.id == _supplierId).firstOrNull;
 
   @override
   void initState() {
     super.initState();
     _viewModel = sl<ReceiveManageViewModel>();
     _viewModel.state.addListener(_onStateChanged);
+    _subscriptions.addAll([
+      _viewModel.loaded.listen(_onReceiveLoaded),
+      _viewModel.created.listen(_onCreated),
+      _viewModel.updated.listen(_onUpdated),
+      _viewModel.removed.listen(_onRemoved),
+      _viewModel.errors.listen(_showError),
+    ]);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _viewModel.getReceiveById(widget.receiveId);
     });
@@ -71,67 +93,43 @@ class _ReceiveManagePageState extends State<ReceiveManagePage> {
       _loadingShown = false;
       hideLoadingDialog(context);
     }
-    if (state.error != null) {
-      _snackBar.hideAll();
-      _snackBar.showErrorSnackBar(state.error!);
-      _viewModel.consumeError();
-    }
-    if (state.receiveLoaded) {
-      _viewModel.consumeReceiveLoaded();
-      setState(() {
-        _receive = state.receive;
-        _suppliers = state.receiveSuppliers;
-        _supplier = _suppliers
-            .where((item) => item.id == state.receive?.supplierId)
-            .firstOrNull;
-      });
-      _referenceEditingController.text = state.receive?.reference ?? "";
-    }
-    if (state.suppliersEvent != null) {
-      final suppliers = state.suppliersEvent!;
-      _viewModel.consumeSuppliersEvent();
-      setState(() {
-        _suppliers = suppliers;
-        _supplier =
-            _suppliers.where((item) => item.id == _supplier?.id).firstOrNull;
-      });
-    }
-    if (state.itemsLoaded) {
-      _viewModel.consumeItemsLoaded();
-      setState(() {
-        _totalCost = state.totalCost;
-        _receiveItems = state.items;
-      });
-    }
-    if (state.created != null) {
-      final data = state.created!;
-      _viewModel.consumeCreated();
-      _snackBar.hideAll();
-      _snackBar.showSnackBar(text: "Add success");
-      setState(() {
-        _receive = data;
-      });
-    }
-    if (state.updated != null) {
-      final data = state.updated!;
-      _viewModel.consumeUpdated();
-      _snackBar.hideAll();
-      _snackBar.showSnackBar(
-          text: data.isImported ? "นำเข้าสต็อกสำเร็จ" : "Update success");
-      setState(() {
-        _receive = data;
-      });
-    }
-    if (state.removed != null) {
-      final data = state.removed!;
-      _viewModel.consumeRemoved();
-      Navigator.pop(context, data);
-      return;
-    }
+    setState(() {});
+  }
+
+  /// Seeds the form from an existing document. The picker and the list read
+  /// state directly, so this only has to set what the user can then edit.
+  void _onReceiveLoaded(Receive receive) {
+    setState(() {
+      _supplierId = receive.supplierId;
+    });
+    _referenceEditingController.text = receive.reference;
+  }
+
+  void _onCreated(Receive receive) {
+    _snackBar.hideAll();
+    _snackBar.showSnackBar(text: "Add success");
+  }
+
+  void _onUpdated(Receive receive) {
+    _snackBar.hideAll();
+    _snackBar.showSnackBar(
+        text: receive.isImported ? "นำเข้าสต็อกสำเร็จ" : "Update success");
+  }
+
+  void _onRemoved(Receive receive) {
+    Navigator.pop(context, receive);
+  }
+
+  void _showError(String message) {
+    _snackBar.hideAll();
+    _snackBar.showErrorSnackBar(message);
   }
 
   @override
   void dispose() {
+    for (final subscription in _subscriptions) {
+      subscription.cancel();
+    }
     _viewModel.state.removeListener(_onStateChanged);
     _referenceEditingController.dispose();
     _referenceNode.dispose();
@@ -172,7 +170,7 @@ class _ReceiveManagePageState extends State<ReceiveManagePage> {
       padding: const EdgeInsets.all(defaultPagePadding),
       child: Column(
         children: <Widget>[
-          if (_receive != null && !_viewModel.state.value.itemsReady)
+          if (_receive != null && !_state.itemsReady)
             TextButton(
                 onPressed: () => _viewModel.getReceiveItemsById(_receive!.id),
                 child: const Text('โหลดรายการอีกครั้ง')),
@@ -235,7 +233,7 @@ class _ReceiveManagePageState extends State<ReceiveManagePage> {
               value: _supplier,
               onChanged: (Supplier? value) {
                 setState(() {
-                  _supplier = value;
+                  _supplierId = value?.id;
                 });
               },
               getLabel: (Supplier value) => value.name,
@@ -391,7 +389,7 @@ class _ReceiveManagePageState extends State<ReceiveManagePage> {
   }
 
   Future<void> _addReceiveItem() async {
-    if (_viewModel.state.value.loading || !_viewModel.state.value.itemsReady) {
+    if (_state.loading || !_state.itemsReady) {
       return;
     }
     try {
