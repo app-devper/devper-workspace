@@ -104,30 +104,37 @@ void main() {
   });
 
   group('CustomerViewModel', () {
-    test('getCustomerById sets the loaded customer once', () async {
+    test('a lookup emits the customer once', () async {
       final vm = buildCustomerViewModel(
           FakeCustomerRepository(byId: buildCustomer('7')));
+      final loaded = <Customer>[];
+      vm.loaded.listen(loaded.add);
 
       await vm.getCustomerById('7');
+      await Future<void>.delayed(Duration.zero);
 
       expect(vm.state.value.loading, isFalse);
-      expect(vm.state.value.loaded?.id, '7');
-
-      vm.consumeLoaded();
-
-      expect(vm.state.value.loaded, isNull);
+      expect(loaded.single.id, '7');
     });
 
-    test('getCustomerById maps a typed exception to state.error', () async {
+    test('a failed lookup reaches the screen instead of going nowhere',
+        () async {
+      // The page only listened for the result, so a failure left the panel
+      // unchanged and told the user nothing.
       final vm = buildCustomerViewModel(
         FakeCustomerRepository(
             throws: const NotFoundException(message: 'missing')),
       );
+      final loaded = <Customer>[];
+      final errors = <String>[];
+      vm.loaded.listen(loaded.add);
+      vm.errors.listen(errors.add);
 
       await vm.getCustomerById('x');
+      await Future<void>.delayed(Duration.zero);
 
-      expect(vm.state.value.error, isNotNull);
-      expect(vm.state.value.loaded, isNull);
+      expect(errors, hasLength(1));
+      expect(loaded, isEmpty);
     });
   });
 }

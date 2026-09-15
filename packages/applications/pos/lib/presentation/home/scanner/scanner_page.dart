@@ -1,3 +1,5 @@
+import 'dart:async';
+
 // Flutter imports:
 import 'package:flutter/material.dart';
 
@@ -28,6 +30,8 @@ class _ScannerPageState extends State<ScannerPage> {
   final _qrKey = GlobalKey();
 
   late ScannerViewModel _viewModel;
+  late StreamSubscription<Product> _loaded;
+  late StreamSubscription<String> _errors;
   late CustomSnackBar _snackBar;
 
   QRViewController? controller;
@@ -39,6 +43,21 @@ class _ScannerPageState extends State<ScannerPage> {
     super.initState();
     _viewModel = sl<ScannerViewModel>();
     _viewModel.state.addListener(_onStateChanged);
+    _loaded = _viewModel.loaded.listen(_onLoaded);
+    _errors = _viewModel.errors.listen(_showError);
+  }
+
+  /// The message comes from the view model now. It used to be replaced with a
+  /// fixed "ไม่สามารถค้นหาสินค้าได้", so an unknown barcode — a miss — was
+  /// reported as a system failure.
+  void _showError(String message) {
+    showAlertDialog(context, message, () {
+      controller?.resumeCamera();
+    });
+  }
+
+  void _onLoaded(Product product) {
+    _nextToProductEdit(context, product);
   }
 
   void _onStateChanged() {
@@ -49,17 +68,6 @@ class _ScannerPageState extends State<ScannerPage> {
     } else if (!state.loading && _loadingShown) {
       _loadingShown = false;
       hideLoadingDialog(context);
-    }
-    if (state.error != null) {
-      _viewModel.consumeError();
-      showAlertDialog(context, "ไม่สามารถค้นหาสินค้าได้", () {
-        controller?.resumeCamera();
-      });
-    }
-    if (state.loaded != null) {
-      final data = state.loaded!;
-      _viewModel.consumeLoaded();
-      _nextToProductEdit(context, data);
     }
   }
 
@@ -149,6 +157,8 @@ class _ScannerPageState extends State<ScannerPage> {
   @override
   void dispose() {
     _viewModel.state.removeListener(_onStateChanged);
+    _loaded.cancel();
+    _errors.cancel();
     _viewModel.dispose();
     super.dispose();
   }
