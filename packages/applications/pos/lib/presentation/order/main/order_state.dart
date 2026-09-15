@@ -18,26 +18,27 @@ class OrderRangeSelection {
   });
 }
 
+/// What this screen renders: the range options, the orders in the chosen
+/// range, their totals, and whether the user is an admin.
+///
+/// It also carried three signals — the role answer, an "initialised" flag and
+/// the chosen range — which the page consumed in turn to drive the next step.
+/// Those are events, and the sequence they were standing in for is now just
+/// three calls in initState.
 @immutable
 class OrderState {
   final List<ListItem> ranges;
   final List<OrderSummary>? orders;
   final double totalCost;
   final double total;
-  final bool? logged;
-  final bool initialized;
-  final OrderRangeSelection? rangeSelection;
-  final String? error;
+  final bool isAdmin;
 
   const OrderState({
     this.ranges = const [],
     this.orders,
     this.totalCost = 0,
     this.total = 0,
-    this.logged,
-    this.initialized = false,
-    this.rangeSelection,
-    this.error,
+    this.isAdmin = false,
   });
 
   OrderState copyWith({
@@ -45,24 +46,14 @@ class OrderState {
     List<OrderSummary>? orders,
     double? totalCost,
     double? total,
-    bool? logged,
-    bool? initialized,
-    OrderRangeSelection? rangeSelection,
-    String? error,
-    bool clearLogged = false,
-    bool clearInitialized = false,
-    bool clearRangeSelection = false,
-    bool clearError = false,
+    bool? isAdmin,
   }) {
     return OrderState(
       ranges: ranges ?? this.ranges,
       orders: orders ?? this.orders,
       totalCost: totalCost ?? this.totalCost,
       total: total ?? this.total,
-      logged: clearLogged ? null : (logged ?? this.logged),
-      initialized: clearInitialized ? false : (initialized ?? this.initialized),
-      rangeSelection: clearRangeSelection ? null : (rangeSelection ?? this.rangeSelection),
-      error: clearError ? null : (error ?? this.error),
+      isAdmin: isAdmin ?? this.isAdmin,
     );
   }
 }

@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 
 // Package imports:
 import 'package:common/core/error/failure.dart';
+import 'package:common/core/state/one_shot.dart';
 import 'package:um/domain/usecase/auth_use_cases.dart';
 
 // Project imports:
@@ -23,7 +24,16 @@ class OrderViewModel {
 
   final _state = ValueNotifier<OrderState>(const OrderState());
 
+  /// Picking a range tells the page to move its date fields and reload; a
+  /// failure flashes a message. Neither is drawn.
+  final _rangeSelections = OneShot<OrderRangeSelection>();
+  final _errors = OneShot<String>();
+
   ValueListenable<OrderState> get state => _state;
+
+  Stream<OrderRangeSelection> get rangeSelections => _rangeSelections.stream;
+
+  Stream<String> get errors => _errors.stream;
 
   Future<void> getOrderItem(String type, GetOrderRangeParam param) async {
     try {
@@ -38,16 +48,16 @@ class OrderViewModel {
       _state.value = _state.value
           .copyWith(orders: orders, total: total, totalCost: totalCost);
     } on Exception catch (e) {
-      _state.value = _state.value.copyWith(error: toFailure(e).getMessage());
+      _errors.emit(toFailure(e).getMessage());
     }
   }
 
   Future<void> checkLogin() async {
     try {
       final role = await getRoleUseCase();
-      _state.value = _state.value.copyWith(logged: role == "ADMIN");
+      _state.value = _state.value.copyWith(isAdmin: role == "ADMIN");
     } on Exception catch (e) {
-      _state.value = _state.value.copyWith(error: toFailure(e).getMessage());
+      _errors.emit(toFailure(e).getMessage());
     }
   }
 
@@ -60,7 +70,7 @@ class OrderViewModel {
       ListItem(Range.currentMonth, "Current Month"),
       ListItem(Range.lastMonth, "Last Month"),
     ];
-    _state.value = _state.value.copyWith(ranges: ranges, initialized: true);
+    _state.value = _state.value.copyWith(ranges: ranges);
   }
 
   void selectRange(Range range) {
@@ -129,36 +139,14 @@ class OrderViewModel {
         break;
     }
     if (selection != null) {
-      _state.value = _state.value.copyWith(rangeSelection: selection);
-    }
-  }
-
-  void consumeLogged() {
-    if (_state.value.logged != null) {
-      _state.value = _state.value.copyWith(clearLogged: true);
-    }
-  }
-
-  void consumeInitialized() {
-    if (_state.value.initialized) {
-      _state.value = _state.value.copyWith(clearInitialized: true);
-    }
-  }
-
-  void consumeRangeSelection() {
-    if (_state.value.rangeSelection != null) {
-      _state.value = _state.value.copyWith(clearRangeSelection: true);
-    }
-  }
-
-  void consumeError() {
-    if (_state.value.error != null) {
-      _state.value = _state.value.copyWith(clearError: true);
+      _rangeSelections.emit(selection);
     }
   }
 
   void dispose() {
     _state.dispose();
+    _rangeSelections.dispose();
+    _errors.dispose();
   }
 
   List<OrderSummary> _filterOrders(String type, List<OrderSummary> data) {
