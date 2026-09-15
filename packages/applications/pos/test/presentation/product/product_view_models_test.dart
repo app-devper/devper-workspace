@@ -18,7 +18,6 @@ import 'package:pos/domain/usecase/product/import_product_csv_use_case.dart';
 import 'package:pos/domain/usecase/product/remove_product_by_id_use_case.dart';
 import 'package:pos/domain/usecase/product/update_product_by_id_use_case.dart';
 import 'package:pos/presentation/product/add/product_add_view_model.dart';
-import 'package:pos/presentation/product/edit/product_edit_state.dart';
 import 'package:pos/presentation/product/edit/product_edit_view_model.dart';
 import 'package:pos/presentation/product/main/product_view_model.dart';
 
@@ -184,24 +183,32 @@ ProductAddViewModel buildAddViewModel(
   );
 }
 
-ProductEditViewModel buildEditViewModel(
-  ProductRepository productRepository,
-  CategoryRepository categoryRepository,
-) {
+ProductParam buildProductParam() {
+  return ProductParam(
+    name: 'Paracetamol',
+    description: '',
+    price: 0,
+    costPrice: 0,
+    unit: '',
+    quantity: 0,
+    serialNumber: '',
+    category: 'c1',
+    status: 'ACTIVE',
+    lotNumber: null,
+    expireDate: null,
+    receiveId: null,
+  );
+}
+
+ProductEditViewModel buildEditViewModel(ProductRepository productRepository) {
   return ProductEditViewModel(
     getLocalProductByIdUseCase: GetLocalProductByIdUseCase(
       productRepo: productRepository,
-    ),
-    getLocalCategoriesUseCase: GetLocalCategoriesUseCase(
-      categoryRepo: categoryRepository,
     ),
     updateProductByIdUseCase: UpdateProductByIdUseCase(
       productRepo: productRepository,
     ),
     removeProductByIdUseCase: RemoveProductByIdUseCase(
-      productRepo: productRepository,
-    ),
-    generateSerialNumberUseCase: GenerateSerialNumberUseCase(
       productRepo: productRepository,
     ),
   );
@@ -258,32 +265,94 @@ void main() {
   });
 
   group('ProductEditViewModel', () {
-    test('getProductById loads product and categories', () async {
+    test('the loaded product reaches the form', () async {
       final vm = buildEditViewModel(
         FakeProductRepository(product: buildProduct()),
-        FakeCategoryRepository(categories: [buildCategory()]),
       );
+      final loaded = <Product>[];
+      vm.loaded.listen(loaded.add);
 
       await vm.getProductById('p1');
+      await Future<void>.delayed(Duration.zero);
 
       expect(vm.state.value.loading, isFalse);
-      expect(vm.state.value.loaded?.id, 'p1');
-      expect(vm.state.value.categories.single.id, 'c1');
+      expect(loaded.single.id, 'p1');
     });
 
-    test('getProductById maps a typed exception to state.error', () async {
+    test('a product that is not there is reported, not left blank', () async {
+      final vm = buildEditViewModel(FakeProductRepository());
+      final loaded = <Product>[];
+      final errors = <String>[];
+      vm.loaded.listen(loaded.add);
+      vm.errors.listen(errors.add);
+
+      await vm.getProductById('missing');
+      await Future<void>.delayed(Duration.zero);
+
+      expect(loaded, isEmpty);
+      expect(errors, ['Product not found']);
+    });
+
+    test('a failed load is reported and stops the spinner', () async {
       final vm = buildEditViewModel(
         FakeProductRepository(
           error: const NetworkException(message: 'offline'),
         ),
-        FakeCategoryRepository(),
       );
+      final errors = <String>[];
+      vm.errors.listen(errors.add);
 
       await vm.getProductById('p1');
+      await Future<void>.delayed(Duration.zero);
 
       expect(vm.state.value.loading, isFalse);
-      expect(vm.state.value.loaded, isNull);
-      expect(vm.state.value.error, isNotNull);
+      expect(errors, hasLength(1));
+    });
+
+    test('a failed save tells the user instead of looking like it worked',
+        () async {
+      final vm = buildEditViewModel(
+        FakeProductRepository(
+          error: const NetworkException(message: 'offline'),
+        ),
+      );
+      final updated = <Product>[];
+      final errors = <String>[];
+      vm.updated.listen(updated.add);
+      vm.errors.listen(errors.add);
+
+      await vm.updateProductById('p1', buildProductParam());
+      await Future<void>.delayed(Duration.zero);
+
+      expect(updated, isEmpty);
+      expect(errors, hasLength(1),
+          reason: 'the page used to consume this error and show nothing');
+    });
+
+    test('a save announces the product the server gave back', () async {
+      final vm = buildEditViewModel(
+        FakeProductRepository(product: buildProduct()),
+      );
+      final updated = <Product>[];
+      vm.updated.listen(updated.add);
+
+      await vm.updateProductById('p1', buildProductParam());
+      await Future<void>.delayed(Duration.zero);
+
+      expect(updated.single.id, 'p1');
+    });
+
+    test('a delete announces the product it removed', () async {
+      final vm = buildEditViewModel(
+        FakeProductRepository(product: buildProduct()),
+      );
+      final removed = <Product>[];
+      vm.removed.listen(removed.add);
+
+      await vm.removeProductById('p1');
+      await Future<void>.delayed(Duration.zero);
+
+      expect(removed.single.id, 'p1');
     });
   });
 
@@ -354,32 +423,6 @@ void main() {
       expect(serials, ['SN-1']);
       expect(created, hasLength(1),
           reason: 'one slot used to mean the save erased the serial number');
-    });
-
-    test('deleting a product drops the document it was editing', () async {
-      final vm = buildEditViewModel(
-          FakeProductRepository(product: buildProduct()),
-          FakeCategoryRepository());
-
-      await vm.getProductById('p1');
-      expect(vm.state.value.loaded, isNotNull);
-
-      await vm.removeProductById('p1');
-
-      expect(vm.state.value.removed, isNotNull);
-      expect(vm.state.value.loaded, isNull);
-    });
-
-    test('a missing product reads as missing, not as a failed request',
-        () async {
-      final vm =
-          buildEditViewModel(FakeProductRepository(), FakeCategoryRepository());
-
-      await vm.getProductById('gone');
-
-      expect(vm.state.value.task, isA<ProductMissing>());
-      expect(vm.state.value.error, 'Product not found');
-      expect(vm.state.value.loaded, isNull);
     });
 
     test('an import and a lookup each reach the view', () async {

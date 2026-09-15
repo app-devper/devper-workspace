@@ -1,3 +1,5 @@
+import 'dart:async';
+
 // Flutter imports:
 import 'package:flutter/material.dart';
 import 'package:design_system/theme/app_colors.dart';
@@ -67,11 +69,19 @@ class _ProductEditPageState extends State<ProductEditPage> {
 
   bool _loadingShown = false;
 
+  final _subscriptions = <StreamSubscription<void>>[];
+
   @override
   void initState() {
     super.initState();
     _viewModel = sl<ProductEditViewModel>();
     _viewModel.state.addListener(_onStateChanged);
+    _subscriptions.addAll([
+      _viewModel.loaded.listen(_onLoaded),
+      _viewModel.updated.listen((_) => widget.onEdit()),
+      _viewModel.removed.listen((_) => widget.onRemove()),
+      _viewModel.errors.listen(_showError),
+    ]);
     _viewModel.getProductById(widget.product.id);
     _setupProduct(widget.product);
   }
@@ -85,33 +95,34 @@ class _ProductEditPageState extends State<ProductEditPage> {
       _loadingShown = false;
       hideLoadingDialog(context);
     }
-    if (state.error != null) {
-      _viewModel.consumeError();
-    }
-    if (state.loaded != null) {
-      final data = state.loaded!;
-      _viewModel.consumeLoaded();
-      setState(() {
-        _category = findCategoryType(data.category);
-        _status = findProductStatus(data.status);
-      });
-      _setupProduct(data);
-    }
-    if (state.updated != null) {
-      _viewModel.consumeUpdated();
-      widget.onEdit();
-    }
-    if (state.removed != null) {
-      _viewModel.consumeRemoved();
-      widget.onRemove();
-    }
-    if (state.serialNumber != null) {
-      _viewModel.consumeSerialNumber();
-    }
+  }
+
+  void _onLoaded(Product product) {
+    setState(() {
+      _category = findCategoryType(product.category);
+      _status = findProductStatus(product.status);
+    });
+    _setupProduct(product);
+  }
+
+  /// This used to be `consumeError()` and nothing else: a failed save cleared
+  /// the error and told the user nothing, so the form sat there looking as if
+  /// it had gone through.
+  void _showError(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red,
+      ),
+    );
   }
 
   @override
   void dispose() {
+    for (final subscription in _subscriptions) {
+      subscription.cancel();
+    }
     _viewModel.state.removeListener(_onStateChanged);
     _nameNode.dispose();
     _descriptionNode.dispose();
@@ -193,7 +204,9 @@ class _ProductEditPageState extends State<ProductEditPage> {
                       'โปรดระบุข้อมูลสินค้า',
                       style: TextStyle(
                         fontSize: 16,
-                        color: AppColors.of(context).textPrimary.withValues(alpha: 0.6),
+                        color: AppColors.of(context)
+                            .textPrimary
+                            .withValues(alpha: 0.6),
                       ),
                     ),
                     const SizedBox(height: 32),
