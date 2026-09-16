@@ -1,67 +1,24 @@
 // Flutter imports:
 import 'package:flutter/foundation.dart';
 
-// Package imports:
-import 'package:common/core/error/failure.dart';
-
-// Project imports:
-import 'package:pos/domain/model/product/product.dart';
-
-/// The one thing this screen does, as a flow rather than a bag of flags:
-/// it is idle, running, finished with a result, or failed. Never two at once.
-sealed class ProductStockSequenceTask {
-  const ProductStockSequenceTask._();
-  const factory ProductStockSequenceTask() = ProductStockSequenceIdle;
-
-  // Derived UI projections; no independently writable flags.
-  bool get running => this is ProductStockSequenceRunning;
-  String? get error => switch (this) {
-        ProductStockSequenceFailed(:final failure) => failure.getMessage(),
-        _ => null,
-      };
-  List<ProductStock>? get updated => switch (this) {
-        ProductStockSequenceUpdated(:final result) => result,
-        _ => null,
-      };
-}
-
-final class ProductStockSequenceIdle extends ProductStockSequenceTask {
-  const ProductStockSequenceIdle() : super._();
-}
-
-final class ProductStockSequenceRunning extends ProductStockSequenceTask {
-  const ProductStockSequenceRunning() : super._();
-}
-
-final class ProductStockSequenceUpdated extends ProductStockSequenceTask {
-  final List<ProductStock> result;
-  const ProductStockSequenceUpdated(this.result) : super._();
-}
-
-final class ProductStockSequenceFailed extends ProductStockSequenceTask {
-  final Failure failure;
-  const ProductStockSequenceFailed(this.failure) : super._();
-}
-
+/// What this screen renders: whether the command is in flight.
+///
+/// The outcome used to live here too, behind a sealed task the view cleared
+/// once it had acted on it. It is not drawn — it closes the screen and hands
+/// the result back — so it goes out on the view model's event channel.
 @immutable
 class ProductStockSequenceState {
-  final ProductStockSequenceTask task;
+  final bool loading;
 
   const ProductStockSequenceState({
-    this.task = const ProductStockSequenceIdle(),
+    this.loading = false,
   });
 
-  bool get loading => task.running;
-
-  String? get error => task.error;
-
-  List<ProductStock>? get updated => task.updated;
-
   ProductStockSequenceState copyWith({
-    ProductStockSequenceTask? task,
+    bool? loading,
   }) {
     return ProductStockSequenceState(
-      task: task ?? this.task,
+      loading: loading ?? this.loading,
     );
   }
 }

@@ -1,12 +1,9 @@
-// Dart imports:
-import 'dart:convert';
-
 // Package imports:
 import 'package:common/core/network/error_mapper.dart';
-import 'package:common/core/network/exception.dart';
 
 // Project imports:
 import 'package:pos/data/datasource/network/pos_service.dart';
+import 'package:pos/data/repositories/cached_list.dart';
 import 'package:pos/data/repositories/supplier_mapper.dart';
 import 'package:pos/domain/model/supplier/param.dart';
 import 'package:pos/domain/model/supplier/supplier.dart';
@@ -14,7 +11,7 @@ import 'package:pos/domain/repositories/supplier_repository.dart';
 
 class SupplierRepositoryImpl implements SupplierRepository {
   final PosService posService;
-  List<Supplier> _suppliers = [];
+  final _suppliers = CachedList<Supplier>();
 
   SupplierRepositoryImpl({
     required this.posService,
@@ -22,74 +19,74 @@ class SupplierRepositoryImpl implements SupplierRepository {
 
   @override
   Future<Supplier> updateSupplierInfo(SupplierParam param) async {
-    final mapper = SupplierMapper();
-    final response = await posService.updateSupplierInfo(mapper.toSupplierRequest(param));
-    return mapper.toSupplierDomain(jsonOrThrow(response));
+    final response =
+        await posService.updateSupplierInfo(param.toSupplierRequest());
+    final result =
+        (jsonOrThrow(response) as Map<String, dynamic>).toSupplierDomain();
+    _suppliers.invalidate();
+    return result;
   }
 
   @override
   Future<Supplier> getSupplierInfo() async {
-    final mapper = SupplierMapper();
     final response = await posService.getSupplierInfo();
-    return mapper.toSupplierDomain(jsonOrThrow(response));
+    return (jsonOrThrow(response) as Map<String, dynamic>).toSupplierDomain();
   }
 
   @override
   Future<List<Supplier>> getSuppliers() async {
-    final mapper = SupplierMapper();
     final response = await posService.getSuppliers();
-    if (response.isSuccessful) {
-      final suppliers = mapper.toSuppliersDomain(jsonDecode(response.body));
-      _suppliers = suppliers;
-      return suppliers;
-    } else {
-      throw toAppException(response);
-    }
+    final suppliers = (jsonOrThrow(response) as List).toSuppliersDomain();
+    _suppliers.fill(suppliers);
+    return suppliers;
   }
 
   @override
   Future<List<Supplier>> getLocalSuppliers() async {
-    if (_suppliers.isEmpty) {
+    if (_suppliers.needsRefresh) {
       return getSuppliers();
-    } else {
-      return Future.value(_suppliers);
     }
+    return Future.value(_suppliers.items);
   }
 
   @override
   Future<Supplier> getSupplierById(String supplierId) async {
-    final mapper = SupplierMapper();
     final response = await posService.getSupplierById(supplierId);
-    return mapper.toSupplierDomain(jsonOrThrow(response));
+    return (jsonOrThrow(response) as Map<String, dynamic>).toSupplierDomain();
   }
 
   @override
   Future<Supplier> removeSupplierById(String supplierId) async {
-    final mapper = SupplierMapper();
     final response = await posService.removeSupplierById(supplierId);
-    return mapper.toSupplierDomain(jsonOrThrow(response));
+    final result =
+        (jsonOrThrow(response) as Map<String, dynamic>).toSupplierDomain();
+    _suppliers.invalidate();
+    return result;
   }
 
   @override
-  Future<Supplier> updateSupplierById(String supplierId, SupplierParam param) async {
-    final mapper = SupplierMapper();
-    final response = await posService.updateSupplierById(supplierId, mapper.toSupplierRequest(param));
-    return mapper.toSupplierDomain(jsonOrThrow(response));
+  Future<Supplier> updateSupplierById(
+      String supplierId, SupplierParam param) async {
+    final response = await posService.updateSupplierById(
+        supplierId, param.toSupplierRequest());
+    final result =
+        (jsonOrThrow(response) as Map<String, dynamic>).toSupplierDomain();
+    _suppliers.invalidate();
+    return result;
   }
 
   @override
   Future<Supplier?> getLocalSupplierById(String supplierId) async {
-    final supplier = _suppliers.where((element) => element.id == supplierId).firstOrNull;
-    if (supplier != null) {
-      return Future.value(supplier);
-    }
-    return null;
+    final suppliers = await getLocalSuppliers();
+    return suppliers.where((element) => element.id == supplierId).firstOrNull;
   }
 
   @override
   Future<Supplier> createSupplier(SupplierParam param) async {
-    final mapper = SupplierMapper();
-    final response = await posService.createSupplier(mapper.toSupplierRequest(param));
-    return mapper.toSupplierDomain(jsonOrThrow(response));
+    final response = await posService.createSupplier(param.toSupplierRequest());
+    final result =
+        (jsonOrThrow(response) as Map<String, dynamic>).toSupplierDomain();
+    _suppliers.invalidate();
+    return result;
   }
 }

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 // Flutter imports:
 import 'package:flutter/material.dart';
 import 'package:design_system/theme/app_colors.dart';
@@ -50,6 +52,9 @@ class _CustomerEditPageState extends State<CustomerEditPage> {
   final _emailNode = FocusNode();
 
   late CustomerEditViewModel _viewModel;
+  late StreamSubscription<String> _errors;
+  late StreamSubscription<Customer> _updated;
+  late StreamSubscription<Customer> _removed;
 
   ItemType? _customer = customerTypes.first;
   final List<ItemType> _customers = customerTypes;
@@ -61,7 +66,22 @@ class _CustomerEditPageState extends State<CustomerEditPage> {
     super.initState();
     _viewModel = sl<CustomerEditViewModel>();
     _viewModel.state.addListener(_onStateChanged);
+    _errors = _viewModel.errors.listen(_showError);
+    _updated = _viewModel.updated.listen(_onUpdated);
+    _removed = _viewModel.removed.listen(_onRemoved);
     _setupData(widget.customer);
+  }
+
+  void _showError(String message) {
+    showAlertDialog(context, message, () {});
+  }
+
+  void _onUpdated(Customer customer) {
+    widget.onEdit();
+  }
+
+  void _onRemoved(Customer customer) {
+    widget.onRemove();
   }
 
   void _onStateChanged() {
@@ -73,23 +93,14 @@ class _CustomerEditPageState extends State<CustomerEditPage> {
       _loadingShown = false;
       hideLoadingDialog(context);
     }
-    if (state.error != null) {
-      showAlertDialog(context, state.error!, () {});
-      _viewModel.consumeError();
-    }
-    if (state.updated != null) {
-      _viewModel.consumeUpdated();
-      widget.onEdit();
-    }
-    if (state.removed != null) {
-      _viewModel.consumeRemoved();
-      widget.onRemove();
-    }
   }
 
   @override
   void dispose() {
     _viewModel.state.removeListener(_onStateChanged);
+    _errors.cancel();
+    _updated.cancel();
+    _removed.cancel();
     _nameNode.dispose();
     _addressNode.dispose();
     _phoneNode.dispose();

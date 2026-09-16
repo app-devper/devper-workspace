@@ -1,3 +1,5 @@
+import 'dart:async';
+
 // Flutter imports:
 import 'package:flutter/material.dart';
 import 'package:design_system/theme/app_colors.dart';
@@ -30,6 +32,8 @@ class _StockCountManagePageState extends State<StockCountManagePage> {
 
   late CustomSnackBar _snackBar;
   late StockCountManageViewModel _viewModel;
+  late StreamSubscription<String> _errors;
+  late StreamSubscription<StockCount> _created;
 
   bool get _isViewOnly => widget.stockCountId != null;
 
@@ -37,28 +41,26 @@ class _StockCountManagePageState extends State<StockCountManagePage> {
   void initState() {
     super.initState();
     _viewModel = sl<StockCountManageViewModel>();
-    _viewModel.state.addListener(_onStateChanged);
+    _errors = _viewModel.errors.listen(_showError);
+    _created = _viewModel.created.listen(_onCreated);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _viewModel.getStockCountById(widget.stockCountId);
     });
   }
 
-  void _onStateChanged() {
-    final state = _viewModel.state.value;
-    if (state.error != null) {
-      _snackBar.hideAll();
-      _snackBar.showErrorSnackBar(state.error!);
-      _viewModel.consumeError();
-    }
-    if (state.created != null) {
-      _viewModel.consumeCreated();
-      Navigator.of(context).pop();
-    }
+  void _showError(String message) {
+    _snackBar.hideAll();
+    _snackBar.showErrorSnackBar(message);
+  }
+
+  void _onCreated(StockCount created) {
+    Navigator.of(context).pop();
   }
 
   @override
   void dispose() {
-    _viewModel.state.removeListener(_onStateChanged);
+    _errors.cancel();
+    _created.cancel();
     _noteController.dispose();
     _viewModel.dispose();
     super.dispose();

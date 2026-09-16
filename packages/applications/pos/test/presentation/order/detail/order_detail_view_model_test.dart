@@ -43,6 +43,10 @@ class FakeOrderRepository implements OrderRepository {
   final Object? removeThrows;
   final Object? removeItemThrows;
 
+  final List<String> loadedOrderIds = [];
+  final List<String> removedOrderIds = [];
+  final List<String> removedItemIds = [];
+
   FakeOrderRepository({
     this.orderDetail,
     this.removedItem,
@@ -57,6 +61,7 @@ class FakeOrderRepository implements OrderRepository {
     if (error != null) {
       throw error;
     }
+    loadedOrderIds.add(orderId);
     return orderDetail!;
   }
 
@@ -66,6 +71,7 @@ class FakeOrderRepository implements OrderRepository {
     if (error != null) {
       throw error;
     }
+    removedOrderIds.add(orderId);
     return orderDetail!;
   }
 
@@ -75,7 +81,28 @@ class FakeOrderRepository implements OrderRepository {
     if (error != null) {
       throw error;
     }
+    removedItemIds.add(itemId);
     return removedItem!;
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => throw UnimplementedError();
+}
+
+/// Serves the document once and then goes offline, so a refresh can fail while
+/// the screen already has something on it.
+class FailOnSecondLoadRepository implements OrderRepository {
+  final OrderDetail orderDetail;
+  int _calls = 0;
+
+  FailOnSecondLoadRepository(this.orderDetail);
+
+  @override
+  Future<OrderDetail> getOrderById(String orderId) async {
+    if (_calls++ > 0) {
+      throw const NetworkException(message: 'offline');
+    }
+    return orderDetail;
   }
 
   @override
@@ -189,37 +216,41 @@ OrderDetailViewModel _buildViewModel({
 
 void main() {
   group('checkLogin', () {
-    test('sets logged true when role is ADMIN', () async {
+    test('an admin gets the admin actions', () async {
       final vm = _buildViewModel(loginRepo: FakeLoginRepository(role: 'ADMIN'));
 
       await vm.checkLogin();
 
-      expect(vm.state.value.logged, isTrue);
+      expect(vm.state.value.isAdmin, isTrue);
     });
 
-    test('sets logged false for a non-admin role', () async {
+    test('any other role does not', () async {
       final vm = _buildViewModel(loginRepo: FakeLoginRepository(role: 'USER'));
 
       await vm.checkLogin();
 
-      expect(vm.state.value.logged, isFalse);
+      expect(vm.state.value.isAdmin, isFalse);
     });
 
-    test('maps a typed exception to state.error', () async {
+    test('a role that cannot be read leaves the screen as a cashier', () async {
       final vm = _buildViewModel(
         loginRepo: FakeLoginRepository(
             getRoleThrows: const NetworkException(message: 'offline')),
       );
+      final errors = <String>[];
+      vm.errors.listen(errors.add);
 
       await vm.checkLogin();
+      await _pump();
 
-      expect(vm.state.value.error, isNotNull);
-      expect(vm.state.value.logged, isNull);
+      expect(vm.state.value.isAdmin, isFalse,
+          reason: 'an unreadable role must not unlock deleting orders');
+      expect(errors, hasLength(1));
     });
   });
 
   group('getOrderById', () {
-    test('populates loaded on success', () async {
+    test('puts the document on the screen', () async {
       final orderDetail = _buildOrderDetail('order-1');
       final vm = _buildViewModel(
           orderRepo: FakeOrderRepository(orderDetail: orderDetail));
@@ -227,255 +258,208 @@ void main() {
       await vm.getOrderById('order-1');
 
       expect(vm.state.value.loading, isFalse);
-      expect(vm.state.value.loaded, orderDetail);
-      expect(vm.state.value.error, isNull);
-
-      vm.consumeLoaded();
-      expect(vm.state.value.loaded, isNull);
+      expect(vm.state.value.order, orderDetail);
     });
 
-    test('maps a typed exception to state.error', () async {
+    test('a failure is reported and stops the spinner', () async {
       final vm = _buildViewModel(
         orderRepo: FakeOrderRepository(
             getByIdThrows: const NetworkException(message: 'offline')),
       );
+      final errors = <String>[];
+      vm.errors.listen(errors.add);
 
       await vm.getOrderById('order-1');
+      await _pump();
 
       expect(vm.state.value.loading, isFalse);
-      expect(vm.state.value.error, isNotNull);
+      expect(errors, hasLength(1));
+    });
+
+    test('a failed reload keeps the document already on screen', () async {
+      final repo = FailOnSecondLoadRepository(_buildOrderDetail('order-1'));
+      final vm = _buildViewModel(orderRepo: repo);
+      final errors = <String>[];
+      vm.errors.listen(errors.add);
+
+      await vm.getOrderById('order-1');
+      await vm.getOrderById('order-1');
+      await _pump();
+
+      expect(errors, hasLength(1));
+      expect(vm.state.value.order, isNotNull,
+          reason: 'a failed refresh must not blank the order the user is '
+              'reading');
     });
   });
 
   group('removeOrderById', () {
-    test('sets removedOrder on success', () async {
+    test('announces the removal so the screen can pop with it', () async {
       final orderDetail = _buildOrderDetail('order-1');
       final vm = _buildViewModel(
           orderRepo: FakeOrderRepository(orderDetail: orderDetail));
+      final removals = <OrderDetail>[];
+      vm.removals.listen(removals.add);
 
       await vm.removeOrderById('order-1');
+      await _pump();
 
-      expect(vm.state.value.removedOrder, orderDetail);
-
-      vm.consumeRemovedOrder();
-      expect(vm.state.value.removedOrder, isNull);
+      expect(removals, [orderDetail]);
+      expect(vm.state.value.loading, isFalse);
     });
 
-    test('maps a typed exception to state.error', () async {
+    test('a failure is reported and nothing is removed', () async {
       final vm = _buildViewModel(
         orderRepo: FakeOrderRepository(
             removeThrows: const NetworkException(message: 'offline')),
       );
+      final removals = <OrderDetail>[];
+      final errors = <String>[];
+      vm.removals.listen(removals.add);
+      vm.errors.listen(errors.add);
 
       await vm.removeOrderById('order-1');
+      await _pump();
 
-      expect(vm.state.value.error, isNotNull);
+      expect(errors, hasLength(1));
+      expect(removals, isEmpty);
     });
   });
 
   group('removeOrderItem', () {
-    test('sets removedItem on success', () async {
-      final removedItem = OrderItemDetail(
-        id: 'item-1',
-        product: null,
-        quantity: 1,
-        price: 10,
-        costPrice: 5,
-        discount: 0,
-        createdDate: '2026-01-01T00:00:00.000Z',
-        order: null,
+    test('reloads the document, because every total on it changed', () async {
+      final repo = FakeOrderRepository(
+        orderDetail: _buildOrderDetail('order-1'),
+        removedItem: _buildOrderItem('item-1'),
       );
-      final vm = _buildViewModel(
-          orderRepo: FakeOrderRepository(removedItem: removedItem));
+      final vm = _buildViewModel(orderRepo: repo);
 
-      await vm.removeOrderItem('item-1');
+      await vm.removeOrderItem('order-1', 'item-1');
 
-      expect(vm.state.value.removedItem, removedItem);
-
-      vm.consumeRemovedItem();
-      expect(vm.state.value.removedItem, isNull);
+      expect(repo.removedItemIds, ['item-1']);
+      expect(repo.loadedOrderIds, ['order-1'],
+          reason: 'the reload used to be a second call the page made itself');
+      expect(vm.state.value.order, isNotNull);
+      expect(vm.state.value.loading, isFalse);
     });
 
-    test('maps a typed exception to state.error', () async {
-      final vm = _buildViewModel(
-        orderRepo: FakeOrderRepository(
-            removeItemThrows: const NetworkException(message: 'offline')),
+    test('a failed delete is reported and does not reload', () async {
+      final repo = FakeOrderRepository(
+        orderDetail: _buildOrderDetail('order-1'),
+        removeItemThrows: const NetworkException(message: 'offline'),
       );
+      final vm = _buildViewModel(orderRepo: repo);
+      final errors = <String>[];
+      vm.errors.listen(errors.add);
 
-      await vm.removeOrderItem('item-1');
+      await vm.removeOrderItem('order-1', 'item-1');
+      await _pump();
 
-      expect(vm.state.value.error, isNotNull);
+      expect(errors, hasLength(1));
+      expect(repo.loadedOrderIds, isEmpty);
+      expect(vm.state.value.loading, isFalse,
+          reason: 'the screen must not be left holding a spinner');
     });
   });
 
   group('getSupplier', () {
-    test('resolves both the matching customer and the supplier', () async {
+    test('resolves both the matching customer and the shop profile', () async {
       final vm = _buildViewModel(
         customerRepo: FakeCustomerRepository(
             customers: [_buildCustomer('CUST-1'), _buildCustomer('CUST-2')]),
         supplierRepo: FakeSupplierRepository(supplier: _buildSupplier()),
       );
+      final receipts = <SupplierResult>[];
+      vm.receipts.listen(receipts.add);
 
       await vm.getSupplier('CUST-1');
+      await _pump();
 
-      expect(vm.state.value.supplierResult, isNotNull);
-      expect(vm.state.value.supplierResult!.customer!.code, 'CUST-1');
-      expect(vm.state.value.supplierResult!.supplier.id, 's1');
-
-      vm.consumeSupplierResult();
-      expect(vm.state.value.supplierResult, isNull);
+      expect(receipts, hasLength(1));
+      expect(receipts.single.customer!.code, 'CUST-1');
+      expect(receipts.single.supplier.id, 's1');
     });
 
-    test('still resolves the supplier when no customer matches the code',
-        () async {
+    test('prints without a customer when no code matches', () async {
       final vm = _buildViewModel(
         customerRepo:
             FakeCustomerRepository(customers: [_buildCustomer('OTHER')]),
         supplierRepo: FakeSupplierRepository(supplier: _buildSupplier()),
       );
+      final receipts = <SupplierResult>[];
+      vm.receipts.listen(receipts.add);
 
       await vm.getSupplier('CUST-1');
+      await _pump();
 
-      expect(vm.state.value.supplierResult, isNotNull);
-      expect(vm.state.value.supplierResult!.customer, isNull);
+      expect(receipts.single.customer, isNull);
     });
 
-    test('still resolves the supplier when the customer lookup throws',
-        () async {
+    test('prints without a customer when the customer lookup throws', () async {
       final vm = _buildViewModel(
         customerRepo: FakeCustomerRepository(
             throws: const NetworkException(message: 'offline')),
         supplierRepo: FakeSupplierRepository(supplier: _buildSupplier()),
       );
+      final receipts = <SupplierResult>[];
+      vm.receipts.listen(receipts.add);
 
       await vm.getSupplier('CUST-1');
+      await _pump();
 
-      expect(vm.state.value.supplierResult, isNotNull);
-      expect(vm.state.value.supplierResult!.customer, isNull);
-      expect(vm.state.value.supplierError, isNull);
+      expect(receipts, hasLength(1),
+          reason: 'the name can still be typed into the dialog');
     });
 
-    test(
-        'maps a typed exception from the supplier lookup to state.supplierError',
-        () async {
+    test('no shop profile yet sends the user to create one', () async {
       final vm = _buildViewModel(
-        customerRepo:
-            FakeCustomerRepository(customers: [_buildCustomer('CUST-1')]),
         supplierRepo: FakeSupplierRepository(
-            throws: const NetworkException(message: 'offline')),
+            throws: const NotFoundException(message: 'no supplier')),
       );
+      final setups = <void>[];
+      final errors = <String>[];
+      vm.supplierSetups.listen(setups.add);
+      vm.errors.listen(errors.add);
 
       await vm.getSupplier('CUST-1');
+      await _pump();
 
-      expect(vm.state.value.supplierError, isNotNull);
-      expect(vm.state.value.supplierResult, isNull);
-
-      vm.consumeSupplierError();
-      expect(vm.state.value.supplierError, isNull);
+      expect(setups, hasLength(1));
+      expect(errors, isEmpty, reason: 'nothing has gone wrong');
     });
-  });
 
-  test('updateTotalCost / consumeTotalCostUpdated toggles the one-shot flag',
-      () {
-    final vm = _buildViewModel();
-
-    vm.updateTotalCost();
-    expect(vm.state.value.totalCostUpdated, isTrue);
-
-    vm.consumeTotalCostUpdated();
-    expect(vm.state.value.totalCostUpdated, isFalse);
-  });
-
-  group('one task at a time', () {
-    test('reloading after removing an item drops the stale delete result',
+    test('being offline is reported, not treated as a missing profile',
         () async {
       final vm = _buildViewModel(
-        orderRepo: FakeOrderRepository(
-          orderDetail: _buildOrderDetail('order-1'),
-          removedItem: _buildOrderItem('item-1'),
-        ),
+        supplierRepo: FakeSupplierRepository(
+            throws: const NetworkException(message: 'offline')),
       );
+      final setups = <void>[];
+      final errors = <String>[];
+      vm.supplierSetups.listen(setups.add);
+      vm.errors.listen(errors.add);
 
-      await vm.removeOrderItem('item-1');
-      expect(vm.state.value.removedItem, isNotNull);
+      await vm.getSupplier('CUST-1');
+      await _pump();
 
-      await vm.getOrderById('order-1');
-
-      expect(vm.state.value.loaded, isNotNull);
-      expect(vm.state.value.removedItem, isNull,
-          reason:
-              'a delete result must not survive the reload that follows it');
-      expect(vm.state.value.task, isA<OrderLoaded>());
-    });
-
-    test('deleting the order drops a stale loaded document', () async {
-      final vm = _buildViewModel(
-        orderRepo:
-            FakeOrderRepository(orderDetail: _buildOrderDetail('order-1')),
-      );
-
-      await vm.getOrderById('order-1');
-      expect(vm.state.value.loaded, isNotNull);
-
-      await vm.removeOrderById('order-1');
-
-      expect(vm.state.value.removedOrder, isNotNull);
-      expect(vm.state.value.loaded, isNull);
-    });
-
-    test('a failure leaves no result behind', () async {
-      final vm = _buildViewModel(
-        orderRepo: FakeOrderRepository(
-          orderDetail: _buildOrderDetail('order-1'),
-          removeThrows: const NetworkException(message: 'offline'),
-        ),
-      );
-
-      await vm.getOrderById('order-1');
-      expect(vm.state.value.loaded, isNotNull);
-
-      await vm.removeOrderById('order-1');
-
-      expect(vm.state.value.error, isNotNull);
-      expect(vm.state.value.loaded, isNull);
-      expect(vm.state.value.removedOrder, isNull);
-      expect(vm.state.value.loading, isFalse);
+      expect(errors, hasLength(1));
+      expect(setups, isEmpty,
+          reason: 'the old code opened the setup form, where the user found '
+              'their profile already filled in and no explanation');
     });
   });
 
-  group('supplier lookup', () {
-    test('a found profile and a missing one cannot both be present', () async {
-      final vm = _buildViewModel(
-        supplierRepo: FakeSupplierRepository(
-            throws: const NetworkException(message: 'offline')),
-      );
+  test('a command is refused while another is in flight', () async {
+    final repo = FakeOrderRepository(orderDetail: _buildOrderDetail('order-1'));
+    final vm = _buildViewModel(orderRepo: repo);
 
-      await vm.getSupplier('C1');
+    final first = vm.getOrderById('order-1');
+    await vm.removeOrderById('order-1');
+    await first;
 
-      expect(vm.state.value.supplierError, isNotNull);
-      expect(vm.state.value.supplierResult, isNull);
-      expect(vm.state.value.supplier, isA<SupplierNotConfigured>());
-
-      vm.consumeSupplierError();
-
-      expect(vm.state.value.supplier, isA<SupplierLookupIdle>());
-    });
-
-    test('the supplier lookup does not disturb the order task', () async {
-      final vm = _buildViewModel(
-        orderRepo:
-            FakeOrderRepository(orderDetail: _buildOrderDetail('order-1')),
-        supplierRepo: FakeSupplierRepository(
-            throws: const NetworkException(message: 'offline')),
-      );
-
-      await vm.getOrderById('order-1');
-      await vm.getSupplier('C1');
-
-      expect(vm.state.value.loaded, isNotNull,
-          reason: 'the two flows have separate slots');
-      expect(vm.state.value.error, isNull);
-      expect(vm.state.value.supplierError, isNotNull);
-    });
+    expect(repo.removedOrderIds, isEmpty,
+        reason: 'a delete must not start while the document is still loading');
   });
 }
+
+Future<void> _pump() => Future<void>.delayed(Duration.zero);

@@ -1,58 +1,21 @@
-// Package imports:
-import 'package:common/core/error/failure.dart';
+// Flutter imports:
+import 'package:flutter/foundation.dart';
 
-// Project imports:
-import 'package:pos/domain/model/supplier/supplier.dart';
-
-/// The mutually exclusive states of this screen's two commands.
+/// What this screen renders: whether a command is in flight.
 ///
-/// Saving and deleting share the screen but not a slot: an update result and a
-/// delete result can never both be present, which is what the four independent
-/// nullable fields used to allow.
-sealed class SupplierEditState {
-  const SupplierEditState._();
-  const factory SupplierEditState() = SupplierEditIdle;
+/// Saving and deleting used to be separate states in a sealed type that also
+/// carried the outcome, and the view cleared the outcome once it had acted.
+/// The outcomes are events now, and one flag is enough here — the screen runs
+/// one command at a time, and starting a delete mid-save was never wanted.
+@immutable
+class SupplierEditState {
+  final bool busy;
 
-  // Derived UI projections; no independently writable flags.
-  bool get loading =>
-      this is SupplierEditSaving || this is SupplierEditDeleting;
-  String? get error => switch (this) {
-        SupplierEditFailed(:final failure) => failure.getMessage(),
-        _ => null,
-      };
-  Supplier? get updated => switch (this) {
-        SupplierEditUpdated(:final supplier) => supplier,
-        _ => null,
-      };
-  Supplier? get removed => switch (this) {
-        SupplierEditRemoved(:final supplier) => supplier,
-        _ => null,
-      };
-}
+  const SupplierEditState({this.busy = false});
 
-final class SupplierEditIdle extends SupplierEditState {
-  const SupplierEditIdle() : super._();
-}
+  bool get loading => busy;
 
-final class SupplierEditSaving extends SupplierEditState {
-  const SupplierEditSaving() : super._();
-}
-
-final class SupplierEditDeleting extends SupplierEditState {
-  const SupplierEditDeleting() : super._();
-}
-
-final class SupplierEditUpdated extends SupplierEditState {
-  final Supplier supplier;
-  const SupplierEditUpdated(this.supplier) : super._();
-}
-
-final class SupplierEditRemoved extends SupplierEditState {
-  final Supplier supplier;
-  const SupplierEditRemoved(this.supplier) : super._();
-}
-
-final class SupplierEditFailed extends SupplierEditState {
-  final Failure failure;
-  const SupplierEditFailed(this.failure) : super._();
+  SupplierEditState copyWith({bool? busy}) {
+    return SupplierEditState(busy: busy ?? this.busy);
+  }
 }

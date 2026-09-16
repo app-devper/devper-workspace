@@ -18,9 +18,6 @@ class FakeProductRepository implements ProductRepository {
   var invalidated = 0;
 
   @override
-  void invalidateProductsCache() => invalidated++;
-
-  @override
   dynamic noSuchMethod(Invocation invocation) => throw UnimplementedError();
 }
 
@@ -111,7 +108,6 @@ void main() {
       final vm = ProductReturnViewModel(
         createProductReturnUseCase: CreateProductReturnUseCase(
           productReturnRepo: repository,
-          productRepo: FakeProductRepository(),
         ),
       );
       final param = CreateProductReturnParam(
@@ -126,25 +122,30 @@ void main() {
         ],
       );
 
+      final created = <ProductReturn>[];
+      vm.created.listen(created.add);
+
       await vm.createProductReturn(param);
+      await Future<void>.delayed(Duration.zero);
 
       expect(vm.state.value.loading, isFalse);
-      expect(vm.state.value.created?.id, 'return-1');
+      expect(created.single.id, 'return-1');
       expect(repository.createParam?.items.single.quantity, 2);
-
-      vm.consumeCreated();
-      expect(vm.state.value.created, isNull);
     });
 
-    test('createProductReturn maps a typed exception to state.error', () async {
+    test('a failed return emits an error and no result', () async {
       final vm = ProductReturnViewModel(
         createProductReturnUseCase: CreateProductReturnUseCase(
           productReturnRepo: FakeProductReturnRepository(
             error: const NetworkException(message: 'offline'),
           ),
-          productRepo: FakeProductRepository(),
         ),
       );
+
+      final created = <ProductReturn>[];
+      final errors = <String>[];
+      vm.created.listen(created.add);
+      vm.errors.listen(errors.add);
 
       await vm.createProductReturn(
         CreateProductReturnParam(
@@ -153,13 +154,11 @@ void main() {
           items: const [],
         ),
       );
+      await Future<void>.delayed(Duration.zero);
 
       expect(vm.state.value.loading, isFalse);
-      expect(vm.state.value.created, isNull);
-      expect(vm.state.value.error, isNotNull);
-
-      vm.consumeError();
-      expect(vm.state.value.error, isNull);
+      expect(created, isEmpty);
+      expect(errors, hasLength(1));
     });
   });
 
@@ -169,7 +168,6 @@ void main() {
       final vm = StockAdjustmentViewModel(
         createStockAdjustmentUseCase: CreateStockAdjustmentUseCase(
           stockAdjustmentRepo: repository,
-          productRepo: FakeProductRepository(),
         ),
       );
       final param = CreateStockAdjustmentParam(
@@ -180,27 +178,32 @@ void main() {
         delta: -2,
       );
 
+      final created = <StockAdjustment>[];
+      vm.created.listen(created.add);
+
       await vm.createStockAdjustment(param);
+      await Future<void>.delayed(Duration.zero);
 
       expect(vm.state.value.loading, isFalse);
-      expect(vm.state.value.created?.after, 8);
+      expect(created.single.after, 8);
       expect(repository.createParam?.delta, -2);
-
-      vm.consumeCreated();
-      expect(vm.state.value.created, isNull);
     });
 
     test(
-      'createStockAdjustment maps a typed exception to state.error',
+      'a failed adjustment emits an error and no result',
       () async {
         final vm = StockAdjustmentViewModel(
           createStockAdjustmentUseCase: CreateStockAdjustmentUseCase(
             stockAdjustmentRepo: FakeStockAdjustmentRepository(
               error: const NetworkException(message: 'offline'),
             ),
-            productRepo: FakeProductRepository(),
           ),
         );
+
+        final created = <StockAdjustment>[];
+        final errors = <String>[];
+        vm.created.listen(created.add);
+        vm.errors.listen(errors.add);
 
         await vm.createStockAdjustment(
           CreateStockAdjustmentParam(
@@ -211,13 +214,11 @@ void main() {
             delta: -2,
           ),
         );
+        await Future<void>.delayed(Duration.zero);
 
         expect(vm.state.value.loading, isFalse);
-        expect(vm.state.value.created, isNull);
-        expect(vm.state.value.error, isNotNull);
-
-        vm.consumeError();
-        expect(vm.state.value.error, isNull);
+        expect(created, isEmpty);
+        expect(errors, hasLength(1));
       },
     );
   });

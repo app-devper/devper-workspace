@@ -18,10 +18,8 @@ class ReceiveRepositoryImpl implements ReceiveRepository {
 
   @override
   Future<Receive> createReceive(ReceiveParam param) async {
-    final mapper = ReceiveMapper();
-    final response =
-        await posService.createReceive(mapper.toReceiveRequest(param));
-    return mapper.toReceiveDomain(jsonOrThrow(response));
+    final response = await posService.createReceive(param.toReceiveRequest());
+    return (jsonOrThrow(response) as Map<String, dynamic>).toReceiveDomain();
   }
 
   @override
@@ -31,38 +29,34 @@ class ReceiveRepositoryImpl implements ReceiveRepository {
 
   @override
   Future<Receive> getReceiveById(String receiveId) async {
-    final mapper = ReceiveMapper();
     final response = await posService.getReceiveById(receiveId);
-    return mapper.toReceiveDomain(jsonOrThrow(response));
+    return (jsonOrThrow(response) as Map<String, dynamic>).toReceiveDomain();
   }
 
   @override
   Future<List<Receive>> getReceives(GetReceivesRangeParam param) async {
-    final mapper = ReceiveMapper();
     final response =
         await posService.getReceives(param.startDate, param.endDate);
-    return mapper.toReceivesDomain(jsonOrThrow(response));
+    return (jsonOrThrow(response) as List).toReceivesDomain();
   }
 
   @override
   Future<Receive> removeReceiveById(String receiveId) async {
-    final mapper = ReceiveMapper();
     final response = await posService.removeReceiveById(receiveId);
-    return mapper.toReceiveDomain(jsonOrThrow(response));
+    return (jsonOrThrow(response) as Map<String, dynamic>).toReceiveDomain();
   }
 
   @override
   Future<Receive> importReceiveById(String receiveId) async {
     final response = await posService.importReceiveById(receiveId);
-    return ReceiveMapper().toReceiveDomain(jsonOrThrow(response));
+    return (jsonOrThrow(response) as Map<String, dynamic>).toReceiveDomain();
   }
 
   @override
   Future<Receive> updateReceiveById(
       String receiveId, UpdateReceiveParam param) async {
-    final mapper = ReceiveMapper();
     final response = await posService.updateReceiveById(
-        receiveId, mapper.toUpdateReceiveRequest(param));
-    return mapper.toReceiveDomain(jsonOrThrow(response));
+        receiveId, param.toUpdateReceiveRequest());
+    return (jsonOrThrow(response) as Map<String, dynamic>).toReceiveDomain();
   }
 }

@@ -6,6 +6,7 @@ import 'package:pos/domain/model/order/param.dart';
 import 'package:pos/domain/repositories/order_repository.dart';
 import 'package:pos/domain/usecase/order/get_order_range_use_case.dart';
 import 'package:pos/presentation/order/main/order_ui_model.dart';
+import 'package:pos/presentation/order/main/order_state.dart';
 import 'package:pos/presentation/order/main/order_view_model.dart';
 import 'package:um/domain/entities/auth/login.dart';
 import 'package:um/domain/entities/auth/param.dart';
@@ -160,20 +161,21 @@ void main() {
     final repo = FakeOrderRepository(orders: [order('1', 'Cash')]);
     final viewModel = buildViewModel(orders: repo);
 
+    final errors = <String>[];
+    viewModel.errors.listen(errors.add);
+
     await viewModel.getOrderItem('Store', anyRange());
     expect(viewModel.state.value.orders, hasLength(1));
 
     repo.throws =
         const NetworkException(message: 'down', code: 'NETWORK_ERROR');
     await viewModel.getOrderItem('Store', anyRange());
+    await Future<void>.delayed(Duration.zero);
 
-    expect(viewModel.state.value.error, contains('เชื่อมต่อเซิร์ฟเวอร์ไม่ได้'));
+    expect(errors.single, contains('เชื่อมต่อเซิร์ฟเวอร์ไม่ได้'));
     // The list a cashier was reading stays put; a dropped connection should
     // not blank the screen.
     expect(viewModel.state.value.orders, hasLength(1));
-
-    viewModel.consumeError();
-    expect(viewModel.state.value.error, isNull);
   });
 
   group('checkLogin', () {
@@ -184,20 +186,26 @@ void main() {
       await admin.checkLogin();
       await cashier.checkLogin();
 
-      expect(admin.state.value.logged, isTrue);
-      expect(cashier.state.value.logged, isFalse);
+      expect(admin.state.value.isAdmin, isTrue);
+      expect(cashier.state.value.isAdmin, isFalse);
     });
 
-    test('an unreadable role surfaces as an error', () async {
+    test('an unreadable role surfaces as an error and stays a cashier',
+        () async {
       final viewModel = buildViewModel(
         login: FakeLoginRepository(
           throws: const AuthException(message: 'expired', code: 'AU-401'),
         ),
       );
+      final errors = <String>[];
+      viewModel.errors.listen(errors.add);
 
       await viewModel.checkLogin();
+      await Future<void>.delayed(Duration.zero);
 
-      expect(viewModel.state.value.error, isNotNull);
+      expect(errors, hasLength(1));
+      expect(viewModel.state.value.isAdmin, isFalse,
+          reason: 'an unknown role must not unlock the admin actions');
     });
   });
 
@@ -207,44 +215,61 @@ void main() {
       return DateTime(now.year, now.month, now.day);
     }
 
-    test('today spans midnight to midnight', () {
+    test('today spans midnight to midnight', () async {
       final viewModel = buildViewModel();
 
-      viewModel.selectRange(Range.today);
+      final selections = <OrderRangeSelection>[];
+      viewModel.rangeSelections.listen(selections.add);
 
-      final selection = viewModel.state.value.rangeSelection!;
+      viewModel.selectRange(Range.today);
+      await Future<void>.delayed(Duration.zero);
+
+      final selection = selections.single;
       expect(selection.startDate, midnight());
       expect(selection.endDate, midnight().add(const Duration(days: 1)));
     });
 
-    test('yesterday ends where today begins', () {
+    test('yesterday ends where today begins', () async {
       final viewModel = buildViewModel();
 
-      viewModel.selectRange(Range.yesterday);
+      final selections = <OrderRangeSelection>[];
+      viewModel.rangeSelections.listen(selections.add);
 
-      final selection = viewModel.state.value.rangeSelection!;
+      viewModel.selectRange(Range.yesterday);
+      await Future<void>.delayed(Duration.zero);
+
+      final selection = selections.single;
       expect(selection.startDate, midnight().subtract(const Duration(days: 1)));
       expect(selection.endDate, midnight());
     });
 
-    test('current month runs from the first to the first of the next', () {
+    test('current month runs from the first to the first of the next',
+        () async {
       final viewModel = buildViewModel();
       final now = DateTime.now();
 
-      viewModel.selectRange(Range.currentMonth);
+      final selections = <OrderRangeSelection>[];
+      viewModel.rangeSelections.listen(selections.add);
 
-      final selection = viewModel.state.value.rangeSelection!;
+      viewModel.selectRange(Range.currentMonth);
+      await Future<void>.delayed(Duration.zero);
+
+      final selection = selections.single;
       expect(selection.startDate, DateTime(now.year, now.month, 1));
       expect(selection.endDate, DateTime(now.year, now.month + 1, 1));
     });
 
-    test('last month ends where the current one begins', () {
+    test('last month ends where the current one begins', () async {
       final viewModel = buildViewModel();
       final now = DateTime.now();
 
-      viewModel.selectRange(Range.lastMonth);
+      final selections = <OrderRangeSelection>[];
+      viewModel.rangeSelections.listen(selections.add);
 
-      final selection = viewModel.state.value.rangeSelection!;
+      viewModel.selectRange(Range.lastMonth);
+      await Future<void>.delayed(Duration.zero);
+
+      final selection = selections.single;
       expect(selection.startDate, DateTime(now.year, now.month - 1, 1));
       expect(selection.endDate, DateTime(now.year, now.month, 1));
     });
@@ -255,10 +280,9 @@ void main() {
 
     viewModel.initData();
 
+    // It used to raise an "initialised" flag as well, which the page read to
+    // decide when to pick a range. Nothing about the list depends on the role
+    // check that preceded it, so the page just makes both calls.
     expect(viewModel.state.value.ranges, hasLength(6));
-    expect(viewModel.state.value.initialized, isTrue);
-
-    viewModel.consumeInitialized();
-    expect(viewModel.state.value.initialized, isFalse);
   });
 }

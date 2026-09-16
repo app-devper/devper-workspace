@@ -14,9 +14,6 @@ class FakeProductRepository implements ProductRepository {
   var invalidated = 0;
 
   @override
-  void invalidateProductsCache() => invalidated++;
-
-  @override
   dynamic noSuchMethod(Invocation invocation) => throw UnimplementedError();
 }
 
@@ -25,6 +22,7 @@ class FakeStockCountRepository implements StockCountRepository {
   final Object? error;
   CreateStockCountParam? createParam;
   var getByIdCalls = 0;
+  var createCalls = 0;
 
   FakeStockCountRepository({
     StockCount? result,
@@ -37,6 +35,7 @@ class FakeStockCountRepository implements StockCountRepository {
 
   @override
   Future<StockCount> createStockCount(CreateStockCountParam param) async {
+    createCalls++;
     _throwIfNeeded();
     createParam = param;
     return result;
@@ -82,7 +81,6 @@ StockCountManageViewModel buildViewModel(StockCountRepository repository) {
   return StockCountManageViewModel(
     createStockCountUseCase: CreateStockCountUseCase(
       stockCountRepo: repository,
-          productRepo: FakeProductRepository(),
     ),
     getStockCountByIdUseCase: GetStockCountByIdUseCase(
       stockCountRepo: repository,
@@ -102,7 +100,6 @@ void main() {
     expect(repository.getByIdCalls, 1);
     expect(vm.state.value.loading, isFalse);
     expect(vm.state.value.stockCount?.id, 'sc7');
-    expect(vm.state.value.error, isNull);
   });
 
   test('getStockCountById ignores a null id', () async {
@@ -115,18 +112,49 @@ void main() {
     expect(vm.state.value.stockCount, isNull);
   });
 
-  test('getStockCountById maps a typed exception to state.error', () async {
+  test('a failed load emits an error and leaves the screen empty', () async {
     final vm = buildViewModel(
       FakeStockCountRepository(
         error: const NetworkException(message: 'offline'),
       ),
     );
+    final errors = <String>[];
+    vm.errors.listen(errors.add);
 
     await vm.getStockCountById('sc1');
+    await Future<void>.delayed(Duration.zero);
 
     expect(vm.state.value.loading, isFalse);
     expect(vm.state.value.stockCount, isNull);
-    expect(vm.state.value.error, isNotNull);
+    expect(errors, hasLength(1));
+  });
+
+  test('a duplicate lot is rejected with a message, not a state', () async {
+    final vm = buildViewModel(FakeStockCountRepository());
+    final errors = <String>[];
+    vm.errors.listen(errors.add);
+
+    vm.addItem(buildItem());
+    vm.addItem(buildItem());
+    await Future<void>.delayed(Duration.zero);
+
+    expect(vm.state.value.items, hasLength(1));
+    expect(errors.single, contains('อยู่ในรายการตรวจนับแล้ว'));
+  });
+
+  test('an empty or negative count is rejected before the API', () async {
+    final repository = FakeStockCountRepository();
+    final vm = buildViewModel(repository);
+    final errors = <String>[];
+    vm.errors.listen(errors.add);
+
+    await vm.createStockCount('');
+    vm.addItem(buildItem(counted: -1));
+    await vm.createStockCount('');
+    await Future<void>.delayed(Duration.zero);
+
+    expect(repository.createCalls, 0);
+    expect(errors, hasLength(2));
   });
 
   test('add, update, and remove item produce immutable list changes', () {
@@ -154,31 +182,35 @@ void main() {
     final vm = buildViewModel(repository);
     vm.addItem(buildItem(productId: 'p9'));
 
+    final created = <StockCount>[];
+    vm.created.listen(created.add);
+
     await vm.createStockCount('cycle count');
+    await Future<void>.delayed(Duration.zero);
 
     expect(vm.state.value.loading, isFalse);
-    expect(vm.state.value.created?.id, 'created');
+    expect(created.single.id, 'created');
     expect(repository.createParam?.note, 'cycle count');
     expect(repository.createParam?.items.single.productId, 'p9');
-
-    vm.consumeCreated();
-    expect(vm.state.value.created, isNull);
   });
 
-  test('createStockCount maps a typed exception to state.error', () async {
+  test('a failed submit emits an error and no result', () async {
     final vm = buildViewModel(
       FakeStockCountRepository(
         error: const NetworkException(message: 'offline'),
       ),
     );
+    final created = <StockCount>[];
+    final errors = <String>[];
+    vm.created.listen(created.add);
+    vm.errors.listen(errors.add);
+    vm.addItem(buildItem());
 
     await vm.createStockCount('cycle count');
+    await Future<void>.delayed(Duration.zero);
 
     expect(vm.state.value.loading, isFalse);
-    expect(vm.state.value.created, isNull);
-    expect(vm.state.value.error, isNotNull);
-
-    vm.consumeError();
-    expect(vm.state.value.error, isNull);
+    expect(created, isEmpty);
+    expect(errors, hasLength(1));
   });
 }

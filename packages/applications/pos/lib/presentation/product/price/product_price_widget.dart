@@ -1,3 +1,5 @@
+import 'dart:async';
+
 // Flutter imports:
 import 'package:flutter/material.dart';
 import 'package:design_system/theme/app_colors.dart';
@@ -40,8 +42,19 @@ class _ProductPriceWidgetState extends State<ProductPriceWidget> {
   ItemType? customerType;
 
   late ProductPriceViewModel _viewModel;
+  late StreamSubscription<String> _errors;
+  late StreamSubscription<ProductPrice> _completed;
 
   bool _loadingShown = false;
+
+  void _showError(String message) {
+    showAlertDialog(context, message, () {});
+  }
+
+  void _onCompleted(ProductPrice data) {
+    Navigator.of(context).pop();
+    widget.onComplete(data);
+  }
 
   void _onStateChanged() {
     final state = _viewModel.state.value;
@@ -52,23 +65,14 @@ class _ProductPriceWidgetState extends State<ProductPriceWidget> {
       _loadingShown = false;
       hideLoadingDialog(context);
     }
-    if (state.error != null) {
-      final message = state.error!;
-      _viewModel.consumeError();
-      showAlertDialog(context, message, () {});
-    }
-    if (state.completed != null) {
-      final data = state.completed!;
-      _viewModel.consumeCompleted();
-      Navigator.of(context).pop();
-      widget.onComplete(data);
-    }
   }
 
   @override
   void initState() {
     _viewModel = sl<ProductPriceViewModel>();
     _viewModel.state.addListener(_onStateChanged);
+    _errors = _viewModel.errors.listen(_showError);
+    _completed = _viewModel.completed.listen(_onCompleted);
     if (widget.price != null) {
       _priceController.text = widget.price!.price.toString();
       setState(() {
@@ -81,6 +85,8 @@ class _ProductPriceWidgetState extends State<ProductPriceWidget> {
   @override
   void dispose() {
     _viewModel.state.removeListener(_onStateChanged);
+    _errors.cancel();
+    _completed.cancel();
     _priceController.dispose();
     _priceFocus.dispose();
 

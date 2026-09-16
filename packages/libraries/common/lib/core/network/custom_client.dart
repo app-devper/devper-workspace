@@ -64,6 +64,22 @@ class CustomClient implements Client {
     return response as StreamedResponse;
   }
 
+  /// Sends a request the interceptors would otherwise never see.
+  ///
+  /// [send] hands back a stream, so there is nothing for an interceptor to read
+  /// without draining it first. Callers that want the whole response anyway —
+  /// a multipart upload, say — should use this: it drains the stream and runs
+  /// the response interceptors, so a 401 here logs the user out the way it does
+  /// on every other call.
+  ///
+  /// Request interceptors are skipped on purpose. [Interceptor.onRequest] takes
+  /// a [Request], and the requests that need this method are the ones that are
+  /// not — a [MultipartRequest] has no single body to hand over.
+  Future<Response> sendUnary(BaseRequest request) async {
+    final response = await _attemptRequest(request) as Response;
+    return _interceptResponse(response);
+  }
+
   /// Sends a non-streaming [Request] and returns a non-streaming [Response].
   Future<Response> _sendUnstreamed(String method, Uri url, Map<String, String>? headers, [body, Encoding? encoding]) async {
     var request = Request(method, url);

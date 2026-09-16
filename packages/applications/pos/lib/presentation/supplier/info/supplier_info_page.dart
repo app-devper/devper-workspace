@@ -1,3 +1,5 @@
+import 'dart:async';
+
 // Flutter imports:
 import 'package:flutter/material.dart';
 
@@ -11,6 +13,7 @@ import 'package:design_system/widgets/page_container.dart';
 
 // Project imports:
 import 'package:pos/container.dart';
+import 'package:pos/domain/model/supplier/supplier.dart';
 import 'package:pos/domain/model/supplier/param.dart';
 import 'package:pos/localizations/language/languages.dart';
 import 'package:pos/presentation/constants.dart';
@@ -39,6 +42,8 @@ class _SupplierInfoPageState extends State<SupplierInfoPage> {
 
   late CustomSnackBar _snackBar;
   late SupplierInfoViewModel _viewModel;
+  late StreamSubscription<String> _errors;
+  late StreamSubscription<Supplier> _updated;
 
   bool _loadingShown = false;
   bool _infoLoaded = false;
@@ -48,7 +53,19 @@ class _SupplierInfoPageState extends State<SupplierInfoPage> {
     super.initState();
     _viewModel = sl<SupplierInfoViewModel>();
     _viewModel.state.addListener(_onStateChanged);
+    _errors = _viewModel.errors.listen(_showError);
+    _updated = _viewModel.updated.listen(_onUpdated);
     _viewModel.getSupplierInfo();
+  }
+
+  void _showError(String message) {
+    _snackBar.hideAll();
+    _snackBar.showErrorSnackBar(message);
+  }
+
+  void _onUpdated(Supplier supplier) {
+    _snackBar.hideAll();
+    _snackBar.showSnackBar(text: "Update ${supplier.name} success");
   }
 
   void _onStateChanged() {
@@ -67,21 +84,13 @@ class _SupplierInfoPageState extends State<SupplierInfoPage> {
       _loadingShown = false;
       hideLoadingDialog(context);
     }
-    if (state.error != null) {
-      _snackBar.hideAll();
-      _snackBar.showErrorSnackBar(state.error!);
-      _viewModel.consumeError();
-    }
-    if (state.updated != null) {
-      _snackBar.hideAll();
-      _snackBar.showSnackBar(text: "Update ${state.updated!.name} success");
-      _viewModel.consumeUpdated();
-    }
   }
 
   @override
   void dispose() {
     _viewModel.state.removeListener(_onStateChanged);
+    _errors.cancel();
+    _updated.cancel();
     _viewNode.dispose();
     _nameNode.dispose();
     _addressNode.dispose();

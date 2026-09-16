@@ -4,6 +4,8 @@ import 'package:common/injection.dart';
 // Project imports:
 import 'package:pos/data/datasource/network/pos_service.dart';
 import 'package:pos/data/repositories/category_repository_impl.dart';
+import 'package:pos/data/repositories/cached_list.dart';
+import 'package:pos/domain/model/product/product.dart';
 import 'package:pos/data/repositories/customer_repository_impl.dart';
 import 'package:pos/data/repositories/order_repository_impl.dart';
 import 'package:pos/data/repositories/product_repository_impl.dart';
@@ -231,10 +233,8 @@ Future<void> initPos() async {
   sl.registerFactory(
     () => ProductEditViewModel(
       getLocalProductByIdUseCase: sl(),
-      getLocalCategoriesUseCase: sl(),
       updateProductByIdUseCase: sl(),
       removeProductByIdUseCase: sl(),
-      generateSerialNumberUseCase: sl(),
     ),
   );
   sl.registerFactory(
@@ -498,7 +498,6 @@ Future<void> initPos() async {
 
   sl.registerFactory(
     () => CreateStockAdjustmentUseCase(
-      productRepo: sl(),
       stockAdjustmentRepo: sl(),
     ),
   );
@@ -509,7 +508,6 @@ Future<void> initPos() async {
   );
   sl.registerFactory(
     () => CreateStockCountUseCase(
-      productRepo: sl(),
       stockCountRepo: sl(),
     ),
   );
@@ -525,7 +523,6 @@ Future<void> initPos() async {
   );
   sl.registerFactory(
     () => CreateProductReturnUseCase(
-      productRepo: sl(),
       productReturnRepo: sl(),
     ),
   );
@@ -734,9 +731,13 @@ Future<void> initPos() async {
     ),
   );
 
+  // One catalogue cache, shared by the repositories whose writes can change it.
+  sl.registerLazySingleton<CachedList<Product>>(() => CachedList<Product>());
+
   sl.registerLazySingleton<ProductRepository>(
     () => ProductRepositoryImpl(
       posService: sl(),
+      cache: sl(),
     ),
   );
   sl.registerLazySingleton<OrderRepository>(
@@ -767,16 +768,19 @@ Future<void> initPos() async {
   sl.registerLazySingleton<StockAdjustmentRepository>(
     () => StockAdjustmentRepositoryImpl(
       posService: sl(),
+      productCache: sl(),
     ),
   );
   sl.registerLazySingleton<StockCountRepository>(
     () => StockCountRepositoryImpl(
       posService: sl(),
+      productCache: sl(),
     ),
   );
   sl.registerLazySingleton<ProductReturnRepository>(
     () => ProductReturnRepositoryImpl(
       posService: sl(),
+      productCache: sl(),
     ),
   );
 

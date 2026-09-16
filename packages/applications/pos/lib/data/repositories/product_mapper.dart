@@ -1,6 +1,9 @@
 // Dart imports:
 import 'dart:convert';
 
+// Package imports:
+import 'package:common/core/ext/json_ext.dart';
+
 // Project imports:
 import 'package:pos/domain/model/product/param.dart';
 import 'package:pos/domain/model/product/product.dart';
@@ -8,13 +11,17 @@ import 'package:pos/domain/model/product/product_history.dart';
 import 'package:pos/domain/model/product/product_lot.dart';
 import 'package:pos/domain/model/product/request_drug_info.dart';
 
-class ProductMapper {
-  List<Product> toProductsDomain(List json) {
-    final products = json.map((data) => toProductDomain(data)).toList();
-    return products;
-  }
+/// Extension methods, not a mapper object: there was never any state to hold,
+/// and they only exist where this file is imported, so the repositories see
+/// them and nothing else does.
+///
+/// jsonOrThrow returns dynamic and an extension cannot be reached through a
+/// dynamic receiver — it compiles and then throws NoSuchMethodError. The casts
+/// at the call sites are what keep that a compile error instead.
+extension ProductJson on Map<String, dynamic> {
+  Product toProductDomain() {
+    final json = this;
 
-  Product toProductDomain(Map<String, dynamic> json) {
     // API/CSV imports use uppercase; older POS records use title case.
     final rawStatus = (json['status'] as String?)?.trim() ?? '';
     final status = switch (rawStatus.toUpperCase()) {
@@ -27,8 +34,8 @@ class ProductMapper {
       name: json['name'],
       nameEn: json['nameEn'],
       description: json['description'],
-      price: (json['price'] ?? 0).toDouble(),
-      costPrice: (json['costPrice'] ?? 0).toDouble(),
+      price: json.readDouble('price'),
+      costPrice: json.readDouble('costPrice'),
       unit: json['unit'] ?? '',
       quantity: json['quantity'] ?? 0,
       soldFirst: json['soldFirst'] ?? 0,
@@ -38,17 +45,19 @@ class ProductMapper {
       category: json['category'],
       minStock: json['minStock'] ?? 0,
       drugInfo: json['drugInfo'] != null
-          ? toRequestDrugInfoDomain(json['drugInfo'])
+          ? (json['drugInfo'] as Map<String, dynamic>).toRequestDrugInfoDomain()
           : null,
       drugRegistrations:
           (json['drugRegistrations'] as List?)?.cast<String>() ?? [],
-      units: toProductUnitsDomain(json['units'] ?? []),
-      prices: toProductPricesDomain(json['prices'] ?? []),
-      stocks: toProductStocksDomain(json['stocks'] ?? []),
+      units: ((json['units'] ?? []) as List).toProductUnitsDomain(),
+      prices: ((json['prices'] ?? []) as List).toProductPricesDomain(),
+      stocks: ((json['stocks'] ?? []) as List).toProductStocksDomain(),
     );
   }
 
-  RequestDrugInfo toRequestDrugInfoDomain(Map<String, dynamic> json) {
+  RequestDrugInfo toRequestDrugInfoDomain() {
+    final json = this;
+
     return RequestDrugInfo(
       genericName: json['genericName'],
       drugType: json['drugType'],
@@ -66,45 +75,36 @@ class ProductMapper {
     );
   }
 
-  List<ProductUnit> toProductUnitsDomain(List json) {
-    final units = json.map((data) => toProductUnitDomain(data)).toList();
-    return units;
-  }
+  ProductUnit toProductUnitDomain() {
+    final json = this;
 
-  ProductUnit toProductUnitDomain(Map<String, dynamic> json) {
     return ProductUnit(
       id: json['id'],
       productId: json['productId'],
       unit: json['unit'],
-      costPrice: json['costPrice'].toDouble(),
+      costPrice: json.readDouble('costPrice'),
       size: json['size'],
       barcode: json['barcode'],
-      volume: json['volume'].toDouble(),
+      volume: json.readDouble('volume'),
       volumeUnit: json['volumeUnit'],
     );
   }
 
-  ProductPrice toProductPriceDomain(Map<String, dynamic> json) {
+  ProductPrice toProductPriceDomain() {
+    final json = this;
+
     return ProductPrice(
       id: json['id'],
       productId: json['productId'],
       unitId: json['unitId'],
       customerType: json['customerType'],
-      price: json['price'].toDouble(),
+      price: json.readDouble('price'),
     );
   }
 
-  List<ProductPrice> toProductPricesDomain(List json) {
-    final prices = json.map((data) => toProductPriceDomain(data)).toList();
-    return prices;
-  }
+  ProductStock toProductStockDomain() {
+    final json = this;
 
-  List<ProductStock> toProductStocksDomain(List json) {
-    final stocks = json.map((data) => toProductStockDomain(data)).toList();
-    return stocks;
-  }
-
-  ProductStock toProductStockDomain(Map<String, dynamic> json) {
     return ProductStock(
       id: json['id'],
       unitId: json['unitId'],
@@ -112,8 +112,8 @@ class ProductMapper {
       receiveCode: json['receiveCode'],
       sequence: json['sequence'],
       lotNumber: json['lotNumber'],
-      costPrice: json['costPrice'].toDouble(),
-      price: json['price'].toDouble(),
+      costPrice: json.readDouble('costPrice'),
+      price: json.readDouble('price'),
       import: json['import'],
       quantity: json['quantity'],
       expireDate: json['expireDate'],
@@ -121,15 +121,12 @@ class ProductMapper {
     );
   }
 
-  List<ProductLot> toProductLotsDomain(List json) {
-    final lots = json.map((data) => toProductLotDomain(data)).toList();
-    return lots;
-  }
+  ProductLot toProductLotDomain() {
+    final json = this;
 
-  ProductLot toProductLotDomain(Map<String, dynamic> json) {
     return ProductLot(
       id: json['id'],
-      costPrice: json['costPrice'].toDouble(),
+      costPrice: json.readDouble('costPrice'),
       quantity: json['quantity'],
       productId: json['productId'],
       lotNumber: json['lotNumber'],
@@ -138,11 +135,126 @@ class ProductMapper {
     );
   }
 
-  String toSerialNumberDomain(Map<String, dynamic> json) {
+  String toSerialNumberDomain() {
+    final json = this;
+
     return json['serialNumber'];
   }
 
-  String toCreateProductLotRequest(CreateProductLotParam param) {
+  ProductHistory toProductHistoryDomain() {
+    final json = this;
+
+    return ProductHistory(
+      id: json['id'],
+      productId: json['productId'],
+      type: json['type'] ?? '',
+      description: json['description'] ?? '',
+      unit: json['unit'] ?? '',
+      import: json['import'] ?? 0,
+      quantity: json['quantity'] ?? 0,
+      costPrice: json.readDouble('costPrice'),
+      price: json.readDouble('price'),
+      balance: json['balance'] ?? 0,
+      createdDate: json['createdDate'] ?? '',
+    );
+  }
+
+  // Drug Interaction mappers
+  CSVImportResult toCSVImportResultDomain() {
+    final json = this;
+
+    return CSVImportResult(
+      total: json['total'] ?? 0,
+      success: json['success'] ?? 0,
+      failed: json['failed'] ?? 0,
+      errors: (json['errors'] as List?)?.cast<String>() ?? [],
+    );
+  }
+}
+
+extension ProductListJson on List {
+  List<Product> toProductsDomain() {
+    final json = this;
+
+    final products = json
+        .map((data) => (data as Map<String, dynamic>).toProductDomain())
+        .toList();
+    return products;
+  }
+
+  List<ProductUnit> toProductUnitsDomain() {
+    final json = this;
+
+    final units = json
+        .map((data) => (data as Map<String, dynamic>).toProductUnitDomain())
+        .toList();
+    return units;
+  }
+
+  List<ProductPrice> toProductPricesDomain() {
+    final json = this;
+
+    final prices = json
+        .map((data) => (data as Map<String, dynamic>).toProductPriceDomain())
+        .toList();
+    return prices;
+  }
+
+  List<ProductStock> toProductStocksDomain() {
+    final json = this;
+
+    final stocks = json
+        .map((data) => (data as Map<String, dynamic>).toProductStockDomain())
+        .toList();
+    return stocks;
+  }
+
+  List<ProductLot> toProductLotsDomain() {
+    final json = this;
+
+    final lots = json
+        .map((data) => (data as Map<String, dynamic>).toProductLotDomain())
+        .toList();
+    return lots;
+  }
+
+  List<ProductHistory> toProductHistoriesDomain() {
+    final json = this;
+
+    return json
+        .map((data) => (data as Map<String, dynamic>).toProductHistoryDomain())
+        .toList();
+  }
+
+  List<DrugInteractionResult> toDrugInteractionResultsDomain() {
+    final json = this;
+
+    return json
+        .map((data) => DrugInteractionResult(
+              productAId: data['productAId'] ?? '',
+              productAName: data['productAName'] ?? '',
+              productBId: data['productBId'] ?? '',
+              productBName: data['productBName'] ?? '',
+              interaction: data['interaction'] ?? '',
+            ))
+        .toList();
+  }
+
+  // CSV Import mapper
+}
+
+extension ProductStringListJson on List<String> {
+  String toDrugInteractionCheckRequest() {
+    final productIds = this;
+
+    return jsonEncode({'productIds': productIds});
+  }
+}
+
+extension CreateProductLotParamRequest on CreateProductLotParam {
+  String toCreateProductLotRequest() {
+    final param = this;
+
     return jsonEncode({
       'productId': param.productId,
       'quantity': param.quantity,
@@ -151,8 +263,12 @@ class ProductMapper {
       'costPrice': param.costPrice,
     });
   }
+}
 
-  String toUpdateProductLotRequest(UpdateProductLotParam param) {
+extension UpdateProductLotParamRequest on UpdateProductLotParam {
+  String toUpdateProductLotRequest() {
+    final param = this;
+
     return jsonEncode({
       'quantity': param.quantity,
       'lotNumber': param.lotNumber,
@@ -160,8 +276,12 @@ class ProductMapper {
       'costPrice': param.costPrice,
     });
   }
+}
 
-  String toProductRequest(ProductParam param) {
+extension ProductParamRequest on ProductParam {
+  String toProductRequest() {
+    final param = this;
+
     return jsonEncode({
       'name': param.name,
       'nameEn': param.nameEn,
@@ -177,14 +297,14 @@ class ProductMapper {
       'receiveId': param.receiveId,
       'status': param.status,
       'minStock': param.minStock,
-      'drugInfo': param.drugInfo == null
-          ? null
-          : toRequestDrugInfoRequest(param.drugInfo!),
+      'drugInfo': param.drugInfo?.toRequestDrugInfoRequest(),
       'drugRegistrations': param.drugRegistrations,
     });
   }
 
-  String toUpdateProductRequest(ProductParam param) {
+  String toUpdateProductRequest() {
+    final param = this;
+
     return jsonEncode({
       'name': param.name,
       'nameEn': param.nameEn,
@@ -192,21 +312,27 @@ class ProductMapper {
       'category': param.category,
       'status': param.status,
       'minStock': param.minStock,
-      'drugInfo': param.drugInfo == null
-          ? null
-          : toRequestDrugInfoRequest(param.drugInfo!),
+      'drugInfo': param.drugInfo?.toRequestDrugInfoRequest(),
       'drugRegistrations': param.drugRegistrations,
     });
   }
+}
 
-  String toUpdateProductLotQuantityRequest(
-      UpdateProductLotQuantityParam param) {
+extension UpdateProductLotQuantityParamRequest
+    on UpdateProductLotQuantityParam {
+  String toUpdateProductLotQuantityRequest() {
+    final param = this;
+
     return jsonEncode({
       'quantity': param.quantity,
     });
   }
+}
 
-  String toProductPriceRequest(ProductPriceParam param) {
+extension ProductPriceParamRequest on ProductPriceParam {
+  String toProductPriceRequest() {
+    final param = this;
+
     return jsonEncode({
       'productId': param.productId,
       'unitId': param.unitId,
@@ -214,8 +340,12 @@ class ProductMapper {
       'price': param.price,
     });
   }
+}
 
-  String toProductUnitRequest(ProductUnitParam param) {
+extension ProductUnitParamRequest on ProductUnitParam {
+  String toProductUnitRequest() {
+    final param = this;
+
     return jsonEncode({
       'productId': param.productId,
       'unit': param.unit,
@@ -227,8 +357,12 @@ class ProductMapper {
       'volumeUnit': param.volumeUnit,
     });
   }
+}
 
-  String toProductStockRequest(ProductStockParam param) {
+extension ProductStockParamRequest on ProductStockParam {
+  String toProductStockRequest() {
+    final param = this;
+
     return jsonEncode({
       'unitId': param.unitId,
       'productId': param.productId,
@@ -240,16 +374,24 @@ class ProductMapper {
       'importDate': param.importDate,
     });
   }
+}
 
-  String toUpdateProductStockQuantityRequest(
-      UpdateProductStockQuantityParam param) {
+extension UpdateProductStockQuantityParamRequest
+    on UpdateProductStockQuantityParam {
+  String toUpdateProductStockQuantityRequest() {
+    final param = this;
+
     return jsonEncode({
       'quantity': param.quantity,
     });
   }
+}
 
-  String toUpdateProductStockSequenceRequest(
-      UpdateProductStockSequenceParam param) {
+extension UpdateProductStockSequenceParamRequest
+    on UpdateProductStockSequenceParam {
+  String toUpdateProductStockSequenceRequest() {
+    final param = this;
+
     return jsonEncode({
       'stocks': param.stocks
           .map((stock) => {
@@ -259,8 +401,12 @@ class ProductMapper {
           .toList(),
     });
   }
+}
 
-  String toCreateProductRequest(CreateProductParam param) {
+extension CreateProductParamRequest on CreateProductParam {
+  String toCreateProductRequest() {
+    final param = this;
+
     return jsonEncode({
       'name': param.name,
       'nameEn': param.nameEn,
@@ -272,62 +418,18 @@ class ProductMapper {
       'serialNumber': param.serialNumber,
       'status': param.status,
       'minStock': param.minStock,
-      'drugInfo': param.drugInfo == null
-          ? null
-          : toRequestDrugInfoRequest(param.drugInfo!),
+      'drugInfo': param.drugInfo?.toRequestDrugInfoRequest(),
       'drugRegistrations': param.drugRegistrations,
     });
   }
 
   // Product History mappers
-  List<ProductHistory> toProductHistoriesDomain(List json) {
-    return json.map((data) => toProductHistoryDomain(data)).toList();
-  }
+}
 
-  ProductHistory toProductHistoryDomain(Map<String, dynamic> json) {
-    return ProductHistory(
-      id: json['id'],
-      productId: json['productId'],
-      type: json['type'] ?? '',
-      description: json['description'] ?? '',
-      unit: json['unit'] ?? '',
-      import: json['import'] ?? 0,
-      quantity: json['quantity'] ?? 0,
-      costPrice: (json['costPrice'] ?? 0).toDouble(),
-      price: (json['price'] ?? 0).toDouble(),
-      balance: json['balance'] ?? 0,
-      createdDate: json['createdDate'] ?? '',
-    );
-  }
+extension RequestDrugInfoRequest on RequestDrugInfo {
+  Map<String, dynamic> toRequestDrugInfoRequest() {
+    final param = this;
 
-  // Drug Interaction mappers
-  String toDrugInteractionCheckRequest(List<String> productIds) {
-    return jsonEncode({'productIds': productIds});
-  }
-
-  List<DrugInteractionResult> toDrugInteractionResultsDomain(List json) {
-    return json
-        .map((data) => DrugInteractionResult(
-              productAId: data['productAId'] ?? '',
-              productAName: data['productAName'] ?? '',
-              productBId: data['productBId'] ?? '',
-              productBName: data['productBName'] ?? '',
-              interaction: data['interaction'] ?? '',
-            ))
-        .toList();
-  }
-
-  // CSV Import mapper
-  CSVImportResult toCSVImportResultDomain(Map<String, dynamic> json) {
-    return CSVImportResult(
-      total: json['total'] ?? 0,
-      success: json['success'] ?? 0,
-      failed: json['failed'] ?? 0,
-      errors: (json['errors'] as List?)?.cast<String>() ?? [],
-    );
-  }
-
-  Map<String, dynamic> toRequestDrugInfoRequest(RequestDrugInfo param) {
     return {
       'genericName': param.genericName,
       'drugType': param.drugType,

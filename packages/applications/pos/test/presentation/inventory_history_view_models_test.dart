@@ -138,7 +138,6 @@ void main() {
 
       expect(vm.state.value.loading, isFalse);
       expect(vm.state.value.items.single.id, 'sc1');
-      expect(vm.state.value.error, isNull);
     });
 
     test('maps a typed exception to state.error', () async {
@@ -150,11 +149,15 @@ void main() {
         ),
       );
 
+      final errors = <String>[];
+      vm.errors.listen(errors.add);
+
       await vm.getStockCounts();
+      await Future<void>.delayed(Duration.zero);
 
       expect(vm.state.value.loading, isFalse);
       expect(vm.state.value.items, isEmpty);
-      expect(vm.state.value.error, isNotNull);
+      expect(errors, hasLength(1));
     });
   });
 
@@ -173,7 +176,6 @@ void main() {
 
       expect(repository.orderId, 'order-1');
       expect(vm.state.value.items.single.id, 'return-1');
-      expect(vm.state.value.error, isNull);
     });
 
     test('maps a typed exception to state.error', () async {
@@ -209,7 +211,6 @@ void main() {
 
       expect(repository.productId, 'p1');
       expect(vm.state.value.items.single.id, 'adjustment-1');
-      expect(vm.state.value.error, isNull);
     });
 
     test('maps a typed exception to state.error', () async {

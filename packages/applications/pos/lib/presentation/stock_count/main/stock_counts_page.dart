@@ -1,3 +1,5 @@
+import 'dart:async';
+
 // Flutter imports:
 import 'package:flutter/material.dart';
 
@@ -28,29 +30,26 @@ class _StockCountsPageState extends State<StockCountsPage> {
 
   late CustomSnackBar _snackBar;
   late StockCountsViewModel _viewModel;
+  late StreamSubscription<String> _errors;
 
   @override
   void initState() {
     super.initState();
     _viewModel = sl<StockCountsViewModel>();
-    _viewModel.state.addListener(_onStateChanged);
+    _errors = _viewModel.errors.listen(_showError);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _viewModel.getStockCounts();
     });
   }
 
-  void _onStateChanged() {
-    final error = _viewModel.state.value.error;
-    if (error != null) {
-      _snackBar.hideAll();
-      _snackBar.showErrorSnackBar(error);
-      _viewModel.consumeError();
-    }
+  void _showError(String message) {
+    _snackBar.hideAll();
+    _snackBar.showErrorSnackBar(message);
   }
 
   @override
   void dispose() {
-    _viewModel.state.removeListener(_onStateChanged);
+    _errors.cancel();
     _viewModel.dispose();
     super.dispose();
   }
@@ -93,7 +92,8 @@ class _StockCountsPageState extends State<StockCountsPage> {
           return Center(
             child: Text(
               'ยังไม่มีการนับสต็อก',
-              style: TextStyle(fontSize: 16, color: AppColors.of(context).textSecondary),
+              style: TextStyle(
+                  fontSize: 16, color: AppColors.of(context).textSecondary),
             ),
           );
         }
@@ -112,9 +112,11 @@ class _StockCountsPageState extends State<StockCountsPage> {
             title: Text(content.countNo),
             subtitle: Text(
               "รายการ: ${content.items.length}, วันที่: ${content.getCreatedDate()}",
-              style: TextStyle(color: AppColors.of(context).textSecondary, fontSize: 14),
+              style: TextStyle(
+                  color: AppColors.of(context).textSecondary, fontSize: 14),
             ),
-            trailing: Icon(Icons.arrow_forward_ios, size: 16, color: AppColors.of(context).textSecondary),
+            trailing: Icon(Icons.arrow_forward_ios,
+                size: 16, color: AppColors.of(context).textSecondary),
             onTap: () {
               _nextToStockCountManage(context, stockCountId: content.id);
             },
@@ -125,7 +127,8 @@ class _StockCountsPageState extends State<StockCountsPage> {
     );
   }
 
-  Future<void> _nextToStockCountManage(BuildContext context, {String? stockCountId}) async {
+  Future<void> _nextToStockCountManage(BuildContext context,
+      {String? stockCountId}) async {
     var _ = await Navigator.pushNamed(
       context,
       stockCountManageRoute,

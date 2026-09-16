@@ -1,3 +1,5 @@
+import 'dart:async';
+
 // Flutter imports:
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -35,6 +37,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
 
   late CustomSnackBar _snackBar;
   late OrderHistoryViewModel _viewModel;
+  late StreamSubscription<String> _errors;
 
   double change = 0;
 
@@ -48,9 +51,15 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
     super.initState();
     _viewModel = sl<OrderHistoryViewModel>();
     _viewModel.state.addListener(_onStateChanged);
+    _errors = _viewModel.errors.listen(_showError);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _viewModel.getOrderItemByProductId(widget.product.id);
     });
+  }
+
+  void _showError(String message) {
+    _snackBar.hideAll();
+    _snackBar.showErrorSnackBar(message);
   }
 
   void _onStateChanged() {
@@ -63,12 +72,6 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
       _loadingShown = false;
       _snackBar.hideAll();
     }
-    if (state.error != null) {
-      final message = state.error!;
-      _viewModel.consumeError();
-      _snackBar.hideAll();
-      _snackBar.showErrorSnackBar(message);
-    }
     setState(() {
       orderItems = state.items;
     });
@@ -77,6 +80,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
   @override
   void dispose() {
     _viewModel.state.removeListener(_onStateChanged);
+    _errors.cancel();
     _viewModel.dispose();
     super.dispose();
   }
@@ -146,9 +150,11 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
             leading: Text(
               '${item.quantity}',
             ),
-            title: Text(item.getCreatedDate() + (customerName.isNotEmpty ? " Name: $customerName" : "")),
+            title: Text(item.getCreatedDate() +
+                (customerName.isNotEmpty ? " Name: $customerName" : "")),
             trailing: Text(_format.format(item.price)),
-            subtitle: Text("Cost: ${_format.format(item.costPrice)}  Profit: ${_format.format(item.price - item.costPrice)}"),
+            subtitle: Text(
+                "Cost: ${_format.format(item.costPrice)}  Profit: ${_format.format(item.price - item.costPrice)}"),
           );
         },
       ),

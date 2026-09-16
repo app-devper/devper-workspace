@@ -19,11 +19,17 @@ class FakeSupplierRepository implements SupplierRepository {
       throw error;
     }
     createdParam = param;
-    return Supplier(id: '1', name: param.name, address: param.address, phone: param.phone, taxId: param.taxId);
+    return Supplier(
+        id: '1',
+        name: param.name,
+        address: param.address,
+        phone: param.phone,
+        taxId: param.taxId);
   }
 
   @override
-  Future<Supplier> updateSupplierInfo(SupplierParam param) => throw UnimplementedError();
+  Future<Supplier> updateSupplierInfo(SupplierParam param) =>
+      throw UnimplementedError();
 
   @override
   Future<Supplier> getSupplierInfo() => throw UnimplementedError();
@@ -35,20 +41,28 @@ class FakeSupplierRepository implements SupplierRepository {
   Future<List<Supplier>> getLocalSuppliers() => throw UnimplementedError();
 
   @override
-  Future<Supplier> getSupplierById(String supplierId) => throw UnimplementedError();
+  Future<Supplier> getSupplierById(String supplierId) =>
+      throw UnimplementedError();
 
   @override
-  Future<Supplier?> getLocalSupplierById(String supplierId) => throw UnimplementedError();
+  Future<Supplier?> getLocalSupplierById(String supplierId) =>
+      throw UnimplementedError();
 
   @override
-  Future<Supplier> updateSupplierById(String supplierId, SupplierParam param) => throw UnimplementedError();
+  Future<Supplier> updateSupplierById(String supplierId, SupplierParam param) =>
+      throw UnimplementedError();
 
   @override
-  Future<Supplier> removeSupplierById(String supplierId) => throw UnimplementedError();
+  Future<Supplier> removeSupplierById(String supplierId) =>
+      throw UnimplementedError();
 }
 
 SupplierParam buildParam() {
-  return SupplierParam(name: 'บริษัทยา จำกัด', address: 'กรุงเทพฯ', phone: '021234567', taxId: '0105551234567');
+  return SupplierParam(
+      name: 'บริษัทยา จำกัด',
+      address: 'กรุงเทพฯ',
+      phone: '021234567',
+      taxId: '0105551234567');
 }
 
 SupplierAddViewModel buildViewModel(SupplierRepository repo) {
@@ -58,59 +72,70 @@ SupplierAddViewModel buildViewModel(SupplierRepository repo) {
 }
 
 void main() {
-  test('initial state is not saving with no result', () {
+  test('initial state is not saving', () {
     final vm = buildViewModel(FakeSupplierRepository());
 
     expect(vm.state.value.saving, isFalse);
-    expect(vm.state.value.created, isNull);
-    expect(vm.state.value.error, isNull);
   });
 
-  test('createSupplier sets created on success', () async {
+  test('a successful save emits the supplier once', () async {
     final repo = FakeSupplierRepository();
     final vm = buildViewModel(repo);
+    final created = <Supplier>[];
+    final errors = <String>[];
+    vm.created.listen(created.add);
+    vm.errors.listen(errors.add);
 
     await vm.createSupplier(buildParam());
+    await Future<void>.delayed(Duration.zero);
 
     expect(vm.state.value.saving, isFalse);
-    expect(vm.state.value.created?.name, 'บริษัทยา จำกัด');
+    expect(created.single.name, 'บริษัทยา จำกัด');
+    expect(errors, isEmpty);
     expect(repo.createdParam?.taxId, '0105551234567');
-    expect(vm.state.value.error, isNull);
   });
 
-  test('createSupplier maps a typed exception to state.error', () async {
+  test('a failure emits on the error channel and nothing on created', () async {
     final vm = buildViewModel(
-      FakeSupplierRepository(throws: const NetworkException(message: 'offline')),
+      FakeSupplierRepository(
+          throws: const NetworkException(message: 'offline')),
     );
+    final created = <Supplier>[];
+    final errors = <String>[];
+    vm.created.listen(created.add);
+    vm.errors.listen(errors.add);
 
     await vm.createSupplier(buildParam());
+    await Future<void>.delayed(Duration.zero);
 
     expect(vm.state.value.saving, isFalse);
-    expect(vm.state.value.created, isNull);
-    expect(vm.state.value.error, isNotNull);
+    expect(errors, hasLength(1));
+    expect(created, isEmpty);
   });
 
-  test('consumeCreated clears the created result', () async {
+  test('an outcome is delivered once, with nothing to clear', () async {
     final vm = buildViewModel(FakeSupplierRepository());
+    final created = <Supplier>[];
+    vm.created.listen(created.add);
 
     await vm.createSupplier(buildParam());
-    expect(vm.state.value.created, isNotNull);
+    await Future<void>.delayed(Duration.zero);
+    await Future<void>.delayed(Duration.zero);
 
-    vm.consumeCreated();
-
-    expect(vm.state.value.created, isNull);
+    expect(created, hasLength(1),
+        reason: 'the old shape needed consumeCreated to stop it repeating');
   });
 
-  test('consumeError clears the error', () async {
-    final vm = buildViewModel(
-      FakeSupplierRepository(throws: const NetworkException(message: 'offline')),
-    );
+  test('a second save while one is in flight is ignored', () async {
+    final vm = buildViewModel(FakeSupplierRepository());
+    final created = <Supplier>[];
+    vm.created.listen(created.add);
 
+    final first = vm.createSupplier(buildParam());
     await vm.createSupplier(buildParam());
-    expect(vm.state.value.error, isNotNull);
+    await first;
+    await Future<void>.delayed(Duration.zero);
 
-    vm.consumeError();
-
-    expect(vm.state.value.error, isNull);
+    expect(created, hasLength(1));
   });
 }

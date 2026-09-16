@@ -9,6 +9,7 @@ import 'package:pos/container.dart';
 import 'package:pos/domain/model/product/product.dart';
 import 'package:design_system/theme/app_colors.dart';
 import 'package:design_system/theme/color.dart';
+import 'package:design_system/widgets/error_state.dart';
 import 'products_state.dart';
 import 'products_view_model.dart';
 
@@ -101,7 +102,8 @@ class _ProductsWidgetState extends State<ProductsWidget> {
               onPressed: () {
                 setState(() {
                   _sortBalance = !_sortBalance;
-                  _viewModel.searchProduct(_searchEditingController.text, _sortBalance);
+                  _viewModel.searchProduct(
+                      _searchEditingController.text, _sortBalance);
                 });
               },
               icon: Icon(_sortBalance ? Icons.sort : Icons.balance),
@@ -127,10 +129,23 @@ class _ProductsWidgetState extends State<ProductsWidget> {
     );
   }
 
+  void _retry() =>
+      _viewModel.searchProduct(_searchEditingController.text, _sortBalance);
+
   ValueListenableBuilder<ProductsState> _buildProductList() {
     return ValueListenableBuilder<ProductsState>(
       valueListenable: _viewModel.state,
       builder: (BuildContext context, ProductsState state, _) {
+        // A failed load used to fall through to an empty list, which reads as
+        // "there is nothing" rather than "we could not find out".
+        if (state.error != null && state.items.isEmpty) {
+          return Expanded(
+            child: ErrorState(
+              message: state.error!,
+              onRetry: _retry,
+            ),
+          );
+        }
         if (state.loading && state.items.isEmpty) {
           return const Expanded(
             child: Center(

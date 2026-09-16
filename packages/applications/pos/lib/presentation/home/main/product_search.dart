@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 // Package imports:
 import 'package:design_system/theme/app_colors.dart';
 import 'package:design_system/theme/color.dart';
+import 'package:design_system/widgets/error_state.dart';
 import 'package:qr_code_scanner_plus/qr_code_scanner_plus.dart';
 
 // Project imports:
@@ -102,49 +103,65 @@ class _ProductSearchState extends State<ProductSearch> {
             ),
             const Divider(height: 1),
             Expanded(
-              child: ValueListenableBuilder<List<ProductUnitItem>?>(
-                valueListenable: _viewModel.items,
-                builder: (context, items, _) {
-                  if (items == null) {
-                    return const Center(
-                      child: CircularProgressIndicator(
-                        strokeWidth: 6,
-                        color: CustomColor.primary,
-                        strokeCap: StrokeCap.round,
-                      ),
+              // A failed inventory load has to say so. Without this the grid
+              // spun forever and every scan reported "ไม่พบสินค้า", which reads
+              // as "we do not stock that" rather than "we are offline".
+              child: ValueListenableBuilder<String?>(
+                valueListenable: _viewModel.error,
+                builder: (context, error, child) {
+                  if (error != null) {
+                    return ErrorState(
+                      message: error,
+                      onRetry: () => _viewModel.getProducts(),
                     );
                   }
-                  if (items.isEmpty) {
-                    return Center(
-                        child: Text(
-                            "ไม่พบสินค้า\nลองค้นหาด้วยชื่อหรือบาร์โค้ดอื่น",
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                                color: AppColors.of(context).textSecondary, height: 1.8)));
-                  }
-                  return GridView.builder(
-                    padding: const EdgeInsets.all(8),
-                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: countRow,
-                      childAspectRatio: 2,
-                      mainAxisExtent: 158,
-                      mainAxisSpacing: 8,
-                      crossAxisSpacing: 8,
-                    ),
-                    shrinkWrap: true,
-                    itemBuilder: (context, i) => ProductItem(
-                      name: items[i].name,
-                      price: items[i].getPrice(priceTypeStock).price,
-                      quantity: items[i].getQuantity(),
-                      unit: items[i].unit.unit,
-                      barcode: items[i].unit.barcode,
-                      onTap: () {
-                        widget.onSelected(items[i].unit.barcode);
-                      },
-                    ),
-                    itemCount: items.length,
-                  );
+                  return child!;
                 },
+                child: ValueListenableBuilder<List<ProductUnitItem>?>(
+                  valueListenable: _viewModel.items,
+                  builder: (context, items, _) {
+                    if (items == null) {
+                      return const Center(
+                        child: CircularProgressIndicator(
+                          strokeWidth: 6,
+                          color: CustomColor.primary,
+                          strokeCap: StrokeCap.round,
+                        ),
+                      );
+                    }
+                    if (items.isEmpty) {
+                      return Center(
+                          child: Text(
+                              "ไม่พบสินค้า\nลองค้นหาด้วยชื่อหรือบาร์โค้ดอื่น",
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                  color: AppColors.of(context).textSecondary,
+                                  height: 1.8)));
+                    }
+                    return GridView.builder(
+                      padding: const EdgeInsets.all(8),
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: countRow,
+                        childAspectRatio: 2,
+                        mainAxisExtent: 158,
+                        mainAxisSpacing: 8,
+                        crossAxisSpacing: 8,
+                      ),
+                      shrinkWrap: true,
+                      itemBuilder: (context, i) => ProductItem(
+                        name: items[i].name,
+                        price: items[i].getPrice(priceTypeStock).price,
+                        quantity: items[i].getQuantity(),
+                        unit: items[i].unit.unit,
+                        barcode: items[i].unit.barcode,
+                        onTap: () {
+                          widget.onSelected(items[i].unit.barcode);
+                        },
+                      ),
+                      itemCount: items.length,
+                    );
+                  },
+                ),
               ),
             )
           ],

@@ -11,14 +11,12 @@ class ProductsExpiredState {
   final double totalCost;
   final List<ListItem> ranges;
   final bool loading;
-  final String? error;
 
   const ProductsExpiredState({
     this.items = const [],
     this.totalCost = 0,
     this.ranges = const [],
     this.loading = false,
-    this.error,
   });
 
   ProductsExpiredState copyWith({
@@ -26,15 +24,12 @@ class ProductsExpiredState {
     double? totalCost,
     List<ListItem>? ranges,
     bool? loading,
-    String? error,
-    bool clearError = false,
   }) {
     return ProductsExpiredState(
       items: items ?? this.items,
       totalCost: totalCost ?? this.totalCost,
       ranges: ranges ?? this.ranges,
       loading: loading ?? this.loading,
-      error: clearError ? null : (error ?? this.error),
     );
   }
 }

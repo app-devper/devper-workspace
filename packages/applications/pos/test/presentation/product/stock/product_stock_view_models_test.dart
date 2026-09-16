@@ -42,7 +42,8 @@ class FakeProductRepository implements ProductRepository {
   }
 
   @override
-  Future<List<ProductStock>> getProductStocksByProductId(String productId) async {
+  Future<List<ProductStock>> getProductStocksByProductId(
+      String productId) async {
     _guard('get:$productId');
     return stocks;
   }
@@ -80,8 +81,10 @@ class FakeProductRepository implements ProductRepository {
 ProductStockViewModel buildStockViewModel(FakeProductRepository repo) {
   return ProductStockViewModel(
     addProductStockUseCase: AddProductStockUseCase(productRepo: repo),
-    updateProductStockByIdUseCase: UpdateProductStockByIdUseCase(productRepo: repo),
-    removeProductStockByIdUseCase: RemoveProductStockByIdUseCase(productRepo: repo),
+    updateProductStockByIdUseCase:
+        UpdateProductStockByIdUseCase(productRepo: repo),
+    removeProductStockByIdUseCase:
+        RemoveProductStockByIdUseCase(productRepo: repo),
     getProductStocksByProductIdUseCase:
         GetProductStocksByProductIdUseCase(productRepo: repo),
   );
@@ -90,7 +93,8 @@ ProductStockViewModel buildStockViewModel(FakeProductRepository repo) {
 void main() {
   group('ProductStockViewModel', () {
     test('getProductStocks fills the lot list', () async {
-      final repo = FakeProductRepository(stocks: [stock('a'), stock('b', quantity: 3)]);
+      final repo =
+          FakeProductRepository(stocks: [stock('a'), stock('b', quantity: 3)]);
       final viewModel = buildStockViewModel(repo);
 
       await viewModel.getProductStocks('p1');
@@ -104,6 +108,8 @@ void main() {
         () async {
       final repo = FakeProductRepository();
       final viewModel = buildStockViewModel(repo);
+      final completed = <ProductStock>[];
+      viewModel.completed.listen(completed.add);
 
       await viewModel.addProductStock(ProductStockParam(
         productId: 'p1',
@@ -116,9 +122,11 @@ void main() {
         importDate: '2026-01-01T00:00:00Z',
       ));
 
+      await Future<void>.delayed(Duration.zero);
+
       expect(repo.calls, ['add:24']);
-      expect(viewModel.state.value.completed?.quantity, 24);
-      expect(viewModel.state.value.completed?.price, 30);
+      expect(completed.single.quantity, 24);
+      expect(completed.single.price, 30);
     });
 
     test('update and remove address the lot they were given', () async {
@@ -143,20 +151,19 @@ void main() {
       expect(repo.calls, ['update:stock-3', 'remove:stock-4']);
     });
 
-    test('a failed load surfaces the error and consumeError clears it',
-        () async {
+    test('a failed load is emitted once on the error channel', () async {
       final repo = FakeProductRepository(
         throws: const ServerException(message: 'boom', code: 'SERVER_ERROR'),
       );
       final viewModel = buildStockViewModel(repo);
+      final errors = <String>[];
+      viewModel.errors.listen(errors.add);
 
       await viewModel.getProductStocks('p1');
+      await Future<void>.delayed(Duration.zero);
 
-      expect(viewModel.state.value.error, isNotNull);
+      expect(errors, hasLength(1));
       expect(viewModel.state.value.loading, isFalse);
-
-      viewModel.consumeError();
-      expect(viewModel.state.value.error, isNull);
     });
   });
 
@@ -171,48 +178,48 @@ void main() {
     test('a corrected count reaches the addressed lot', () async {
       final repo = FakeProductRepository();
       final viewModel = build(repo);
+      final updated = <ProductStock>[];
+      viewModel.updated.listen(updated.add);
 
       await viewModel.updateProductStockQuantityById(
           'stock-1', UpdateProductStockQuantityParam(quantity: 7));
+      await Future<void>.delayed(Duration.zero);
 
       expect(repo.calls, ['quantity:stock-1=7']);
-      expect(viewModel.state.value.updated?.quantity, 7);
+      expect(updated.single.quantity, 7);
       expect(viewModel.state.value.loading, isFalse);
     });
 
     test('zero is a legitimate count, not an empty update', () async {
       final repo = FakeProductRepository();
       final viewModel = build(repo);
+      final updated = <ProductStock>[];
+      viewModel.updated.listen(updated.add);
 
       await viewModel.updateProductStockQuantityById(
           'stock-1', UpdateProductStockQuantityParam(quantity: 0));
+      await Future<void>.delayed(Duration.zero);
 
       expect(repo.calls, ['quantity:stock-1=0']);
-      expect(viewModel.state.value.updated?.quantity, 0);
+      expect(updated.single.quantity, 0);
     });
 
-    test('a rejected correction leaves nothing marked as updated', () async {
+    test('a rejected correction emits an error and no result', () async {
       final repo = FakeProductRepository(
         throws: const ValidationException(message: 'invalid', code: 'VA-400'),
       );
       final viewModel = build(repo);
+      final updated = <ProductStock>[];
+      final errors = <String>[];
+      viewModel.updated.listen(updated.add);
+      viewModel.errors.listen(errors.add);
 
       await viewModel.updateProductStockQuantityById(
           'stock-1', UpdateProductStockQuantityParam(quantity: -1));
+      await Future<void>.delayed(Duration.zero);
 
-      expect(viewModel.state.value.updated, isNull);
-      expect(viewModel.state.value.error, isNotNull);
-    });
-
-    test('consumeUpdated clears the one-shot result', () async {
-      final viewModel = build(FakeProductRepository());
-
-      await viewModel.updateProductStockQuantityById(
-          'stock-1', UpdateProductStockQuantityParam(quantity: 4));
-      expect(viewModel.state.value.updated, isNotNull);
-
-      viewModel.consumeUpdated();
-      expect(viewModel.state.value.updated, isNull);
+      expect(updated, isEmpty);
+      expect(errors, hasLength(1));
     });
   });
 }

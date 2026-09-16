@@ -21,7 +21,8 @@ class UsersSection extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
-    final snackBar = CustomSnackBar(key: const Key("snackbar"), context: context);
+    final snackBar =
+        CustomSnackBar(key: const Key("snackbar"), context: context);
     final reloadKey = useState(UniqueKey());
     final users = useUsers(reloadKey.value);
 

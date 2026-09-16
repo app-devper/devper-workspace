@@ -9,13 +9,15 @@ import 'package:pos/domain/usecase/product/get_product_histories_by_product_id_u
 import 'package:pos/presentation/product/history/product_history_state.dart';
 
 class ProductHistoryViewModel {
-  final GetProductHistoriesByProductIdUseCase getProductHistoriesByProductIdUseCase;
+  final GetProductHistoriesByProductIdUseCase
+      getProductHistoriesByProductIdUseCase;
 
   ProductHistoryViewModel({
     required this.getProductHistoriesByProductIdUseCase,
   });
 
-  final _state = ValueNotifier<ProductHistoryState>(const ProductHistoryState());
+  final _state =
+      ValueNotifier<ProductHistoryState>(const ProductHistoryState());
 
   ValueListenable<ProductHistoryState> get state => _state;
 
@@ -25,13 +27,8 @@ class ProductHistoryViewModel {
       final items = await getProductHistoriesByProductIdUseCase(productId);
       _state.value = _state.value.copyWith(loading: false, items: items);
     } on Exception catch (e) {
-      _state.value = _state.value.copyWith(loading: false, error: toFailure(e).getMessage());
-    }
-  }
-
-  void consumeError() {
-    if (_state.value.error != null) {
-      _state.value = _state.value.copyWith(clearError: true);
+      _state.value = _state.value
+          .copyWith(loading: false, error: toFailure(e).getMessage());
     }
   }
 

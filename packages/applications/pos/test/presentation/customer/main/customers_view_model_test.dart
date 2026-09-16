@@ -34,19 +34,23 @@ class FakeCustomerRepository implements CustomerRepository {
   }
 
   @override
-  Future<Customer> createCustomer(CustomerParam param) => throw UnimplementedError();
+  Future<Customer> createCustomer(CustomerParam param) =>
+      throw UnimplementedError();
 
   @override
   Future<List<Customer>> getCustomers() => throw UnimplementedError();
 
   @override
-  Future<Customer> getCustomerByCode(String customerCode) => throw UnimplementedError();
+  Future<Customer> getCustomerByCode(String customerCode) =>
+      throw UnimplementedError();
 
   @override
-  Future<Customer> updateCustomerById(String customerId, CustomerParam param) => throw UnimplementedError();
+  Future<Customer> updateCustomerById(String customerId, CustomerParam param) =>
+      throw UnimplementedError();
 
   @override
-  Future<Customer> removeCustomerById(String customerId) => throw UnimplementedError();
+  Future<Customer> removeCustomerById(String customerId) =>
+      throw UnimplementedError();
 }
 
 Customer buildCustomer(String id) {
@@ -77,18 +81,19 @@ CustomerViewModel buildCustomerViewModel(CustomerRepository repo) {
 void main() {
   group('CustomersViewModel', () {
     test('getCustomers populates items from the local cache', () async {
-      final vm = buildCustomersViewModel(FakeCustomerRepository(customers: [buildCustomer('1')]));
+      final vm = buildCustomersViewModel(
+          FakeCustomerRepository(customers: [buildCustomer('1')]));
 
       await vm.getCustomers();
 
       expect(vm.state.value.loading, isFalse);
       expect(vm.state.value.items, hasLength(1));
-      expect(vm.state.value.error, isNull);
     });
 
     test('getCustomers maps a typed exception to state.error', () async {
       final vm = buildCustomersViewModel(
-        FakeCustomerRepository(throws: const NetworkException(message: 'offline')),
+        FakeCustomerRepository(
+            throws: const NetworkException(message: 'offline')),
       );
 
       await vm.getCustomers();
@@ -99,28 +104,37 @@ void main() {
   });
 
   group('CustomerViewModel', () {
-    test('getCustomerById sets the loaded customer once', () async {
-      final vm = buildCustomerViewModel(FakeCustomerRepository(byId: buildCustomer('7')));
+    test('a lookup emits the customer once', () async {
+      final vm = buildCustomerViewModel(
+          FakeCustomerRepository(byId: buildCustomer('7')));
+      final loaded = <Customer>[];
+      vm.loaded.listen(loaded.add);
 
       await vm.getCustomerById('7');
+      await Future<void>.delayed(Duration.zero);
 
       expect(vm.state.value.loading, isFalse);
-      expect(vm.state.value.loaded?.id, '7');
-
-      vm.consumeLoaded();
-
-      expect(vm.state.value.loaded, isNull);
+      expect(loaded.single.id, '7');
     });
 
-    test('getCustomerById maps a typed exception to state.error', () async {
+    test('a failed lookup reaches the screen instead of going nowhere',
+        () async {
+      // The page only listened for the result, so a failure left the panel
+      // unchanged and told the user nothing.
       final vm = buildCustomerViewModel(
-        FakeCustomerRepository(throws: const NotFoundException(message: 'missing')),
+        FakeCustomerRepository(
+            throws: const NotFoundException(message: 'missing')),
       );
+      final loaded = <Customer>[];
+      final errors = <String>[];
+      vm.loaded.listen(loaded.add);
+      vm.errors.listen(errors.add);
 
       await vm.getCustomerById('x');
+      await Future<void>.delayed(Duration.zero);
 
-      expect(vm.state.value.error, isNotNull);
-      expect(vm.state.value.loaded, isNull);
+      expect(errors, hasLength(1));
+      expect(loaded, isEmpty);
     });
   });
 }

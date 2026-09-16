@@ -5,7 +5,6 @@ import 'package:pos/domain/model/supplier/supplier.dart';
 import 'package:pos/domain/repositories/supplier_repository.dart';
 import 'package:pos/domain/usecase/supplier/remove_supplier_by_id_use_case.dart';
 import 'package:pos/domain/usecase/supplier/update_supplier_by_id_use_case.dart';
-import 'package:pos/presentation/supplier/edit/supplier_edit_state.dart';
 import 'package:pos/presentation/supplier/edit/supplier_edit_view_model.dart';
 
 class FakeSupplierRepository implements SupplierRepository {
@@ -79,92 +78,82 @@ SupplierEditViewModel buildViewModel(SupplierRepository repo) {
 }
 
 void main() {
-  test('updateSupplierById sets updated on success', () async {
+  test('a save emits the updated record once', () async {
     final repo = FakeSupplierRepository();
     final vm = buildViewModel(repo);
+    final updated = <Supplier>[];
+    final errors = <String>[];
+    vm.updated.listen(updated.add);
+    vm.errors.listen(errors.add);
 
     await vm.updateSupplierById('7', buildParam());
+    await Future<void>.delayed(Duration.zero);
 
-    expect(vm.state.value.loading, isFalse);
-    expect(vm.state.value.updated?.id, '7');
+    expect(updated.single.id, '7');
+    expect(errors, isEmpty);
+    expect(vm.state.value.busy, isFalse);
     expect(repo.updatedSupplierId, '7');
-    expect(vm.state.value.error, isNull);
   });
 
-  test('updateSupplierById maps a typed exception to state.error', () async {
-    final vm = buildViewModel(
-      FakeSupplierRepository(
-          throws: const NetworkException(message: 'offline')),
-    );
-
-    await vm.updateSupplierById('7', buildParam());
-
-    expect(vm.state.value.loading, isFalse);
-    expect(vm.state.value.updated, isNull);
-    expect(vm.state.value.error, isNotNull);
-  });
-
-  test('removeSupplierById sets removed on success', () async {
+  test('a delete emits on its own channel, not the save one', () async {
     final repo = FakeSupplierRepository();
     final vm = buildViewModel(repo);
+    final updated = <Supplier>[];
+    final removed = <Supplier>[];
+    vm.updated.listen(updated.add);
+    vm.removed.listen(removed.add);
 
     await vm.removeSupplierById('9');
+    await Future<void>.delayed(Duration.zero);
 
-    expect(vm.state.value.loading, isFalse);
-    expect(vm.state.value.removed?.id, '9');
+    expect(removed.single.id, '9');
+    expect(updated, isEmpty,
+        reason: 'the two outcomes cannot be mistaken for each other');
     expect(repo.removedSupplierId, '9');
   });
 
-  test('consumeUpdated clears the updated result', () async {
+  test('a save then a delete deliver both, in order', () async {
     final vm = buildViewModel(FakeSupplierRepository());
+    final seen = <String>[];
+    vm.updated.listen((e) => seen.add('updated:${e.id}'));
+    vm.removed.listen((e) => seen.add('removed:${e.id}'));
 
     await vm.updateSupplierById('7', buildParam());
-    expect(vm.state.value.updated, isNotNull);
+    await vm.removeSupplierById('9');
+    await Future<void>.delayed(Duration.zero);
 
-    vm.consumeUpdated();
-
-    expect(vm.state.value.updated, isNull);
+    expect(seen, ['updated:7', 'removed:9'],
+        reason: 'the old shape had one slot, so the second replaced the first');
   });
 
-  test('consumeError clears the error', () async {
+  test('a failure emits an error and no outcome', () async {
     final vm = buildViewModel(
       FakeSupplierRepository(
           throws: const NetworkException(message: 'offline')),
     );
+    final updated = <Supplier>[];
+    final errors = <String>[];
+    vm.updated.listen(updated.add);
+    vm.errors.listen(errors.add);
 
     await vm.updateSupplierById('7', buildParam());
-    expect(vm.state.value.error, isNotNull);
+    await Future<void>.delayed(Duration.zero);
 
-    vm.consumeError();
-
-    expect(vm.state.value.error, isNull);
+    expect(errors, hasLength(1));
+    expect(updated, isEmpty);
+    expect(vm.state.value.busy, isFalse);
   });
 
-  test('an update result and a delete result cannot both be present', () async {
+  test('a second command while one is in flight is ignored', () async {
     final vm = buildViewModel(FakeSupplierRepository());
+    final updated = <Supplier>[];
+    vm.updated.listen(updated.add);
 
+    final first = vm.updateSupplierById('7', buildParam());
     await vm.updateSupplierById('7', buildParam());
-    expect(vm.state.value.updated, isNotNull);
-    expect(vm.state.value.removed, isNull);
+    await first;
+    await Future<void>.delayed(Duration.zero);
 
-    await vm.removeSupplierById('9');
-
-    expect(vm.state.value, isA<SupplierEditRemoved>());
-    expect(vm.state.value.removed?.id, '9');
-    expect(vm.state.value.updated, isNull,
-        reason: 'the stale update result must not survive a delete');
-  });
-
-  test('consumeRemoved returns the screen to idle', () async {
-    final vm = buildViewModel(FakeSupplierRepository());
-
-    await vm.removeSupplierById('9');
-    expect(vm.state.value.removed, isNotNull);
-
-    vm.consumeRemoved();
-
-    expect(vm.state.value, isA<SupplierEditIdle>());
-    expect(vm.state.value.removed, isNull);
-    expect(vm.state.value.loading, isFalse);
+    expect(updated, hasLength(1));
   });
 }

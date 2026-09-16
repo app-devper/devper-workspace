@@ -1,3 +1,5 @@
+import 'dart:async';
+
 // Flutter imports:
 import 'package:flutter/material.dart';
 import 'package:design_system/theme/app_colors.dart';
@@ -10,6 +12,7 @@ import 'package:file_picker/file_picker.dart';
 // Project imports:
 import 'package:pos/container.dart';
 import 'package:pos/domain/model/product/product.dart';
+import 'package:pos/domain/model/product/product_history.dart';
 import 'package:design_system/widgets/dialogs.dart';
 import 'package:pos/presentation/product/add/product_add_page.dart';
 import 'package:pos/presentation/product/edit/product_edit_page.dart';
@@ -33,52 +36,52 @@ class _ProductsPageState extends State<ProductsPage> {
   PageState _pageState = MainPage();
 
   late ProductViewModel _viewModel;
+  late StreamSubscription<Product> _loaded;
+  late StreamSubscription<CSVImportResult> _importResults;
+  late StreamSubscription<String> _errors;
 
   @override
   void initState() {
     _viewModel = sl<ProductViewModel>();
-    _viewModel.state.addListener(_onStateChanged);
+    _loaded = _viewModel.loaded.listen(_onLoaded);
+    _importResults = _viewModel.importResults.listen(_onImported);
+    _errors = _viewModel.errors.listen(_showError);
     super.initState();
   }
 
-  void _onStateChanged() {
-    if (!mounted) {
-      return;
-    }
-    final state = _viewModel.state.value;
-    if (state.loaded != null) {
-      final data = state.loaded!;
-      _viewModel.consumeLoaded();
-      setState(() {
-        _pageState = InfoPage(data: data);
-      });
-    }
-    if (state.importResult != null) {
-      final result = state.importResult!;
-      _viewModel.consumeImportResult();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'นำเข้าสำเร็จ ${result.success} รายการ, ล้มเหลว ${result.failed} รายการ',
-          ),
+  void _onLoaded(Product data) {
+    if (!mounted) return;
+    setState(() {
+      _pageState = InfoPage(data: data);
+    });
+  }
+
+  void _onImported(CSVImportResult result) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'นำเข้าสำเร็จ ${result.success} รายการ, ล้มเหลว ${result.failed} รายการ',
         ),
-      );
-    }
-    if (state.error != null) {
-      final message = state.error!;
-      _viewModel.consumeError();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(message),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
+      ),
+    );
+  }
+
+  void _showError(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red,
+      ),
+    );
   }
 
   @override
   void dispose() {
-    _viewModel.state.removeListener(_onStateChanged);
+    _loaded.cancel();
+    _importResults.cancel();
+    _errors.cancel();
     _viewModel.dispose();
     super.dispose();
   }

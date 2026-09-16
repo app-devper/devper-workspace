@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 
 // Package imports:
 import 'package:common/core/error/failure.dart';
+import 'package:common/core/state/one_shot.dart';
 
 // Project imports:
 import 'package:pos/domain/model/product/param.dart';
@@ -28,7 +29,15 @@ class ProductUnitViewModel {
 
   final _state = ValueNotifier<ProductUnitState>(const ProductUnitState());
 
+  /// Delivered once and gone: the sheet closes on it, nothing draws it.
+  final _completed = OneShot<ProductUnit>();
+  final _errors = OneShot<String>();
+
   ValueListenable<ProductUnitState> get state => _state;
+
+  Stream<ProductUnit> get completed => _completed.stream;
+
+  Stream<String> get errors => _errors.stream;
 
   Future<void> addProductUnit(ProductUnitParam param) async {
     await _run(() => addProductUnitUseCase(param));
@@ -44,42 +53,31 @@ class ProductUnitViewModel {
   }
 
   Future<void> getProductUnit(String productId) async {
-    _state.value = _state.value.copyWith(task: const ProductUnitRunning());
+    _state.value = _state.value.copyWith(loading: true);
     try {
       final items = await getProductUnitsByProductIdUseCase(productId);
-      _state.value =
-          _state.value.copyWith(task: const ProductUnitTask(), items: items);
+      _state.value = _state.value.copyWith(loading: false, items: items);
     } on Exception catch (e) {
-      _state.value =
-          _state.value.copyWith(task: ProductUnitFailed(toFailure(e)));
+      _state.value = _state.value.copyWith(loading: false);
+      _errors.emit(toFailure(e).getMessage());
     }
   }
 
   Future<void> _run(Future<ProductUnit> Function() action) async {
-    _state.value = _state.value.copyWith(task: const ProductUnitRunning());
+    if (_state.value.loading) return;
+    _state.value = _state.value.copyWith(loading: true);
     try {
-      final completed = await action();
-      _state.value =
-          _state.value.copyWith(task: ProductUnitCompleted(completed));
+      _completed.emit(await action());
     } on Exception catch (e) {
-      _state.value =
-          _state.value.copyWith(task: ProductUnitFailed(toFailure(e)));
-    }
-  }
-
-  void consumeError() {
-    if (_state.value.task is ProductUnitFailed) {
-      _state.value = _state.value.copyWith(task: const ProductUnitTask());
-    }
-  }
-
-  void consumeCompleted() {
-    if (_state.value.task is ProductUnitCompleted) {
-      _state.value = _state.value.copyWith(task: const ProductUnitTask());
+      _errors.emit(toFailure(e).getMessage());
+    } finally {
+      _state.value = _state.value.copyWith(loading: false);
     }
   }
 
   void dispose() {
     _state.dispose();
+    _completed.dispose();
+    _errors.dispose();
   }
 }

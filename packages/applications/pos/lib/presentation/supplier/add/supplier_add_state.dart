@@ -1,67 +1,19 @@
 // Flutter imports:
 import 'package:flutter/foundation.dart';
 
-// Package imports:
-import 'package:common/core/error/failure.dart';
-
-// Project imports:
-import 'package:pos/domain/model/supplier/supplier.dart';
-
-/// The one thing this screen does, as a flow rather than a bag of flags:
-/// it is idle, running, finished with a result, or failed. Never two at once.
-sealed class SupplierAddTask {
-  const SupplierAddTask._();
-  const factory SupplierAddTask() = SupplierAddIdle;
-
-  // Derived UI projections; no independently writable flags.
-  bool get running => this is SupplierAddRunning;
-  String? get error => switch (this) {
-        SupplierAddFailed(:final failure) => failure.getMessage(),
-        _ => null,
-      };
-  Supplier? get created => switch (this) {
-        SupplierAddCreated(:final result) => result,
-        _ => null,
-      };
-}
-
-final class SupplierAddIdle extends SupplierAddTask {
-  const SupplierAddIdle() : super._();
-}
-
-final class SupplierAddRunning extends SupplierAddTask {
-  const SupplierAddRunning() : super._();
-}
-
-final class SupplierAddCreated extends SupplierAddTask {
-  final Supplier result;
-  const SupplierAddCreated(this.result) : super._();
-}
-
-final class SupplierAddFailed extends SupplierAddTask {
-  final Failure failure;
-  const SupplierAddFailed(this.failure) : super._();
-}
-
+/// What this screen renders: whether a save is in flight.
+///
+/// It used to carry the outcome too — a sealed task holding Created or Failed,
+/// with the view clearing it afterwards. Those are things the screen reacts to
+/// once, not things it draws, so they go out on the view model's event channel
+/// and the whole hierarchy collapses to this.
 @immutable
 class SupplierAddState {
-  final SupplierAddTask task;
+  final bool saving;
 
-  const SupplierAddState({
-    this.task = const SupplierAddIdle(),
-  });
+  const SupplierAddState({this.saving = false});
 
-  bool get saving => task.running;
-
-  String? get error => task.error;
-
-  Supplier? get created => task.created;
-
-  SupplierAddState copyWith({
-    SupplierAddTask? task,
-  }) {
-    return SupplierAddState(
-      task: task ?? this.task,
-    );
+  SupplierAddState copyWith({bool? saving}) {
+    return SupplierAddState(saving: saving ?? this.saving);
   }
 }

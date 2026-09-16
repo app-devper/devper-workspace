@@ -1,12 +1,9 @@
-// Dart imports:
-import 'dart:convert';
-
 // Package imports:
 import 'package:common/core/network/error_mapper.dart';
-import 'package:common/core/network/exception.dart';
 
 // Project imports:
 import 'package:pos/data/datasource/network/pos_service.dart';
+import 'package:pos/data/repositories/cached_list.dart';
 import 'package:pos/data/repositories/product_mapper.dart';
 import 'package:pos/domain/model/core/core.dart';
 import 'package:pos/domain/model/product/param.dart';
@@ -17,488 +14,393 @@ import 'package:pos/domain/repositories/product_repository.dart';
 
 class ProductRepositoryImpl implements ProductRepository {
   final PosService posService;
-  List<Product> _products = [];
-  bool _productsDirty = false;
 
-  @override
-  void invalidateProductsCache() => _productsDirty = true;
+  /// Shared with the repositories whose writes move stock — a return, for one —
+  /// so they can mark the catalogue stale without the domain layer having to
+  /// know a cache exists.
+  final CachedList<Product> cache;
 
   ProductRepositoryImpl({
     required this.posService,
+    required this.cache,
   });
 
   @override
   Future<Product?> getProductByBarcode(String barcode) async {
-    if (_productsDirty) await getProducts();
-    if (_products.isNotEmpty) {
-      final result = _products.where((product) {
-        return product.status == productStatusActive &&
-            product.units.any((unit) => unit.barcode == barcode);
-      }).firstOrNull;
-      if (result != null) {
-        return result;
-      }
-    }
-    return null;
+    // An empty cache is not an answer. Returning null here made a failed
+    // inventory load read as "no such product" at the till, so fill it first
+    // and let a network failure surface as one.
+    if (cache.needsRefresh) await getProducts();
+    return cache.items.where((product) {
+      return product.status == productStatusActive &&
+          product.units.any((unit) => unit.barcode == barcode);
+    }).firstOrNull;
   }
 
   @override
   Future<List<Product>> getProducts() async {
-    final mapper = ProductMapper();
     final response = await posService.getProducts();
-    if (response.isSuccessful) {
-      final result = mapper.toProductsDomain(jsonDecode(response.body));
-      _products = result;
-      _productsDirty = false;
-      return _products;
-    } else {
-      throw toAppException(response);
-    }
+    final result = (jsonOrThrow(response) as List).toProductsDomain();
+    cache.fill(result);
+    return cache.items;
   }
 
   @override
   Future<Product> getProductById(String productId) async {
-    final mapper = ProductMapper();
     final response = await posService.getProductById(productId);
-    return mapper.toProductDomain(jsonOrThrow(response));
+    return (jsonOrThrow(response) as Map<String, dynamic>).toProductDomain();
   }
 
   @override
   Future<Product> addProductReceive(ProductParam param) async {
-    final mapper = ProductMapper();
-    final request = mapper.toProductRequest(param);
+    final request = param.toProductRequest();
     final response = await posService.createProductReceive(request);
-    return mapper.toProductDomain(jsonOrThrow(response));
+    return (jsonOrThrow(response) as Map<String, dynamic>).toProductDomain();
   }
 
   @override
   Future<Product> addProduct(CreateProductParam param) async {
-    final mapper = ProductMapper();
-    final request = mapper.toCreateProductRequest(param);
+    final request = param.toCreateProductRequest();
     final response = await posService.createProduct(request);
-    if (response.isSuccessful) {
-      final product = mapper.toProductDomain(jsonDecode(response.body));
-      _products.add(product);
-      return product;
-    } else {
-      throw toAppException(response);
-    }
+    final product =
+        (jsonOrThrow(response) as Map<String, dynamic>).toProductDomain();
+    cache.items.add(product);
+    return product;
   }
 
   @override
   Future<Product> updateProductById(
       String productId, ProductParam param) async {
-    final mapper = ProductMapper();
-    final request = mapper.toUpdateProductRequest(param);
+    final request = param.toUpdateProductRequest();
     final response = await posService.updateProductById(productId, request);
-    if (response.isSuccessful) {
-      final product = mapper.toProductDomain(jsonDecode(response.body));
-      for (var element in _products) {
-        if (element.id == product.id) {
-          element.name = product.name;
-          element.nameEn = product.nameEn;
-          element.description = product.description;
-          element.price = product.price;
-          element.costPrice = product.costPrice;
-          element.unit = product.unit;
-          element.quantity = product.quantity;
-          element.soldFirst = product.soldFirst;
-          element.serialNumber = product.serialNumber;
-          element.category = product.category;
-          element.minStock = product.minStock;
-          element.drugInfo = product.drugInfo;
-          element.drugRegistrations = product.drugRegistrations;
-          element.createdDate = product.createdDate;
-          element.status = product.status;
-          break;
-        }
+    final product =
+        (jsonOrThrow(response) as Map<String, dynamic>).toProductDomain();
+    for (var element in cache.items) {
+      if (element.id == product.id) {
+        element.name = product.name;
+        element.nameEn = product.nameEn;
+        element.description = product.description;
+        element.price = product.price;
+        element.costPrice = product.costPrice;
+        element.unit = product.unit;
+        element.quantity = product.quantity;
+        element.soldFirst = product.soldFirst;
+        element.serialNumber = product.serialNumber;
+        element.category = product.category;
+        element.minStock = product.minStock;
+        element.drugInfo = product.drugInfo;
+        element.drugRegistrations = product.drugRegistrations;
+        element.createdDate = product.createdDate;
+        element.status = product.status;
+        break;
       }
-      return product;
-    } else {
-      throw toAppException(response);
     }
+    return product;
   }
 
   @override
   Future<Product> removeProductById(String productId) async {
-    final mapper = ProductMapper();
     final response = await posService.removeProductById(productId);
-    if (response.isSuccessful) {
-      final product = mapper.toProductDomain(jsonDecode(response.body));
-      _products.removeWhere((element) => element.id == product.id);
-      return product;
-    } else {
-      throw toAppException(response);
-    }
+    final product =
+        (jsonOrThrow(response) as Map<String, dynamic>).toProductDomain();
+    cache.items.removeWhere((element) => element.id == product.id);
+    return product;
   }
 
   @override
   Future<List<Product>> getLocalProducts() {
-    if (_productsDirty || _products.isEmpty) {
+    if (cache.needsRefresh) {
       return getProducts();
-    } else {
-      return Future.value(_products);
     }
+    return Future.value(cache.items);
   }
 
   @override
   Future<String> generateSerialNumber() async {
-    final mapper = ProductMapper();
     final response = await posService.generateSerialNumber();
-    return mapper.toSerialNumberDomain(jsonOrThrow(response));
+    return (jsonOrThrow(response) as Map<String, dynamic>)
+        .toSerialNumberDomain();
   }
 
   @override
   Future<Product?> getLocalProductById(String productId) async {
-    if (_productsDirty) await getProducts();
-    final product = _products.where((item) => item.id == productId).firstOrNull;
-    if (product != null) {
-      return Future.value(product);
-    }
-    return null;
+    if (cache.needsRefresh) await getProducts();
+    return cache.items.where((item) => item.id == productId).firstOrNull;
   }
 
   @override
   Future<List<ProductLot>> getProductLotsExpired() async {
-    final mapper = ProductMapper();
     final response = await posService.getProductLotsExpired();
-    if (response.isSuccessful) {
-      final json = jsonDecode(response.body);
-      final data = json is Map<String, dynamic> ? json['data'] : json;
-      return mapper.toProductLotsDomain(data ?? []);
-    } else {
-      throw toAppException(response);
-    }
+    final json = jsonOrThrow(response);
+    final data = json is Map<String, dynamic> ? json['data'] : json;
+    return ((data ?? []) as List).toProductLotsDomain();
   }
 
   @override
   Future<ProductLot> getProductLotByLotId(String lotId) async {
-    final mapper = ProductMapper();
     final response = await posService.getProductLotById(lotId);
-    return mapper.toProductLotDomain(jsonOrThrow(response));
+    return (jsonOrThrow(response) as Map<String, dynamic>).toProductLotDomain();
   }
 
   @override
   Future<ProductLot> updateProductLotQuantityByLotId(
       String lotId, UpdateProductLotQuantityParam param) async {
-    final mapper = ProductMapper();
-    final request = mapper.toUpdateProductLotQuantityRequest(param);
+    final request = param.toUpdateProductLotQuantityRequest();
     final response =
         // Expiry notifications return product stock IDs, not legacy product lot IDs.
         await posService.updateProductStockQuantityById(lotId, request);
-    return mapper.toProductLotDomain(jsonOrThrow(response));
+    return (jsonOrThrow(response) as Map<String, dynamic>).toProductLotDomain();
   }
 
   @override
   Future<List<ProductLot>> getProductLots(GetLotsRangeParam param) async {
-    final mapper = ProductMapper();
     final response =
         await posService.getProductLots(param.startDate, param.endDate);
-    return mapper.toProductLotsDomain(jsonOrThrow(response));
+    return (jsonOrThrow(response) as List).toProductLotsDomain();
   }
 
   @override
   Future<ProductPrice> addProductPrice(ProductPriceParam param) async {
-    final mapper = ProductMapper();
     final response =
-        await posService.addProductPrice(mapper.toProductPriceRequest(param));
-    if (response.isSuccessful) {
-      final price = mapper.toProductPriceDomain(jsonDecode(response.body));
-      for (var element in _products) {
-        if (element.id == price.productId) {
-          element.prices.add(price);
-          break;
-        }
+        await posService.addProductPrice(param.toProductPriceRequest());
+    final price =
+        (jsonOrThrow(response) as Map<String, dynamic>).toProductPriceDomain();
+    for (var element in cache.items) {
+      if (element.id == price.productId) {
+        element.prices.add(price);
+        break;
       }
-      return price;
-    } else {
-      throw toAppException(response);
     }
+    return price;
   }
 
   @override
   Future<ProductPrice> updateProductPriceById(
       String id, ProductPriceParam param) async {
-    final mapper = ProductMapper();
     final response = await posService.updateProductPriceById(
-        id, mapper.toProductPriceRequest(param));
-    if (response.isSuccessful) {
-      final price = mapper.toProductPriceDomain(jsonDecode(response.body));
-      for (var element in _products) {
-        if (element.id == price.productId) {
-          for (var priceElement in element.prices) {
-            if (priceElement.id == price.id) {
-              priceElement.price = price.price;
-              priceElement.customerType = price.customerType;
-              break;
-            }
+        id, param.toProductPriceRequest());
+    final price =
+        (jsonOrThrow(response) as Map<String, dynamic>).toProductPriceDomain();
+    for (var element in cache.items) {
+      if (element.id == price.productId) {
+        for (var priceElement in element.prices) {
+          if (priceElement.id == price.id) {
+            priceElement.price = price.price;
+            priceElement.customerType = price.customerType;
+            break;
           }
-          break;
         }
+        break;
       }
-      return price;
-    } else {
-      throw toAppException(response);
     }
+    return price;
   }
 
   @override
   Future<ProductPrice> removeProductPriceById(String id) async {
-    final mapper = ProductMapper();
     final response = await posService.removeProductPriceById(id);
-    if (response.isSuccessful) {
-      final price = mapper.toProductPriceDomain(jsonDecode(response.body));
-      for (var element in _products) {
-        if (element.id == price.productId) {
-          element.prices.removeWhere((element) => element.id == price.id);
-          break;
-        }
+    final price =
+        (jsonOrThrow(response) as Map<String, dynamic>).toProductPriceDomain();
+    for (var element in cache.items) {
+      if (element.id == price.productId) {
+        element.prices.removeWhere((element) => element.id == price.id);
+        break;
       }
-      return price;
-    } else {
-      throw toAppException(response);
     }
+    return price;
   }
 
   @override
   Future<List<ProductPrice>> getProductPricesByProductId(
       String productId) async {
-    final mapper = ProductMapper();
     final response = await posService.getProductPricesByProductId(productId);
-    if (response.isSuccessful) {
-      final prices = mapper.toProductPricesDomain(jsonDecode(response.body));
-      for (var element in _products) {
-        if (element.id == productId) {
-          element.prices = prices;
-          break;
-        }
+    final prices = (jsonOrThrow(response) as List).toProductPricesDomain();
+    for (var element in cache.items) {
+      if (element.id == productId) {
+        element.prices = prices;
+        break;
       }
-      return prices;
-    } else {
-      throw toAppException(response);
     }
+    return prices;
   }
 
   @override
   Future<ProductUnit> addProductUnit(ProductUnitParam param) async {
-    final mapper = ProductMapper();
     final response =
-        await posService.addProductUnit(mapper.toProductUnitRequest(param));
-    if (response.isSuccessful) {
-      final unit = mapper.toProductUnitDomain(jsonDecode(response.body));
-      for (var element in _products) {
-        if (element.id == unit.productId) {
-          element.units.add(unit);
-          break;
-        }
+        await posService.addProductUnit(param.toProductUnitRequest());
+    final unit =
+        (jsonOrThrow(response) as Map<String, dynamic>).toProductUnitDomain();
+    for (var element in cache.items) {
+      if (element.id == unit.productId) {
+        element.units.add(unit);
+        break;
       }
-      return unit;
-    } else {
-      throw toAppException(response);
     }
+    return unit;
   }
 
   @override
   Future<ProductUnit> updateProductUnitById(
       String id, ProductUnitParam param) async {
-    final mapper = ProductMapper();
     final response = await posService.updateProductUnitById(
-        id, mapper.toProductUnitRequest(param));
-    if (response.isSuccessful) {
-      final unit = mapper.toProductUnitDomain(jsonDecode(response.body));
-      for (var element in _products) {
-        if (element.id == unit.productId) {
-          for (var unitElement in element.units) {
-            if (unitElement.id == unit.id) {
-              unitElement.unit = unit.unit;
-              unitElement.costPrice = unit.costPrice;
-              unitElement.size = unit.size;
-              unitElement.barcode = unit.barcode;
-              unitElement.volume = unit.volume;
-              unitElement.volumeUnit = unit.volumeUnit;
-              break;
-            }
+        id, param.toProductUnitRequest());
+    final unit =
+        (jsonOrThrow(response) as Map<String, dynamic>).toProductUnitDomain();
+    for (var element in cache.items) {
+      if (element.id == unit.productId) {
+        for (var unitElement in element.units) {
+          if (unitElement.id == unit.id) {
+            unitElement.unit = unit.unit;
+            unitElement.costPrice = unit.costPrice;
+            unitElement.size = unit.size;
+            unitElement.barcode = unit.barcode;
+            unitElement.volume = unit.volume;
+            unitElement.volumeUnit = unit.volumeUnit;
+            break;
           }
-          break;
         }
+        break;
       }
-      return unit;
-    } else {
-      throw toAppException(response);
     }
+    return unit;
   }
 
   @override
   Future<ProductUnit> removeProductUnitById(String id) async {
-    final mapper = ProductMapper();
     final response = await posService.removeProductUnitById(id);
-    if (response.isSuccessful) {
-      final unit = mapper.toProductUnitDomain(jsonDecode(response.body));
-      for (var element in _products) {
-        if (element.id == unit.productId) {
-          element.units.removeWhere((element) => element.id == unit.id);
-          break;
-        }
+    final unit =
+        (jsonOrThrow(response) as Map<String, dynamic>).toProductUnitDomain();
+    for (var element in cache.items) {
+      if (element.id == unit.productId) {
+        element.units.removeWhere((element) => element.id == unit.id);
+        break;
       }
-      return unit;
-    } else {
-      throw toAppException(response);
     }
+    return unit;
   }
 
   @override
   Future<List<ProductUnit>> getProductUnitsByProductId(String productId) async {
-    final mapper = ProductMapper();
     final response = await posService.getProductUnitsByProductId(productId);
-    if (response.isSuccessful) {
-      final units = mapper.toProductUnitsDomain(jsonDecode(response.body));
-      for (var element in _products) {
-        if (element.id == productId) {
-          element.units = units;
-          break;
-        }
+    final units = (jsonOrThrow(response) as List).toProductUnitsDomain();
+    for (var element in cache.items) {
+      if (element.id == productId) {
+        element.units = units;
+        break;
       }
-      return units;
-    } else {
-      throw toAppException(response);
     }
+    return units;
   }
 
   @override
   Future<ProductStock> addProductStock(ProductStockParam param) async {
-    final mapper = ProductMapper();
     final response =
-        await posService.addProductStock(mapper.toProductStockRequest(param));
-    if (response.isSuccessful) {
-      final stock = mapper.toProductStockDomain(jsonDecode(response.body));
-      for (var element in _products) {
-        if (element.id == stock.productId) {
-          element.stocks.add(stock);
-          break;
-        }
+        await posService.addProductStock(param.toProductStockRequest());
+    final stock =
+        (jsonOrThrow(response) as Map<String, dynamic>).toProductStockDomain();
+    for (var element in cache.items) {
+      if (element.id == stock.productId) {
+        element.stocks.add(stock);
+        break;
       }
-      return stock;
-    } else {
-      throw toAppException(response);
     }
+    return stock;
   }
 
   @override
   Future<ProductStock> updateProductStockById(
       String id, ProductStockParam param) async {
-    final mapper = ProductMapper();
     final response = await posService.updateProductStockById(
-        id, mapper.toProductStockRequest(param));
-    if (response.isSuccessful) {
-      final stock = mapper.toProductStockDomain(jsonDecode(response.body));
-      for (var element in _products) {
-        if (element.id == stock.productId) {
-          for (var stockElement in element.stocks) {
-            if (stockElement.id == stock.id) {
-              stockElement.quantity = stock.quantity;
-              stockElement.costPrice = stock.costPrice;
-              stockElement.price = stock.price;
-              stockElement.expireDate = stock.expireDate;
-              stockElement.importDate = stock.importDate;
-              stockElement.lotNumber = stock.lotNumber;
-              stockElement.sequence = stock.sequence;
-              break;
-            }
+        id, param.toProductStockRequest());
+    final stock =
+        (jsonOrThrow(response) as Map<String, dynamic>).toProductStockDomain();
+    for (var element in cache.items) {
+      if (element.id == stock.productId) {
+        for (var stockElement in element.stocks) {
+          if (stockElement.id == stock.id) {
+            stockElement.quantity = stock.quantity;
+            stockElement.costPrice = stock.costPrice;
+            stockElement.price = stock.price;
+            stockElement.expireDate = stock.expireDate;
+            stockElement.importDate = stock.importDate;
+            stockElement.lotNumber = stock.lotNumber;
+            stockElement.sequence = stock.sequence;
+            break;
           }
-          break;
         }
+        break;
       }
-      return stock;
-    } else {
-      throw toAppException(response);
     }
+    return stock;
   }
 
   @override
   Future<ProductStock> removeProductStockById(String id) async {
-    final mapper = ProductMapper();
     final response = await posService.removeProductStockById(id);
-    if (response.isSuccessful) {
-      final stock = mapper.toProductStockDomain(jsonDecode(response.body));
-      for (var element in _products) {
-        if (element.id == stock.productId) {
-          element.stocks.removeWhere((element) => element.id == stock.id);
-          break;
-        }
+    final stock =
+        (jsonOrThrow(response) as Map<String, dynamic>).toProductStockDomain();
+    for (var element in cache.items) {
+      if (element.id == stock.productId) {
+        element.stocks.removeWhere((element) => element.id == stock.id);
+        break;
       }
-      return stock;
-    } else {
-      throw toAppException(response);
     }
+    return stock;
   }
 
   @override
   Future<List<ProductStock>> getProductStocksByProductId(
       String productId) async {
-    final mapper = ProductMapper();
     final response = await posService.getProductStocksByProductId(productId);
-    if (response.isSuccessful) {
-      final stocks = mapper.toProductStocksDomain(jsonDecode(response.body));
-      for (var element in _products) {
-        if (element.id == productId) {
-          element.stocks = stocks;
-          break;
-        }
+    final stocks = (jsonOrThrow(response) as List).toProductStocksDomain();
+    for (var element in cache.items) {
+      if (element.id == productId) {
+        element.stocks = stocks;
+        break;
       }
-      return stocks;
-    } else {
-      throw toAppException(response);
     }
+    return stocks;
   }
 
   @override
   Future<ProductStock> updateProductStockQuantityById(
       String id, UpdateProductStockQuantityParam param) async {
-    final mapper = ProductMapper();
     final response = await posService.updateProductStockQuantityById(
-        id, mapper.toUpdateProductStockQuantityRequest(param));
-    if (response.isSuccessful) {
-      final stock = mapper.toProductStockDomain(jsonDecode(response.body));
-      for (var element in _products) {
-        if (element.id == stock.productId) {
-          for (var stockElement in element.stocks) {
-            if (stockElement.id == stock.id) {
-              stockElement.quantity = stock.quantity;
-              break;
-            }
+        id, param.toUpdateProductStockQuantityRequest());
+    final stock =
+        (jsonOrThrow(response) as Map<String, dynamic>).toProductStockDomain();
+    for (var element in cache.items) {
+      if (element.id == stock.productId) {
+        for (var stockElement in element.stocks) {
+          if (stockElement.id == stock.id) {
+            stockElement.quantity = stock.quantity;
+            break;
           }
-          break;
         }
+        break;
       }
-      return stock;
-    } else {
-      throw toAppException(response);
     }
+    return stock;
   }
 
   @override
   Future<List<ProductStock>> updateProductStockSequence(
       UpdateProductStockSequenceParam param) async {
-    final mapper = ProductMapper();
     final response = await posService.updateProductStockSequence(
-        mapper.toUpdateProductStockSequenceRequest(param));
-    if (response.isSuccessful) {
-      final stocks = mapper.toProductStocksDomain(jsonDecode(response.body));
-      for (var element in _products) {
-        if (element.id == param.productId) {
-          element.stocks = stocks;
-          break;
-        }
+        param.toUpdateProductStockSequenceRequest());
+    final stocks = (jsonOrThrow(response) as List).toProductStocksDomain();
+    for (var element in cache.items) {
+      if (element.id == param.productId) {
+        element.stocks = stocks;
+        break;
       }
-      return stocks;
-    } else {
-      throw toAppException(response);
     }
+    return stocks;
   }
 
   @override
   Future<void> updateProductStock(ProductStock stock) async {
-    for (var product in _products) {
+    for (var product in cache.items) {
       if (product.id == stock.productId) {
         for (var stockElement in product.stocks) {
           if (stockElement.id == stock.id) {
@@ -519,75 +421,62 @@ class ProductRepositoryImpl implements ProductRepository {
 
   @override
   Future<ProductLot> createProductLot(CreateProductLotParam param) async {
-    final mapper = ProductMapper();
-    final request = mapper.toCreateProductLotRequest(param);
+    final request = param.toCreateProductLotRequest();
     final response = await posService.createProductLot(request);
-    return mapper.toProductLotDomain(jsonOrThrow(response));
+    return (jsonOrThrow(response) as Map<String, dynamic>).toProductLotDomain();
   }
 
   @override
   Future<ProductLot> updateProductLotById(
       String lotId, UpdateProductLotParam param) async {
-    final mapper = ProductMapper();
-    final request = mapper.toUpdateProductLotRequest(param);
+    final request = param.toUpdateProductLotRequest();
     final response = await posService.updateProductLotById(lotId, request);
-    return mapper.toProductLotDomain(jsonOrThrow(response));
+    return (jsonOrThrow(response) as Map<String, dynamic>).toProductLotDomain();
   }
 
   @override
   Future<ProductLot> deleteProductLotById(String lotId) async {
-    final mapper = ProductMapper();
     final response = await posService.deleteProductLotById(lotId);
-    return mapper.toProductLotDomain(jsonOrThrow(response));
+    return (jsonOrThrow(response) as Map<String, dynamic>).toProductLotDomain();
   }
 
   @override
   Future<List<ProductHistory>> getProductHistoriesByProductId(
       String productId) async {
-    final mapper = ProductMapper();
     final response = await posService.getProductHistoriesByProductId(productId);
-    return mapper.toProductHistoriesDomain(jsonOrThrow(response));
+    return (jsonOrThrow(response) as List).toProductHistoriesDomain();
   }
 
   @override
   Future<List<ProductHistory>> getProductHistoriesByDateRange(
       String startDate, String endDate) async {
-    final mapper = ProductMapper();
     final response =
         await posService.getProductHistoriesByDateRange(startDate, endDate);
-    return mapper.toProductHistoriesDomain(jsonOrThrow(response));
+    return (jsonOrThrow(response) as List).toProductHistoriesDomain();
   }
 
   @override
   Future<Product> clearQuantitySoldFirstById(String productId) async {
-    final mapper = ProductMapper();
     final response = await posService.clearQuantitySoldFirstById(productId);
-    if (response.isSuccessful) {
-      final product = mapper.toProductDomain(jsonDecode(response.body));
-      for (var element in _products) {
-        if (element.id == product.id) {
-          element.soldFirst = product.soldFirst;
-          break;
-        }
+    final product =
+        (jsonOrThrow(response) as Map<String, dynamic>).toProductDomain();
+    for (var element in cache.items) {
+      if (element.id == product.id) {
+        element.soldFirst = product.soldFirst;
+        break;
       }
-      return product;
-    } else {
-      throw toAppException(response);
     }
+    return product;
   }
 
   @override
   Future<List<DrugInteractionResult>> checkDrugInteractions(
       List<String> productIds) async {
-    final mapper = ProductMapper();
-    final request = mapper.toDrugInteractionCheckRequest(productIds);
+    final request = productIds.toDrugInteractionCheckRequest();
     final response = await posService.checkDrugInteractions(request);
-    if (response.isSuccessful) {
-      final json = jsonDecode(response.body);
-      return mapper.toDrugInteractionResultsDomain(json['interactions'] ?? []);
-    } else {
-      throw toAppException(response);
-    }
+    final json = jsonOrThrow(response);
+    return ((json['interactions'] ?? []) as List)
+        .toDrugInteractionResultsDomain();
   }
 
   @override
@@ -595,9 +484,9 @@ class ProductRepositoryImpl implements ProductRepository {
     required List<int> bytes,
     required String filename,
   }) async {
-    final mapper = ProductMapper();
     final response =
         await posService.importProductCSV(bytes: bytes, filename: filename);
-    return mapper.toCSVImportResultDomain(jsonOrThrow(response));
+    return (jsonOrThrow(response) as Map<String, dynamic>)
+        .toCSVImportResultDomain();
   }
 }

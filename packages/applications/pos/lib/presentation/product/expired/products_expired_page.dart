@@ -1,3 +1,5 @@
+import 'dart:async';
+
 // Flutter imports:
 import 'package:flutter/material.dart';
 
@@ -31,6 +33,7 @@ class _ProductsExpiredPageState extends State<ProductsExpiredPage> {
 
   late CustomSnackBar _snackBar;
   late ProductsExpiredViewModel _viewModel;
+  late StreamSubscription<String> _errors;
 
   Range _value = Range.before180Days;
 
@@ -38,25 +41,21 @@ class _ProductsExpiredPageState extends State<ProductsExpiredPage> {
   void initState() {
     super.initState();
     _viewModel = sl<ProductsExpiredViewModel>();
-    _viewModel.state.addListener(_onStateChanged);
+    _errors = _viewModel.errors.listen(_showError);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _viewModel.initData();
       _viewModel.selectRange(_value);
     });
   }
 
-  void _onStateChanged() {
-    final error = _viewModel.state.value.error;
-    if (error != null) {
-      _snackBar.hideAll();
-      _snackBar.showErrorSnackBar(error);
-      _viewModel.consumeError();
-    }
+  void _showError(String message) {
+    _snackBar.hideAll();
+    _snackBar.showErrorSnackBar(message);
   }
 
   @override
   void dispose() {
-    _viewModel.state.removeListener(_onStateChanged);
+    _errors.cancel();
     _viewModel.dispose();
     super.dispose();
   }
@@ -67,7 +66,7 @@ class _ProductsExpiredPageState extends State<ProductsExpiredPage> {
     return Scaffold(
       key: _scaffoldKey,
       appBar: buildAppBar(
-          Languages.of(context).productsExpiredTitle,
+        Languages.of(context).productsExpiredTitle,
       ),
       body: _buildBody(context),
     );
@@ -90,7 +89,8 @@ class _ProductsExpiredPageState extends State<ProductsExpiredPage> {
 
   Container _buildMenu() {
     return Container(
-      padding: const EdgeInsets.only(right: defaultPagePadding, left: defaultPagePadding),
+      padding: const EdgeInsets.only(
+          right: defaultPagePadding, left: defaultPagePadding),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.end,
         children: <Widget>[
@@ -177,8 +177,10 @@ class _ProductsExpiredPageState extends State<ProductsExpiredPage> {
           final data = items[index];
           return ListTile(
             leading: Text("${index + 1}"),
-            title: Text(data.getExpireDate() + ("  Name: ${data.product?.name ?? "-"}")),
-            subtitle: Text("Lot: ${data.lotNumber}  Quantity: ${data.quantity}  Cost: ${_format.format(data.costPrice)}"),
+            title: Text(data.getExpireDate() +
+                ("  Name: ${data.product?.name ?? "-"}")),
+            subtitle: Text(
+                "Lot: ${data.lotNumber}  Quantity: ${data.quantity}  Cost: ${_format.format(data.costPrice)}"),
             trailing: Text(_format.format(data.costPrice * data.quantity)),
             onTap: () {
               _nextToProductLotEdit(context, data);
@@ -211,8 +213,10 @@ class _ProductsExpiredPageState extends State<ProductsExpiredPage> {
     );
   }
 
-  Future<void> _nextToProductLotEdit(BuildContext context, ProductLot content) async {
-    var _ = await Navigator.pushNamed(context, productLotEditRoute, arguments: ProductLotArgument(content));
+  Future<void> _nextToProductLotEdit(
+      BuildContext context, ProductLot content) async {
+    var _ = await Navigator.pushNamed(context, productLotEditRoute,
+        arguments: ProductLotArgument(content));
     _viewModel.selectRange(_value);
   }
 }
