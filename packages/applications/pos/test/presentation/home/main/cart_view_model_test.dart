@@ -4,7 +4,6 @@ import 'package:common/core/error/exception.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pos/domain/model/core/core.dart';
 import 'package:pos/domain/model/order/order.dart';
-import 'package:pos/domain/model/order/order_item.dart';
 import 'package:pos/domain/model/order/param.dart';
 import 'package:pos/domain/model/product/product.dart';
 import 'package:pos/domain/repositories/order_repository.dart';
@@ -19,6 +18,7 @@ class FakeProductRepository implements ProductRepository {
   final Product? product;
   final Object? getByBarcodeThrows;
   final List<ProductStock> updatedStocks = [];
+  final List<String> barcodeLookups = [];
 
   FakeProductRepository({this.product, this.getByBarcodeThrows});
 
@@ -28,6 +28,7 @@ class FakeProductRepository implements ProductRepository {
     if (error != null) {
       throw error;
     }
+    barcodeLookups.add(barcode);
     return product;
   }
 
@@ -132,9 +133,7 @@ void main() {
         productRepo: FakeProductRepository(product: _buildProduct('111')),
         orderRepo: FakeOrderRepository(),
       );
-      final orderItems = <OrderItem>[];
-
-      await vm.addOrderItem('111', orderItems);
+      await vm.addOrderItem('111');
 
       expect(vm.state.value.orderItems, hasLength(1));
       expect(vm.state.value.orderItems!.first.product.unit.barcode, '111');
@@ -148,17 +147,12 @@ void main() {
         productRepo: FakeProductRepository(product: _buildProduct('111')),
         orderRepo: FakeOrderRepository(),
       );
-      final existing = OrderItem(
-        product: _buildProduct('111').toProductItems().first,
-        quantity: 1,
-        customerType: priceTypeStock,
-      );
-      final orderItems = [existing];
-
-      await vm.addOrderItem('111', orderItems);
+      await vm.addOrderItem('111');
+      await vm.addOrderItem('111');
 
       expect(vm.state.value.orderItems, hasLength(1));
       expect(vm.state.value.orderItems!.first.quantity, 2);
+      expect(FakeProductRepository(product: _buildProduct('111')), isNotNull);
     });
 
     test('sets a not-found error when the barcode lookup returns null',
@@ -171,7 +165,7 @@ void main() {
       final errors = <String>[];
       vm.lookupErrors.listen(errors.add);
 
-      await vm.addOrderItem('999', <OrderItem>[]);
+      await vm.addOrderItem('999');
       await Future<void>.delayed(Duration.zero);
 
       expect(errors.single, 'ไม่พบสินค้า');
@@ -190,7 +184,7 @@ void main() {
       vm.lookupErrors.listen(lookupErrors.add);
       vm.checkoutErrors.listen(checkoutErrors.add);
 
-      await vm.addOrderItem('111', <OrderItem>[]);
+      await vm.addOrderItem('111');
       await Future<void>.delayed(Duration.zero);
 
       expect(lookupErrors, hasLength(1));
@@ -324,38 +318,150 @@ void main() {
   });
 
   group('cart mutations', () {
-    test('minusItem removes the item once quantity reaches zero', () {
+    test('minusItem removes the line once quantity reaches zero', () async {
+      final store = CartStore();
       final vm = _buildViewModel(
-        productRepo: FakeProductRepository(),
+        productRepo: FakeProductRepository(product: _buildProduct('111')),
         orderRepo: FakeOrderRepository(),
+        cartStore: store,
       );
-      final item = OrderItem(
-        product: _buildProduct('111').toProductItems().first,
-        quantity: 1,
-        customerType: priceTypeStock,
-      );
-      final orderItems = [item];
 
-      vm.minusItem(0, orderItems);
+      await vm.addOrderItem('111');
+      vm.minusItem(0);
 
       expect(vm.state.value.orderItems, isEmpty);
+      expect(store.cart[0], isEmpty);
     });
 
-    test('toggleAllowOversell flips the flag on the targeted item', () {
+    test('toggleAllowOversell flips the flag on the targeted line', () async {
       final vm = _buildViewModel(
-        productRepo: FakeProductRepository(),
+        productRepo: FakeProductRepository(product: _buildProduct('111')),
         orderRepo: FakeOrderRepository(),
       );
-      final item = OrderItem(
-        product: _buildProduct('111').toProductItems().first,
-        quantity: 1,
-        customerType: priceTypeStock,
-      );
-      final orderItems = [item];
 
-      vm.toggleAllowOversell(0, orderItems);
+      await vm.addOrderItem('111');
+      vm.toggleAllowOversell(0);
 
       expect(vm.state.value.orderItems!.first.allowOversell, isTrue);
+    });
+
+    test('an index that no longer exists is ignored, not thrown on', () async {
+      final vm = _buildViewModel(
+        productRepo: FakeProductRepository(product: _buildProduct('111')),
+        orderRepo: FakeOrderRepository(),
+      );
+
+      await vm.addOrderItem('111');
+
+      expect(() => vm.removeItem(4), returnsNormally,
+          reason: 'a dialog can outlive the line it was opened on');
+      expect(() => vm.plusItem(-1), returnsNormally);
+      expect(vm.state.value.orderItems, hasLength(1));
+    });
+  });
+
+  group('the cart the cashier parked', () {
+    test('a scanned line is held by the cart, not just drawn', () async {
+      final store = CartStore();
+      final vm = _buildViewModel(
+        productRepo: FakeProductRepository(product: _buildProduct('111')),
+        orderRepo: FakeOrderRepository(),
+        cartStore: store,
+      );
+
+      vm.selectCart(0);
+      await vm.addOrderItem('111');
+
+      expect(vm.state.value.orderItems, hasLength(1));
+      expect(store.cart[0], hasLength(1),
+          reason: 'the view used to be handed a copy and edit that instead');
+    });
+
+    test('parking a sale and coming back to it keeps the lines', () async {
+      final store = CartStore();
+      final vm = _buildViewModel(
+        productRepo: FakeProductRepository(product: _buildProduct('111')),
+        orderRepo: FakeOrderRepository(),
+        cartStore: store,
+      );
+
+      vm.selectCart(0);
+      await vm.addOrderItem('111');
+      vm.selectCart(1);
+
+      expect(vm.state.value.orderItems, isEmpty,
+          reason: 'the second cart is its own sale');
+
+      vm.selectCart(0);
+
+      expect(vm.state.value.orderItems, hasLength(1));
+    });
+
+    test('re-reading the open cart does not empty it', () async {
+      // prepareData() is what runs on resume. It used to re-read the store,
+      // which had never been written to, so the screen came back blank.
+      final vm = _buildViewModel(
+        productRepo: FakeProductRepository(product: _buildProduct('111')),
+        orderRepo: FakeOrderRepository(),
+      );
+
+      await vm.addOrderItem('111');
+      vm.prepareData();
+
+      expect(vm.state.value.orderItems, hasLength(1));
+    });
+
+    test('two carts hold their own lines', () async {
+      final store = CartStore();
+      final vm = _buildViewModel(
+        productRepo: FakeProductRepository(product: _buildProduct('111')),
+        orderRepo: FakeOrderRepository(),
+        cartStore: store,
+      );
+
+      vm.selectCart(0);
+      await vm.addOrderItem('111');
+      await vm.addOrderItem('111');
+      vm.selectCart(3);
+      await vm.addOrderItem('111');
+
+      expect(store.cart[0]!.single.quantity, 2);
+      expect(store.cart[3]!.single.quantity, 1);
+    });
+
+    test('clearing empties only the open cart', () async {
+      final store = CartStore();
+      final vm = _buildViewModel(
+        productRepo: FakeProductRepository(product: _buildProduct('111')),
+        orderRepo: FakeOrderRepository(),
+        cartStore: store,
+      );
+
+      vm.selectCart(0);
+      await vm.addOrderItem('111');
+      vm.selectCart(1);
+      await vm.addOrderItem('111');
+      vm.clearCart();
+
+      expect(store.cart[1], isEmpty);
+      expect(store.cart[0], hasLength(1));
+    });
+
+    test('the list the view renders is not the list the cart holds', () async {
+      final store = CartStore();
+      final vm = _buildViewModel(
+        productRepo: FakeProductRepository(product: _buildProduct('111')),
+        orderRepo: FakeOrderRepository(),
+        cartStore: store,
+      );
+
+      vm.selectCart(0);
+      await vm.addOrderItem('111');
+
+      vm.state.value.orderItems!.clear();
+
+      expect(store.cart[0], hasLength(1),
+          reason: 'a view that drops its copy must not drop the sale');
     });
   });
 }

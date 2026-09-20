@@ -47,15 +47,23 @@ class CartViewModel {
 
   Stream<String> get checkoutErrors => _checkoutErrors.stream;
 
+  /// The lines of the cart the cashier has open.
+  ///
+  /// Every edit goes through here. It used to be a parameter: the view held
+  /// the copy published in state and handed it back to be edited, so the
+  /// cart in the store was only ever read. Anything scanned was lost the
+  /// moment the screen re-read it — on a cart switch, or on resume.
+  List<OrderItem> get _lines => cartStore.cart[cartStore.cartIndex] ??= [];
+
   void prepareData() {
     selectCart(cartStore.cartIndex);
   }
 
-  Future<void> addOrderItem(
-      String serialNumber, List<OrderItem> orderItem) async {
+  Future<void> addOrderItem(String serialNumber) async {
     _state.value = _state.value.copyWith(loading: true);
     try {
-      final data = orderItem
+      final lines = _lines;
+      final data = lines
           .where((item) => item.product.unit.barcode == serialNumber)
           .firstOrNull;
       if (data != null) {
@@ -70,13 +78,13 @@ class CartViewModel {
         final productItems = result.toProductItems();
         final productItem = productItems
             .firstWhere((item) => item.unit.barcode == serialNumber);
-        orderItem.add(OrderItem(
+        lines.add(OrderItem(
           product: productItem,
           quantity: 1,
           customerType: cartStore.customer?.type ?? priceTypeStock,
         ));
       }
-      _emitOrderItems(orderItem);
+      _emitOrderItems();
     } on Exception catch (e) {
       _state.value = _state.value.copyWith(loading: false);
       _lookupErrors.emit(toFailure(e).getMessage());
@@ -100,69 +108,72 @@ class CartViewModel {
     }
   }
 
-  void plusItem(int index, List<OrderItem> orderItem) {
-    final item = orderItem[index];
-    item.plusAmount();
-    orderItem[index] = item;
-    _emitOrderItems(orderItem);
+  void plusItem(int index) {
+    if (!_has(index)) return;
+    _lines[index].plusAmount();
+    _emitOrderItems();
   }
 
-  void minusItem(int index, List<OrderItem> orderItem) {
-    final item = orderItem[index];
-    item.minusAmount();
-    if (item.quantity == 0) {
-      orderItem.removeAt(index);
-    } else {
-      orderItem[index] = item;
+  void minusItem(int index) {
+    if (!_has(index)) return;
+    final lines = _lines;
+    lines[index].minusAmount();
+    if (lines[index].quantity == 0) {
+      lines.removeAt(index);
     }
-    _emitOrderItems(orderItem);
+    _emitOrderItems();
   }
 
-  void toggleAllowOversell(int index, List<OrderItem> orderItem) {
-    orderItem[index].toggleAllowOversell();
-    _emitOrderItems(orderItem);
+  void toggleAllowOversell(int index) {
+    if (!_has(index)) return;
+    _lines[index].toggleAllowOversell();
+    _emitOrderItems();
   }
 
   void selectCart(int index) {
     cartStore.cartIndex = index;
-    if (cartStore.cart[index] == null) {
-      cartStore.cart[index] = [];
-    }
-    _emitOrderItems(cartStore.cart[index]!);
+    _emitOrderItems();
   }
 
   void clearCart() {
     cartStore.cart[cartStore.cartIndex] = [];
     cartStore.customer = null;
-    _emitOrderItems(cartStore.cart[cartStore.cartIndex]!);
+    _emitOrderItems();
   }
 
-  void removeItem(int index, List<OrderItem> orderItem) {
-    orderItem.removeAt(index);
-    _emitOrderItems(orderItem);
+  void removeItem(int index) {
+    if (!_has(index)) return;
+    _lines.removeAt(index);
+    _emitOrderItems();
   }
 
-  void editItem(int index, String value, List<OrderItem> orderItems) {
-    final item = orderItems[index];
+  void editItem(int index, String value) {
+    if (!_has(index)) return;
+    final lines = _lines;
     final quantity = value.isNotEmpty ? int.parse(value) : 0;
     if (quantity > 0) {
-      item.quantity = quantity;
-      orderItems[index] = item;
-    } else if (quantity <= 0) {
-      orderItems.removeAt(index);
+      lines[index].quantity = quantity;
+    } else {
+      lines.removeAt(index);
     }
-    _emitOrderItems(orderItems);
+    _emitOrderItems();
   }
 
-  void editOrderItem(
-      int index, OrderItem orderItem, List<OrderItem> orderItems) {
-    orderItems[index] = orderItem;
-    _emitOrderItems(orderItems);
+  void editOrderItem(int index, OrderItem orderItem) {
+    if (!_has(index)) return;
+    _lines[index] = orderItem;
+    _emitOrderItems();
   }
 
-  void _emitOrderItems(List<OrderItem> orderItems) {
+  /// A dialog can outlive the line it was opened on — the cart is editable
+  /// behind it, and a barcode can arrive from the scanner at any moment.
+  bool _has(int index) => index >= 0 && index < _lines.length;
+
+  /// Publishes a copy, so the list the view renders is never the list the
+  /// cart is holding.
+  void _emitOrderItems() {
     _state.value = _state.value
-        .copyWith(loading: false, orderItems: List<OrderItem>.of(orderItems));
+        .copyWith(loading: false, orderItems: List<OrderItem>.of(_lines));
   }
 
   void dispose() {
