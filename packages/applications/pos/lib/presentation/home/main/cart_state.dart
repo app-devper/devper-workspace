@@ -4,32 +4,34 @@ import 'package:flutter/foundation.dart';
 // Project imports:
 import 'package:pos/domain/model/order/order_item.dart';
 
-/// What the sales screen renders: the lines in the cart, whether a barcode
-/// lookup is running, and whether checkout is in flight.
+/// What the sales screen renders: the lines of the open sale, what they come
+/// to, whether a barcode lookup is running, and whether checkout is in flight.
 ///
-/// Both failures and the finished order used to sit here — the order behind a
-/// sealed CheckoutState, the lookup failure as a nullable string with a clear
-/// flag. None of the three is drawn: two flash a message and one empties the
-/// cart. They are on the view model's channels.
+/// The total used to be summed in the page. It is the Sale's answer now, and
+/// the screen only draws it.
 @immutable
 class CartState {
   final List<OrderItem>? orderItems;
+  final double total;
   final bool loading;
   final bool orderSaving;
 
   const CartState({
     this.orderItems,
+    this.total = 0,
     this.loading = false,
     this.orderSaving = false,
   });
 
   CartState copyWith({
     List<OrderItem>? orderItems,
+    double? total,
     bool? loading,
     bool? orderSaving,
   }) {
     return CartState(
       orderItems: orderItems ?? this.orderItems,
+      total: total ?? this.total,
       loading: loading ?? this.loading,
       orderSaving: orderSaving ?? this.orderSaving,
     );
