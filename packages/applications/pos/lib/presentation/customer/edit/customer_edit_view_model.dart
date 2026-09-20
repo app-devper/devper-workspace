@@ -8,17 +8,15 @@ import 'package:common/core/state/one_shot.dart';
 // Project imports:
 import 'package:pos/domain/model/customer/customer.dart';
 import 'package:pos/domain/model/customer/param.dart';
-import 'package:pos/domain/usecase/customer/remove_customer_by_id_use_case.dart';
-import 'package:pos/domain/usecase/customer/update_customer_by_id_use_case.dart';
 import 'package:pos/presentation/customer/edit/customer_edit_state.dart';
 
+import 'package:pos/domain/repositories/customer_repository.dart';
+
 class CustomerEditViewModel {
-  final UpdateCustomerByIdUseCase updateCustomerByIdUseCase;
-  final RemoveCustomerByIdUseCase removeCustomerByIdUseCase;
+  final CustomerRepository customerRepo;
 
   CustomerEditViewModel({
-    required this.updateCustomerByIdUseCase,
-    required this.removeCustomerByIdUseCase,
+    required this.customerRepo,
   });
 
   final _state = ValueNotifier<CustomerEditState>(const CustomerEditState());
@@ -37,13 +35,12 @@ class CustomerEditViewModel {
 
   Stream<String> get errors => _errors.stream;
 
-  Future<void> updateCustomerById(String customerId, CustomerParam param) async {
+  Future<void> updateCustomerById(
+      String customerId, CustomerParam param) async {
     if (_state.value.busy) return;
     _state.value = _state.value.copyWith(busy: true);
     try {
-      _updated.emit(await updateCustomerByIdUseCase(
-        CustomerUpdateParam(customerId: customerId, param: param),
-      ));
+      _updated.emit(await customerRepo.updateCustomerById(customerId, param));
     } on Exception catch (e) {
       _errors.emit(toFailure(e).getMessage());
     } finally {
@@ -55,7 +52,7 @@ class CustomerEditViewModel {
     if (_state.value.busy) return;
     _state.value = _state.value.copyWith(busy: true);
     try {
-      _removed.emit(await removeCustomerByIdUseCase(customerId));
+      _removed.emit(await customerRepo.removeCustomerById(customerId));
     } on Exception catch (e) {
       _errors.emit(toFailure(e).getMessage());
     } finally {

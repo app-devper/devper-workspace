@@ -23,18 +23,6 @@ import 'package:pos/domain/repositories/receive_repository.dart';
 import 'package:pos/domain/repositories/stock_adjustment_repository.dart';
 import 'package:pos/domain/repositories/stock_count_repository.dart';
 import 'package:pos/domain/repositories/supplier_repository.dart';
-import 'package:pos/domain/usecase/category/create_category_use_case.dart';
-import 'package:pos/domain/usecase/category/get_categories_use_case.dart';
-import 'package:pos/domain/usecase/category/get_local_categories_use_case.dart';
-import 'package:pos/domain/usecase/category/get_category_by_id_use_case.dart';
-import 'package:pos/domain/usecase/category/remove_category_by_id_use_case.dart';
-import 'package:pos/domain/usecase/category/update_category_by_id_use_case.dart';
-import 'package:pos/domain/usecase/category/update_default_category_by_id_use_case.dart';
-import 'package:pos/domain/usecase/customer/create_customer_use_case.dart';
-import 'package:pos/domain/usecase/customer/get_customer_by_id_use_case.dart';
-import 'package:pos/domain/usecase/customer/get_local_customers_use_case.dart';
-import 'package:pos/domain/usecase/customer/remove_customer_by_id_use_case.dart';
-import 'package:pos/domain/usecase/customer/update_customer_by_id_use_case.dart';
 import 'package:pos/domain/usecase/order/create_order_use_case.dart';
 import 'package:pos/domain/usecase/order/get_order_by_id_use_case.dart';
 import 'package:pos/domain/usecase/order/get_order_item_by_product_id_use_case.dart';
@@ -151,13 +139,13 @@ Future<void> initPos() async {
 
   sl.registerFactory(
     () => CustomerSearchViewModel(
-      getLocalCustomersUseCase: sl(),
+      customerRepo: sl(),
     ),
   );
 
   sl.registerFactory(
     () => CustomersViewModel(
-      getLocalCustomersUseCase: sl(),
+      customerRepo: sl(),
     ),
   );
 
@@ -216,7 +204,7 @@ Future<void> initPos() async {
   );
   sl.registerFactory(
     () => ProductAddViewModel(
-      getLocalCategoriesUseCase: sl(),
+      categoryRepo: sl(),
       generateSerialNumberUseCase: sl(),
       addProductUseCase: sl(),
       getProductUnitsByProductIdUseCase: sl(),
@@ -261,7 +249,7 @@ Future<void> initPos() async {
       removeOrderByIdUseCase: sl(),
       removeOrderItemByIdUseCase: sl(),
       getSupplierInfoUseCase: sl(),
-      getLocalCustomersUseCase: sl(),
+      customerRepo: sl(),
     ),
   );
   sl.registerFactory(
@@ -271,20 +259,17 @@ Future<void> initPos() async {
   );
   sl.registerFactory(
     () => CategoryViewModel(
-      getCategoriesUseCase: sl(),
-      updateDefaultCategoryByIdUseCase: sl(),
+      categoryRepo: sl(),
     ),
   );
   sl.registerFactory(
     () => CategoryAddViewModel(
-      createCategoryUseCase: sl(),
+      categoryRepo: sl(),
     ),
   );
   sl.registerFactory(
     () => CategoryEditViewModel(
-      getCategoryByIdUseCase: sl(),
-      updateCategoryByIdUseCase: sl(),
-      removeCategoryByIdUseCase: sl(),
+      categoryRepo: sl(),
     ),
   );
   sl.registerFactory(
@@ -294,18 +279,17 @@ Future<void> initPos() async {
   );
   sl.registerFactory(
     () => CustomerViewModel(
-      getCustomerByIdUseCase: sl(),
+      customerRepo: sl(),
     ),
   );
   sl.registerFactory(
     () => CustomerAddViewModel(
-      createCustomerUseCase: sl(),
+      customerRepo: sl(),
     ),
   );
   sl.registerFactory(
     () => CustomerEditViewModel(
-      updateCustomerByIdUseCase: sl(),
-      removeCustomerByIdUseCase: sl(),
+      customerRepo: sl(),
     ),
   );
   sl.registerFactory(
@@ -382,37 +366,6 @@ Future<void> initPos() async {
   sl.registerFactory(
     () => ProductReturnsHistoryViewModel(
       productReturnRepo: sl(),
-    ),
-  );
-
-  sl.registerFactory(
-    () => GetCategoriesUseCase(
-      categoryRepo: sl(),
-    ),
-  );
-  sl.registerFactory(
-    () => CreateCategoryUseCase(
-      categoryRepo: sl(),
-    ),
-  );
-  sl.registerFactory(
-    () => GetCategoryByIdUseCase(
-      categoryRepo: sl(),
-    ),
-  );
-  sl.registerFactory(
-    () => UpdateCategoryByIdUseCase(
-      categoryRepo: sl(),
-    ),
-  );
-  sl.registerFactory(
-    () => RemoveCategoryByIdUseCase(
-      categoryRepo: sl(),
-    ),
-  );
-  sl.registerFactory(
-    () => UpdateDefaultCategoryByIdUseCase(
-      categoryRepo: sl(),
     ),
   );
 
@@ -653,37 +606,6 @@ Future<void> initPos() async {
   sl.registerFactory(
     () => GetProductHistoriesByProductIdUseCase(
       productRepo: sl(),
-    ),
-  );
-  sl.registerFactory(
-    () => GetLocalCategoriesUseCase(
-      categoryRepo: sl(),
-    ),
-  );
-
-  sl.registerFactory(
-    () => CreateCustomerUseCase(
-      customerRepo: sl(),
-    ),
-  );
-  sl.registerFactory(
-    () => GetLocalCustomersUseCase(
-      customerRepo: sl(),
-    ),
-  );
-  sl.registerFactory(
-    () => GetCustomerByIdUseCase(
-      customerRepo: sl(),
-    ),
-  );
-  sl.registerFactory(
-    () => UpdateCustomerByIdUseCase(
-      customerRepo: sl(),
-    ),
-  );
-  sl.registerFactory(
-    () => RemoveCustomerByIdUseCase(
-      customerRepo: sl(),
     ),
   );
 

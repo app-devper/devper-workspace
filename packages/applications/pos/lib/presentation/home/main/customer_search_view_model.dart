@@ -3,13 +3,14 @@ import 'package:flutter/foundation.dart';
 
 // Project imports:
 import 'package:pos/domain/model/customer/customer.dart';
-import 'package:pos/domain/usecase/customer/get_local_customers_use_case.dart';
+
+import 'package:pos/domain/repositories/customer_repository.dart';
 
 class CustomerSearchViewModel {
-  final GetLocalCustomersUseCase getLocalCustomersUseCase;
+  final CustomerRepository customerRepo;
 
   CustomerSearchViewModel({
-    required this.getLocalCustomersUseCase,
+    required this.customerRepo,
   });
 
   final _items = ValueNotifier<List<Customer>?>(null);
@@ -20,7 +21,7 @@ class CustomerSearchViewModel {
 
   Future<void> getCacheCustomers() async {
     try {
-      _customers = await getLocalCustomersUseCase();
+      _customers = await customerRepo.getLocalCustomers();
       _items.value = _customers;
     } on Exception catch (_) {}
   }
@@ -31,7 +32,9 @@ class CustomerSearchViewModel {
     } else {
       final lower = term.toLowerCase();
       _items.value = _customers
-          .where((item) => item.name.toLowerCase().contains(lower) || item.phone.contains(term))
+          .where((item) =>
+              item.name.toLowerCase().contains(lower) ||
+              item.phone.contains(term))
           .toList();
     }
   }

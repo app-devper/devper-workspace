@@ -8,7 +8,6 @@ import 'package:pos/domain/model/supplier/supplier.dart';
 import 'package:pos/domain/repositories/customer_repository.dart';
 import 'package:pos/domain/repositories/order_repository.dart';
 import 'package:pos/domain/repositories/supplier_repository.dart';
-import 'package:pos/domain/usecase/customer/get_local_customers_use_case.dart';
 import 'package:pos/domain/usecase/order/get_order_by_id_use_case.dart';
 import 'package:pos/domain/usecase/order/remove_order_by_id_use_case.dart';
 import 'package:pos/domain/usecase/order/remove_order_item_by_id_use_case.dart';
@@ -209,8 +208,7 @@ OrderDetailViewModel _buildViewModel({
         orderRepo: orderRepo ?? FakeOrderRepository()),
     getSupplierInfoUseCase: GetSupplierInfoUseCase(
         supplierRepo: supplierRepo ?? FakeSupplierRepository()),
-    getLocalCustomersUseCase: GetLocalCustomersUseCase(
-        customerRepo: customerRepo ?? FakeCustomerRepository()),
+    customerRepo: customerRepo ?? FakeCustomerRepository(),
   );
 }
 

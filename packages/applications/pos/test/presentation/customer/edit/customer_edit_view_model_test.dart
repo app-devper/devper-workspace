@@ -3,8 +3,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:pos/domain/model/customer/customer.dart';
 import 'package:pos/domain/model/customer/param.dart';
 import 'package:pos/domain/repositories/customer_repository.dart';
-import 'package:pos/domain/usecase/customer/remove_customer_by_id_use_case.dart';
-import 'package:pos/domain/usecase/customer/update_customer_by_id_use_case.dart';
 import 'package:pos/presentation/customer/edit/customer_edit_view_model.dart';
 
 class FakeCustomerRepository implements CustomerRepository {
@@ -78,8 +76,7 @@ CustomerParam buildParam() {
 
 CustomerEditViewModel buildViewModel(CustomerRepository repo) {
   return CustomerEditViewModel(
-    updateCustomerByIdUseCase: UpdateCustomerByIdUseCase(customerRepo: repo),
-    removeCustomerByIdUseCase: RemoveCustomerByIdUseCase(customerRepo: repo),
+    customerRepo: repo,
   );
 }
 

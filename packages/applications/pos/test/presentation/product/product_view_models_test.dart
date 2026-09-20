@@ -6,7 +6,6 @@ import 'package:pos/domain/model/product/product.dart';
 import 'package:pos/domain/model/product/product_history.dart';
 import 'package:pos/domain/repositories/category_repository.dart';
 import 'package:pos/domain/repositories/product_repository.dart';
-import 'package:pos/domain/usecase/category/get_local_categories_use_case.dart';
 import 'package:pos/domain/usecase/product/add_product_use_case.dart';
 import 'package:pos/domain/usecase/product/clear_quantity_sold_first_by_id_use_case.dart';
 import 'package:pos/domain/usecase/product/generate_serial_number_use_case.dart';
@@ -167,9 +166,7 @@ ProductAddViewModel buildAddViewModel(
   CategoryRepository categoryRepository,
 ) {
   return ProductAddViewModel(
-    getLocalCategoriesUseCase: GetLocalCategoriesUseCase(
-      categoryRepo: categoryRepository,
-    ),
+    categoryRepo: categoryRepository,
     generateSerialNumberUseCase: GenerateSerialNumberUseCase(
       productRepo: productRepository,
     ),
