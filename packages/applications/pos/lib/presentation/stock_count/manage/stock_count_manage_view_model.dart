@@ -8,17 +8,14 @@ import 'package:common/core/state/one_shot.dart';
 // Project imports:
 import 'package:pos/domain/model/stock_count/param.dart';
 import 'package:pos/domain/model/stock_count/stock_count.dart';
-import 'package:pos/domain/usecase/stock_count/create_stock_count_use_case.dart';
-import 'package:pos/domain/usecase/stock_count/get_stock_count_by_id_use_case.dart';
 import 'package:pos/presentation/stock_count/manage/stock_count_manage_state.dart';
+import 'package:pos/domain/repositories/stock_count_repository.dart';
 
 class StockCountManageViewModel {
-  final CreateStockCountUseCase createStockCountUseCase;
-  final GetStockCountByIdUseCase getStockCountByIdUseCase;
+  final StockCountRepository stockCountRepo;
 
   StockCountManageViewModel({
-    required this.createStockCountUseCase,
-    required this.getStockCountByIdUseCase,
+    required this.stockCountRepo,
   });
 
   final _state =
@@ -41,7 +38,7 @@ class StockCountManageViewModel {
     }
     _state.value = _state.value.copyWith(loading: true);
     try {
-      final stockCount = await getStockCountByIdUseCase(stockCountId);
+      final stockCount = await stockCountRepo.getStockCountById(stockCountId);
       _state.value = _state.value.copyWith(stockCount: stockCount);
     } on Exception catch (e) {
       _errors.emit(toFailure(e).getMessage());
@@ -89,7 +86,7 @@ class StockCountManageViewModel {
     }
     _state.value = _state.value.copyWith(loading: true);
     try {
-      final created = await createStockCountUseCase(
+      final created = await stockCountRepo.createStockCount(
         CreateStockCountParam(note: note, items: _state.value.items),
       );
       _created.emit(created);

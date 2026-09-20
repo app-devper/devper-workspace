@@ -8,14 +8,14 @@ import 'package:common/core/state/one_shot.dart';
 // Project imports:
 import 'package:pos/domain/model/product_return/product_return.dart';
 import 'package:pos/domain/model/product_return/param.dart';
-import 'package:pos/domain/usecase/product_return/create_product_return_use_case.dart';
 import 'package:pos/presentation/order/return/product_return_state.dart';
+import 'package:pos/domain/repositories/product_return_repository.dart';
 
 class ProductReturnViewModel {
-  final CreateProductReturnUseCase createProductReturnUseCase;
+  final ProductReturnRepository productReturnRepo;
 
   ProductReturnViewModel({
-    required this.createProductReturnUseCase,
+    required this.productReturnRepo,
   });
 
   final _state = ValueNotifier<ProductReturnState>(const ProductReturnState());
@@ -34,7 +34,7 @@ class ProductReturnViewModel {
     if (_state.value.loading) return;
     _state.value = _state.value.copyWith(loading: true);
     try {
-      final created = await createProductReturnUseCase(param);
+      final created = await productReturnRepo.createProductReturn(param);
       _created.emit(created);
     } on Exception catch (e) {
       _errors.emit(toFailure(e).getMessage());

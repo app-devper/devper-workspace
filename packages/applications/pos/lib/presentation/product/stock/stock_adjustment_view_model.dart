@@ -8,14 +8,14 @@ import 'package:common/core/state/one_shot.dart';
 // Project imports:
 import 'package:pos/domain/model/stock_adjustment/stock_adjustment.dart';
 import 'package:pos/domain/model/stock_adjustment/param.dart';
-import 'package:pos/domain/usecase/stock_adjustment/create_stock_adjustment_use_case.dart';
 import 'package:pos/presentation/product/stock/stock_adjustment_state.dart';
+import 'package:pos/domain/repositories/stock_adjustment_repository.dart';
 
 class StockAdjustmentViewModel {
-  final CreateStockAdjustmentUseCase createStockAdjustmentUseCase;
+  final StockAdjustmentRepository stockAdjustmentRepo;
 
   StockAdjustmentViewModel({
-    required this.createStockAdjustmentUseCase,
+    required this.stockAdjustmentRepo,
   });
 
   final _state =
@@ -35,7 +35,7 @@ class StockAdjustmentViewModel {
     if (_state.value.loading) return;
     _state.value = _state.value.copyWith(loading: true);
     try {
-      final created = await createStockAdjustmentUseCase(param);
+      final created = await stockAdjustmentRepo.createStockAdjustment(param);
       _created.emit(created);
     } on Exception catch (e) {
       _errors.emit(toFailure(e).getMessage());
