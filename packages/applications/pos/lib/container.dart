@@ -69,8 +69,6 @@ import 'package:pos/domain/usecase/product/update_product_stock_quantity_by_id_u
 import 'package:pos/domain/usecase/product/update_product_stock_sequence_use_case.dart';
 import 'package:pos/domain/usecase/product/update_product_stock_use_case.dart';
 import 'package:pos/domain/usecase/product/update_product_unit_by_id_use_case.dart';
-import 'package:pos/domain/usecase/product_return/create_product_return_use_case.dart';
-import 'package:pos/domain/usecase/product_return/get_product_returns_by_order_id_use_case.dart';
 import 'package:pos/domain/usecase/receive/create_receive_use_case.dart';
 import 'package:pos/domain/usecase/receive/get_receive_by_id_use_case.dart';
 import 'package:pos/domain/usecase/receive/get_receive_items_by_id_use_case.dart';
@@ -78,11 +76,6 @@ import 'package:pos/domain/usecase/receive/get_receives_use_case.dart';
 import 'package:pos/domain/usecase/receive/remove_receive_by_id_use_case.dart';
 import 'package:pos/domain/usecase/receive/import_receive_use_case.dart';
 import 'package:pos/domain/usecase/receive/update_receive_by_id_use_case.dart';
-import 'package:pos/domain/usecase/stock_adjustment/create_stock_adjustment_use_case.dart';
-import 'package:pos/domain/usecase/stock_adjustment/get_stock_adjustments_by_product_id_use_case.dart';
-import 'package:pos/domain/usecase/stock_count/create_stock_count_use_case.dart';
-import 'package:pos/domain/usecase/stock_count/get_stock_count_by_id_use_case.dart';
-import 'package:pos/domain/usecase/stock_count/get_stock_counts_use_case.dart';
 import 'package:pos/domain/usecase/supplier/create_supplier_use_case.dart';
 import 'package:pos/domain/usecase/supplier/get_local_suppliers_use_case.dart';
 import 'package:pos/domain/usecase/supplier/get_supplier_info_use_case.dart';
@@ -358,23 +351,22 @@ Future<void> initPos() async {
   );
   sl.registerFactory(
     () => StockAdjustmentViewModel(
-      createStockAdjustmentUseCase: sl(),
+      stockAdjustmentRepo: sl(),
     ),
   );
   sl.registerFactory(
     () => StockAdjustmentHistoryViewModel(
-      getStockAdjustmentsByProductIdUseCase: sl(),
+      stockAdjustmentRepo: sl(),
     ),
   );
   sl.registerFactory(
     () => StockCountsViewModel(
-      getStockCountsUseCase: sl(),
+      stockCountRepo: sl(),
     ),
   );
   sl.registerFactory(
     () => StockCountManageViewModel(
-      createStockCountUseCase: sl(),
-      getStockCountByIdUseCase: sl(),
+      stockCountRepo: sl(),
     ),
   );
   sl.registerFactory(
@@ -384,12 +376,12 @@ Future<void> initPos() async {
   );
   sl.registerFactory(
     () => ProductReturnViewModel(
-      createProductReturnUseCase: sl(),
+      productReturnRepo: sl(),
     ),
   );
   sl.registerFactory(
     () => ProductReturnsHistoryViewModel(
-      getProductReturnsByOrderIdUseCase: sl(),
+      productReturnRepo: sl(),
     ),
   );
 
@@ -493,42 +485,6 @@ Future<void> initPos() async {
   sl.registerFactory(
     () => ImportReceiveUseCase(
       receiveRepo: sl(),
-    ),
-  );
-
-  sl.registerFactory(
-    () => CreateStockAdjustmentUseCase(
-      stockAdjustmentRepo: sl(),
-    ),
-  );
-  sl.registerFactory(
-    () => GetStockAdjustmentsByProductIdUseCase(
-      stockAdjustmentRepo: sl(),
-    ),
-  );
-  sl.registerFactory(
-    () => CreateStockCountUseCase(
-      stockCountRepo: sl(),
-    ),
-  );
-  sl.registerFactory(
-    () => GetStockCountsUseCase(
-      stockCountRepo: sl(),
-    ),
-  );
-  sl.registerFactory(
-    () => GetStockCountByIdUseCase(
-      stockCountRepo: sl(),
-    ),
-  );
-  sl.registerFactory(
-    () => CreateProductReturnUseCase(
-      productReturnRepo: sl(),
-    ),
-  );
-  sl.registerFactory(
-    () => GetProductReturnsByOrderIdUseCase(
-      productReturnRepo: sl(),
     ),
   );
 
