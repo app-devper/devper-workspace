@@ -184,7 +184,7 @@ class _OrderItemWidgetState extends State<OrderItemWidget> {
                   return;
                 }
                 setState(() {
-                  _orderItem.updatePriceType(price.customerType);
+                  _orderItem.overridePriceType(price.customerType);
                 });
               },
             ),

@@ -97,7 +97,7 @@ import 'package:pos/presentation/customer/add/customer_add_view_model.dart';
 import 'package:pos/presentation/customer/edit/customer_edit_view_model.dart';
 import 'package:pos/presentation/customer/main/customer_view_model.dart';
 import 'package:pos/presentation/customer/main/customers_view_model.dart';
-import 'package:pos/presentation/home/main/cart_store.dart';
+import 'package:pos/domain/model/sale/till.dart';
 import 'package:pos/presentation/home/main/cart_view_model.dart';
 import 'package:pos/presentation/home/main/customer_search_view_model.dart';
 import 'package:pos/presentation/home/main/home_view_model.dart';
@@ -145,11 +145,11 @@ Future<void> initPos() async {
     ),
   );
 
-  sl.registerSingleton(CartStore());
+  sl.registerSingleton(Till());
 
   sl.registerFactory(
     () => CartViewModel(
-      cartStore: sl(),
+      till: sl(),
       createOrderUseCase: sl(),
       getProductByBarcodeUseCase: sl(),
       updateProductStockUseCase: sl(),

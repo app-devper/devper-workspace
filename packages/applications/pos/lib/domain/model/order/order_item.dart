@@ -7,7 +7,14 @@ import 'package:pos/domain/model/product/product.dart';
 
 class OrderItem {
   final ProductUnitItem product;
-  final String customerType;
+
+  /// Which price list this line was rung up at. It follows the sale's
+  /// customer, unless the cashier has priced the line by hand.
+  String customerType;
+
+  /// The cashier chose this line's price themselves. A change of customer
+  /// leaves it alone.
+  bool priceOverridden = false;
   int quantity = 1;
   ProductPriceType priceType = ProductPriceType(
     stock: null,
@@ -28,7 +35,19 @@ class OrderItem {
     priceType = product.getPrice(customerType);
   }
 
-  void updatePriceType(String customerType) {
+  /// The cashier picked a price for this line by hand. It survives a change
+  /// of customer.
+  void overridePriceType(String customerType) {
+    this.customerType = customerType;
+    priceType = product.getPrice(customerType);
+    priceOverridden = true;
+  }
+
+  /// The sale's customer changed. A line priced by hand keeps that price; a
+  /// discount is a separate negotiation and is never touched here.
+  void repriceFor(String customerType) {
+    if (priceOverridden) return;
+    this.customerType = customerType;
     priceType = product.getPrice(customerType);
   }
 
@@ -100,8 +119,13 @@ class OrderItem {
     return productStockOrder;
   }
 
-  List<ProductStockOrder> findProductStockOrder(List<ProductStockOrder> productStockOrder, int quantity) {
-    final productStock = product.stocks.where((stock) => stock.quantity > 0 && productStockOrder.every((element) => element.stockId != stock.id)).firstOrNull;
+  List<ProductStockOrder> findProductStockOrder(
+      List<ProductStockOrder> productStockOrder, int quantity) {
+    final productStock = product.stocks
+        .where((stock) =>
+            stock.quantity > 0 &&
+            productStockOrder.every((element) => element.stockId != stock.id))
+        .firstOrNull;
     if (productStock != null) {
       if (productStock.quantity >= quantity) {
         productStockOrder.add(
@@ -122,7 +146,9 @@ class OrderItem {
           findProductStockOrder(productStockOrder, remainQuantity);
         }
       }
-    } else if (allowOversell && productStockOrder.isNotEmpty && productStockOrder.last.stockId.isNotEmpty) {
+    } else if (allowOversell &&
+        productStockOrder.isNotEmpty &&
+        productStockOrder.last.stockId.isNotEmpty) {
       // No stock left anywhere, but this line already touched a real lot: fold the
       // shortfall onto that lot so the backend's oversell/reconciliation path (keyed
       // off a non-empty stockId) applies, instead of silently routing it to the
