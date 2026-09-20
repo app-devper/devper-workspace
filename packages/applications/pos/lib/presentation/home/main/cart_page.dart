@@ -170,7 +170,7 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
         Expanded(
           child: ProductSearch(
             onSelected: (serialNumber) {
-              _viewModel.addOrderItem(serialNumber, _orderItems);
+              _viewModel.addOrderItem(serialNumber);
             },
           ),
         ),
@@ -194,7 +194,7 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
         Expanded(
           child: ProductSearch(
             onSelected: (serialNumber) {
-              _viewModel.addOrderItem(serialNumber, _orderItems);
+              _viewModel.addOrderItem(serialNumber);
             },
           ),
         ),
@@ -479,20 +479,20 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
             priceDetail: content.getPriceDetail(),
             allowOversell: content.allowOversell,
             onToggleOversell: () {
-              _viewModel.toggleAllowOversell(index, _orderItems);
+              _viewModel.toggleAllowOversell(index);
             },
             onRemove: () {
-              _viewModel.minusItem(index, _orderItems);
+              _viewModel.minusItem(index);
             },
             onAdd: () {
-              _viewModel.plusItem(index, _orderItems);
+              _viewModel.plusItem(index);
             },
             onEdit: () {
               showInputNumberDialog(
                 context,
                 title: 'จำนวนสินค้า',
                 onCompleted: (value) {
-                  _viewModel.editItem(index, value, _orderItems);
+                  _viewModel.editItem(index, value);
                 },
               );
             },
@@ -501,10 +501,10 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
                 context,
                 orderItem: content,
                 onCompleted: (value) {
-                  _viewModel.editOrderItem(index, value, _orderItems);
+                  _viewModel.editOrderItem(index, value);
                 },
                 onRemove: () {
-                  _viewModel.removeItem(index, _orderItems);
+                  _viewModel.removeItem(index);
                 },
               );
             },
@@ -663,7 +663,7 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
           Expanded(
             child: ProductSearch(
               onSelected: (serialNumber) {
-                _viewModel.addOrderItem(serialNumber, _orderItems);
+                _viewModel.addOrderItem(serialNumber);
               },
             ),
           ),
