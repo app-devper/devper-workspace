@@ -57,20 +57,6 @@ import 'package:pos/domain/usecase/product/update_product_stock_quantity_by_id_u
 import 'package:pos/domain/usecase/product/update_product_stock_sequence_use_case.dart';
 import 'package:pos/domain/usecase/product/update_product_stock_use_case.dart';
 import 'package:pos/domain/usecase/product/update_product_unit_by_id_use_case.dart';
-import 'package:pos/domain/usecase/receive/create_receive_use_case.dart';
-import 'package:pos/domain/usecase/receive/get_receive_by_id_use_case.dart';
-import 'package:pos/domain/usecase/receive/get_receive_items_by_id_use_case.dart';
-import 'package:pos/domain/usecase/receive/get_receives_use_case.dart';
-import 'package:pos/domain/usecase/receive/remove_receive_by_id_use_case.dart';
-import 'package:pos/domain/usecase/receive/import_receive_use_case.dart';
-import 'package:pos/domain/usecase/receive/update_receive_by_id_use_case.dart';
-import 'package:pos/domain/usecase/supplier/create_supplier_use_case.dart';
-import 'package:pos/domain/usecase/supplier/get_local_suppliers_use_case.dart';
-import 'package:pos/domain/usecase/supplier/get_supplier_info_use_case.dart';
-import 'package:pos/domain/usecase/supplier/get_suppliers_use_case.dart';
-import 'package:pos/domain/usecase/supplier/remove_supplier_by_id_use_case.dart';
-import 'package:pos/domain/usecase/supplier/update_supplier_by_id_use_case.dart';
-import 'package:pos/domain/usecase/supplier/update_supplier_info_use_case.dart';
 import 'package:pos/presentation/category/add/category_add_view_model.dart';
 import 'package:pos/presentation/category/edit/category_edit_view_model.dart';
 import 'package:pos/presentation/category/main/category_view_model.dart';
@@ -248,7 +234,7 @@ Future<void> initPos() async {
       getOrderByIdUseCase: sl(),
       removeOrderByIdUseCase: sl(),
       removeOrderItemByIdUseCase: sl(),
-      getSupplierInfoUseCase: sl(),
+      supplierRepo: sl(),
       customerRepo: sl(),
     ),
   );
@@ -294,41 +280,33 @@ Future<void> initPos() async {
   );
   sl.registerFactory(
     () => SupplierInfoViewModel(
-      getSupplierInfoUseCase: sl(),
-      updateSupplierInfoUseCase: sl(),
+      supplierRepo: sl(),
     ),
   );
   sl.registerFactory(
     () => SupplierAddViewModel(
-      createSupplierUseCase: sl(),
+      supplierRepo: sl(),
     ),
   );
   sl.registerFactory(
     () => SupplierEditViewModel(
-      updateSupplierByIdUseCase: sl(),
-      removeSupplierByIdUseCase: sl(),
+      supplierRepo: sl(),
     ),
   );
   sl.registerFactory(
     () => SuppliersViewModel(
-      getSuppliersUseCase: sl(),
+      supplierRepo: sl(),
     ),
   );
   sl.registerFactory(
     () => ReceivesViewModel(
-      getReceivesUseCase: sl(),
+      receiveRepo: sl(),
     ),
   );
   sl.registerFactory(
     () => ReceiveManageViewModel(
-      getReceiveByIdUseCase: sl(),
-      createReceiveUseCase: sl(),
-      updateReceiveByIdUseCase: sl(),
-      removeReceiveByIdUseCase: sl(),
-      getReceiveItemsByIdUseCase: sl(),
-      importReceiveUseCase: sl(),
-      getLocalSuppliersUseCase: sl(),
-      getSuppliersUseCase: sl(),
+      receiveRepo: sl(),
+      supplierRepo: sl(),
       getLocalProductByIdUseCase: sl(),
       getProductsUseCase: sl(),
     ),
@@ -366,78 +344,6 @@ Future<void> initPos() async {
   sl.registerFactory(
     () => ProductReturnsHistoryViewModel(
       productReturnRepo: sl(),
-    ),
-  );
-
-  sl.registerFactory(
-    () => GetSuppliersUseCase(
-      supplierRepo: sl(),
-    ),
-  );
-  sl.registerFactory(
-    () => CreateSupplierUseCase(
-      supplierRepo: sl(),
-    ),
-  );
-  sl.registerFactory(
-    () => GetSupplierInfoUseCase(
-      supplierRepo: sl(),
-    ),
-  );
-  sl.registerFactory(
-    () => UpdateSupplierInfoUseCase(
-      supplierRepo: sl(),
-    ),
-  );
-  sl.registerFactory(
-    () => UpdateSupplierByIdUseCase(
-      supplierRepo: sl(),
-    ),
-  );
-  sl.registerFactory(
-    () => RemoveSupplierByIdUseCase(
-      supplierRepo: sl(),
-    ),
-  );
-  sl.registerFactory(
-    () => GetLocalSuppliersUseCase(
-      supplierRepo: sl(),
-    ),
-  );
-
-  sl.registerFactory(
-    () => GetReceivesUseCase(
-      receiveRepo: sl(),
-    ),
-  );
-  sl.registerFactory(
-    () => GetReceiveByIdUseCase(
-      receiveRepo: sl(),
-    ),
-  );
-  sl.registerFactory(
-    () => CreateReceiveUseCase(
-      receiveRepo: sl(),
-    ),
-  );
-  sl.registerFactory(
-    () => UpdateReceiveByIdUseCase(
-      receiveRepo: sl(),
-    ),
-  );
-  sl.registerFactory(
-    () => RemoveReceiveByIdUseCase(
-      receiveRepo: sl(),
-    ),
-  );
-  sl.registerFactory(
-    () => GetReceiveItemsByIdUseCase(
-      receiveRepo: sl(),
-    ),
-  );
-  sl.registerFactory(
-    () => ImportReceiveUseCase(
-      receiveRepo: sl(),
     ),
   );
 

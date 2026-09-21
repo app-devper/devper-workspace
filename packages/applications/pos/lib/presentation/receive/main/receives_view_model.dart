@@ -7,14 +7,15 @@ import 'package:common/core/error/failure.dart';
 // Project imports:
 import 'package:pos/domain/model/receive/param.dart';
 import 'package:pos/domain/model/receive/receive.dart';
-import 'package:pos/domain/usecase/receive/get_receives_use_case.dart';
 import 'package:pos/presentation/receive/main/receive_state.dart';
 
+import 'package:pos/domain/repositories/receive_repository.dart';
+
 class ReceivesViewModel {
-  final GetReceivesUseCase getReceivesUseCase;
+  final ReceiveRepository receiveRepo;
 
   ReceivesViewModel({
-    required this.getReceivesUseCase,
+    required this.receiveRepo,
   });
 
   final _state = ValueNotifier<ReceivesState>(const ReceivesState());
@@ -43,7 +44,7 @@ class ReceivesViewModel {
         startDate: startDate.toUtc().toIso8601String(),
         endDate: now.toUtc().toIso8601String(),
       );
-      _all = await getReceivesUseCase(param);
+      _all = await receiveRepo.getReceives(param);
       _state.value =
           _state.value.copyWith(loading: false, items: _filter(_query));
     } on Exception catch (e) {

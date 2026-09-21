@@ -11,7 +11,6 @@ import 'package:pos/domain/repositories/supplier_repository.dart';
 import 'package:pos/domain/usecase/order/get_order_by_id_use_case.dart';
 import 'package:pos/domain/usecase/order/remove_order_by_id_use_case.dart';
 import 'package:pos/domain/usecase/order/remove_order_item_by_id_use_case.dart';
-import 'package:pos/domain/usecase/supplier/get_supplier_info_use_case.dart';
 import 'package:pos/presentation/order/detail/order_detail_state.dart';
 import 'package:pos/presentation/order/detail/order_detail_view_model.dart';
 import 'package:um/domain/repositories/login_repository.dart';
@@ -206,8 +205,7 @@ OrderDetailViewModel _buildViewModel({
         RemoveOrderByIdUseCase(orderRepo: orderRepo ?? FakeOrderRepository()),
     removeOrderItemByIdUseCase: RemoveOrderItemByIdUseCase(
         orderRepo: orderRepo ?? FakeOrderRepository()),
-    getSupplierInfoUseCase: GetSupplierInfoUseCase(
-        supplierRepo: supplierRepo ?? FakeSupplierRepository()),
+    supplierRepo: supplierRepo ?? FakeSupplierRepository(),
     customerRepo: customerRepo ?? FakeCustomerRepository(),
   );
 }

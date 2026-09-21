@@ -11,13 +11,3 @@ class SupplierParam {
     required this.taxId,
   });
 }
-
-class SupplierUpdateParam {
-  final String supplierId;
-  final SupplierParam param;
-
-  SupplierUpdateParam({
-    required this.supplierId,
-    required this.param,
-  });
-}
