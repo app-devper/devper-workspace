@@ -3,9 +3,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:pos/domain/model/category/category.dart';
 import 'package:pos/domain/model/category/param.dart';
 import 'package:pos/domain/repositories/category_repository.dart';
-import 'package:pos/domain/usecase/category/get_category_by_id_use_case.dart';
-import 'package:pos/domain/usecase/category/remove_category_by_id_use_case.dart';
-import 'package:pos/domain/usecase/category/update_category_by_id_use_case.dart';
 import 'package:pos/presentation/category/edit/category_edit_view_model.dart';
 
 class FakeCategoryRepository implements CategoryRepository {
@@ -82,9 +79,7 @@ CategoryParam buildParam() {
 
 CategoryEditViewModel buildViewModel(CategoryRepository repo) {
   return CategoryEditViewModel(
-    getCategoryByIdUseCase: GetCategoryByIdUseCase(categoryRepo: repo),
-    updateCategoryByIdUseCase: UpdateCategoryByIdUseCase(categoryRepo: repo),
-    removeCategoryByIdUseCase: RemoveCategoryByIdUseCase(categoryRepo: repo),
+    categoryRepo: repo,
   );
 }
 

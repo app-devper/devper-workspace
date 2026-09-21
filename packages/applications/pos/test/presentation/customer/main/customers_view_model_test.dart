@@ -3,8 +3,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:pos/domain/model/customer/customer.dart';
 import 'package:pos/domain/model/customer/param.dart';
 import 'package:pos/domain/repositories/customer_repository.dart';
-import 'package:pos/domain/usecase/customer/get_customer_by_id_use_case.dart';
-import 'package:pos/domain/usecase/customer/get_local_customers_use_case.dart';
 import 'package:pos/presentation/customer/main/customer_view_model.dart';
 import 'package:pos/presentation/customer/main/customers_view_model.dart';
 
@@ -68,13 +66,13 @@ Customer buildCustomer(String id) {
 
 CustomersViewModel buildCustomersViewModel(CustomerRepository repo) {
   return CustomersViewModel(
-    getLocalCustomersUseCase: GetLocalCustomersUseCase(customerRepo: repo),
+    customerRepo: repo,
   );
 }
 
 CustomerViewModel buildCustomerViewModel(CustomerRepository repo) {
   return CustomerViewModel(
-    getCustomerByIdUseCase: GetCustomerByIdUseCase(customerRepo: repo),
+    customerRepo: repo,
   );
 }
 

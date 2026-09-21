@@ -10,20 +10,21 @@ import 'package:um/domain/usecase/auth_use_cases.dart';
 // Project imports:
 import 'package:pos/domain/model/customer/customer.dart';
 import 'package:pos/domain/model/order/order_detail.dart';
-import 'package:pos/domain/usecase/customer/get_local_customers_use_case.dart';
 import 'package:pos/domain/usecase/order/get_order_by_id_use_case.dart';
 import 'package:pos/domain/usecase/order/remove_order_by_id_use_case.dart';
 import 'package:pos/domain/usecase/order/remove_order_item_by_id_use_case.dart';
 import 'package:pos/domain/usecase/supplier/get_supplier_info_use_case.dart';
 import 'order_detail_state.dart';
 
+import 'package:pos/domain/repositories/customer_repository.dart';
+
 class OrderDetailViewModel {
+  final CustomerRepository customerRepo;
   final GetOrderByIdUseCase getOrderByIdUseCase;
   final RemoveOrderByIdUseCase removeOrderByIdUseCase;
   final RemoveOrderItemByIdUseCase removeOrderItemByIdUseCase;
   final GetRoleUseCase getRoleUseCase;
   final GetSupplierInfoUseCase getSupplierInfoUseCase;
-  final GetLocalCustomersUseCase getLocalCustomersUseCase;
 
   OrderDetailViewModel({
     required this.getOrderByIdUseCase,
@@ -31,7 +32,7 @@ class OrderDetailViewModel {
     required this.removeOrderItemByIdUseCase,
     required this.getRoleUseCase,
     required this.getSupplierInfoUseCase,
-    required this.getLocalCustomersUseCase,
+    required this.customerRepo,
   });
 
   final _state = ValueNotifier<OrderDetailState>(const OrderDetailState());
@@ -109,7 +110,7 @@ class OrderDetailViewModel {
   Future<void> getSupplier(String customerCode) async {
     Customer? customer;
     try {
-      final result = await getLocalCustomersUseCase();
+      final result = await customerRepo.getLocalCustomers();
       customer =
           result.where((element) => element.code == customerCode).firstOrNull;
     } on Exception catch (_) {}

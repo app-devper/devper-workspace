@@ -3,7 +3,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:pos/domain/model/category/category.dart';
 import 'package:pos/domain/model/category/param.dart';
 import 'package:pos/domain/repositories/category_repository.dart';
-import 'package:pos/domain/usecase/category/create_category_use_case.dart';
 import 'package:pos/presentation/category/add/category_add_view_model.dart';
 
 class FakeCategoryRepository implements CategoryRepository {
@@ -63,7 +62,7 @@ CategoryParam buildParam() {
 
 CategoryAddViewModel buildViewModel(CategoryRepository repo) {
   return CategoryAddViewModel(
-    createCategoryUseCase: CreateCategoryUseCase(categoryRepo: repo),
+    categoryRepo: repo,
   );
 }
 

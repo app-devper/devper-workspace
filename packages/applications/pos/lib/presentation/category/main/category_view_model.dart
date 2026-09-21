@@ -6,17 +6,15 @@ import 'package:common/core/error/failure.dart';
 import 'package:common/core/state/one_shot.dart';
 
 // Project imports:
-import 'package:pos/domain/usecase/category/get_categories_use_case.dart';
-import 'package:pos/domain/usecase/category/update_default_category_by_id_use_case.dart';
 import 'category_state.dart';
 
+import 'package:pos/domain/repositories/category_repository.dart';
+
 class CategoryViewModel {
-  final GetCategoriesUseCase getCategoriesUseCase;
-  final UpdateDefaultCategoryByIdUseCase updateDefaultCategoryByIdUseCase;
+  final CategoryRepository categoryRepo;
 
   CategoryViewModel({
-    required this.getCategoriesUseCase,
-    required this.updateDefaultCategoryByIdUseCase,
+    required this.categoryRepo,
   });
 
   final _state = ValueNotifier<CategoryState>(const CategoryState());
@@ -32,7 +30,7 @@ class CategoryViewModel {
   Future<void> getCategories() async {
     _state.value = _state.value.copyWith(loading: true);
     try {
-      final items = await getCategoriesUseCase();
+      final items = await categoryRepo.getCategories();
       _state.value = _state.value.copyWith(loading: false, items: items);
     } on Exception catch (e) {
       _state.value = _state.value.copyWith(loading: false);
@@ -43,7 +41,7 @@ class CategoryViewModel {
   Future<void> updateDefaultCategoryById(String categoryId) async {
     _state.value = _state.value.copyWith(loading: true);
     try {
-      await updateDefaultCategoryByIdUseCase(categoryId);
+      await categoryRepo.updateDefaultCategoryById(categoryId);
       await getCategories();
     } on Exception catch (e) {
       _state.value = _state.value.copyWith(loading: false);

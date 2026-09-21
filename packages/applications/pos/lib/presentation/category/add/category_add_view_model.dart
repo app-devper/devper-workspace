@@ -8,14 +8,15 @@ import 'package:common/core/state/one_shot.dart';
 // Project imports:
 import 'package:pos/domain/model/category/category.dart';
 import 'package:pos/domain/model/category/param.dart';
-import 'package:pos/domain/usecase/category/create_category_use_case.dart';
 import 'category_add_state.dart';
 
+import 'package:pos/domain/repositories/category_repository.dart';
+
 class CategoryAddViewModel {
-  final CreateCategoryUseCase createCategoryUseCase;
+  final CategoryRepository categoryRepo;
 
   CategoryAddViewModel({
-    required this.createCategoryUseCase,
+    required this.categoryRepo,
   });
 
   final _state = ValueNotifier<CategoryAddState>(const CategoryAddState());
@@ -35,7 +36,7 @@ class CategoryAddViewModel {
     if (_state.value.saving) return;
     _state.value = _state.value.copyWith(saving: true);
     try {
-      _created.emit(await createCategoryUseCase(param));
+      _created.emit(await categoryRepo.createCategory(param));
     } on Exception catch (e) {
       _errors.emit(toFailure(e).getMessage());
     } finally {
