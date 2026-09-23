@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:pos/domain/model/core/core.dart';
 import 'package:pos/domain/model/customer/customer.dart';
 import 'package:pos/domain/model/product/product.dart';
+import 'package:pos/domain/model/sale/line_edit.dart';
 import 'package:pos/domain/model/sale/sale.dart';
 
 // A Sale never reaches the network, so none of this needs a fake.
@@ -17,13 +18,19 @@ ProductUnit _unit(String barcode) => ProductUnit(
       volumeUnit: '',
     );
 
-ProductStock _stock({double price = 10, int quantity = 100}) => ProductStock(
-      id: 'stock-1',
+ProductStock _stock({
+  String id = 'stock-1',
+  int sequence = 1,
+  double price = 10,
+  int quantity = 100,
+}) =>
+    ProductStock(
+      id: id,
       unitId: 'unit-1',
       productId: 'p-1',
       receiveCode: '',
-      sequence: 1,
-      lotNumber: 'LOT-1',
+      sequence: sequence,
+      lotNumber: 'LOT-$id',
       costPrice: 4,
       price: price,
       import: quantity,
@@ -67,6 +74,16 @@ ProductUnitItem _product(String barcode, {bool withPriceList = true}) {
   );
 }
 
+/// The same product, with a second, older batch that sells at 12.
+ProductUnitItem _productWithTwoBatches() {
+  final product = _product('111', withPriceList: false);
+  product.stocks = [
+    _stock(id: 'new', sequence: 1, price: 10),
+    _stock(id: 'old', sequence: 2, price: 12),
+  ];
+  return product;
+}
+
 Customer _customer(String type) => Customer(
       id: 'c-1',
       code: 'CUST-1',
@@ -95,11 +112,13 @@ void main() {
           reason: 'editing a sale is the sale\'s job');
     });
 
-    test('lineFor finds a barcode already on the sale', () {
+    test('scanning a barcode already on the sale adds one more', () {
       final sale = Sale()..addLine(_product('111'));
 
-      expect(sale.lineFor('111'), isNotNull);
-      expect(sale.lineFor('222'), isNull);
+      expect(sale.increaseBarcode('111'), isTrue);
+      expect(sale.lines.single.quantity, 2);
+      expect(sale.increaseBarcode('222'), isFalse,
+          reason: 'the caller looks up a barcode the sale does not have');
     });
 
     test('reducing the last one takes the line off', () {
@@ -138,8 +157,7 @@ void main() {
 
     test('takes the discount off every one of the line', () {
       final sale = Sale()..addLine(_product('111'));
-      sale.setQuantity(0, 3);
-      sale.lines.single.updateDiscount(2);
+      sale.applyEdit(0, const LineEdit(quantity: 3, discount: 2));
 
       expect(sale.total, 24, reason: '3 x (10 - 2)');
     });
@@ -160,8 +178,10 @@ void main() {
 
     test('a rounding error is not a reason to refuse payment', () {
       final sale = Sale()..addLine(_product('111'));
-      sale.setQuantity(0, 3);
-      sale.lines.single.updateDiscountByPercent(33.3);
+      // 33.3% of 10, three times over: a total with a long tail.
+      sale.applyEdit(0, const LineEdit(quantity: 3, discount: 3.33));
+      expect(sale.total, closeTo(20.01, 1e-9),
+          reason: 'this used to pass with the discount never applied at all');
 
       expect(sale.covers(sale.total), isTrue);
       expect(sale.covers(sale.total - 0.001), isTrue);
@@ -191,7 +211,12 @@ void main() {
     test('a price the cashier picked by hand survives a change of customer',
         () {
       final sale = Sale()..addLine(_product('111'));
-      sale.lines.single.overridePriceType(customerTypeRegular);
+      sale.applyEdit(
+          0,
+          const LineEdit(
+              quantity: 1,
+              discount: 0,
+              overridePriceList: customerTypeRegular));
       expect(sale.lines.single.priceType.price, 8);
 
       sale.setCustomer(_customer(customerTypeWholesaler));
@@ -203,7 +228,7 @@ void main() {
 
     test('a discount is a separate negotiation and is kept', () {
       final sale = Sale()..addLine(_product('111'));
-      sale.lines.single.updateDiscount(3);
+      sale.applyEdit(0, const LineEdit(quantity: 1, discount: 3));
 
       sale.setCustomer(_customer(customerTypeWholesaler));
 
@@ -277,10 +302,13 @@ void main() {
       final sale = Sale()..addLine(_product('111'));
 
       final order = sale.toOrder(tendered: 10, type: 'Cash');
+      sale.increase(0);
       sale.removeAt(0);
 
       expect(order.items, hasLength(1),
           reason: 'an order in flight is not edited by the next scan');
+      expect(order.items.single.quantity, 1,
+          reason: 'nor are the lines inside it');
     });
   });
 
@@ -297,5 +325,130 @@ void main() {
     expect(sale.patientId, isNull,
         reason: 'the next customer must not inherit the last one\'s record');
     expect(sale.total, 0);
+  });
+
+  group('editing a line', () {
+    test('the lines handed out are copies', () {
+      final sale = Sale()..addLine(_product('111'));
+
+      final drawn = sale.lines.single;
+      drawn.updateDiscount(5);
+      drawn.quantity = 9;
+
+      expect(sale.lines.single.discount, 0,
+          reason: 'the line dialog used to edit the sale as the cashier typed');
+      expect(sale.lines.single.quantity, 1);
+      expect(sale.total, 10);
+    });
+
+    test('a draft that is never confirmed changes nothing', () {
+      final sale = Sale()..addLine(_product('111'));
+
+      final draft = sale.lines.single.copy()
+        ..quantity = 4
+        ..updateDiscount(2)
+        ..overridePriceType(customerTypeWholesaler);
+      LineEdit.of(draft); // read, then backed out of
+
+      expect(sale.lines.single.quantity, 1);
+      expect(sale.total, 10, reason: 'back means back');
+    });
+
+    test('a confirmed draft is applied in one step', () {
+      final sale = Sale()..addLine(_product('111'));
+      final draft = sale.lines.single.copy()
+        ..quantity = 2
+        ..updateDiscount(1)
+        ..overridePriceType(customerTypeRegular);
+
+      sale.applyEdit(0, LineEdit.of(draft));
+
+      final line = sale.lines.single;
+      expect(line.quantity, 2);
+      expect(line.discount, 1);
+      expect(line.priceType.price, 8);
+      expect(line.priceOverridden, isTrue);
+      expect(sale.total, 14, reason: '2 x (8 - 1)');
+    });
+
+    test('a quantity of none takes the line off', () {
+      final sale = Sale()..addLine(_product('111'));
+
+      sale.applyEdit(0, const LineEdit(quantity: 0, discount: 0));
+
+      expect(sale.isEmpty, isTrue,
+          reason: 'replacing the line used to keep it at zero');
+    });
+
+    test('an edit for a line that has gone is ignored', () {
+      final sale = Sale()..addLine(_product('111'));
+
+      expect(() => sale.applyEdit(3, const LineEdit(quantity: 2, discount: 0)),
+          returnsNormally);
+      expect(sale.lines.single.quantity, 1);
+    });
+
+    test('not touching the price does not make it an override', () {
+      final sale = Sale()..addLine(_product('111'));
+
+      sale.applyEdit(0, const LineEdit(quantity: 2, discount: 0));
+      sale.setCustomer(_customer(customerTypeWholesaler));
+
+      expect(sale.lines.single.priceType.price, 6,
+          reason: 'a quantity change is not the cashier choosing a price');
+    });
+  });
+
+  group('choosing a batch', () {
+    test('rings the line up at that batch\'s price', () {
+      final product = _productWithTwoBatches();
+      final sale = Sale()..addLine(product);
+      expect(sale.total, 10, reason: 'the newer batch sells first');
+
+      sale.applyEdit(
+          0, LineEdit(quantity: 1, discount: 0, stock: product.stocks[1]));
+
+      expect(sale.lines.single.priceType.stock?.id, 'old');
+      expect(sale.total, 12);
+    });
+
+    test('leaves the product\'s sell-first order alone', () {
+      final product = _productWithTwoBatches();
+      final sale = Sale()..addLine(product);
+
+      sale.applyEdit(
+          0, LineEdit(quantity: 1, discount: 0, stock: product.stocks[1]));
+
+      expect(product.stocks.map((s) => s.id), ['new', 'old'],
+          reason: 'this used to reorder the catalogue, from the till');
+      expect(product.stocks.map((s) => s.sequence), [1, 2]);
+    });
+
+    test('a chosen batch survives a change of customer', () {
+      final product = _productWithTwoBatches();
+      final sale = Sale()..addLine(product);
+      sale.applyEdit(
+          0, LineEdit(quantity: 1, discount: 0, stock: product.stocks[1]));
+
+      sale.setCustomer(null);
+
+      expect(sale.lines.single.priceType.stock?.id, 'old');
+    });
+
+    test('the order draws from the chosen batch first', () {
+      final product = _productWithTwoBatches();
+      final sale = Sale()..addLine(product);
+      sale.applyEdit(
+          0, LineEdit(quantity: 3, discount: 0, stock: product.stocks[1]));
+
+      final allocation = sale
+          .toOrder(tendered: 36, type: 'Cash')
+          .items
+          .single
+          .getProductStockOrder();
+
+      expect(allocation.first.stockId, 'old');
+      expect(allocation.first.quantity, 3);
+    });
   });
 }

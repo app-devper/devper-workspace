@@ -4,6 +4,7 @@ import 'package:pos/domain/model/customer/customer.dart';
 import 'package:pos/domain/model/order/order_item.dart';
 import 'package:pos/domain/model/order/param.dart';
 import 'package:pos/domain/model/product/product.dart';
+import 'package:pos/domain/model/sale/line_edit.dart';
 
 /// One customer's purchase in progress at the till: its lines, its customer,
 /// the prescription details that go on the record, and what it comes to.
@@ -27,9 +28,14 @@ class Sale {
   String? prescriberName;
   String? pharmacistName;
 
-  /// The lines, for drawing. Editing them is the Sale's job, so the list the
-  /// caller gets back cannot be edited.
-  List<OrderItem> get lines => List.unmodifiable(_lines);
+  /// The lines, for drawing — as copies.
+  ///
+  /// An unmodifiable list was not enough: the Lines inside it were the Sale's
+  /// own, so the line dialog edited them as the cashier typed, and backing out
+  /// undid nothing. A caller can do what it likes with these; the Sale only
+  /// changes through its own operations.
+  List<OrderItem> get lines =>
+      List.unmodifiable(_lines.map((line) => line.copy()));
 
   bool get isEmpty => _lines.isEmpty;
 
@@ -52,9 +58,17 @@ class Sale {
   /// point must not be the reason a cashier cannot close a till.
   bool covers(double tendered) => tendered - total > -0.005;
 
-  /// The line already holding this barcode, if the sale has one.
-  OrderItem? lineFor(String barcode) =>
-      _lines.where((line) => line.product.unit.barcode == barcode).firstOrNull;
+  /// Scanning a barcode already on the sale adds one more to that line.
+  /// Returns false when the sale has no line for it, so the caller knows to
+  /// look the product up.
+  bool increaseBarcode(String barcode) {
+    final line = _lines
+        .where((line) => line.product.unit.barcode == barcode)
+        .firstOrNull;
+    if (line == null) return false;
+    line.plusAmount();
+    return true;
+  }
 
   /// Adds a product as a new line, priced for this sale's customer.
   void addLine(ProductUnitItem product) {
@@ -99,10 +113,24 @@ class Sale {
     _lines[index].toggleAllowOversell();
   }
 
-  /// Puts back a line the cashier edited in the line dialog.
-  void replaceLine(int index, OrderItem line) {
+  /// Applies what the cashier confirmed in the line dialog.
+  ///
+  /// A quantity of none takes the line off — the same rule as [setQuantity].
+  /// A batch is applied before an override, so an overridden price is worked
+  /// out against the batch the line now draws from.
+  void applyEdit(int index, LineEdit edit) {
     if (!_has(index)) return;
-    _lines[index] = line;
+    if (edit.quantity <= 0) {
+      _lines.removeAt(index);
+      return;
+    }
+    final line = _lines[index];
+    final stock = edit.stock;
+    if (stock != null) line.chooseStock(stock);
+    final priceList = edit.overridePriceList;
+    if (priceList != null) line.overridePriceType(priceList);
+    line.quantity = edit.quantity;
+    line.updateDiscount(edit.discount);
   }
 
   /// Changing who is buying reprices what is already scanned.
@@ -146,7 +174,7 @@ class Sale {
       customerCode: _customer?.code ?? "",
       customerName: _customer?.name ?? "",
       amount: tendered,
-      items: List<OrderItem>.of(_lines),
+      items: _lines.map((line) => line.copy()).toList(),
       type: type,
       payments: [OrderPayment(amount: tendered, type: type)],
       patientId: _blankToNull(patientId),

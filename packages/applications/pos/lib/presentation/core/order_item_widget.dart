@@ -11,7 +11,7 @@ import 'package:common/core/ext/number_ext.dart';
 import 'package:pos/domain/model/order/order_item.dart';
 import 'package:pos/domain/model/product/product.dart';
 import 'package:design_system/widgets/dialogs.dart';
-import 'package:pos/presentation/product/stock/product_stock_sequence_widget.dart';
+import 'package:design_system/widgets/title_bar.dart';
 
 class OrderItemWidget extends StatefulWidget {
   final OrderItem orderItem;
@@ -41,13 +41,20 @@ class _OrderItemWidgetState extends State<OrderItemWidget> {
     }
   }
 
+  /// The discount as a percentage of the price. A line with no price has no
+  /// percentage to show — dividing by it gave Infinity or NaN.
+  String _percentText() {
+    final price = _orderItem.priceType.price;
+    if (_orderItem.discount <= 0 || price <= 0) return "";
+    return formatDouble(_orderItem.discount * 100 / price);
+  }
+
   @override
   void initState() {
     _orderItem = widget.orderItem;
-    _quantityController = TextEditingController(text: _orderItem.quantity.toString());
-    _discountPercentController = TextEditingController(
-      text: _orderItem.discount > 0 ? formatDouble(_orderItem.discount * 100 / _orderItem.priceType.price) : "",
-    );
+    _quantityController =
+        TextEditingController(text: _orderItem.quantity.toString());
+    _discountPercentController = TextEditingController(text: _percentText());
     _discountAmountController = TextEditingController(
       text: _orderItem.discount > 0 ? formatDouble(_orderItem.discount) : "",
     );
@@ -71,7 +78,8 @@ class _OrderItemWidgetState extends State<OrderItemWidget> {
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
             Text(value),
-            Icon(Icons.arrow_drop_down, color: AppColors.of(context).textSecondary),
+            Icon(Icons.arrow_drop_down,
+                color: AppColors.of(context).textSecondary),
           ],
         ),
       );
@@ -89,13 +97,16 @@ class _OrderItemWidgetState extends State<OrderItemWidget> {
           controller: controller,
           textAlign: TextAlign.end,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))],
+          inputFormatters: [
+            FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))
+          ],
           decoration: InputDecoration(
             isDense: true,
             prefixText: prefixText,
             suffixText: suffixText,
             border: const OutlineInputBorder(),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
           ),
           onChanged: onChanged,
         ),
@@ -107,7 +118,8 @@ class _OrderItemWidgetState extends State<OrderItemWidget> {
 
       getSubtitle(ProductStock stock, ProductUnit unit) {
         if (stock.costPrice > 0 && stock.price > 0) {
-          return Text('C: ฿${formatDouble(stock.costPrice)}, P: ฿${formatDouble(stock.price)}');
+          return Text(
+              'C: ฿${formatDouble(stock.costPrice)}, P: ฿${formatDouble(stock.price)}');
         } else if (stock.costPrice > 0) {
           return Text('C: ฿${formatDouble(stock.costPrice)}');
         } else if (stock.price > 0) {
@@ -124,11 +136,7 @@ class _OrderItemWidgetState extends State<OrderItemWidget> {
           subtitle: getSubtitle(stock, _orderItem.product.unit),
           trailing: getTextDisplay(stock.importDate.formatDate()),
           onTap: () {
-            _showEditStockSequenceDialog(
-              context,
-              stocks: _orderItem.product.stocks,
-              unit: _orderItem.product.unit,
-            );
+            _showStockPicker(context);
           },
         );
       } else {
@@ -164,11 +172,15 @@ class _OrderItemWidgetState extends State<OrderItemWidget> {
             child: DropdownButtonFormField<ProductPrice>(
               isDense: true,
               isExpanded: true,
-              initialValue: _orderItem.product.prices.where((price) => price.customerType == _orderItem.priceType.type).firstOrNull,
+              initialValue: _orderItem.product.prices
+                  .where((price) =>
+                      price.customerType == _orderItem.priceType.type)
+                  .firstOrNull,
               decoration: const InputDecoration(
                 isDense: true,
                 border: OutlineInputBorder(),
-                contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                contentPadding:
+                    EdgeInsets.symmetric(horizontal: 8, vertical: 8),
               ),
               items: _orderItem.product.prices
                   .map((price) => DropdownMenuItem<ProductPrice>(
@@ -199,7 +211,9 @@ class _OrderItemWidgetState extends State<OrderItemWidget> {
             onChanged: (value) {
               setState(() {
                 _orderItem.updateDiscountByPercent(getValue(value));
-                _discountAmountController.text = _orderItem.discount > 0 ? formatDouble(_orderItem.discount) : "";
+                _discountAmountController.text = _orderItem.discount > 0
+                    ? formatDouble(_orderItem.discount)
+                    : "";
               });
             },
           ),
@@ -213,8 +227,7 @@ class _OrderItemWidgetState extends State<OrderItemWidget> {
             onChanged: (value) {
               setState(() {
                 _orderItem.updateDiscount(getValue(value));
-                _discountPercentController.text =
-                    _orderItem.discount > 0 ? formatDouble(_orderItem.discount * 100 / _orderItem.priceType.price) : "";
+                _discountPercentController.text = _percentText();
               });
             },
           ),
@@ -232,7 +245,10 @@ class _OrderItemWidgetState extends State<OrderItemWidget> {
               },
               child: const Text(
                 'ยกเลิกสินค้า',
-                style: TextStyle(color: Colors.red, fontSize: 16, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                    color: Colors.red,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold),
               ),
             ),
           ),
@@ -241,21 +257,51 @@ class _OrderItemWidgetState extends State<OrderItemWidget> {
     );
   }
 
-  void _showEditStockSequenceDialog(
-    BuildContext context, {
-    required List<ProductStock> stocks,
-    required ProductUnit unit,
-  }) {
+  /// Rings this line up against a batch the cashier picks.
+  ///
+  /// This used to open the Product's reorder screen, which saved a new
+  /// sell-first order to the server for every till the moment it was
+  /// confirmed — a catalogue change made from inside a line edit. Picking a
+  /// batch now changes this line of this sale and nothing else.
+  void _showStockPicker(BuildContext context) {
+    final stocks = [..._orderItem.product.stocks]
+      ..sort((a, b) => a.sequence.compareTo(b.sequence));
+    final current = _orderItem.priceType.stock?.id;
     showCenterDialog(
       context: context,
-      builder: (context) => ProductStockSequenceWidget(
-        stocks: stocks,
-        unit: unit.unit,
-        onComplete: (stock) {
-          setState(() {
-            _orderItem.updateProductStockSequence(stock);
-          });
-        },
+      builder: (dialogContext) => Column(
+        children: [
+          TitleBar(
+            title: "เลือกล็อต ${_orderItem.product.unit.unit}",
+            onBack: () => Navigator.pop(dialogContext),
+          ),
+          const Divider(height: 1),
+          Expanded(
+            child: ListView.separated(
+              itemCount: stocks.length,
+              separatorBuilder: (_, __) => const Divider(height: 1),
+              itemBuilder: (_, index) {
+                final stock = stocks[index];
+                return ListTile(
+                  key: Key('stock-${stock.id}'),
+                  selected: stock.id == current,
+                  title: Text(stock.importDate.formatDate()),
+                  subtitle: Text(
+                      'ล็อต ${stock.lotNumber} · คงเหลือ ${stock.quantity}'),
+                  trailing:
+                      stock.id == current ? const Icon(Icons.check) : null,
+                  onTap: () {
+                    Navigator.pop(dialogContext);
+                    setState(() {
+                      _orderItem.chooseStock(stock);
+                      _discountPercentController.text = _percentText();
+                    });
+                  },
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
