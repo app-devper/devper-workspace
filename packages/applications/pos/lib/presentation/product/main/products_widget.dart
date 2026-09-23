@@ -17,10 +17,16 @@ class ProductsWidget extends StatefulWidget {
   final Function(Product) onSelected;
   final Function() onMenu;
 
+  /// Changes when the list is out of date. On a wide screen this widget
+  /// stays mounted beside the detail panel, so loading once in initState was
+  /// not enough: a deleted Product stayed listed.
+  final int refreshToken;
+
   const ProductsWidget({
     super.key,
     required this.onSelected,
     required this.onMenu,
+    this.refreshToken = 0,
   });
 
   @override
@@ -41,6 +47,15 @@ class _ProductsWidgetState extends State<ProductsWidget> {
     super.initState();
     _viewModel = sl<ProductsViewModel>();
     _viewModel.searchProduct('', _sortBalance);
+  }
+
+  @override
+  void didUpdateWidget(ProductsWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.refreshToken != widget.refreshToken) {
+      // Keep whatever the cashier had searched for.
+      _viewModel.searchProduct(_searchEditingController.text, _sortBalance);
+    }
   }
 
   @override
