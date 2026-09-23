@@ -3,7 +3,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:pos/domain/model/receive/param.dart';
 import 'package:pos/domain/model/receive/receive.dart';
 import 'package:pos/domain/repositories/receive_repository.dart';
-import 'package:pos/domain/usecase/receive/get_receives_use_case.dart';
 import 'package:pos/presentation/receive/main/receives_view_model.dart';
 
 class FakeReceiveRepository implements ReceiveRepository {
@@ -37,7 +36,7 @@ Receive buildReceive(String id, String code) {
 
 ReceivesViewModel buildViewModel(ReceiveRepository repo) {
   return ReceivesViewModel(
-    getReceivesUseCase: GetReceivesUseCase(receiveRepo: repo),
+    receiveRepo: repo,
   );
 }
 
