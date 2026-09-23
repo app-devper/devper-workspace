@@ -484,7 +484,7 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
                 context,
                 orderItem: content,
                 onCompleted: (value) {
-                  _viewModel.editOrderItem(index, value);
+                  _viewModel.editLine(index, value);
                 },
                 onRemove: () {
                   _viewModel.removeItem(index);

@@ -9,6 +9,7 @@ import 'package:common/core/state/one_shot.dart';
 import 'package:pos/domain/model/customer/customer.dart';
 import 'package:pos/domain/model/order/order.dart';
 import 'package:pos/domain/model/order/order_item.dart';
+import 'package:pos/domain/model/sale/line_edit.dart';
 import 'package:pos/domain/model/sale/sale.dart';
 import 'package:pos/domain/model/sale/till.dart';
 import 'package:pos/domain/usecase/order/create_order_use_case.dart';
@@ -74,10 +75,7 @@ class CartViewModel {
   Future<void> addOrderItem(String serialNumber) async {
     _state.value = _state.value.copyWith(loading: true);
     try {
-      final existing = _sale.lineFor(serialNumber);
-      if (existing != null) {
-        existing.plusAmount();
-      } else {
+      if (!_sale.increaseBarcode(serialNumber)) {
         final result = await getProductByBarcodeUseCase(serialNumber);
         if (result == null) {
           _state.value = _state.value.copyWith(loading: false);
@@ -149,8 +147,9 @@ class CartViewModel {
     _publish();
   }
 
-  void editOrderItem(int index, OrderItem orderItem) {
-    _sale.replaceLine(index, orderItem);
+  /// Applies what the cashier confirmed in the line dialog.
+  void editLine(int index, LineEdit edit) {
+    _sale.applyEdit(index, edit);
     _publish();
   }
 

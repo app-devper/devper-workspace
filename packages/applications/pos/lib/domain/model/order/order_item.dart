@@ -15,6 +15,11 @@ class OrderItem {
   /// The cashier chose this line's price themselves. A change of customer
   /// leaves it alone.
   bool priceOverridden = false;
+
+  /// The batch the cashier rang this line up against, if they picked one.
+  /// Allocation starts here; anything it cannot cover follows the Product's
+  /// own sell-first order. Choosing one never changes that order.
+  ProductStock? chosenStock;
   int quantity = 1;
   ProductPriceType priceType = ProductPriceType(
     stock: null,
@@ -32,14 +37,37 @@ class OrderItem {
     required this.customerType,
   }) {
     unit = product.unit.unit;
-    priceType = product.getPrice(customerType);
+    priceType = _priceAt(customerType);
+  }
+
+  /// A separate Line with the same contents, for a caller to edit as a draft
+  /// without touching the Sale it came from.
+  OrderItem copy() {
+    return OrderItem(
+      product: product,
+      quantity: quantity,
+      customerType: customerType,
+    )
+      ..priceType = priceType
+      ..unit = unit
+      ..discount = discount
+      ..allowOversell = allowOversell
+      ..priceOverridden = priceOverridden
+      ..chosenStock = chosenStock;
+  }
+
+  ProductPriceType _priceAt(String customerType) {
+    final stock = chosenStock;
+    return stock != null
+        ? product.priceFrom(customerType, stock)
+        : product.getPrice(customerType);
   }
 
   /// The cashier picked a price for this line by hand. It survives a change
   /// of customer.
   void overridePriceType(String customerType) {
     this.customerType = customerType;
-    priceType = product.getPrice(customerType);
+    priceType = _priceAt(customerType);
     priceOverridden = true;
   }
 
@@ -48,7 +76,13 @@ class OrderItem {
   void repriceFor(String customerType) {
     if (priceOverridden) return;
     this.customerType = customerType;
-    priceType = product.getPrice(customerType);
+    priceType = _priceAt(customerType);
+  }
+
+  /// Rings this line up against a particular batch.
+  void chooseStock(ProductStock stock) {
+    chosenStock = stock;
+    priceType = _priceAt(customerType);
   }
 
   void updateDiscount(double discountPrice) {
@@ -57,11 +91,6 @@ class OrderItem {
 
   void updateDiscountByPercent(double percent) {
     discount = priceType.price * percent / 100;
-  }
-
-  void updateProductStockSequence(List<ProductStock> productStocks) {
-    product.updateProductStockSequence(productStocks);
-    priceType = product.getPrice(customerType);
   }
 
   void plusAmount() {

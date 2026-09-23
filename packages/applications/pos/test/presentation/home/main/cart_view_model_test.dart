@@ -12,6 +12,7 @@ import 'package:pos/domain/repositories/product_repository.dart';
 import 'package:pos/domain/usecase/order/create_order_use_case.dart';
 import 'package:pos/domain/usecase/product/get_product_by_barcode_use_case.dart';
 import 'package:pos/domain/usecase/product/update_product_stock_use_case.dart';
+import 'package:pos/domain/model/sale/line_edit.dart';
 import 'package:pos/domain/model/sale/till.dart';
 import 'package:pos/presentation/home/main/cart_view_model.dart';
 
@@ -436,6 +437,37 @@ void main() {
   });
 
   group('editing lines', () {
+    test('a confirmed edit reaches the sale and the total', () async {
+      final vm = _buildViewModel(
+        productRepo: FakeProductRepository(product: _buildProduct('111')),
+        orderRepo: FakeOrderRepository(),
+      );
+      await vm.addOrderItem('111');
+
+      vm.editLine(0, const LineEdit(quantity: 3, discount: 1));
+
+      expect(vm.state.value.orderItems!.single.quantity, 3);
+      expect(vm.state.value.total, 27, reason: '3 x (10 - 1)');
+    });
+
+    test('editing a drawn line does not edit the sale', () async {
+      final till = Till();
+      final vm = _buildViewModel(
+        productRepo: FakeProductRepository(product: _buildProduct('111')),
+        orderRepo: FakeOrderRepository(),
+        till: till,
+      );
+      await vm.addOrderItem('111');
+
+      vm.state.value.orderItems!.single
+        ..quantity = 9
+        ..updateDiscount(5);
+
+      expect(till.open.lines.single.quantity, 1,
+          reason: 'the page hands the dialog what it draws');
+      expect(till.open.total, 10);
+    });
+
     test('reducing the last one takes the line off and retotals', () async {
       final vm = _buildViewModel(
         productRepo: FakeProductRepository(product: _buildProduct('111')),
