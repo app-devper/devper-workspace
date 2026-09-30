@@ -251,10 +251,10 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
           return ListTile(
             leading: _buildListMenu(context, content),
             title: Text(content.product?.name ?? ""),
-            trailing: Text(format.format(content.price)),
+            trailing: Text(format.format(content.paid())),
             subtitle: isAdmin
                 ? Text(
-                    "Cost : ${format.format(content.costPrice)}  Profit : ${format.format(content.price - content.costPrice)}")
+                    "Cost : ${format.format(content.costPrice)}  Profit : ${format.format(content.paid() - content.costPrice)}")
                 : null,
             onTap: () {
               if (isAdmin) {
@@ -385,7 +385,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
   double getTotalPrice() {
     double price = 0;
     for (var x in orderItem) {
-      price += x.price;
+      price += x.paid();
     }
     return price;
   }
