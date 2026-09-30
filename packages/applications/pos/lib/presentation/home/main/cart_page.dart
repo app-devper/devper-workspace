@@ -76,7 +76,6 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
   void _onOrderPlaced(OrderResult result) {
     _snackBar.hideAll();
     _snackBar.showSnackBar(text: "Order success");
-    _viewModel.clearCart();
     if (_alertKey.currentContext != null) {
       Navigator.of(context).pop();
     }
