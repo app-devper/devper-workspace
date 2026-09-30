@@ -15,6 +15,12 @@ OrderItemDetail _line(
     );
 
 void main() {
+  test(
+      'what the customer paid for the line is its amount less the discount on each unit',
+      () {
+    expect(_line(quantity: 5, price: 100, discount: 2).paid(), 90);
+  });
+
   group('what the customer paid for one unit', () {
     test('is the line amount shared out, less the per-unit discount', () {
       expect(_line(quantity: 5, price: 100, discount: 2).paidPerUnit(), 18);
