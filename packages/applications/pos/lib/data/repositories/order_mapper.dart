@@ -136,6 +136,9 @@ extension OrderListJson on List {
 }
 
 extension CreateOrderParamRequest on CreateOrderParam {
+  /// The Sale as the cashier rang it up. The server prices each line and
+  /// draws its stock itself, and works out the total and the change; the
+  /// till's own figures are only a preview.
   String toOrderRequest() {
     final param = this;
 
@@ -145,6 +148,7 @@ extension CreateOrderParamRequest on CreateOrderParam {
             OrderPayment(amount: param.amount, type: param.type),
           ];
     return jsonEncode({
+      'saleId': param.saleId,
       'payments': payments
           .map((payment) => {
                 'amount': payment.amount,
@@ -161,29 +165,17 @@ extension CreateOrderParamRequest on CreateOrderParam {
       'buyerIdCard': param.buyerIdCard,
       'items': param.items
           .map((item) => {
-                'stocks': item
-                    .getProductStockOrder()
-                    .map((stock) => {
-                          'stockId': stock.stockId,
-                          'quantity': stock.quantity,
-                        })
-                    .toList(),
-                'unitId': item.product.unit.id,
                 'productId': item.product.id,
+                'unitId': item.product.unit.id,
                 'quantity': item.quantity,
+                'priceType': item.customerType,
+                if (item.chosenStock != null) 'stockId': item.chosenStock!.id,
                 'discount': item.discount,
-                'price': item.amountPrice(),
-                'costPrice': item.amountCostPrice(),
                 'allowOversell': item.allowOversell,
               })
           .toList(),
-      'amount': param.amount,
       'type': param.type,
-      'total': param.getTotal(),
-      'totalCost': param.getTotalCost(),
-      'discount': param.getDiscount(),
       'message': param.getMessage(),
-      'change': param.amount - param.getTotal(),
     });
   }
 }

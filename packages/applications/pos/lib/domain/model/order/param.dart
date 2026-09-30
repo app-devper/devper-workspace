@@ -12,6 +12,8 @@ class GetOrderRangeParam {
 }
 
 class CreateOrderParam {
+  /// The Sale's id; the server records a Sale once however often it is sent.
+  final String saleId;
   final String customerCode;
   final String customerName;
   final List<OrderItem> items;
@@ -28,6 +30,7 @@ class CreateOrderParam {
   final String? message;
 
   CreateOrderParam({
+    required this.saleId,
     required this.customerCode,
     required this.customerName,
     required this.amount,

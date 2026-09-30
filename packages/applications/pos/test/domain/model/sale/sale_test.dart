@@ -255,6 +255,30 @@ void main() {
   });
 
   group('the order it produces', () {
+    test('is named by the sale, however often it is sent', () {
+      final sale = Sale()..addLine(_product('111'));
+
+      final first = sale.toOrder(tendered: 50, type: 'Cash').saleId;
+      sale.increase(0);
+      final retry = sale.toOrder(tendered: 50, type: 'Cash').saleId;
+
+      expect(
+          first,
+          matches(RegExp(
+              r'^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$')));
+      expect(retry, first);
+    });
+
+    test('a cleared sale is a new sale', () {
+      final sale = Sale()..addLine(_product('111'));
+      final before = sale.id;
+
+      sale.clear();
+
+      expect(sale.id, isNot(before));
+      expect(Sale().id, isNot(Sale().id));
+    });
+
     test('records what the customer handed over, not what was owed', () {
       final sale = Sale()..addLine(_product('111'));
 
@@ -435,20 +459,16 @@ void main() {
       expect(sale.lines.single.priceType.stock?.id, 'old');
     });
 
-    test('the order draws from the chosen batch first', () {
+    test('the order carries the chosen batch', () {
       final product = _productWithTwoBatches();
       final sale = Sale()..addLine(product);
       sale.applyEdit(
           0, LineEdit(quantity: 3, discount: 0, stock: product.stocks[1]));
 
-      final allocation = sale
-          .toOrder(tendered: 36, type: 'Cash')
-          .items
-          .single
-          .getProductStockOrder();
+      final line = sale.toOrder(tendered: 36, type: 'Cash').items.single;
 
-      expect(allocation.first.stockId, 'old');
-      expect(allocation.first.quantity, 3);
+      expect(line.chosenStock?.id, 'old');
+      expect(line.quantity, 3);
     });
   });
 }

@@ -444,7 +444,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
         orderId: widget.orderId,
         orderItemId: content.id,
         productName: content.product?.name ?? "",
-        price: content.price,
+        price: content.paidPerUnit(),
         maxReturnable: content.quantity - content.returnedQty,
         onComplete: () {
           _viewModel.getOrderById(widget.orderId);

@@ -1,3 +1,6 @@
+// Dart imports:
+import 'dart:math';
+
 // Project imports:
 import 'package:pos/domain/model/core/core.dart';
 import 'package:pos/domain/model/customer/customer.dart';
@@ -21,6 +24,13 @@ import 'package:pos/domain/model/sale/line_edit.dart';
 /// without a single fake.
 class Sale {
   final List<OrderItem> _lines = [];
+
+  /// Names this purchase to the server, so sending it twice — a retry after
+  /// the network dropped the reply — records one Order. A fresh sale gets a
+  /// fresh id.
+  String _id = _newId();
+
+  String get id => _id;
 
   Customer? _customer;
 
@@ -157,6 +167,7 @@ class Sale {
   /// Empties the sale back to a fresh one: no lines, no customer, and none of
   /// the last customer's prescription details left on screen.
   void clear() {
+    _id = _newId();
     _lines.clear();
     _customer = null;
     patientId = null;
@@ -171,6 +182,7 @@ class Sale {
   /// change. Call [covers] before this.
   CreateOrderParam toOrder({required double tendered, required String type}) {
     return CreateOrderParam(
+      saleId: _id,
       customerCode: _customer?.code ?? "",
       customerName: _customer?.name ?? "",
       amount: tendered,
@@ -186,6 +198,17 @@ class Sale {
   /// A dialog outlives the line it was opened on, and the scanner can fire
   /// while one is open.
   bool _has(int index) => index >= 0 && index < _lines.length;
+
+  /// A random version-4 UUID.
+  static String _newId() {
+    final random = Random.secure();
+    final bytes = List<int>.generate(16, (_) => random.nextInt(256));
+    bytes[6] = (bytes[6] & 0x0f) | 0x40;
+    bytes[8] = (bytes[8] & 0x3f) | 0x80;
+    final hex = bytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
+    return '${hex.substring(0, 8)}-${hex.substring(8, 12)}-'
+        '${hex.substring(12, 16)}-${hex.substring(16, 20)}-${hex.substring(20)}';
+  }
 
   static String? _blankToNull(String? value) =>
       (value?.isNotEmpty ?? false) ? value : null;
