@@ -144,6 +144,35 @@ extension CreateOrderParamRequest on CreateOrderParam {
         : [
             OrderPayment(amount: param.amount, type: param.type),
           ];
+    if (param.saleId != null) {
+      return jsonEncode({
+        'saleId': param.saleId,
+        'payments': payments
+            .map((payment) => {'amount': payment.amount, 'type': payment.type})
+            .toList(),
+        'type': param.type,
+        'customerCode': param.customerCode,
+        'customerName': param.customerName,
+        'patientId': param.patientId,
+        'pharmacistName': param.pharmacistName,
+        'licenseNo': param.licenseNo,
+        'prescriberName': param.prescriberName,
+        'buyerName': param.buyerName,
+        'buyerIdCard': param.buyerIdCard,
+        'message': param.getMessage(),
+        'items': param.items
+            .map((item) => {
+                  'productId': item.product.id,
+                  'unitId': item.product.unit.id,
+                  'quantity': item.quantity,
+                  'priceType': item.customerType,
+                  'stockId': item.chosenStock?.id ?? '',
+                  'discount': item.discount,
+                  'allowOversell': item.allowOversell,
+                })
+            .toList(),
+      });
+    }
     return jsonEncode({
       'payments': payments
           .map((payment) => {

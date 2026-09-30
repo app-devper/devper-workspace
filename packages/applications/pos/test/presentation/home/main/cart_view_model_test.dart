@@ -9,9 +9,8 @@ import 'package:pos/domain/model/order/param.dart';
 import 'package:pos/domain/model/product/product.dart';
 import 'package:pos/domain/repositories/order_repository.dart';
 import 'package:pos/domain/repositories/product_repository.dart';
-import 'package:pos/domain/usecase/order/create_order_use_case.dart';
+import 'package:pos/domain/usecase/order/checkout_sale_use_case.dart';
 import 'package:pos/domain/usecase/product/get_product_by_barcode_use_case.dart';
-import 'package:pos/domain/usecase/product/update_product_stock_use_case.dart';
 import 'package:pos/domain/model/sale/line_edit.dart';
 import 'package:pos/domain/model/sale/till.dart';
 import 'package:pos/presentation/home/main/cart_view_model.dart';
@@ -19,13 +18,16 @@ import 'package:pos/presentation/home/main/cart_view_model.dart';
 class FakeProductRepository implements ProductRepository {
   final Product? product;
   final Object? getByBarcodeThrows;
+  final Completer<void>? lookupGate;
   final List<ProductStock> updatedStocks = [];
   final List<String> barcodeLookups = [];
 
-  FakeProductRepository({this.product, this.getByBarcodeThrows});
+  FakeProductRepository(
+      {this.product, this.getByBarcodeThrows, this.lookupGate});
 
   @override
   Future<Product?> getProductByBarcode(String barcode) async {
+    await lookupGate?.future;
     final error = getByBarcodeThrows;
     if (error != null) {
       throw error;
@@ -120,11 +122,9 @@ CartViewModel _buildViewModel({
 }) {
   return CartViewModel(
     till: till ?? Till(),
-    createOrderUseCase: CreateOrderUseCase(orderRepo: orderRepo),
+    checkoutSaleUseCase: CheckoutSaleUseCase(orderRepo: orderRepo),
     getProductByBarcodeUseCase:
         GetProductByBarcodeUseCase(productRepo: productRepo),
-    updateProductStockUseCase:
-        UpdateProductStockUseCase(productRepo: productRepo),
   );
 }
 
@@ -200,8 +200,7 @@ void main() {
   });
 
   group('checkout', () {
-    test('sends the sale and applies a stock update for every stock back',
-        () async {
+    test('sends the Sale and completes it on confirmed Order', () async {
       final productRepo = FakeProductRepository(product: _buildProduct('111'));
       final orderResult = OrderResult(
         data: _buildOrder(),
@@ -223,8 +222,9 @@ void main() {
       expect(vm.state.value.orderSaving, isFalse);
       expect(placed.single, orderResult);
       expect(errors, isEmpty);
-      expect(productRepo.updatedStocks.map((e) => e.id),
-          containsAll(['stock-1', 'stock-2']));
+      expect(vm.till.open.isEmpty, isTrue);
+      expect(productRepo.updatedStocks, isEmpty,
+          reason: 'catalogue freshness belongs to the data adapter');
     });
 
     test('the request carries what the sale holds', () async {
@@ -321,6 +321,85 @@ void main() {
       await Future<void>.delayed(Duration.zero);
 
       expect(placed, hasLength(1));
+    });
+  });
+
+  group('pending scan lifetime', () {
+    test(
+        'a lookup from before confirmed checkout cannot refill the cleared Sale',
+        () async {
+      final gate = Completer<void>();
+      final vm = _buildViewModel(
+          productRepo: FakeProductRepository(
+              product: _buildProduct('222'), lookupGate: gate),
+          orderRepo: FakeOrderRepository(result: _buildOrderResult()));
+      vm.till.open.addLine(_buildProduct('111').toProductItems().single);
+      final pending = vm.addOrderItem('222');
+      await vm.checkout(tendered: 100, type: 'Cash');
+      gate.complete();
+      await pending;
+      expect(vm.till.open.isEmpty, isTrue);
+      expect(vm.state.value.loading, isFalse);
+    });
+
+    test('a disposed scan publishes nothing and leaves the Sale intact',
+        () async {
+      final gate = Completer<void>();
+      final vm = _buildViewModel(
+          productRepo: FakeProductRepository(
+              product: _buildProduct('222'), lookupGate: gate),
+          orderRepo: FakeOrderRepository());
+      final sale = vm.till.open;
+      final pending = vm.addOrderItem('222');
+      vm.dispose();
+      gate.complete();
+      await pending;
+      expect(sale.isEmpty, isTrue);
+    });
+  });
+
+  group('pending checkout lifetime', () {
+    test(
+        'switching slots preserves the other Sale and blocks edits to submitted Sale',
+        () async {
+      final gate = Completer<void>();
+      final orders =
+          FakeOrderRepository(result: _buildOrderResult(), gate: gate);
+      final vm = _buildViewModel(
+          productRepo: FakeProductRepository(product: _buildProduct('111')),
+          orderRepo: orders);
+      await vm.addOrderItem('111');
+      final submitted = vm.till.open;
+      final pending = vm.checkout(tendered: 100, type: 'Cash');
+      vm.plusItem(0);
+      vm.clearCart();
+      expect(submitted.lines.single.quantity, 1);
+      vm.selectCart(1);
+      await vm.addOrderItem('111');
+      vm.plusItem(0);
+      final parked = vm.till.open;
+      gate.complete();
+      await pending;
+      expect(submitted.isEmpty, isTrue);
+      expect(parked.lines.single.quantity, 2);
+      expect(vm.state.value.orderItems!.single.quantity, 2);
+      expect(orders.sent.single.items.single.quantity, 1);
+    });
+
+    test('dispose suppresses presentation writes but lets the Order complete',
+        () async {
+      final gate = Completer<void>();
+      final vm = _buildViewModel(
+          productRepo: FakeProductRepository(product: _buildProduct('111')),
+          orderRepo:
+              FakeOrderRepository(result: _buildOrderResult(), gate: gate));
+      await vm.addOrderItem('111');
+      final submitted = vm.till.open;
+      final pending = vm.checkout(tendered: 100, type: 'Cash');
+      vm.dispose();
+      gate.complete();
+      await pending;
+      expect(submitted.isEmpty, isTrue);
     });
   });
 

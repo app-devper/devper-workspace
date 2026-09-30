@@ -1,3 +1,5 @@
+import 'dart:math';
+
 // Project imports:
 import 'package:pos/domain/model/core/core.dart';
 import 'package:pos/domain/model/customer/customer.dart';
@@ -20,6 +22,17 @@ import 'package:pos/domain/model/sale/line_edit.dart';
 /// the money offered covers the sale — is decided here, and can be tested
 /// without a single fake.
 class Sale {
+  String _id = _newId();
+
+  String get id => _id;
+
+  static String _newId() {
+    final random = Random.secure();
+    return List.generate(
+            16, (_) => random.nextInt(256).toRadixString(16).padLeft(2, '0'))
+        .join();
+  }
+
   final List<OrderItem> _lines = [];
 
   Customer? _customer;
@@ -157,6 +170,7 @@ class Sale {
   /// Empties the sale back to a fresh one: no lines, no customer, and none of
   /// the last customer's prescription details left on screen.
   void clear() {
+    _id = _newId();
     _lines.clear();
     _customer = null;
     patientId = null;
@@ -171,6 +185,7 @@ class Sale {
   /// change. Call [covers] before this.
   CreateOrderParam toOrder({required double tendered, required String type}) {
     return CreateOrderParam(
+      saleId: id,
       customerCode: _customer?.code ?? "",
       customerName: _customer?.name ?? "",
       amount: tendered,
