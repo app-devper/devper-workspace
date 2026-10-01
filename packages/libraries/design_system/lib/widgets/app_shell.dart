@@ -68,7 +68,7 @@ class AppShell extends StatefulWidget {
 
 class _AppShellState extends State<AppShell>
     with SingleTickerProviderStateMixin {
-  static const _expandedWidth = 260.0;
+  static const _expandedWidth = 256.0;
   static const _railWidth = 72.0;
   static const _duration = Duration(milliseconds: 220);
   static const _curve = Curves.easeInOutCubic;
@@ -202,10 +202,7 @@ class _TopBar extends StatelessWidget {
     return Container(
       height: 60,
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
-      decoration: BoxDecoration(
-        color: colors.surfaceRaised,
-        border: Border(bottom: BorderSide(color: colors.border)),
-      ),
+      decoration: BoxDecoration(color: colors.surface),
       child: Row(
         children: [
           if (onMenu != null)
@@ -283,7 +280,7 @@ class _Sidebar extends StatelessWidget {
               ),
             ),
             if (footer != null) ...[
-              const Divider(height: 1),
+              const SizedBox(height: 8),
               Padding(
                 padding: const EdgeInsets.all(AppSpacing.sm),
                 child: footer,
@@ -381,9 +378,9 @@ class AppSidebarAction extends StatelessWidget {
           selected: selected,
           child: Material(
             color: selected ? colors.sidebarSelected : Colors.transparent,
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(12),
             child: InkWell(
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(12),
               onTap: onTap,
               child: SizedBox(
                 height: 48,
@@ -405,7 +402,7 @@ class AppSidebarAction extends StatelessWidget {
                                   color: colors.sidebarForeground,
                                   fontSize: 14,
                                   fontWeight: selected
-                                      ? FontWeight.w600
+                                      ? FontWeight.w500
                                       : FontWeight.w400,
                                 ),
                               ),

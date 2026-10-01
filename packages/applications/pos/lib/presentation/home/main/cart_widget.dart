@@ -32,7 +32,7 @@ class ProductItem extends StatelessWidget {
           ? AppColors.of(context).surfaceRaised
           : AppColors.of(context).surfaceSunken,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(16),
         side: BorderSide(color: AppColors.of(context).border),
       ),
       clipBehavior: Clip.antiAlias,
@@ -57,24 +57,25 @@ class ProductItem extends StatelessWidget {
                   style: TextStyle(
                       fontSize: 12,
                       color: available
-                          ? const Color(0xFF28734A)
-                          : const Color(0xFF687588))),
+                          ? AppColors.of(context).textSecondary
+                          : Theme.of(context).colorScheme.error)),
               const SizedBox(height: 8),
               Row(children: [
                 Expanded(
                     child: Text('฿${formatDouble(price)}',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
+                        style: TextStyle(
                             fontSize: 21,
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFF315E90)))),
+                            color: AppColors.of(context).textPrimary))),
                 Flexible(
                     child: Text('/ $unit',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                            fontSize: 12, color: Color(0xFF687588)))),
+                        style: TextStyle(
+                            fontSize: 12,
+                            color: AppColors.of(context).textSecondary))),
               ]),
             ],
           ),
@@ -100,8 +101,10 @@ class CartItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = active ? Colors.blue : Colors.transparent;
-    final background = active ? Colors.blue[50] : Colors.transparent;
+    final color =
+        active ? AppColors.of(context).textPrimary : Colors.transparent;
+    final background =
+        active ? AppColors.of(context).sidebarSelected : Colors.transparent;
     return InkWell(
       onTap: () {
         onTap.call();
@@ -278,7 +281,9 @@ class CartOrderItem extends StatelessWidget {
                           allowOversell
                               ? Icons.check_box
                               : Icons.check_box_outline_blank,
-                          color: allowOversell ? Colors.orange : AppColors.of(context).textSecondary,
+                          color: allowOversell
+                              ? Colors.orange
+                              : AppColors.of(context).textSecondary,
                           size: 18,
                         ),
                       ),
