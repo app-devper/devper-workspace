@@ -25,7 +25,6 @@ import 'package:pos/presentation/home/main/customer_search.dart';
 import 'package:pos/presentation/home/main/payment_screen.dart';
 import 'package:pos/presentation/home/main/product_search.dart';
 import 'package:design_system/theme/app_colors.dart';
-import 'package:design_system/theme/color.dart';
 import 'cart_view_model.dart';
 
 class CartPage extends StatefulWidget {
@@ -217,9 +216,9 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
                 onPressed: () {
                   _showProductDialog();
                 },
-                icon: const Icon(
+                icon: Icon(
                   Icons.search,
-                  color: CustomColor.primary,
+                  color: Theme.of(context).colorScheme.primary,
                 ),
               ),
             )
@@ -368,8 +367,8 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
           child: ElevatedButton(
             onPressed: _orderItems.isEmpty ? null : _showPaymentDialog,
             style: ElevatedButton.styleFrom(
-              backgroundColor: CustomColor.primary,
-              foregroundColor: Colors.white,
+              backgroundColor: Theme.of(context).colorScheme.primary,
+              foregroundColor: Theme.of(context).colorScheme.onPrimary,
               disabledBackgroundColor: AppColors.of(context).surfaceSunken,
               disabledForegroundColor: AppColors.of(context).textSecondary,
               minimumSize: const Size(double.infinity, 64),

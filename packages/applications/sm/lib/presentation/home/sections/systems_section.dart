@@ -9,6 +9,7 @@ import 'package:design_system/theme/spacing.dart';
 import 'package:design_system/widgets/empty_state.dart';
 import 'package:design_system/widgets/page_container.dart';
 import 'package:design_system/widgets/status_badge.dart';
+import 'package:design_system/widgets/search_decoration.dart';
 
 // Project imports:
 import 'package:sm/domain/model/system/system.dart';
@@ -78,10 +79,16 @@ class _SystemsSectionState extends State<SystemsSection> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                if (state.items.length > 5) ...[
-                  _buildSearchField(),
-                  const SizedBox(height: AppSpacing.sm),
-                ],
+                const SizedBox(height: AppSpacing.md),
+                Text('พื้นที่ทำงานของคุณ',
+                    style: Theme.of(context).textTheme.headlineSmall),
+                const SizedBox(height: AppSpacing.xs),
+                Text('ค้นหาและจัดการระบบที่คุณมีสิทธิ์เข้าถึง',
+                    style:
+                        TextStyle(color: AppColors.of(context).textSecondary)),
+                const SizedBox(height: AppSpacing.lg),
+                _buildSearchField(),
+                const SizedBox(height: AppSpacing.md),
                 Expanded(
                   child: visible.isEmpty
                       ? const EmptyState(
@@ -102,9 +109,9 @@ class _SystemsSectionState extends State<SystemsSection> {
     return TextField(
       controller: _searchController,
       onChanged: (value) => setState(() => _query = value.trim()),
-      decoration: InputDecoration(
+      decoration: buildSearchDecoration(
+        context,
         hintText: 'ค้นหาชื่อระบบ รหัส หรือ host',
-        prefixIcon: const Icon(Icons.search),
         suffixIcon: _query.isEmpty
             ? null
             : IconButton(
@@ -115,12 +122,6 @@ class _SystemsSectionState extends State<SystemsSection> {
                   setState(() => _query = '');
                 },
               ),
-        filled: true,
-        fillColor: AppColors.of(context).surfaceRaised,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppRadius.lg),
-          borderSide: BorderSide.none,
-        ),
       ),
     );
   }
@@ -168,7 +169,7 @@ class _SystemsSectionState extends State<SystemsSection> {
                         const SizedBox(width: AppSpacing.sm),
                         StatusBadge(
                           label: system.systemCode,
-                          color: CustomColor.info,
+                          color: AppColors.of(context).textSecondary,
                         ),
                       ],
                     ),

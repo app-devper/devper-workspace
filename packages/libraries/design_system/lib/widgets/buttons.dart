@@ -2,32 +2,29 @@
 import 'package:flutter/material.dart';
 
 // Project imports:
-import 'package:design_system/theme/color.dart';
 import 'package:design_system/theme/radius.dart';
 
 class ButtonWidget extends StatelessWidget {
   final String text;
   final VoidCallback onClicked;
 
-  const ButtonWidget({
-    super.key,
-    required this.text,
-    required this.onClicked,
-  });
+  const ButtonWidget({super.key, required this.text, required this.onClicked});
 
   @override
   Widget build(BuildContext context) {
     return FilledButton(
       style: FilledButton.styleFrom(
-        backgroundColor: CustomColor.primary,
+        backgroundColor: Theme.of(context).colorScheme.primary,
         minimumSize: const Size.fromHeight(50),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
       ),
       onPressed: onClicked,
       child: FittedBox(
         child: Text(
           text,
-          style: const TextStyle(fontSize: 16, color: Colors.white),
+          style: TextStyle(
+            fontSize: 16,
+            color: Theme.of(context).colorScheme.onPrimary,
+          ),
         ),
       ),
     );
@@ -48,14 +45,11 @@ class ButtonIconWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return FilledButton(
       style: FilledButton.styleFrom(
-        backgroundColor: CustomColor.primary,
+        backgroundColor: Theme.of(context).colorScheme.primary,
         minimumSize: const Size.fromHeight(50),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
       ),
       onPressed: onClicked,
-      child: FittedBox(
-        child: icon,
-      ),
+      child: FittedBox(child: icon),
     );
   }
 }
@@ -64,20 +58,15 @@ class ButtonPrimary extends StatelessWidget {
   final String text;
   final VoidCallback onClicked;
 
-  const ButtonPrimary({
-    super.key,
-    required this.text,
-    required this.onClicked,
-  });
+  const ButtonPrimary({super.key, required this.text, required this.onClicked});
 
   @override
   Widget build(BuildContext context) {
     return FilledButton(
       style: FilledButton.styleFrom(
-        backgroundColor: CustomColor.primary,
+        backgroundColor: Theme.of(context).colorScheme.primary,
         minimumSize: const Size.fromHeight(40),
         splashFactory: NoSplash.splashFactory,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
       ),
       onPressed: onClicked,
       child: FittedBox(
@@ -86,7 +75,7 @@ class ButtonPrimary extends StatelessWidget {
           style: TextStyle(
             fontWeight: FontWeight.bold,
             fontSize: 16,
-            color: CustomColor.buttonPrimary1Font,
+            color: Theme.of(context).colorScheme.onPrimary,
           ),
         ),
       ),
@@ -110,7 +99,9 @@ class ButtonSecondary extends StatelessWidget {
       style: TextButton.styleFrom(
         splashFactory: NoSplash.splashFactory,
         minimumSize: const Size.fromHeight(40),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppRadius.button),
+        ),
       ),
       onPressed: onClicked,
       child: Text(
@@ -119,7 +110,7 @@ class ButtonSecondary extends StatelessWidget {
         style: TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.normal,
-          color: CustomColor.buttonSecondary1Font,
+          color: Theme.of(context).colorScheme.primary,
         ),
       ),
     );

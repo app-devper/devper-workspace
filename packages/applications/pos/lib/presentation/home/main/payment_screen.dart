@@ -7,7 +7,6 @@ import 'package:design_system/widgets/input_number.dart';
 
 // Project imports:
 import 'package:design_system/theme/app_colors.dart';
-import 'package:design_system/theme/color.dart';
 
 class PaymentScreen extends StatefulWidget {
   final double amount;
@@ -41,13 +40,15 @@ class _PaymentScreenState extends State<PaymentScreen> {
             child: Column(
               children: [
                 Expanded(
-                  child: _buildInputSection('ยอดรับเงินรวม', _getNumberFormat(_number)),
+                  child: _buildInputSection(
+                      'ยอดรับเงินรวม', _getNumberFormat(_number)),
                 ),
                 const SizedBox(height: 16),
                 Row(
                   children: [
                     Expanded(
-                      child: _buildAmountSection('ยอดที่ต้องชำระ', "฿${formatDouble(widget.amount)}"),
+                      child: _buildAmountSection(
+                          'ยอดที่ต้องชำระ', "฿${formatDouble(widget.amount)}"),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
@@ -102,7 +103,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
                           if (!_isInput) {
                             widget.onCompleted(widget.amount, _typeMode);
                           } else if (_isInput && _change >= 0) {
-                            widget.onCompleted(double.parse(_number), _typeMode);
+                            widget.onCompleted(
+                                double.parse(_number), _typeMode);
                           } else {
                             widget.onError();
                           }
@@ -124,15 +126,18 @@ class _PaymentScreenState extends State<PaymentScreen> {
                         }
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: CustomColor.primary,
+                        backgroundColor: Theme.of(context).colorScheme.primary,
+                        foregroundColor:
+                            Theme.of(context).colorScheme.onPrimary,
                         minimumSize: const Size(double.infinity, 64),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(14),
                         ),
                       ),
                       child: Text(
                         _getPaymentBtn(_change),
-                        style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                        style: const TextStyle(
+                            fontSize: 20, fontWeight: FontWeight.bold),
                       ),
                     ),
                   ],
@@ -189,9 +194,14 @@ class _PaymentScreenState extends State<PaymentScreen> {
   Widget _buildInputSection(String title, String amount) {
     getAmount() {
       if (!_isInput && amount.isEmpty) {
-        return Text("฿${formatDouble(widget.amount)}", style: TextStyle(fontSize: 24, color: AppColors.of(context).textSecondary, fontWeight: FontWeight.bold));
+        return Text("฿${formatDouble(widget.amount)}",
+            style: TextStyle(
+                fontSize: 24,
+                color: AppColors.of(context).textSecondary,
+                fontWeight: FontWeight.bold));
       }
-      return Text("฿$amount", style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold));
+      return Text("฿$amount",
+          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold));
     }
 
     return Container(
@@ -206,7 +216,9 @@ class _PaymentScreenState extends State<PaymentScreen> {
         crossAxisAlignment: CrossAxisAlignment.end,
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          Text(title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+          Text(title,
+              style:
+                  const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
           getAmount(),
         ],
       ),
@@ -225,8 +237,13 @@ class _PaymentScreenState extends State<PaymentScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          Text(title, style: const TextStyle(fontSize: 20, color: Colors.white)),
-          Text(amount, style: const TextStyle(fontSize: 24, color: Colors.white, fontWeight: FontWeight.bold)),
+          Text(title,
+              style: const TextStyle(fontSize: 20, color: Colors.white)),
+          Text(amount,
+              style: const TextStyle(
+                  fontSize: 24,
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold)),
         ],
       ),
     );
@@ -251,14 +268,23 @@ class _PaymentScreenState extends State<PaymentScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          Text(title, style: const TextStyle(fontSize: 20, color: Colors.white)),
-          Text(getChange(), style: const TextStyle(fontSize: 24, color: Colors.white, fontWeight: FontWeight.bold)),
+          Text(title,
+              style: const TextStyle(fontSize: 20, color: Colors.white)),
+          Text(getChange(),
+              style: const TextStyle(
+                  fontSize: 24,
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold)),
         ],
       ),
     );
   }
 
-  Widget _buildPaymentOption(String title, {required IconData iconData, String? amount, bool isSelected = false, Function()? onTap}) {
+  Widget _buildPaymentOption(String title,
+      {required IconData iconData,
+      String? amount,
+      bool isSelected = false,
+      Function()? onTap}) {
     return GestureDetector(
       onTap: () {
         onTap?.call();
@@ -279,12 +305,24 @@ class _PaymentScreenState extends State<PaymentScreen> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(iconData, color: isSelected ? Colors.green : AppColors.of(context).textSecondary, size: 20),
-                Text(title, style: TextStyle(fontSize: 16, color: isSelected ? Colors.green : AppColors.of(context).textSecondary, fontWeight: FontWeight.bold)),
+                Icon(iconData,
+                    color: isSelected
+                        ? Colors.green
+                        : AppColors.of(context).textSecondary,
+                    size: 20),
+                Text(title,
+                    style: TextStyle(
+                        fontSize: 16,
+                        color: isSelected
+                            ? Colors.green
+                            : AppColors.of(context).textSecondary,
+                        fontWeight: FontWeight.bold)),
               ],
             ),
             if (amount != null) ...[
-              Text(amount, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              Text(amount,
+                  style: const TextStyle(
+                      fontSize: 18, fontWeight: FontWeight.bold)),
             ],
             if (isSelected) ...[
               const Icon(Icons.check_circle_rounded, color: Colors.green),
