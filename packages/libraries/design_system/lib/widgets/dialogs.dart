@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 // Project imports:
 import 'package:design_system/widgets/decimal_input.dart';
+import 'package:design_system/theme/app_colors.dart';
 import 'package:design_system/widgets/title_bar.dart';
 
 void showRightDialog(BuildContext context, {required WidgetBuilder builder}) {
@@ -41,8 +42,12 @@ void showCenterDialog({
       final screenSize = MediaQuery.of(dialogContext).size;
       final clampedMaxWidth = _clampToViewport(maxWidth, screenSize.width);
       final clampedMaxHeight = _clampToViewport(maxHeight, screenSize.height);
-      final clampedMinWidth = minWidth > clampedMaxWidth ? clampedMaxWidth : minWidth;
-      final clampedMinHeight = minHeight > clampedMaxHeight ? clampedMaxHeight : minHeight;
+      final clampedMinWidth = minWidth > clampedMaxWidth
+          ? clampedMaxWidth
+          : minWidth;
+      final clampedMinHeight = minHeight > clampedMaxHeight
+          ? clampedMaxHeight
+          : minHeight;
       return Scaffold(
         key: alertKey,
         backgroundColor: Colors.transparent,
@@ -54,7 +59,9 @@ void showCenterDialog({
             child: Align(
               alignment: Alignment.center,
               child: Material(
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: BorderRadius.circular(24),
+                color: AppColors.of(dialogContext).surfaceRaised,
+                clipBehavior: Clip.antiAlias,
                 child: ConstrainedBox(
                   constraints: BoxConstraints(
                     minWidth: clampedMinWidth,
@@ -119,7 +126,7 @@ void showInputNumberDialog(
               onCompleted(value);
             },
           ),
-        )
+        ),
       ],
     ),
   );

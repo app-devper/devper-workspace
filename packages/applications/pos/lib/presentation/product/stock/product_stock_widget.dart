@@ -145,7 +145,9 @@ class _ProductStockWidgetState extends State<ProductStockWidget> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         TitleBar(
-          title: widget.stock == null ? "เพิ่มสต็อก ร้านค้า" : "แก้ไขสต็อก ${widget.stock!.importDate.formatDate()}",
+          title: widget.stock == null
+              ? "เพิ่มสต็อก ร้านค้า"
+              : "แก้ไขสต็อก ${widget.stock!.importDate.formatDate()}",
           onBack: () {
             Navigator.of(context).pop();
           },
@@ -204,7 +206,9 @@ class _ProductStockWidgetState extends State<ProductStockWidget> {
                   'โปรดระบุข้อมูลสต็อก',
                   style: TextStyle(
                     fontSize: 16,
-                    color: AppColors.of(context).textPrimary.withValues(alpha: 0.6),
+                    color: AppColors.of(context)
+                        .textPrimary
+                        .withValues(alpha: 0.6),
                   ),
                 ),
                 const SizedBox(height: 32),
@@ -226,19 +230,23 @@ class _ProductStockWidgetState extends State<ProductStockWidget> {
                               controller: _importController,
                               readOnly: widget.stock != null,
                               keyboardType: TextInputType.number,
-                              autovalidateMode: AutovalidateMode.onUserInteraction,
+                              autovalidateMode:
+                                  AutovalidateMode.onUserInteraction,
                               decoration: buildInputDecoration(
                                 context: context,
                                 labelText: 'จำนวนที่นำเข้า',
                                 hintText: 'โปรดระบุจำนวนที่นำเข้า',
                               ),
                               validator: (value) {
-                                if (value == null || value.isEmpty || int.tryParse(value) == 0) {
+                                if (value == null ||
+                                    value.isEmpty ||
+                                    int.tryParse(value) == 0) {
                                   return 'โปรดระบุจำนวนที่นำเข้า';
                                 }
                                 if (int.tryParse(value) == null) {
                                   return 'จำนวนที่นำเข้าต้องเป็นตัวเลขเท่านั้น';
-                                } else if (int.tryParse(value) != null && int.tryParse(value)! < 0) {
+                                } else if (int.tryParse(value) != null &&
+                                    int.tryParse(value)! < 0) {
                                   return 'จำนวนที่นำเข้าต้องมากกว่า 0';
                                 }
                                 return null;
@@ -263,11 +271,13 @@ class _ProductStockWidgetState extends State<ProductStockWidget> {
                                 suffix: IconButton(
                                   icon: const Icon(Icons.calendar_today),
                                   splashRadius: 20,
-                                  color: Colors.blue,
-                                  onPressed: () => _selectDate(_importDateController),
+                                  color: Theme.of(context).colorScheme.primary,
+                                  onPressed: () =>
+                                      _selectDate(_importDateController),
                                 ),
                               ),
-                              autovalidateMode: AutovalidateMode.onUserInteraction,
+                              autovalidateMode:
+                                  AutovalidateMode.onUserInteraction,
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
                                   return 'โปรดระบุวันที่นำเข้า';
@@ -295,11 +305,13 @@ class _ProductStockWidgetState extends State<ProductStockWidget> {
                               focusNode: _priceFocus,
                               controller: _priceController,
                               keyboardType: TextInputType.number,
-                              autovalidateMode: AutovalidateMode.onUserInteraction,
+                              autovalidateMode:
+                                  AutovalidateMode.onUserInteraction,
                               decoration: buildInputDecoration(
                                 context: context,
                                 labelText: 'ราคาขายต่อหน่วย',
-                                hintText: '฿${formatDouble(widget.price.price)} จากหน่วยนับ',
+                                hintText:
+                                    '฿${formatDouble(widget.price.price)} จากหน่วยนับ',
                               ),
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
@@ -324,11 +336,13 @@ class _ProductStockWidgetState extends State<ProductStockWidget> {
                               focusNode: _costPriceFocus,
                               controller: _costPriceController,
                               keyboardType: TextInputType.number,
-                              autovalidateMode: AutovalidateMode.onUserInteraction,
+                              autovalidateMode:
+                                  AutovalidateMode.onUserInteraction,
                               decoration: buildInputDecoration(
                                 context: context,
                                 labelText: 'ราคาทุนต่อหน่วย',
-                                hintText: '฿${formatDouble(widget.unit.costPrice)} จากหน่วยนับ',
+                                hintText:
+                                    '฿${formatDouble(widget.unit.costPrice)} จากหน่วยนับ',
                               ),
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
@@ -358,7 +372,8 @@ class _ProductStockWidgetState extends State<ProductStockWidget> {
                                 ],
                                 focusNode: _lotNumberFocus,
                                 controller: _lotNumberController,
-                                autovalidateMode: AutovalidateMode.onUserInteraction,
+                                autovalidateMode:
+                                    AutovalidateMode.onUserInteraction,
                                 decoration: buildInputDecoration(
                                   context: context,
                                   labelText: 'หมายเลขล็อต',
@@ -382,16 +397,18 @@ class _ProductStockWidgetState extends State<ProductStockWidget> {
                               focusNode: _expireDateFocus,
                               controller: _expireDateController,
                               keyboardType: TextInputType.number,
-                              autovalidateMode: AutovalidateMode.onUserInteraction,
+                              autovalidateMode:
+                                  AutovalidateMode.onUserInteraction,
                               decoration: buildInputDecoration(
                                 context: context,
                                 labelText: 'วันหมดอายุ',
                                 hintText: 'โปรดระบุวันหมดอายุ',
                                 suffix: IconButton(
                                   splashRadius: 20,
-                                  color: Colors.blue,
+                                  color: Theme.of(context).colorScheme.primary,
                                   icon: const Icon(Icons.calendar_today),
-                                  onPressed: () => _selectDate(_expireDateController),
+                                  onPressed: () =>
+                                      _selectDate(_expireDateController),
                                 ),
                               ),
                               validator: (value) {
@@ -418,7 +435,8 @@ class _ProductStockWidgetState extends State<ProductStockWidget> {
                             context,
                             'ยืนยันการลบสต็อกสินค้า ${widget.stock!.importDate.formatDate()}',
                             () {
-                              _viewModel.removeProductStockById(widget.stock!.id);
+                              _viewModel
+                                  .removeProductStockById(widget.stock!.id);
                             },
                           );
                         },

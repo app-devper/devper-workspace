@@ -11,7 +11,6 @@ import 'package:pos/domain/model/receive/receive.dart';
 import 'package:pos/presentation/receive/main/receive_state.dart';
 import 'package:pos/presentation/receive/main/receives_view_model.dart';
 import 'package:design_system/theme/app_colors.dart';
-import 'package:design_system/theme/color.dart';
 
 class ReceivesWidget extends StatefulWidget {
   final Function(Receive) onSelected;
@@ -103,7 +102,7 @@ class _ReceivesWidgetState extends State<ReceivesWidget> {
                   widget.onMenu();
                 },
                 icon: const Icon(Icons.menu),
-                color: CustomColor.primary,
+                color: Theme.of(context).colorScheme.primary,
               ),
               const SizedBox(width: 8),
             ]
@@ -120,11 +119,11 @@ class _ReceivesWidgetState extends State<ReceivesWidget> {
       valueListenable: _viewModel.state,
       builder: (BuildContext context, ReceivesState state, _) {
         if (state.loading && state.items.isEmpty) {
-          return const Expanded(
+          return Expanded(
             child: Center(
               child: CircularProgressIndicator(
                 strokeWidth: 6,
-                color: CustomColor.primary,
+                color: Theme.of(context).colorScheme.primary,
                 strokeCap: StrokeCap.round,
               ),
             ),

@@ -2,7 +2,6 @@
 import 'package:flutter/material.dart';
 
 // Package imports:
-import 'package:design_system/theme/color.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 
 // Project imports:
@@ -32,10 +31,10 @@ class SplashPage extends HookWidget {
     }
 
     buildBody() {
-      return const Center(
+      return Center(
         child: CircularProgressIndicator(
           strokeWidth: 6,
-          color: CustomColor.primary,
+          color: Theme.of(context).colorScheme.primary,
           strokeCap: StrokeCap.round,
         ),
       );

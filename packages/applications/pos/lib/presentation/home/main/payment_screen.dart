@@ -210,7 +210,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.of(context).surfaceRaised,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.end,
@@ -231,18 +231,19 @@ class _PaymentScreenState extends State<PaymentScreen> {
       width: double.infinity,
       padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
       decoration: BoxDecoration(
-        color: Colors.blue,
-        borderRadius: BorderRadius.circular(8),
+        color: AppColors.of(context).surfaceSunken,
+        borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           Text(title,
-              style: const TextStyle(fontSize: 20, color: Colors.white)),
+              style: TextStyle(
+                  fontSize: 16, color: AppColors.of(context).textSecondary)),
           Text(amount,
-              style: const TextStyle(
+              style: TextStyle(
                   fontSize: 24,
-                  color: Colors.white,
+                  color: AppColors.of(context).textPrimary,
                   fontWeight: FontWeight.bold)),
         ],
       ),
@@ -262,18 +263,19 @@ class _PaymentScreenState extends State<PaymentScreen> {
       width: double.infinity,
       padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
       decoration: BoxDecoration(
-        color: Colors.orange,
-        borderRadius: BorderRadius.circular(8),
+        color: AppColors.of(context).surfaceSunken,
+        borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           Text(title,
-              style: const TextStyle(fontSize: 20, color: Colors.white)),
+              style: TextStyle(
+                  fontSize: 16, color: AppColors.of(context).textSecondary)),
           Text(getChange(),
-              style: const TextStyle(
+              style: TextStyle(
                   fontSize: 24,
-                  color: Colors.white,
+                  color: AppColors.of(context).textPrimary,
                   fontWeight: FontWeight.bold)),
         ],
       ),
@@ -294,41 +296,46 @@ class _PaymentScreenState extends State<PaymentScreen> {
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: AppColors.of(context).surfaceRaised,
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(16),
           border: Border.all(
-              color: isSelected ? Colors.green : AppColors.of(context).border,
+              color: isSelected
+                  ? AppColors.of(context).textPrimary
+                  : AppColors.of(context).border,
               width: 2),
         ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Icon(iconData,
-                    color: isSelected
-                        ? Colors.green
-                        : AppColors.of(context).textSecondary,
-                    size: 20),
-                Text(title,
-                    style: TextStyle(
-                        fontSize: 16,
-                        color: isSelected
-                            ? Colors.green
-                            : AppColors.of(context).textSecondary,
-                        fontWeight: FontWeight.bold)),
+                    color: AppColors.of(context).textPrimary, size: 20),
+                Icon(
+                  isSelected
+                      ? Icons.check_circle_rounded
+                      : Icons.circle_outlined,
+                  color: isSelected
+                      ? AppColors.of(context).textPrimary
+                      : AppColors.of(context).border,
+                  size: 18,
+                ),
               ],
             ),
-            if (amount != null) ...[
-              Text(amount,
-                  style: const TextStyle(
-                      fontSize: 18, fontWeight: FontWeight.bold)),
-            ],
-            if (isSelected) ...[
-              const Icon(Icons.check_circle_rounded, color: Colors.green),
-            ] else ...[
-              const Icon(Icons.circle_outlined, color: Color(0xFFEEEEEE)),
-            ],
+            const SizedBox(height: 4),
+            Expanded(
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: Text(title,
+                    style: TextStyle(
+                        fontSize: 16,
+                        color: AppColors.of(context).textPrimary,
+                        fontWeight: FontWeight.w600)),
+              ),
+            ),
+            if (amount != null)
+              Text(amount, maxLines: 1, overflow: TextOverflow.ellipsis),
           ],
         ),
       ),

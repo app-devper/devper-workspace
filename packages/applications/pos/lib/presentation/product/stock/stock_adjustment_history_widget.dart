@@ -7,7 +7,6 @@ import 'package:pos/domain/model/stock_adjustment/stock_adjustment.dart';
 import 'package:pos/presentation/product/stock/stock_adjustment_history_state.dart';
 import 'package:pos/presentation/product/stock/stock_adjustment_history_view_model.dart';
 import 'package:design_system/theme/app_colors.dart';
-import 'package:design_system/theme/color.dart';
 import 'package:design_system/widgets/status_badge.dart';
 
 class StockAdjustmentHistoryWidget extends StatefulWidget {
@@ -22,7 +21,8 @@ class StockAdjustmentHistoryWidget extends StatefulWidget {
   State<StatefulWidget> createState() => _StockAdjustmentHistoryWidgetState();
 }
 
-class _StockAdjustmentHistoryWidgetState extends State<StockAdjustmentHistoryWidget> {
+class _StockAdjustmentHistoryWidgetState
+    extends State<StockAdjustmentHistoryWidget> {
   late StockAdjustmentHistoryViewModel _viewModel;
 
   @override
@@ -44,10 +44,10 @@ class _StockAdjustmentHistoryWidgetState extends State<StockAdjustmentHistoryWid
       valueListenable: _viewModel.state,
       builder: (BuildContext context, StockAdjustmentHistoryState state, _) {
         if (state.loading) {
-          return const Center(
+          return Center(
             child: CircularProgressIndicator(
               strokeWidth: 4,
-              color: CustomColor.primary,
+              color: Theme.of(context).colorScheme.primary,
               strokeCap: StrokeCap.round,
             ),
           );
@@ -134,7 +134,8 @@ class _StockAdjustmentHistoryWidgetState extends State<StockAdjustmentHistoryWid
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     _buildInfoColumn('ก่อนปรับ', '${adjustment.before}'),
-                    _buildInfoColumn('ปรับ', '${isIncrease ? '+' : ''}${adjustment.delta}'),
+                    _buildInfoColumn(
+                        'ปรับ', '${isIncrease ? '+' : ''}${adjustment.delta}'),
                     _buildInfoColumn('หลังปรับ', '${adjustment.after}'),
                   ],
                 ),

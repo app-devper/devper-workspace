@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 
 // Project imports:
 import 'package:design_system/theme/app_colors.dart';
-import 'package:design_system/theme/color.dart';
 
 class TitleBar extends StatelessWidget {
   final String title;
@@ -21,71 +20,41 @@ class TitleBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
+    Widget actionButton(String label, VoidCallback? onPressed) {
+      return SizedBox(
+        width: 80,
+        child: TextButton(
+          onPressed: onPressed,
+          style: TextButton.styleFrom(
+            minimumSize: const Size(80, 48),
+            foregroundColor: colors.textPrimary,
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+          ),
+          child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
+        ),
+      );
+    }
+
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        InkWell(
-          onTap: () {
-            onBack();
-          },
-          child: Container(
-            width: 72,
-            padding: const EdgeInsets.all(8.0),
-            child: const Row(
-              children: [
-                Icon(
-                  Icons.arrow_back_ios,
-                  color: Colors.grey,
-                  size: 16,
-                ),
-                SizedBox(width: 8),
-                Expanded(child: Text(
-                  "ปิด",
-                  maxLines: 1,
-                  style: TextStyle(
-                    color: Colors.grey,
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                  ),
-                )),
-              ],
-            ),
-          ),
-        ),
+        actionButton('ปิด', () => onBack()),
         Expanded(
-          child: Text(
-            title,
-            maxLines: 1,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: AppColors.of(context).textPrimary,
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
+          child: Tooltip(
+            message: title,
+            child: Text(
+              title,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.titleMedium,
             ),
           ),
         ),
-        if (action != null) ...[
-          InkWell(
-            onTap: () {
-              onAction?.call();
-            },
-            child: Container(
-              width: 72,
-              padding: const EdgeInsets.all(8.0),
-              child: Text(
-                action ?? "",
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  color: CustomColor.primary,
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ),
-        ] else ...[
-          Container(width: 72, padding: const EdgeInsets.all(8.0)),
-        ]
+        if (action != null)
+          actionButton(action!, onAction == null ? null : () => onAction!())
+        else
+          const SizedBox(width: 80),
       ],
     );
   }

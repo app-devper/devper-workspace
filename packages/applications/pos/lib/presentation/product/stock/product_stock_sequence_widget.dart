@@ -11,7 +11,6 @@ import 'package:common/core/ext/date_ext.dart';
 import 'package:common/core/ext/number_ext.dart';
 import 'package:common/core/ext/widget_ext.dart';
 import 'package:design_system/theme/app_colors.dart';
-import 'package:design_system/theme/color.dart';
 import 'package:design_system/widgets/title_bar.dart';
 
 // Project imports:
@@ -33,10 +32,12 @@ class ProductStockSequenceWidget extends StatefulWidget {
   });
 
   @override
-  State<ProductStockSequenceWidget> createState() => _ProductStockSequenceWidgetState();
+  State<ProductStockSequenceWidget> createState() =>
+      _ProductStockSequenceWidgetState();
 }
 
-class _ProductStockSequenceWidgetState extends State<ProductStockSequenceWidget> {
+class _ProductStockSequenceWidgetState
+    extends State<ProductStockSequenceWidget> {
   List<ProductStock> _items = [];
   late ProductStockSequenceViewModel _viewModel;
   late StreamSubscription<String> _errors;
@@ -98,8 +99,12 @@ class _ProductStockSequenceWidgetState extends State<ProductStockSequenceWidget>
           final double elevation = lerpDouble(0, 6, animValue)!;
           return Material(
             elevation: elevation,
-            color: AppColors.of(context).textSecondary.withValues(alpha: animValue * 0.1),
-            shadowColor: AppColors.of(context).textSecondary.withValues(alpha: animValue * 0.1),
+            color: AppColors.of(context)
+                .textSecondary
+                .withValues(alpha: animValue * 0.1),
+            shadowColor: AppColors.of(context)
+                .textSecondary
+                .withValues(alpha: animValue * 0.1),
             child: child,
           );
         },
@@ -117,7 +122,8 @@ class _ProductStockSequenceWidgetState extends State<ProductStockSequenceWidget>
           action: "ยืนยัน",
           onAction: () {
             if (_items.isNotEmpty) {
-              _viewModel.updateProductStockSequenceById(_getUpdateProductStockSequenceParam());
+              _viewModel.updateProductStockSequenceById(
+                  _getUpdateProductStockSequenceParam());
             } else {
               Navigator.pop(context);
             }
@@ -133,13 +139,14 @@ class _ProductStockSequenceWidgetState extends State<ProductStockSequenceWidget>
                 ListTile(
                   leading: Text(
                     '${index + 1}#',
-                    style: const TextStyle(
-                      color: CustomColor.primary,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.primary,
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  title: Text("สต็อกเมื่อวันที่ ${_items[index].importDate.formatDate()} (คงเหลือ ${_items[index].quantity} ${widget.unit})"),
+                  title: Text(
+                      "สต็อกเมื่อวันที่ ${_items[index].importDate.formatDate()} (คงเหลือ ${_items[index].quantity} ${widget.unit})"),
                   subtitle: _getSubtitle(_items[index], widget.unit),
                 ),
                 const Divider(height: 1),
@@ -160,9 +167,12 @@ class _ProductStockSequenceWidgetState extends State<ProductStockSequenceWidget>
   }
 
   Text _getSubtitle(ProductStock stock, String unit) {
-    final style = TextStyle(color: AppColors.of(context).textSecondary, fontSize: 14);
+    final style =
+        TextStyle(color: AppColors.of(context).textSecondary, fontSize: 14);
     if (stock.costPrice > 0 && stock.price > 0) {
-      return Text('Cost: ฿${formatDouble(stock.costPrice)}, Price: ฿${formatDouble(stock.price)}', style: style);
+      return Text(
+          'Cost: ฿${formatDouble(stock.costPrice)}, Price: ฿${formatDouble(stock.price)}',
+          style: style);
     } else if (stock.costPrice > 0) {
       return Text('Cost: ฿${formatDouble(stock.costPrice)}', style: style);
     } else if (stock.price > 0) {
@@ -175,7 +185,10 @@ class _ProductStockSequenceWidgetState extends State<ProductStockSequenceWidget>
   UpdateProductStockSequenceParam _getUpdateProductStockSequenceParam() {
     return UpdateProductStockSequenceParam(
       productId: _items.first.productId,
-      stocks: _items.map((e) => ProductStockSequenceParam(stockId: e.id, sequence: _items.indexOf(e) + 1)).toList(),
+      stocks: _items
+          .map((e) => ProductStockSequenceParam(
+              stockId: e.id, sequence: _items.indexOf(e) + 1))
+          .toList(),
     );
   }
 }

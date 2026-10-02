@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 
 // Package imports:
 import 'package:design_system/theme/app_colors.dart';
-import 'package:design_system/theme/theme.dart';
 import 'package:design_system/widgets/snack_bar.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 
@@ -21,7 +20,8 @@ class UsersPage extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
-    final snackBar = CustomSnackBar(key: const Key("snackbar"), context: context);
+    final snackBar =
+        CustomSnackBar(key: const Key("snackbar"), context: context);
 
     final reloadKey = useState(UniqueKey());
 
@@ -36,7 +36,8 @@ class UsersPage extends HookWidget {
     }
 
     nextToUserEdit(String userId) async {
-      final result = await Navigator.pushNamed(context, routeUserEdit, arguments: UserArgument(userId));
+      final result = await Navigator.pushNamed(context, routeUserEdit,
+          arguments: UserArgument(userId));
       reload(result);
     }
 
@@ -76,12 +77,12 @@ class UsersPage extends HookWidget {
 
     return Scaffold(
       appBar: AppBar(
-        iconTheme: CustomTheme.mainTheme.iconTheme,
+        iconTheme: Theme.of(context).iconTheme,
         backgroundColor: AppColors.of(context).surfaceRaised,
         centerTitle: true,
         title: Text(
           "ผู้ใช้งาน",
-          style: CustomTheme.mainTheme.textTheme.headlineSmall,
+          style: Theme.of(context).textTheme.headlineSmall,
         ),
         actions: buildAction(),
       ),
