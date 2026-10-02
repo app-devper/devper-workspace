@@ -8,7 +8,6 @@ import 'package:design_system/widgets/responsive.dart';
 import 'package:pos/container.dart';
 import 'package:pos/domain/model/product/product.dart';
 import 'package:design_system/theme/app_colors.dart';
-import 'package:design_system/theme/color.dart';
 import 'package:design_system/widgets/error_state.dart';
 import 'products_state.dart';
 import 'products_view_model.dart';
@@ -107,7 +106,7 @@ class _ProductsWidgetState extends State<ProductsWidget> {
                 });
               },
               icon: Icon(_sortBalance ? Icons.sort : Icons.balance),
-              color: CustomColor.primary,
+              color: Theme.of(context).colorScheme.primary,
             ),
             const SizedBox(width: 8),
             if (isMobile) ...[
@@ -117,7 +116,7 @@ class _ProductsWidgetState extends State<ProductsWidget> {
                   widget.onMenu();
                 },
                 icon: const Icon(Icons.menu),
-                color: CustomColor.primary,
+                color: Theme.of(context).colorScheme.primary,
               ),
               const SizedBox(width: 8),
             ]
@@ -147,11 +146,11 @@ class _ProductsWidgetState extends State<ProductsWidget> {
           );
         }
         if (state.loading && state.items.isEmpty) {
-          return const Expanded(
+          return Expanded(
             child: Center(
               child: CircularProgressIndicator(
                 strokeWidth: 6,
-                color: CustomColor.primary,
+                color: Theme.of(context).colorScheme.primary,
                 strokeCap: StrokeCap.round,
               ),
             ),

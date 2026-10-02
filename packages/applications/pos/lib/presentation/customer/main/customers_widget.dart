@@ -11,7 +11,6 @@ import 'package:pos/localizations/language/languages.dart';
 import 'package:pos/presentation/customer/main/customers_state.dart';
 import 'package:pos/presentation/customer/main/customers_view_model.dart';
 import 'package:design_system/theme/app_colors.dart';
-import 'package:design_system/theme/color.dart';
 import 'package:design_system/widgets/error_state.dart';
 
 // Package imports:
@@ -91,12 +90,12 @@ class _CustomersWidgetState extends State<CustomersWidget> {
                 onTap: () {
                   widget.onAdd();
                 },
-                child: const SizedBox(
+                child: SizedBox(
                   width: 40,
                   height: 40,
                   child: Icon(
                     Icons.add,
-                    color: CustomColor.primary,
+                    color: Theme.of(context).colorScheme.primary,
                     size: 24,
                   ),
                 ),
@@ -129,11 +128,11 @@ class _CustomersWidgetState extends State<CustomersWidget> {
           );
         }
         if (state.loading && state.items.isEmpty) {
-          return const Expanded(
+          return Expanded(
             child: Center(
               child: CircularProgressIndicator(
                 strokeWidth: 6,
-                color: CustomColor.primary,
+                color: Theme.of(context).colorScheme.primary,
                 strokeCap: StrokeCap.round,
               ),
             ),

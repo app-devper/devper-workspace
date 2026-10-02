@@ -340,12 +340,12 @@ class CartOrderItem extends StatelessWidget {
                     },
                     child: Ink(
                       decoration: ShapeDecoration(
-                        color: Colors.blue[50],
+                        color: AppColors.of(context).surfaceSunken,
                         shape: const CircleBorder(),
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.add,
-                        color: Colors.blue,
+                        color: AppColors.of(context).textPrimary,
                         size: 20,
                       ),
                     ),

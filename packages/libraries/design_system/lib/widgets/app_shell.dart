@@ -213,7 +213,12 @@ class _TopBar extends StatelessWidget {
             ),
           const SizedBox(width: AppSpacing.sm),
           Expanded(
-            child: Text(title, style: Theme.of(context).textTheme.titleMedium),
+            child: Text(
+              title,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
           ),
           ...actions,
         ],

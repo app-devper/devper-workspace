@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 
 // Package imports:
 import 'package:design_system/theme/app_colors.dart';
-import 'package:design_system/theme/theme.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 
 // Project imports:
@@ -31,12 +30,12 @@ class UserAddPage extends HookWidget {
       onTap: () => FocusScope.of(context).requestFocus(viewNode),
       child: Scaffold(
         appBar: AppBar(
-          iconTheme: CustomTheme.mainTheme.iconTheme,
+          iconTheme: Theme.of(context).iconTheme,
           backgroundColor: AppColors.of(context).surfaceRaised,
           centerTitle: true,
           title: Text(
             "เพิ่มผู้ใช้",
-            style: CustomTheme.mainTheme.textTheme.headlineSmall,
+            style: Theme.of(context).textTheme.headlineSmall,
           ),
         ),
         body: PopScope(

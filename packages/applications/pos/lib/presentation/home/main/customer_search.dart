@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 
 // Package imports:
 import 'package:design_system/theme/app_colors.dart';
-import 'package:design_system/theme/color.dart';
 
 // Project imports:
 import 'package:pos/container.dart';
@@ -85,10 +84,10 @@ class _CustomerSearchState extends State<CustomerSearch> {
             valueListenable: _viewModel.items,
             builder: (context, items, _) {
               if (items == null) {
-                return const Center(
+                return Center(
                   child: CircularProgressIndicator(
                     strokeWidth: 6,
-                    color: CustomColor.primary,
+                    color: Theme.of(context).colorScheme.primary,
                     strokeCap: StrokeCap.round,
                   ),
                 );

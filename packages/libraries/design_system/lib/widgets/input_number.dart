@@ -1,5 +1,6 @@
 // Flutter imports:
 import 'package:flutter/material.dart';
+import 'package:design_system/theme/app_colors.dart';
 import 'package:flutter/services.dart';
 
 class InputNumber extends StatefulWidget {
@@ -57,24 +58,28 @@ class _InputNumberState extends State<InputNumber> {
       } else {
         return Text(
           number?.toString() ?? "",
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 24,
             fontWeight: FontWeight.bold,
-            color: Colors.black,
+            color: AppColors.of(context).textPrimary,
           ),
         );
       }
     }
 
-    Widget buildNumberButton({String? number, Widget? icon, Function()? onPressed}) {
+    Widget buildNumberButton({
+      String? number,
+      Widget? icon,
+      Function()? onPressed,
+    }) {
       return Expanded(
         child: TextButton(
           key: icon?.key ?? Key("btn_$number"),
           onPressed: onPressed,
           style: TextButton.styleFrom(
             elevation: 0,
-            shape: const RoundedRectangleBorder(
-              borderRadius: BorderRadius.zero,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
               side: BorderSide.none,
             ),
           ),
@@ -84,11 +89,19 @@ class _InputNumberState extends State<InputNumber> {
     }
 
     Widget buildHeightLine() {
-      return Container(width: 2, height: double.infinity, color: Colors.grey[200]);
+      return Container(
+        width: 2,
+        height: double.infinity,
+        color: AppColors.of(context).border,
+      );
     }
 
     Widget buildWidthLine() {
-      return Container(width: double.infinity, height: 2, color: Colors.grey[200]);
+      return Container(
+        width: double.infinity,
+        height: 2,
+        color: AppColors.of(context).border,
+      );
     }
 
     Widget buildFirstRow() {
@@ -98,20 +111,11 @@ class _InputNumberState extends State<InputNumber> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             buildHeightLine(),
-            buildNumberButton(
-              number: "1",
-              onPressed: () => input("1"),
-            ),
+            buildNumberButton(number: "1", onPressed: () => input("1")),
             buildHeightLine(),
-            buildNumberButton(
-              number: "2",
-              onPressed: () => input("2"),
-            ),
+            buildNumberButton(number: "2", onPressed: () => input("2")),
             buildHeightLine(),
-            buildNumberButton(
-              number: "3",
-              onPressed: () => input("3"),
-            ),
+            buildNumberButton(number: "3", onPressed: () => input("3")),
             buildHeightLine(),
           ],
         ),
@@ -125,20 +129,11 @@ class _InputNumberState extends State<InputNumber> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             buildHeightLine(),
-            buildNumberButton(
-              number: "4",
-              onPressed: () => input("4"),
-            ),
+            buildNumberButton(number: "4", onPressed: () => input("4")),
             buildHeightLine(),
-            buildNumberButton(
-              number: "5",
-              onPressed: () => input("5"),
-            ),
+            buildNumberButton(number: "5", onPressed: () => input("5")),
             buildHeightLine(),
-            buildNumberButton(
-              number: "6",
-              onPressed: () => input("6"),
-            ),
+            buildNumberButton(number: "6", onPressed: () => input("6")),
             buildHeightLine(),
           ],
         ),
@@ -152,20 +147,11 @@ class _InputNumberState extends State<InputNumber> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             buildHeightLine(),
-            buildNumberButton(
-              number: "7",
-              onPressed: () => input("7"),
-            ),
+            buildNumberButton(number: "7", onPressed: () => input("7")),
             buildHeightLine(),
-            buildNumberButton(
-              number: "8",
-              onPressed: () => input("8"),
-            ),
+            buildNumberButton(number: "8", onPressed: () => input("8")),
             buildHeightLine(),
-            buildNumberButton(
-              number: "9",
-              onPressed: () => input("9"),
-            ),
+            buildNumberButton(number: "9", onPressed: () => input("9")),
             buildHeightLine(),
           ],
         ),
@@ -180,24 +166,15 @@ class _InputNumberState extends State<InputNumber> {
           children: [
             buildHeightLine(),
             widget.isShowDot
-                ? buildNumberButton(
-                    number: ".",
-                    onPressed: () => input("."),
-                  )
-                : buildNumberButton(
-                    number: "",
-                    onPressed: () => input(""),
-                  ),
+                ? buildNumberButton(number: ".", onPressed: () => input("."))
+                : buildNumberButton(number: "", onPressed: () => input("")),
+            buildHeightLine(),
+            buildNumberButton(number: "0", onPressed: () => input("0")),
             buildHeightLine(),
             buildNumberButton(
-              number: "0",
-              onPressed: () => input("0"),
-            ),
-            buildHeightLine(),
-            buildNumberButton(
-              icon: const Icon(
+              icon: Icon(
                 Icons.backspace_outlined,
-                color: Colors.black,
+                color: AppColors.of(context).textPrimary,
               ),
               onPressed: () => delete(),
             ),
@@ -213,46 +190,58 @@ class _InputNumberState extends State<InputNumber> {
       includeSemantics: true,
       onKeyEvent: (KeyEvent event) {
         if (event is KeyDownEvent || event is KeyRepeatEvent) {
-          if (event.logicalKey == LogicalKeyboardKey.backspace || event.logicalKey == LogicalKeyboardKey.delete) {
+          if (event.logicalKey == LogicalKeyboardKey.backspace ||
+              event.logicalKey == LogicalKeyboardKey.delete) {
             delete();
           }
-          if (event.logicalKey == LogicalKeyboardKey.digit1 || event.logicalKey == LogicalKeyboardKey.numpad1) {
+          if (event.logicalKey == LogicalKeyboardKey.digit1 ||
+              event.logicalKey == LogicalKeyboardKey.numpad1) {
             input("1");
           }
-          if (event.logicalKey == LogicalKeyboardKey.digit2 || event.logicalKey == LogicalKeyboardKey.numpad2) {
+          if (event.logicalKey == LogicalKeyboardKey.digit2 ||
+              event.logicalKey == LogicalKeyboardKey.numpad2) {
             input("2");
           }
-          if (event.logicalKey == LogicalKeyboardKey.digit3 || event.logicalKey == LogicalKeyboardKey.numpad3) {
+          if (event.logicalKey == LogicalKeyboardKey.digit3 ||
+              event.logicalKey == LogicalKeyboardKey.numpad3) {
             input("3");
           }
-          if (event.logicalKey == LogicalKeyboardKey.digit4 || event.logicalKey == LogicalKeyboardKey.numpad4) {
+          if (event.logicalKey == LogicalKeyboardKey.digit4 ||
+              event.logicalKey == LogicalKeyboardKey.numpad4) {
             input("4");
           }
-          if (event.logicalKey == LogicalKeyboardKey.digit5 || event.logicalKey == LogicalKeyboardKey.numpad5) {
+          if (event.logicalKey == LogicalKeyboardKey.digit5 ||
+              event.logicalKey == LogicalKeyboardKey.numpad5) {
             input("5");
           }
-          if (event.logicalKey == LogicalKeyboardKey.digit6 || event.logicalKey == LogicalKeyboardKey.numpad6) {
+          if (event.logicalKey == LogicalKeyboardKey.digit6 ||
+              event.logicalKey == LogicalKeyboardKey.numpad6) {
             input("6");
           }
-          if (event.logicalKey == LogicalKeyboardKey.digit7 || event.logicalKey == LogicalKeyboardKey.numpad7) {
+          if (event.logicalKey == LogicalKeyboardKey.digit7 ||
+              event.logicalKey == LogicalKeyboardKey.numpad7) {
             input("7");
           }
-          if (event.logicalKey == LogicalKeyboardKey.digit8 || event.logicalKey == LogicalKeyboardKey.numpad8) {
+          if (event.logicalKey == LogicalKeyboardKey.digit8 ||
+              event.logicalKey == LogicalKeyboardKey.numpad8) {
             input("8");
           }
-          if (event.logicalKey == LogicalKeyboardKey.digit9 || event.logicalKey == LogicalKeyboardKey.numpad9) {
+          if (event.logicalKey == LogicalKeyboardKey.digit9 ||
+              event.logicalKey == LogicalKeyboardKey.numpad9) {
             input("9");
           }
-          if (event.logicalKey == LogicalKeyboardKey.digit0 || event.logicalKey == LogicalKeyboardKey.numpad0) {
+          if (event.logicalKey == LogicalKeyboardKey.digit0 ||
+              event.logicalKey == LogicalKeyboardKey.numpad0) {
             input("0");
           }
-          if (event.logicalKey == LogicalKeyboardKey.period || event.logicalKey == LogicalKeyboardKey.numpadDecimal) {
+          if (event.logicalKey == LogicalKeyboardKey.period ||
+              event.logicalKey == LogicalKeyboardKey.numpadDecimal) {
             if (widget.isShowDot) {
               input(".");
             }
           }
           if (event.logicalKey == LogicalKeyboardKey.enter) {
-           widget.onDone(_number);
+            widget.onDone(_number);
           }
         }
       },
