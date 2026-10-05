@@ -13,7 +13,6 @@ import 'package:pos/domain/model/category/category.dart';
 import 'package:pos/localizations/language/languages.dart';
 import 'package:pos/presentation/category/argument.dart';
 import 'package:pos/presentation/constants.dart';
-import 'package:design_system/theme/color.dart';
 import 'category_state.dart';
 import 'category_view_model.dart';
 
@@ -96,10 +95,10 @@ class _CategoryPageState extends State<CategoryPage> {
       valueListenable: _viewModel.state,
       builder: (BuildContext context, CategoryState state, _) {
         if (state.loading && state.items.isEmpty) {
-          return const Center(
+          return Center(
             child: CircularProgressIndicator(
               strokeWidth: 6,
-              color: CustomColor.primary,
+              color: Theme.of(context).colorScheme.primary,
               strokeCap: StrokeCap.round,
             ),
           );

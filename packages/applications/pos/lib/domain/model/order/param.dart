@@ -12,6 +12,7 @@ class GetOrderRangeParam {
 }
 
 class CreateOrderParam {
+  final String? saleId;
   final String customerCode;
   final String customerName;
   final List<OrderItem> items;
@@ -28,6 +29,7 @@ class CreateOrderParam {
   final String? message;
 
   CreateOrderParam({
+    this.saleId,
     required this.customerCode,
     required this.customerName,
     required this.amount,

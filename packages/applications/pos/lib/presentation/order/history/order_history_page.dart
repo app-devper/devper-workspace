@@ -152,9 +152,9 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
             ),
             title: Text(item.getCreatedDate() +
                 (customerName.isNotEmpty ? " Name: $customerName" : "")),
-            trailing: Text(_format.format(item.price)),
+            trailing: Text(_format.format(item.paid())),
             subtitle: Text(
-                "Cost: ${_format.format(item.costPrice)}  Profit: ${_format.format(item.price - item.costPrice)}"),
+                "Cost: ${_format.format(item.costPrice)}  Profit: ${_format.format(item.paid() - item.costPrice)}"),
           );
         },
       ),
@@ -227,7 +227,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
   double getTotalPrice() {
     double price = 0;
     for (var x in orderItems) {
-      price += x.price;
+      price += x.paid();
     }
     return price;
   }

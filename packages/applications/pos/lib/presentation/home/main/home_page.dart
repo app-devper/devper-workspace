@@ -66,11 +66,12 @@ class _HomePageState extends State<HomePage> {
   List<AppShellItem> get _items {
     return [
       const AppShellItem(
-          id: 'home', label: 'ขายสินค้า', icon: Icons.shopping_cart),
-      const AppShellItem(id: 'order', label: 'รายการขาย', icon: Icons.receipt),
+          id: 'home', label: 'ขายสินค้า', icon: Icons.shopping_cart_outlined),
+      const AppShellItem(
+          id: 'order', label: 'รายการขาย', icon: Icons.receipt_long_outlined),
       if (_isAdmin) ...[
         const AppShellItem(
-            id: 'product', label: 'สินค้า', icon: Icons.medical_information),
+            id: 'product', label: 'สินค้า', icon: Icons.inventory_2_outlined),
         const AppShellItem(
             id: 'database', label: 'จัดการ', icon: Icons.storage),
       ],
@@ -104,13 +105,8 @@ class _HomePageState extends State<HomePage> {
         title: '',
         // Each section draws its own header already.
         showTopBar: false,
-        // Start as a rail. The selling screen lays out as
-        // [ProductSearch (flexible)] | [cart 340-400] | [items 50], so the
-        // product picker is the only column that gives, and it absorbs the
-        // whole sidebar. On a 1024 shop tablet that is ~560px of search area
-        // as a rail against ~372px expanded — a third of it, spent on four
-        // labels a cashier already knows by icon. It still opens on demand.
-        initiallyExpanded: false,
+        // Keep room for the product picker on shop tablets.
+        initiallyExpanded: MediaQuery.sizeOf(context).width >= 1280,
         items: _items,
         selectedId: _selectedId,
         onSelect: _onSelect,
@@ -126,7 +122,7 @@ class _HomePageState extends State<HomePage> {
       children: [
         _footerAction(
           collapsed: collapsed,
-          icon: Icons.account_box,
+          icon: Icons.account_circle_outlined,
           label: Languages.of(context).userInfoTitle,
           onTap: () => Navigator.pushNamed(context, routeUserInfo),
         ),

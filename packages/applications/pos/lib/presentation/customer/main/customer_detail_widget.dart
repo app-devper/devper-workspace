@@ -29,7 +29,8 @@ class CustomerDetailWidget extends StatefulWidget {
   State<StatefulWidget> createState() => _CustomerDetailWidgetState();
 }
 
-class _CustomerDetailWidgetState extends State<CustomerDetailWidget> with TickerProviderStateMixin {
+class _CustomerDetailWidgetState extends State<CustomerDetailWidget>
+    with TickerProviderStateMixin {
   late final TabController _tabController;
 
   @override
@@ -76,7 +77,8 @@ class _CustomerDetailWidgetState extends State<CustomerDetailWidget> with Ticker
             const Divider(height: 1),
             TabBar.secondary(
               indicator: UnderlineTabIndicator(
-                borderSide: BorderSide(color: Colors.blue, width: 2.0),
+                borderSide: BorderSide(
+                    color: Theme.of(context).colorScheme.primary, width: 2.0),
               ),
               isScrollable: false,
               labelColor: AppColors.of(context).textPrimary,

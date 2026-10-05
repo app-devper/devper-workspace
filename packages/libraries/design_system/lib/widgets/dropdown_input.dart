@@ -2,8 +2,7 @@
 import 'package:flutter/material.dart';
 
 // Project imports:
-import 'package:design_system/theme/color.dart';
-import 'package:design_system/theme/theme.dart';
+import 'package:design_system/theme/app_colors.dart';
 
 class DropdownInput<T> extends StatelessWidget {
   final String hintText;
@@ -31,45 +30,20 @@ class DropdownInput<T> extends StatelessWidget {
       elevation: 1,
       padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
       decoration: InputDecoration(
-        isDense: false,
         enabled: enable,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
-        label: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
-          child: Text(hintText),
+        labelText: hintText,
+        labelStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(
+          color: AppColors.of(context).textSecondary,
         ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(4.0),
-          borderSide: const BorderSide(
-            color: CustomColor.textFieldBackground,
-          ),
-        ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(4.0),
-          borderSide: const BorderSide(
-            color: CustomColor.textFieldBackground,
-          ),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(4.0),
-          borderSide: const BorderSide(
-            color: CustomColor.textFieldBackground,
-          ),
-        ),
-        focusColor: CustomColor.textFieldBackground,
-        hoverColor: CustomColor.textFieldBackground,
-        fillColor: CustomColor.textFieldBackground,
-        filled: true,
-        labelStyle: CustomTheme.mainTheme.textTheme.bodyMedium,
       ),
+      dropdownColor: AppColors.of(context).surfaceRaised,
+      borderRadius: BorderRadius.circular(16),
       initialValue: value,
       items: options.map((T value) {
         return DropdownMenuItem<T>(
           alignment: Alignment.centerLeft,
           value: value,
-          child: Text(
-            getLabel(value),
-          ),
+          child: Text(getLabel(value)),
         );
       }).toList(),
       onChanged: (value) {

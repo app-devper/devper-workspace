@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 
 // Package imports:
 import 'package:design_system/theme/app_colors.dart';
-import 'package:design_system/theme/color.dart';
 import 'package:design_system/theme/radius.dart';
 import 'package:design_system/theme/spacing.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -65,7 +64,8 @@ HookBuilder buildLogin(Function(System) onSuccess) {
         Text(
           'เข้าสู่ระบบเพื่อใช้งาน ${config.system}',
           textAlign: TextAlign.center,
-          style: textTheme.bodySmall?.copyWith(color: AppColors.of(context).textSecondary),
+          style: textTheme.bodySmall
+              ?.copyWith(color: AppColors.of(context).textSecondary),
         ),
         const SizedBox(height: AppSpacing.xl),
         _LoginField(
@@ -102,10 +102,10 @@ HookBuilder buildLogin(Function(System) onSuccess) {
         FilledButton(
           key: const Key("login"),
           style: FilledButton.styleFrom(
-            backgroundColor: CustomColor.primary,
+            backgroundColor: Theme.of(context).colorScheme.primary,
             minimumSize: const Size.fromHeight(52),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(AppRadius.lg),
+              borderRadius: BorderRadius.circular(AppRadius.button),
             ),
           ),
           onPressed: submit,
@@ -153,7 +153,7 @@ class _LoginField extends StatelessWidget {
 
   OutlineInputBorder _border(Color color, double width) {
     return OutlineInputBorder(
-      borderRadius: BorderRadius.circular(AppRadius.lg),
+      borderRadius: BorderRadius.circular(AppRadius.button),
       borderSide: BorderSide(color: color, width: width),
     );
   }
@@ -168,7 +168,7 @@ class _LoginField extends StatelessWidget {
       textInputAction: textInputAction,
       autofillHints: autofillHints,
       onSubmitted: onSubmitted,
-      cursorColor: CustomColor.primary,
+      cursorColor: Theme.of(context).colorScheme.primary,
       decoration: InputDecoration(
         labelText: label,
         filled: true,
@@ -179,7 +179,7 @@ class _LoginField extends StatelessWidget {
         ),
         enabledBorder: _border(AppColors.of(context).border, 1),
         border: _border(AppColors.of(context).border, 1),
-        focusedBorder: _border(CustomColor.primary, 1.5),
+        focusedBorder: _border(Theme.of(context).colorScheme.primary, 1.5),
         suffixIcon: suffixIcon,
       ),
     );

@@ -50,11 +50,11 @@ screen state and invoke use cases. Use cases should not accept BuildContext.
 ## Migration scope and follow-up
 
 This change migrates UM hook repository calls and POS/SM authentication consumers.
-It does not claim that every existing POS workflow is fully migrated: cart views
-still access CartStore and some domain entities are mutable. Move cart pricing,
-checkout assembly and cache mutation into dedicated commands with regression tests
-before making those entities immutable. Async ViewModel completion after disposal
-also needs a consistent state-publication policy in a separate migration.
+Sale owns pricing, Line changes and checkout assembly. CheckoutSaleUseCase owns
+the submitted Sale through Order confirmation, independently of the current Till
+slot or view subscription. CartViewModel suppresses publication after disposal;
+an already-submitted Sale still finishes. Other ViewModels may still need their
+own async publication policy.
 
 ## Validation
 
@@ -97,9 +97,10 @@ one-shot signal rather than a command with flags. Naming the variants also
 settled what the code meant: a missing supplier profile is SupplierNotConfigured,
 a state the screen acts on, not an error it reports.
 
-CartState now follows this: checkout is a sealed CheckoutState carrying the
-OrderResult, sitting beside the cart's own loading/error rather than merging with
-it, because a barcode lookup and a submit are different operations.
+CartState uses its own CheckoutProgress enum for pending presentation, beside
+barcode lookup state. SaleCheckoutResult belongs to CheckoutSaleUseCase and
+distinguishes recorded, rejected and already-pending outcomes. Order/failure
+notifications remain separate OneShot channels; there is no shared CommandState.
 
 Outstanding findings, not yet migrated:
 
@@ -123,3 +124,29 @@ Outstanding findings, not yet migrated:
 Do not rename booleans to unrelated enums without eliminating invalid combinations.
 Add LoginErrorType only when callers need different handling for verified error
 categories; preserve the existing typed Failure instead of guessing from message text.
+
+## Submitted Sale completion
+
+CheckoutSaleUseCase is shared by CartViewModels so two callers cannot submit the
+same pending Sale. It captures the Sale before awaiting, records a snapshot, and
+clears that exact Sale on confirmation. Opening another Till slot is allowed;
+CartViewModel blocks edits to the submitted Sale while it is pending. A lookup
+retains its target Sale and discards the result if that Sale has been cleared or
+submitted. Views draw state and show notifications; they do not complete Sales.
+
+A Sale retains its id until it is cleared. Its id and Line choices are sent to
+the server's existing Sale recording path, which prices/draws Stock and deduplicates
+retries. Changes to an already-recorded Sale's request receive the server's
+conflict result. The legacy CreateOrderParam path remains for callers without
+a Sale id.
+
+OrderRepositoryImpl invalidates the shared Product catalogue after a successful
+recording; ProductRepositoryImpl refreshes it on the next local read. There is no
+refresh step between confirmed Order and Sale completion that could report an
+already-recorded Order as a failed checkout. This also refreshes Sold first,
+which is not represented by response.stocks.
+
+Tests use the checkout interface for failed recording, stable retry id, duplicate
+submission and exact Sale completion; presentation tests cover Till selection,
+mutation guards and disposal. Data tests pin the new Sale request and catalogue
+freshness after confirmation.

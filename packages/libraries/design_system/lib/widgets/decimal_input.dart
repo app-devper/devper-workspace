@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 
 // Project imports:
 import 'package:design_system/widgets/input_number.dart';
+import 'package:design_system/theme/app_colors.dart';
 
 class DecimalInput extends StatefulWidget {
   final String title;
@@ -37,10 +38,7 @@ class _DecimalInputState extends State<DecimalInput> {
       child: Column(
         children: [
           Expanded(
-            child: _buildInputSection(
-              widget.title,
-              _getNumberFormat(_number),
-            ),
+            child: _buildInputSection(widget.title, _getNumberFormat(_number)),
           ),
           const SizedBox(height: 16),
           SizedBox(
@@ -90,10 +88,7 @@ class _DecimalInputState extends State<DecimalInput> {
     getAmount() {
       return Text(
         amount,
-        style: const TextStyle(
-          fontSize: 24,
-          fontWeight: FontWeight.bold,
-        ),
+        style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
       );
     }
 
@@ -102,8 +97,8 @@ class _DecimalInputState extends State<DecimalInput> {
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
+        color: AppColors.of(context).surfaceSunken,
+        borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.end,
@@ -111,10 +106,7 @@ class _DecimalInputState extends State<DecimalInput> {
         children: [
           Text(
             title,
-            style: const TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
+            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
           getAmount(),
         ],

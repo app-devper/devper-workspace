@@ -23,7 +23,7 @@ import 'package:pos/domain/repositories/receive_repository.dart';
 import 'package:pos/domain/repositories/stock_adjustment_repository.dart';
 import 'package:pos/domain/repositories/stock_count_repository.dart';
 import 'package:pos/domain/repositories/supplier_repository.dart';
-import 'package:pos/domain/usecase/order/create_order_use_case.dart';
+import 'package:pos/domain/usecase/order/checkout_sale_use_case.dart';
 import 'package:pos/domain/usecase/order/get_order_by_id_use_case.dart';
 import 'package:pos/domain/usecase/order/get_order_item_by_product_id_use_case.dart';
 import 'package:pos/domain/usecase/order/get_order_range_use_case.dart';
@@ -55,7 +55,6 @@ import 'package:pos/domain/usecase/product/update_product_price_by_id_use_case.d
 import 'package:pos/domain/usecase/product/update_product_stock_by_id_use_case.dart';
 import 'package:pos/domain/usecase/product/update_product_stock_quantity_by_id_use_case.dart';
 import 'package:pos/domain/usecase/product/update_product_stock_sequence_use_case.dart';
-import 'package:pos/domain/usecase/product/update_product_stock_use_case.dart';
 import 'package:pos/domain/usecase/product/update_product_unit_by_id_use_case.dart';
 import 'package:pos/presentation/category/add/category_add_view_model.dart';
 import 'package:pos/presentation/category/edit/category_edit_view_model.dart';
@@ -117,9 +116,8 @@ Future<void> initPos() async {
   sl.registerFactory(
     () => CartViewModel(
       till: sl(),
-      createOrderUseCase: sl(),
+      checkoutSaleUseCase: sl(),
       getProductByBarcodeUseCase: sl(),
-      updateProductStockUseCase: sl(),
     ),
   );
 
@@ -347,8 +345,8 @@ Future<void> initPos() async {
     ),
   );
 
-  sl.registerFactory(
-    () => CreateOrderUseCase(
+  sl.registerLazySingleton(
+    () => CheckoutSaleUseCase(
       orderRepo: sl(),
     ),
   );
@@ -391,11 +389,6 @@ Future<void> initPos() async {
   );
   sl.registerFactory(
     () => GetProductByBarcodeUseCase(
-      productRepo: sl(),
-    ),
-  );
-  sl.registerFactory(
-    () => UpdateProductStockUseCase(
       productRepo: sl(),
     ),
   );
@@ -527,6 +520,7 @@ Future<void> initPos() async {
   sl.registerLazySingleton<OrderRepository>(
     () => OrderRepositoryImpl(
       posService: sl(),
+      productCache: sl(),
     ),
   );
   sl.registerLazySingleton<CategoryRepository>(

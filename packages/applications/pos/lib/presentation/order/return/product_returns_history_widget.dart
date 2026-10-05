@@ -10,7 +10,6 @@ import 'package:pos/domain/model/product_return/product_return.dart';
 import 'package:pos/presentation/order/return/product_returns_history_state.dart';
 import 'package:pos/presentation/order/return/product_returns_history_view_model.dart';
 import 'package:design_system/theme/app_colors.dart';
-import 'package:design_system/theme/color.dart';
 
 class ProductReturnsHistoryWidget extends StatefulWidget {
   final String orderId;
@@ -24,7 +23,8 @@ class ProductReturnsHistoryWidget extends StatefulWidget {
   State<StatefulWidget> createState() => _ProductReturnsHistoryWidgetState();
 }
 
-class _ProductReturnsHistoryWidgetState extends State<ProductReturnsHistoryWidget> {
+class _ProductReturnsHistoryWidgetState
+    extends State<ProductReturnsHistoryWidget> {
   late ProductReturnsHistoryViewModel _viewModel;
 
   @override
@@ -56,22 +56,25 @@ class _ProductReturnsHistoryWidgetState extends State<ProductReturnsHistoryWidge
             valueListenable: _viewModel.state,
             builder: (context, state, _) {
               if (state.loading) {
-                return const Center(
+                return Center(
                   child: CircularProgressIndicator(
                     strokeWidth: 4,
-                    color: CustomColor.primary,
+                    color: Theme.of(context).colorScheme.primary,
                     strokeCap: StrokeCap.round,
                   ),
                 );
               }
               if (state.error != null) {
                 return Center(
-                  child: Text(state.error!, style: const TextStyle(color: Colors.red)),
+                  child: Text(state.error!,
+                      style: const TextStyle(color: Colors.red)),
                 );
               }
               if (state.items.isEmpty) {
                 return Center(
-                  child: Text('ไม่มีประวัติการคืนสินค้า', style: TextStyle(color: AppColors.of(context).textSecondary)),
+                  child: Text('ไม่มีประวัติการคืนสินค้า',
+                      style: TextStyle(
+                          color: AppColors.of(context).textSecondary)),
                 );
               }
               return _buildList(state.items);
@@ -89,7 +92,8 @@ class _ProductReturnsHistoryWidgetState extends State<ProductReturnsHistoryWidge
       itemBuilder: (context, index) {
         final productReturn = items[index];
         return Card(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
           child: Padding(
             padding: const EdgeInsets.all(12.0),
             child: Column(
@@ -104,7 +108,9 @@ class _ProductReturnsHistoryWidgetState extends State<ProductReturnsHistoryWidge
                     ),
                     Text(
                       productReturn.getCreatedDate(),
-                      style: TextStyle(fontSize: 13, color: AppColors.of(context).textSecondary),
+                      style: TextStyle(
+                          fontSize: 13,
+                          color: AppColors.of(context).textSecondary),
                     ),
                   ],
                 ),
@@ -116,7 +122,8 @@ class _ProductReturnsHistoryWidgetState extends State<ProductReturnsHistoryWidge
                 const Divider(height: 1),
                 const SizedBox(height: 8),
                 ...productReturn.items.map(
-                  (item) => Text('จำนวน ${item.quantity}, คืนเงิน ฿${item.refund.toStringAsFixed(2)}'),
+                  (item) => Text(
+                      'จำนวน ${item.quantity}, คืนเงิน ฿${item.refund.toStringAsFixed(2)}'),
                 ),
                 const SizedBox(height: 4),
                 Text(
