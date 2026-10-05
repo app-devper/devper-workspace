@@ -19,7 +19,8 @@ between them when a customer steps away.
 _Avoid_: cart store, session, register
 
 **Line**:
-One product at one quantity and one price within a Sale.
+One product at one quantity and one price within a Sale. A Line's amount is
+its price for the whole quantity; its discount is so much off each unit.
 _Avoid_: cart item, row
 
 **Customer type**:
@@ -38,7 +39,9 @@ customer; a discount is not an override.
 
 **Order**:
 A completed Sale, as recorded by the server. Money has changed hands and stock
-has moved.
+has moved. The server decides what each Line charges and which Stock it draws
+from; what the till showed was a preview. A Sale is recorded once, however
+often the till sends it.
 _Avoid_: receipt, sale (once it is done, it is an Order)
 
 ## Stock

@@ -148,15 +148,15 @@ class ExportPdf {
       );
 
   static Widget buildInvoice(Receipt receipt, Font font) {
-    final headers = ['รายละเอียด', 'จำนวน', 'ราคา/หน่วย', 'จำนวนเงิน'];
+    final headers = ['รายละเอียด', 'จำนวน', 'ราคา/หน่วย', 'ส่วนลด', 'จำนวนเงิน'];
     final data = receipt.items.map((item) {
-      final total = item.price;
       final price = item.price / item.quantity;
       return [
         item.product?.name ?? "",
         '${item.quantity}',
         (price.toStringAsFixed(2)),
-        (total.toStringAsFixed(2)),
+        ((item.discount * item.quantity).toStringAsFixed(2)),
+        (item.paid().toStringAsFixed(2)),
       ];
     }).toList();
 
@@ -179,7 +179,7 @@ class ExportPdf {
   }
 
   static Widget buildTotal(Receipt invoice, Font font) {
-    final total = invoice.items.map((item) => item.price).reduce((item1, item2) => item1 + item2);
+    final total = invoice.items.fold<double>(0, (sum, item) => sum + item.paid());
     final number = formatPrice(total);
     return Container(
       child: Row(
