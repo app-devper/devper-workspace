@@ -9,6 +9,9 @@ Project override of the user-level `git-flow` skill (`~/.claude/skills/git-flow/
 — generic recipes live there; everything below is what's specific to
 `app-devper/devper-workspace` (Flutter monorepo, `melos` 8 + `fvm`, Flutter 3.38.7).
 
+The stage-by-stage flow (shape → build → review → release → deploy check)
+lives in `dev-flow`; this skill owns the branch rules.
+
 ## Branch map
 
 | Branch | Role | PR target | After merge |
