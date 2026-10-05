@@ -11,7 +11,8 @@ import 'package:pos/domain/model/order/order_item_detail.dart';
 import 'package:pos/domain/model/product/product.dart';
 
 class ExportCsv {
-  static Future<void> downloadOrderItems(Product product, List<OrderItemDetail> data) async {
+  static Future<void> downloadOrderItems(
+      Product product, List<OrderItemDetail> data) async {
     List<List<dynamic>> rows = <List<dynamic>>[];
     List<dynamic> row = [];
     row.add("No.");
@@ -19,6 +20,8 @@ class ExportCsv {
     row.add("Name");
     row.add("Quantity");
     row.add("Price");
+    row.add("Discount");
+    row.add("Paid");
     rows.add(row);
     for (int i = 0; i < data.length; i++) {
       List<dynamic> row = [];
@@ -27,6 +30,8 @@ class ExportCsv {
       row.add(data[i].order?.customerName ?? "");
       row.add(data[i].quantity);
       row.add(data[i].price);
+      row.add(data[i].discount * data[i].quantity);
+      row.add(data[i].paid());
       rows.add(row);
     }
 
