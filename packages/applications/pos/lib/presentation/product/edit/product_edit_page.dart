@@ -82,7 +82,12 @@ class _ProductEditPageState extends State<ProductEditPage> {
       _viewModel.removed.listen((_) => widget.onRemove()),
       _viewModel.errors.listen(_showError),
     ]);
-    _viewModel.getProductById(widget.product.id);
+    // After the first frame: the load raises the loading dialog, and showing
+    // a dialog from inside initState trips a framework assertion — which is
+    // what kept this form from appearing when it was pushed as a route.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _viewModel.getProductById(widget.product.id);
+    });
     _setupProduct(widget.product);
   }
 
