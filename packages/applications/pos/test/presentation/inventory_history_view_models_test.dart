@@ -9,9 +9,6 @@ import 'package:pos/domain/model/stock_count/stock_count.dart';
 import 'package:pos/domain/repositories/product_return_repository.dart';
 import 'package:pos/domain/repositories/stock_adjustment_repository.dart';
 import 'package:pos/domain/repositories/stock_count_repository.dart';
-import 'package:pos/domain/usecase/product_return/get_product_returns_by_order_id_use_case.dart';
-import 'package:pos/domain/usecase/stock_adjustment/get_stock_adjustments_by_product_id_use_case.dart';
-import 'package:pos/domain/usecase/stock_count/get_stock_counts_use_case.dart';
 import 'package:pos/presentation/order/return/product_returns_history_view_model.dart';
 import 'package:pos/presentation/product/stock/stock_adjustment_history_view_model.dart';
 import 'package:pos/presentation/stock_count/main/stock_counts_view_model.dart';
@@ -127,10 +124,8 @@ void main() {
   group('StockCountsViewModel', () {
     test('loads stock count history', () async {
       final vm = StockCountsViewModel(
-        getStockCountsUseCase: GetStockCountsUseCase(
-          stockCountRepo: FakeStockCountRepository(
-            items: [buildStockCount()],
-          ),
+        stockCountRepo: FakeStockCountRepository(
+          items: [buildStockCount()],
         ),
       );
 
@@ -142,10 +137,8 @@ void main() {
 
     test('maps a typed exception to state.error', () async {
       final vm = StockCountsViewModel(
-        getStockCountsUseCase: GetStockCountsUseCase(
-          stockCountRepo: FakeStockCountRepository(
-            error: const NetworkException(message: 'offline'),
-          ),
+        stockCountRepo: FakeStockCountRepository(
+          error: const NetworkException(message: 'offline'),
         ),
       );
 
@@ -167,9 +160,7 @@ void main() {
         items: [buildProductReturn()],
       );
       final vm = ProductReturnsHistoryViewModel(
-        getProductReturnsByOrderIdUseCase: GetProductReturnsByOrderIdUseCase(
-          productReturnRepo: repository,
-        ),
+        productReturnRepo: repository,
       );
 
       await vm.getProductReturnsByOrderId('order-1');
@@ -180,10 +171,8 @@ void main() {
 
     test('maps a typed exception to state.error', () async {
       final vm = ProductReturnsHistoryViewModel(
-        getProductReturnsByOrderIdUseCase: GetProductReturnsByOrderIdUseCase(
-          productReturnRepo: FakeProductReturnRepository(
-            error: const NetworkException(message: 'offline'),
-          ),
+        productReturnRepo: FakeProductReturnRepository(
+          error: const NetworkException(message: 'offline'),
         ),
       );
 
@@ -201,10 +190,7 @@ void main() {
         items: [buildStockAdjustment()],
       );
       final vm = StockAdjustmentHistoryViewModel(
-        getStockAdjustmentsByProductIdUseCase:
-            GetStockAdjustmentsByProductIdUseCase(
-          stockAdjustmentRepo: repository,
-        ),
+        stockAdjustmentRepo: repository,
       );
 
       await vm.getStockAdjustmentsByProductId('p1');
@@ -215,11 +201,8 @@ void main() {
 
     test('maps a typed exception to state.error', () async {
       final vm = StockAdjustmentHistoryViewModel(
-        getStockAdjustmentsByProductIdUseCase:
-            GetStockAdjustmentsByProductIdUseCase(
-          stockAdjustmentRepo: FakeStockAdjustmentRepository(
-            error: const NetworkException(message: 'offline'),
-          ),
+        stockAdjustmentRepo: FakeStockAdjustmentRepository(
+          error: const NetworkException(message: 'offline'),
         ),
       );
 

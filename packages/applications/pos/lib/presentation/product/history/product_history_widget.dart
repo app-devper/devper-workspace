@@ -10,7 +10,6 @@ import 'package:pos/domain/model/product/product_history.dart';
 import 'package:pos/presentation/product/history/product_history_state.dart';
 import 'package:pos/presentation/product/history/product_history_view_model.dart';
 import 'package:design_system/theme/app_colors.dart';
-import 'package:design_system/theme/color.dart';
 import 'package:design_system/widgets/status_badge.dart';
 
 class ProductHistoryWidget extends StatefulWidget {
@@ -47,10 +46,10 @@ class _ProductHistoryWidgetState extends State<ProductHistoryWidget> {
       valueListenable: _viewModel.state,
       builder: (BuildContext context, ProductHistoryState state, _) {
         if (state.loading) {
-          return const Center(
+          return Center(
             child: CircularProgressIndicator(
               strokeWidth: 4,
-              color: CustomColor.primary,
+              color: Theme.of(context).colorScheme.primary,
               strokeCap: StrokeCap.round,
             ),
           );
@@ -139,7 +138,8 @@ class _ProductHistoryWidgetState extends State<ProductHistoryWidget> {
                     _buildInfoColumn('นำเข้า', '${history.import}'),
                     _buildInfoColumn('จำนวน', '${history.quantity}'),
                     _buildInfoColumn('คงเหลือ', '${history.balance}'),
-                    _buildInfoColumn('ต้นทุน', '฿${formatDouble(history.costPrice)}'),
+                    _buildInfoColumn(
+                        'ต้นทุน', '฿${formatDouble(history.costPrice)}'),
                     _buildInfoColumn('ราคา', '฿${formatDouble(history.price)}'),
                   ],
                 ),

@@ -8,20 +8,15 @@ import 'package:common/core/state/one_shot.dart';
 // Project imports:
 import 'package:pos/domain/model/category/category.dart';
 import 'package:pos/domain/model/category/param.dart';
-import 'package:pos/domain/usecase/category/get_category_by_id_use_case.dart';
-import 'package:pos/domain/usecase/category/remove_category_by_id_use_case.dart';
-import 'package:pos/domain/usecase/category/update_category_by_id_use_case.dart';
 import 'category_edit_state.dart';
 
+import 'package:pos/domain/repositories/category_repository.dart';
+
 class CategoryEditViewModel {
-  final GetCategoryByIdUseCase getCategoryByIdUseCase;
-  final UpdateCategoryByIdUseCase updateCategoryByIdUseCase;
-  final RemoveCategoryByIdUseCase removeCategoryByIdUseCase;
+  final CategoryRepository categoryRepo;
 
   CategoryEditViewModel({
-    required this.getCategoryByIdUseCase,
-    required this.updateCategoryByIdUseCase,
-    required this.removeCategoryByIdUseCase,
+    required this.categoryRepo,
   });
 
   final _state = ValueNotifier<CategoryEditState>(const CategoryEditState());
@@ -45,19 +40,18 @@ class CategoryEditViewModel {
   /// why it only touches the error channel.
   Future<void> getCategoryById(String categoryId) async {
     try {
-      await getCategoryByIdUseCase(categoryId);
+      await categoryRepo.getCategoryById(categoryId);
     } on Exception catch (e) {
       _errors.emit(toFailure(e).getMessage());
     }
   }
 
-  Future<void> updateCategoryById(String categoryId, CategoryParam param) async {
+  Future<void> updateCategoryById(
+      String categoryId, CategoryParam param) async {
     if (_state.value.busy) return;
     _state.value = _state.value.copyWith(busy: true);
     try {
-      _updated.emit(await updateCategoryByIdUseCase(
-        CategoryUpdateParam(categoryId: categoryId, param: param),
-      ));
+      _updated.emit(await categoryRepo.updateCategoryById(categoryId, param));
     } on Exception catch (e) {
       _errors.emit(toFailure(e).getMessage());
     } finally {
@@ -69,7 +63,7 @@ class CategoryEditViewModel {
     if (_state.value.busy) return;
     _state.value = _state.value.copyWith(busy: true);
     try {
-      _removed.emit(await removeCategoryByIdUseCase(categoryId));
+      _removed.emit(await categoryRepo.removeCategoryById(categoryId));
     } on Exception catch (e) {
       _errors.emit(toFailure(e).getMessage());
     } finally {

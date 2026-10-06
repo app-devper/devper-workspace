@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 
 // Package imports:
 import 'package:design_system/theme/app_colors.dart';
-import 'package:design_system/theme/color.dart';
 import 'package:design_system/widgets/error_state.dart';
+import 'package:design_system/widgets/search_decoration.dart';
 import 'package:qr_code_scanner_plus/qr_code_scanner_plus.dart';
 
 // Project imports:
@@ -65,15 +65,14 @@ class _ProductSearchState extends State<ProductSearch> {
         return Column(
           children: [
             Container(
-              padding: const EdgeInsets.all(8),
+              padding: const EdgeInsets.all(16),
               child: TextField(
                 autofocus: true,
                 focusNode: _serialNumberNode,
                 controller: _serialNumberEditingController,
-                decoration: InputDecoration(
-                  contentPadding: const EdgeInsets.all(0),
+                decoration: buildSearchDecoration(
+                  context,
                   hintText: 'ค้นหาชื่อสินค้า หรือสแกนบาร์โค้ด',
-                  prefixIcon: const Icon(Icons.search),
                   suffixIcon: kIsWeb
                       ? null
                       : IconButton(
@@ -81,12 +80,6 @@ class _ProductSearchState extends State<ProductSearch> {
                           icon: const Icon(Icons.qr_code_scanner),
                           onPressed: () => _scanBarcode(context),
                         ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: BorderSide.none,
-                  ),
-                  fillColor: AppColors.of(context).border,
-                  filled: true,
                 ),
                 onChanged: (value) {
                   _viewModel.searchProduct(value);
@@ -101,7 +94,7 @@ class _ProductSearchState extends State<ProductSearch> {
                 },
               ),
             ),
-            const Divider(height: 1),
+            const SizedBox(height: 4),
             Expanded(
               // A failed inventory load has to say so. Without this the grid
               // spun forever and every scan reported "ไม่พบสินค้า", which reads
@@ -123,8 +116,7 @@ class _ProductSearchState extends State<ProductSearch> {
                     if (items == null) {
                       return const Center(
                         child: CircularProgressIndicator(
-                          strokeWidth: 6,
-                          color: CustomColor.primary,
+                          strokeWidth: 3,
                           strokeCap: StrokeCap.round,
                         ),
                       );
@@ -139,13 +131,13 @@ class _ProductSearchState extends State<ProductSearch> {
                                   height: 1.8)));
                     }
                     return GridView.builder(
-                      padding: const EdgeInsets.all(8),
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: countRow,
                         childAspectRatio: 2,
                         mainAxisExtent: 158,
-                        mainAxisSpacing: 8,
-                        crossAxisSpacing: 8,
+                        mainAxisSpacing: 12,
+                        crossAxisSpacing: 12,
                       ),
                       shrinkWrap: true,
                       itemBuilder: (context, i) => ProductItem(

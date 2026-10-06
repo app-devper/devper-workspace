@@ -3,7 +3,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:pos/domain/model/customer/customer.dart';
 import 'package:pos/domain/model/customer/param.dart';
 import 'package:pos/domain/repositories/customer_repository.dart';
-import 'package:pos/domain/usecase/customer/create_customer_use_case.dart';
 import 'package:pos/presentation/customer/add/customer_add_view_model.dart';
 
 class FakeCustomerRepository implements CustomerRepository {
@@ -65,7 +64,7 @@ CustomerParam buildParam() {
 
 CustomerAddViewModel buildViewModel(CustomerRepository repo) {
   return CustomerAddViewModel(
-    createCustomerUseCase: CreateCustomerUseCase(customerRepo: repo),
+    customerRepo: repo,
   );
 }
 

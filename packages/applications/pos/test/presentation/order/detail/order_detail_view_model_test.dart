@@ -8,11 +8,9 @@ import 'package:pos/domain/model/supplier/supplier.dart';
 import 'package:pos/domain/repositories/customer_repository.dart';
 import 'package:pos/domain/repositories/order_repository.dart';
 import 'package:pos/domain/repositories/supplier_repository.dart';
-import 'package:pos/domain/usecase/customer/get_local_customers_use_case.dart';
 import 'package:pos/domain/usecase/order/get_order_by_id_use_case.dart';
 import 'package:pos/domain/usecase/order/remove_order_by_id_use_case.dart';
 import 'package:pos/domain/usecase/order/remove_order_item_by_id_use_case.dart';
-import 'package:pos/domain/usecase/supplier/get_supplier_info_use_case.dart';
 import 'package:pos/presentation/order/detail/order_detail_state.dart';
 import 'package:pos/presentation/order/detail/order_detail_view_model.dart';
 import 'package:um/domain/repositories/login_repository.dart';
@@ -207,10 +205,8 @@ OrderDetailViewModel _buildViewModel({
         RemoveOrderByIdUseCase(orderRepo: orderRepo ?? FakeOrderRepository()),
     removeOrderItemByIdUseCase: RemoveOrderItemByIdUseCase(
         orderRepo: orderRepo ?? FakeOrderRepository()),
-    getSupplierInfoUseCase: GetSupplierInfoUseCase(
-        supplierRepo: supplierRepo ?? FakeSupplierRepository()),
-    getLocalCustomersUseCase: GetLocalCustomersUseCase(
-        customerRepo: customerRepo ?? FakeCustomerRepository()),
+    supplierRepo: supplierRepo ?? FakeSupplierRepository(),
+    customerRepo: customerRepo ?? FakeCustomerRepository(),
   );
 }
 

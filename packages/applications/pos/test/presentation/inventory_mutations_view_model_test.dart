@@ -6,8 +6,6 @@ import 'package:pos/domain/model/stock_adjustment/param.dart';
 import 'package:pos/domain/model/stock_adjustment/stock_adjustment.dart';
 import 'package:pos/domain/repositories/product_return_repository.dart';
 import 'package:pos/domain/repositories/stock_adjustment_repository.dart';
-import 'package:pos/domain/usecase/product_return/create_product_return_use_case.dart';
-import 'package:pos/domain/usecase/stock_adjustment/create_stock_adjustment_use_case.dart';
 import 'package:pos/presentation/order/return/product_return_view_model.dart';
 import 'package:pos/presentation/product/stock/stock_adjustment_view_model.dart';
 import 'package:pos/domain/repositories/product_repository.dart';
@@ -106,9 +104,7 @@ void main() {
     test('createProductReturn sends payload and exposes result', () async {
       final repository = FakeProductReturnRepository();
       final vm = ProductReturnViewModel(
-        createProductReturnUseCase: CreateProductReturnUseCase(
-          productReturnRepo: repository,
-        ),
+        productReturnRepo: repository,
       );
       final param = CreateProductReturnParam(
         orderId: 'order-1',
@@ -135,10 +131,8 @@ void main() {
 
     test('a failed return emits an error and no result', () async {
       final vm = ProductReturnViewModel(
-        createProductReturnUseCase: CreateProductReturnUseCase(
-          productReturnRepo: FakeProductReturnRepository(
-            error: const NetworkException(message: 'offline'),
-          ),
+        productReturnRepo: FakeProductReturnRepository(
+          error: const NetworkException(message: 'offline'),
         ),
       );
 
@@ -166,9 +160,7 @@ void main() {
     test('createStockAdjustment sends delta and exposes result', () async {
       final repository = FakeStockAdjustmentRepository();
       final vm = StockAdjustmentViewModel(
-        createStockAdjustmentUseCase: CreateStockAdjustmentUseCase(
-          stockAdjustmentRepo: repository,
-        ),
+        stockAdjustmentRepo: repository,
       );
       final param = CreateStockAdjustmentParam(
         productId: 'p1',
@@ -193,10 +185,8 @@ void main() {
       'a failed adjustment emits an error and no result',
       () async {
         final vm = StockAdjustmentViewModel(
-          createStockAdjustmentUseCase: CreateStockAdjustmentUseCase(
-            stockAdjustmentRepo: FakeStockAdjustmentRepository(
-              error: const NetworkException(message: 'offline'),
-            ),
+          stockAdjustmentRepo: FakeStockAdjustmentRepository(
+            error: const NetworkException(message: 'offline'),
           ),
         );
 

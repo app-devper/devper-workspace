@@ -3,8 +3,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:pos/domain/model/stock_count/param.dart';
 import 'package:pos/domain/model/stock_count/stock_count.dart';
 import 'package:pos/domain/repositories/stock_count_repository.dart';
-import 'package:pos/domain/usecase/stock_count/create_stock_count_use_case.dart';
-import 'package:pos/domain/usecase/stock_count/get_stock_count_by_id_use_case.dart';
 import 'package:pos/presentation/stock_count/manage/stock_count_manage_view_model.dart';
 import 'package:pos/domain/repositories/product_repository.dart';
 
@@ -79,12 +77,7 @@ StockCountItemParam buildItem({
 
 StockCountManageViewModel buildViewModel(StockCountRepository repository) {
   return StockCountManageViewModel(
-    createStockCountUseCase: CreateStockCountUseCase(
-      stockCountRepo: repository,
-    ),
-    getStockCountByIdUseCase: GetStockCountByIdUseCase(
-      stockCountRepo: repository,
-    ),
+    stockCountRepo: repository,
   );
 }
 

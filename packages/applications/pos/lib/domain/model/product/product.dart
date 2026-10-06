@@ -120,8 +120,16 @@ class ProductUnitItem {
     required this.stocks,
   });
 
-  ProductPriceType getPrice(String customerType) {
-    final stock = getFirstSequenceStock();
+  /// The price at this customer type, drawing from the Stock that sells
+  /// first.
+  ProductPriceType getPrice(String customerType) =>
+      priceFrom(customerType, getFirstSequenceStock());
+
+  /// The price at this customer type, drawing from [stock].
+  ///
+  /// A cashier can ring a Line up against a particular batch — an older lot,
+  /// say — without changing which batch the shop sells first.
+  ProductPriceType priceFrom(String customerType, ProductStock? stock) {
     if (customerType == priceTypeStock) {
       if (stock != null && stock.price > 0) {
         return ProductPriceType(
@@ -180,10 +188,6 @@ class ProductUnitItem {
   int getQuantity() {
     return stocks.fold(
         0, (previousValue, stock) => previousValue + stock.quantity);
-  }
-
-  void updateProductStockSequence(List<ProductStock> items) {
-    stocks = items;
   }
 
   ProductStock? getProductStockById(String? stockId) {

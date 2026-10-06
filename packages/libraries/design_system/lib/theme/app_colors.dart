@@ -56,12 +56,12 @@ class AppColors extends ThemeExtension<AppColors> {
   });
 
   static const light = AppColors(
-    surface: Color(0xFFF5F9F9),
+    surface: Color(0xFFFFFFFF),
     surfaceRaised: Color(0xFFFFFFFF),
-    surfaceSunken: Color(0x1E000000),
+    surfaceSunken: Color(0xFFF4F4F4),
     border: Color(0xFFE0E0E0),
-    textPrimary: Color(0xDE000000),
-    textSecondary: Color(0xFF979797),
+    textPrimary: Color(0xFF202020),
+    textSecondary: Color(0xFF676767),
     textHint: Color(0x99000000),
     sidebarSurface: Color(0xFFF9F9F9),
     sidebarSelected: Color(0xFFECECEC),
@@ -69,12 +69,12 @@ class AppColors extends ThemeExtension<AppColors> {
   );
 
   static const dark = AppColors(
-    surface: Color(0xFF121417),
-    surfaceRaised: Color(0xFF1C1F24),
-    surfaceSunken: Color(0x1FFFFFFF),
-    border: Color(0xFF2E3238),
-    textPrimary: Color(0xFFECEDEE),
-    textSecondary: Color(0xFF9BA1A6),
+    surface: Color(0xFF212121),
+    surfaceRaised: Color(0xFF292929),
+    surfaceSunken: Color(0xFF303030),
+    border: Color(0xFF424242),
+    textPrimary: Color(0xFFECECEC),
+    textSecondary: Color(0xFFB4B4B4),
     textHint: Color(0x99FFFFFF),
     sidebarSurface: Color(0xFF171717),
     sidebarSelected: Color(0xFF303030),
@@ -126,8 +126,11 @@ class AppColors extends ThemeExtension<AppColors> {
       textHint: Color.lerp(textHint, other.textHint, t)!,
       sidebarSurface: Color.lerp(sidebarSurface, other.sidebarSurface, t)!,
       sidebarSelected: Color.lerp(sidebarSelected, other.sidebarSelected, t)!,
-      sidebarForeground:
-          Color.lerp(sidebarForeground, other.sidebarForeground, t)!,
+      sidebarForeground: Color.lerp(
+        sidebarForeground,
+        other.sidebarForeground,
+        t,
+      )!,
     );
   }
 }

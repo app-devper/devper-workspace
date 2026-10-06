@@ -8,22 +8,23 @@ import 'package:common/core/state/one_shot.dart';
 // Project imports:
 import 'package:pos/domain/model/product/product.dart';
 import 'package:pos/domain/model/product/param.dart';
-import 'package:pos/domain/usecase/category/get_local_categories_use_case.dart';
 import 'package:pos/domain/usecase/product/add_product_use_case.dart';
 import 'package:pos/domain/usecase/product/generate_serial_number_use_case.dart';
 import 'package:pos/domain/usecase/product/get_product_prices_by_product_id_use_case.dart';
 import 'package:pos/domain/usecase/product/get_product_units_by_product_id_use_case.dart';
 import 'package:pos/presentation/product/add/product_add_state.dart';
 
+import 'package:pos/domain/repositories/category_repository.dart';
+
 class ProductAddViewModel {
-  final GetLocalCategoriesUseCase getLocalCategoriesUseCase;
+  final CategoryRepository categoryRepo;
   final GenerateSerialNumberUseCase generateSerialNumberUseCase;
   final AddProductUseCase addProductUseCase;
   final GetProductUnitsByProductIdUseCase getProductUnitsByProductIdUseCase;
   final GetProductPricesByProductIdUseCase getProductPricesByProductIdUseCase;
 
   ProductAddViewModel({
-    required this.getLocalCategoriesUseCase,
+    required this.categoryRepo,
     required this.generateSerialNumberUseCase,
     required this.addProductUseCase,
     required this.getProductUnitsByProductIdUseCase,
@@ -48,7 +49,7 @@ class ProductAddViewModel {
 
   Future<void> getCategories() async {
     try {
-      final categories = await getLocalCategoriesUseCase();
+      final categories = await categoryRepo.getLocalCategories();
       _state.value = _state.value.copyWith(categories: categories);
     } on Exception catch (e) {
       _errors.emit(toFailure(e).getMessage());

@@ -4,8 +4,6 @@ import 'package:flutter/material.dart';
 // Package imports:
 import 'package:common/core/ext/widget_ext.dart';
 import 'package:design_system/theme/app_colors.dart';
-import 'package:design_system/theme/color.dart';
-import 'package:design_system/theme/theme.dart';
 import 'package:design_system/widgets/snack_bar.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 
@@ -27,7 +25,8 @@ class UserEditPage extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
-    final snackBar = CustomSnackBar(key: const Key("snackbar"), context: context);
+    final snackBar =
+        CustomSnackBar(key: const Key("snackbar"), context: context);
 
     final viewNode = useFocusNode();
     final userInfo = useUserId(userId);
@@ -54,10 +53,10 @@ class UserEditPage extends HookWidget {
                 update(param);
               });
             } else {
-              return const Center(
+              return Center(
                 child: CircularProgressIndicator(
                   strokeWidth: 6,
-                  color: CustomColor.primary,
+                  color: Theme.of(context).colorScheme.primary,
                   strokeCap: StrokeCap.round,
                 ),
               );
@@ -74,7 +73,8 @@ class UserEditPage extends HookWidget {
     final remove = useRemoveUser(context, onSuccess: removeSuccess);
 
     confirm(User user) {
-      showConfirmDialog(context, "ต้องการลบผู้ใช้งาน ${user.username} ใช่หรือไม่?", () {
+      showConfirmDialog(
+          context, "ต้องการลบผู้ใช้งาน ${user.username} ใช่หรือไม่?", () {
         remove(user.id);
       });
     }
@@ -94,12 +94,12 @@ class UserEditPage extends HookWidget {
       onTap: () => FocusScope.of(context).requestFocus(viewNode),
       child: Scaffold(
         appBar: AppBar(
-          iconTheme: CustomTheme.mainTheme.iconTheme,
+          iconTheme: Theme.of(context).iconTheme,
           backgroundColor: AppColors.of(context).surfaceRaised,
           centerTitle: true,
           title: Text(
             "แก้ไขผู้ใช้",
-            style: CustomTheme.mainTheme.textTheme.headlineSmall,
+            style: Theme.of(context).textTheme.headlineSmall,
           ),
           actions: buildAction(),
         ),

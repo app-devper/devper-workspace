@@ -8,7 +8,6 @@ import 'package:design_system/widgets/responsive.dart';
 import 'package:pos/container.dart';
 import 'package:pos/domain/model/product/product.dart';
 import 'package:design_system/theme/app_colors.dart';
-import 'package:design_system/theme/color.dart';
 import 'package:design_system/widgets/error_state.dart';
 import 'products_state.dart';
 import 'products_view_model.dart';
@@ -17,10 +16,16 @@ class ProductsWidget extends StatefulWidget {
   final Function(Product) onSelected;
   final Function() onMenu;
 
+  /// Changes when the list is out of date. On a wide screen this widget
+  /// stays mounted beside the detail panel, so loading once in initState was
+  /// not enough: a deleted Product stayed listed.
+  final int refreshToken;
+
   const ProductsWidget({
     super.key,
     required this.onSelected,
     required this.onMenu,
+    this.refreshToken = 0,
   });
 
   @override
@@ -41,6 +46,15 @@ class _ProductsWidgetState extends State<ProductsWidget> {
     super.initState();
     _viewModel = sl<ProductsViewModel>();
     _viewModel.searchProduct('', _sortBalance);
+  }
+
+  @override
+  void didUpdateWidget(ProductsWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.refreshToken != widget.refreshToken) {
+      // Keep whatever the cashier had searched for.
+      _viewModel.searchProduct(_searchEditingController.text, _sortBalance);
+    }
   }
 
   @override
@@ -107,7 +121,7 @@ class _ProductsWidgetState extends State<ProductsWidget> {
                 });
               },
               icon: Icon(_sortBalance ? Icons.sort : Icons.balance),
-              color: CustomColor.primary,
+              color: Theme.of(context).colorScheme.primary,
             ),
             const SizedBox(width: 8),
             if (isMobile) ...[
@@ -117,7 +131,7 @@ class _ProductsWidgetState extends State<ProductsWidget> {
                   widget.onMenu();
                 },
                 icon: const Icon(Icons.menu),
-                color: CustomColor.primary,
+                color: Theme.of(context).colorScheme.primary,
               ),
               const SizedBox(width: 8),
             ]
@@ -147,11 +161,11 @@ class _ProductsWidgetState extends State<ProductsWidget> {
           );
         }
         if (state.loading && state.items.isEmpty) {
-          return const Expanded(
+          return Expanded(
             child: Center(
               child: CircularProgressIndicator(
                 strokeWidth: 6,
-                color: CustomColor.primary,
+                color: Theme.of(context).colorScheme.primary,
                 strokeCap: StrokeCap.round,
               ),
             ),

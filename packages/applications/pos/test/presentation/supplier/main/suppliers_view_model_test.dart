@@ -3,7 +3,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:pos/domain/model/supplier/param.dart';
 import 'package:pos/domain/model/supplier/supplier.dart';
 import 'package:pos/domain/repositories/supplier_repository.dart';
-import 'package:pos/domain/usecase/supplier/get_suppliers_use_case.dart';
 import 'package:pos/presentation/supplier/main/suppliers_view_model.dart';
 
 class FakeSupplierRepository implements SupplierRepository {
@@ -58,7 +57,7 @@ Supplier buildSupplier(String id) {
 
 SuppliersViewModel buildViewModel(SupplierRepository repo) {
   return SuppliersViewModel(
-    getSuppliersUseCase: GetSuppliersUseCase(supplierRepo: repo),
+    supplierRepo: repo,
   );
 }
 

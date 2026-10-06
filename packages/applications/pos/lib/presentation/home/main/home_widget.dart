@@ -1,5 +1,6 @@
 // Flutter imports:
 import 'package:flutter/material.dart';
+import 'package:design_system/theme/app_colors.dart';
 
 class MenuItem extends StatelessWidget {
   final String label;
@@ -21,14 +22,16 @@ class MenuItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = active ? Colors.blue : Colors.transparent;
-    final colorIcon = active ? Colors.blue : defaultColor;
-    final background = active ? Colors.blue[50] : Colors.transparent;
+    final color =
+        active ? AppColors.of(context).textPrimary : Colors.transparent;
+    final colorIcon = active ? AppColors.of(context).textPrimary : defaultColor;
+    final background =
+        active ? AppColors.of(context).sidebarSelected : Colors.transparent;
     return Tooltip(
         message: label,
-      excludeFromSemantics: true,
+        excludeFromSemantics: true,
         child: Semantics(
-                selected: active,
+            selected: active,
             button: true,
             child: InkWell(
               onTap: () {
@@ -52,8 +55,8 @@ class MenuItem extends StatelessWidget {
                             style: TextStyle(
                                 fontSize: 11,
                                 color: active
-                                    ? Colors.blue.shade800
-                                    : Colors.blueGrey.shade700)),
+                                    ? AppColors.of(context).textPrimary
+                                    : AppColors.of(context).textSecondary)),
                       ],
                     ),
                   ),

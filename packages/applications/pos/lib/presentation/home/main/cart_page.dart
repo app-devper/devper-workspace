@@ -17,7 +17,6 @@ import 'package:pos/container.dart';
 import 'package:pos/domain/model/order/order.dart';
 import 'package:pos/domain/model/customer/customer.dart';
 import 'package:pos/domain/model/order/order_item.dart';
-import 'package:pos/domain/model/order/param.dart';
 import 'package:design_system/widgets/dialogs.dart';
 import 'package:pos/presentation/core/dialog_widget.dart';
 import 'package:pos/presentation/customer/add/customer_add_page.dart';
@@ -26,7 +25,6 @@ import 'package:pos/presentation/home/main/customer_search.dart';
 import 'package:pos/presentation/home/main/payment_screen.dart';
 import 'package:pos/presentation/home/main/product_search.dart';
 import 'package:design_system/theme/app_colors.dart';
-import 'package:design_system/theme/color.dart';
 import 'cart_view_model.dart';
 
 class CartPage extends StatefulWidget {
@@ -50,9 +48,7 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
 
   DateTime currentDate = getCurrentDate();
 
-  String? _patientId;
-  String? _prescriberName;
-  String? _pharmacistName;
+  double _total = 0;
 
   bool _loadingShown = false;
   bool _orderSavingShown = false;
@@ -79,13 +75,6 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
   void _onOrderPlaced(OrderResult result) {
     _snackBar.hideAll();
     _snackBar.showSnackBar(text: "Order success");
-    _viewModel.clearCart();
-    _viewModel.prepareData();
-    setState(() {
-      _patientId = null;
-      _prescriberName = null;
-      _pharmacistName = null;
-    });
     if (_alertKey.currentContext != null) {
       Navigator.of(context).pop();
     }
@@ -108,11 +97,10 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
       _orderSavingShown = false;
       hideLoadingDialog(context);
     }
-    if (state.orderItems != null) {
-      setState(() {
-        _orderItems = state.orderItems!;
-      });
-    }
+    setState(() {
+      _orderItems = state.orderItems ?? const [];
+      _total = state.total;
+    });
   }
 
   @override
@@ -170,7 +158,7 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
         Expanded(
           child: ProductSearch(
             onSelected: (serialNumber) {
-              _viewModel.addOrderItem(serialNumber, _orderItems);
+              _viewModel.addOrderItem(serialNumber);
             },
           ),
         ),
@@ -194,7 +182,7 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
         Expanded(
           child: ProductSearch(
             onSelected: (serialNumber) {
-              _viewModel.addOrderItem(serialNumber, _orderItems);
+              _viewModel.addOrderItem(serialNumber);
             },
           ),
         ),
@@ -213,7 +201,7 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
   }
 
   Column _buildCart({bool showSearchIcon = false}) {
-    final showCustomer = _viewModel.cartStore.customer != null;
+    final showCustomer = _viewModel.customer != null;
     return Column(
       children: [
         Row(children: [
@@ -228,9 +216,9 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
                 onPressed: () {
                   _showProductDialog();
                 },
-                icon: const Icon(
+                icon: Icon(
                   Icons.search,
-                  color: CustomColor.primary,
+                  color: Theme.of(context).colorScheme.primary,
                 ),
               ),
             )
@@ -239,7 +227,7 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
             child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 8),
               child: Text(
-                'ตะกร้าสินค้า #${_viewModel.cartStore.cartIndex + 1}',
+                'ตะกร้าสินค้า #${_viewModel.openCart + 1}',
                 textAlign: TextAlign.center,
                 style: const TextStyle(
                   fontSize: 20,
@@ -301,15 +289,11 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
             child: Icon(Icons.person),
           ),
           title: Text(
-            !showCustomer
-                ? 'ข้อมูลลูกค้า'
-                : _viewModel.cartStore.customer?.name ?? "",
+            !showCustomer ? 'ข้อมูลลูกค้า' : _viewModel.customer?.name ?? "",
             style: const TextStyle(fontSize: 18),
           ),
           subtitle: Text(
-            !showCustomer
-                ? 'เลือกลูกค้า'
-                : _viewModel.cartStore.customer?.code ?? "",
+            !showCustomer ? 'เลือกลูกค้า' : _viewModel.customer?.code ?? "",
             style: const TextStyle(fontSize: 14),
           ),
           trailing: !showCustomer
@@ -317,9 +301,7 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
               : IconButton(
                   splashRadius: 16,
                   onPressed: () {
-                    setState(() {
-                      _viewModel.cartStore.customer = null;
-                    });
+                    _viewModel.setCustomer(null);
                   },
                   color: Colors.red,
                   icon: const Icon(Icons.close, size: 24),
@@ -354,7 +336,7 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
         const Divider(height: 1),
         ListTile(
           title: const Text('ราคาเฉพาะสินค้า'),
-          trailing: Text('฿${formatDouble(_getPrice())}'),
+          trailing: Text('฿${formatDouble(_total)}'),
         ),
         const Divider(height: 1),
         const ListTile(
@@ -371,7 +353,7 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
             ),
           ),
           trailing: Text(
-            '฿${formatDouble(_getPrice())}',
+            '฿${formatDouble(_total)}',
             style: const TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 18,
@@ -385,8 +367,8 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
           child: ElevatedButton(
             onPressed: _orderItems.isEmpty ? null : _showPaymentDialog,
             style: ElevatedButton.styleFrom(
-              backgroundColor: CustomColor.primary,
-              foregroundColor: Colors.white,
+              backgroundColor: Theme.of(context).colorScheme.primary,
+              foregroundColor: Theme.of(context).colorScheme.onPrimary,
               disabledBackgroundColor: AppColors.of(context).surfaceSunken,
               disabledForegroundColor: AppColors.of(context).textSecondary,
               minimumSize: const Size(double.infinity, 64),
@@ -404,7 +386,7 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
                       fontSize: 14, fontWeight: FontWeight.bold),
                 ),
                 Text(
-                  '฿${formatDouble(_getPrice())}',
+                  '฿${formatDouble(_total)}',
                   style: const TextStyle(
                     height: 1.4,
                     fontWeight: FontWeight.bold,
@@ -425,16 +407,15 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
       children: [
         Expanded(
           child: ListView.builder(
-            itemCount: _viewModel.cartStore.cartCount,
+            itemCount: _viewModel.cartCount,
             itemBuilder: (context, index) {
               return CartItem(
-                active: index == _viewModel.cartStore.cartIndex,
+                active: index == _viewModel.openCart,
                 index: index + 1,
                 onTap: () {
                   _viewModel.selectCart(index);
                 },
-                haveOrder:
-                    _viewModel.cartStore.cart[index]?.isNotEmpty ?? false,
+                haveOrder: _viewModel.cartHasLines(index),
               );
             },
           ),
@@ -479,20 +460,20 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
             priceDetail: content.getPriceDetail(),
             allowOversell: content.allowOversell,
             onToggleOversell: () {
-              _viewModel.toggleAllowOversell(index, _orderItems);
+              _viewModel.toggleAllowOversell(index);
             },
             onRemove: () {
-              _viewModel.minusItem(index, _orderItems);
+              _viewModel.minusItem(index);
             },
             onAdd: () {
-              _viewModel.plusItem(index, _orderItems);
+              _viewModel.plusItem(index);
             },
             onEdit: () {
               showInputNumberDialog(
                 context,
                 title: 'จำนวนสินค้า',
                 onCompleted: (value) {
-                  _viewModel.editItem(index, value, _orderItems);
+                  _viewModel.editItem(index, value);
                 },
               );
             },
@@ -501,10 +482,10 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
                 context,
                 orderItem: content,
                 onCompleted: (value) {
-                  _viewModel.editOrderItem(index, value, _orderItems);
+                  _viewModel.editLine(index, value);
                 },
                 onRemove: () {
-                  _viewModel.removeItem(index, _orderItems);
+                  _viewModel.removeItem(index);
                 },
               );
             },
@@ -512,14 +493,6 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
         },
       ),
     );
-  }
-
-  double _getPrice() {
-    double price = 0;
-    for (var x in _orderItems) {
-      price += x.amountPriceWithDiscount();
-    }
-    return price;
   }
 
   void _showCustomerDialog() {
@@ -544,9 +517,7 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
                 refreshCustomer = func;
               },
               onSelected: (Customer customer) {
-                setState(() {
-                  _viewModel.cartStore.customer = customer;
-                });
+                _viewModel.setCustomer(customer);
                 Navigator.pop(context);
               },
             ),
@@ -557,24 +528,29 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
   }
 
   bool _hasComplianceInfo() {
-    return (_patientId?.isNotEmpty ?? false) ||
-        (_prescriberName?.isNotEmpty ?? false) ||
-        (_pharmacistName?.isNotEmpty ?? false);
+    return (_viewModel.patientId?.isNotEmpty ?? false) ||
+        (_viewModel.prescriberName?.isNotEmpty ?? false) ||
+        (_viewModel.pharmacistName?.isNotEmpty ?? false);
   }
 
   String _getComplianceSummary() {
     final parts = [
-      if (_patientId?.isNotEmpty ?? false) 'ผู้ป่วย: $_patientId',
-      if (_prescriberName?.isNotEmpty ?? false) 'แพทย์: $_prescriberName',
-      if (_pharmacistName?.isNotEmpty ?? false) 'เภสัชกร: $_pharmacistName',
+      if (_viewModel.patientId?.isNotEmpty ?? false)
+        'ผู้ป่วย: ${_viewModel.patientId}',
+      if (_viewModel.prescriberName?.isNotEmpty ?? false)
+        'แพทย์: ${_viewModel.prescriberName}',
+      if (_viewModel.pharmacistName?.isNotEmpty ?? false)
+        'เภสัชกร: ${_viewModel.pharmacistName}',
     ];
     return parts.join(', ');
   }
 
   void _showComplianceDialog() {
-    final patientController = TextEditingController(text: _patientId);
-    final prescriberController = TextEditingController(text: _prescriberName);
-    final pharmacistController = TextEditingController(text: _pharmacistName);
+    final patientController = TextEditingController(text: _viewModel.patientId);
+    final prescriberController =
+        TextEditingController(text: _viewModel.prescriberName);
+    final pharmacistController =
+        TextEditingController(text: _viewModel.pharmacistName);
     showCenterDialog(
       context: context,
       minWidth: 360,
@@ -590,11 +566,11 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
             },
             action: "บันทึก",
             onAction: () {
-              setState(() {
-                _patientId = patientController.text.trim();
-                _prescriberName = prescriberController.text.trim();
-                _pharmacistName = pharmacistController.text.trim();
-              });
+              _viewModel.setCompliance(
+                patientId: patientController.text.trim(),
+                prescriberName: prescriberController.text.trim(),
+                pharmacistName: pharmacistController.text.trim(),
+              );
               Navigator.pop(dialogContext);
             },
           ),
@@ -663,7 +639,7 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
           Expanded(
             child: ProductSearch(
               onSelected: (serialNumber) {
-                _viewModel.addOrderItem(serialNumber, _orderItems);
+                _viewModel.addOrderItem(serialNumber);
               },
             ),
           ),
@@ -692,36 +668,16 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
         const Divider(height: 1),
         Expanded(
           child: PaymentScreen(
-            amount: _getPrice(),
-            onCompleted: (amount, typeMode) {
-              _viewModel.createOrder(_getOrderParam(amount, typeMode));
+            amount: _total,
+            onCompleted: (tendered, typeMode) {
+              _viewModel.checkout(tendered: tendered, type: typeMode);
             },
             onError: () {
-              final snackBar =
-                  CustomSnackBar(key: const Key("snackbar"), context: context);
-              snackBar.showErrorSnackBar("คุณรับเงินน้อยกว่ายอดราคาสินค้า");
+              _showError("คุณรับเงินน้อยกว่ายอดราคาสินค้า");
             },
           ),
         )
       ],
-    );
-  }
-
-  CreateOrderParam _getOrderParam(double amount, String typeMode) {
-    return CreateOrderParam(
-      customerCode: _viewModel.cartStore.customer?.code ?? "",
-      customerName: _viewModel.cartStore.customer?.name ?? "",
-      amount: amount,
-      items: _orderItems,
-      type: typeMode,
-      payments: [
-        OrderPayment(amount: amount, type: typeMode),
-      ],
-      patientId: _patientId?.isNotEmpty ?? false ? _patientId : null,
-      prescriberName:
-          _prescriberName?.isNotEmpty ?? false ? _prescriberName : null,
-      pharmacistName:
-          _pharmacistName?.isNotEmpty ?? false ? _pharmacistName : null,
     );
   }
 }

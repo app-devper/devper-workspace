@@ -5,15 +5,14 @@ import 'package:flutter/foundation.dart';
 import 'package:common/core/error/failure.dart';
 
 // Project imports:
-import 'package:pos/domain/usecase/stock_adjustment/get_stock_adjustments_by_product_id_use_case.dart';
 import 'package:pos/presentation/product/stock/stock_adjustment_history_state.dart';
+import 'package:pos/domain/repositories/stock_adjustment_repository.dart';
 
 class StockAdjustmentHistoryViewModel {
-  final GetStockAdjustmentsByProductIdUseCase
-      getStockAdjustmentsByProductIdUseCase;
+  final StockAdjustmentRepository stockAdjustmentRepo;
 
   StockAdjustmentHistoryViewModel({
-    required this.getStockAdjustmentsByProductIdUseCase,
+    required this.stockAdjustmentRepo,
   });
 
   final _state = ValueNotifier<StockAdjustmentHistoryState>(
@@ -24,7 +23,8 @@ class StockAdjustmentHistoryViewModel {
   Future<void> getStockAdjustmentsByProductId(String productId) async {
     _state.value = _state.value.copyWith(loading: true, clearError: true);
     try {
-      final items = await getStockAdjustmentsByProductIdUseCase(productId);
+      final items =
+          await stockAdjustmentRepo.getStockAdjustmentsByProductId(productId);
       _state.value = _state.value.copyWith(loading: false, items: items);
     } on Exception catch (e) {
       _state.value = _state.value

@@ -8,14 +8,15 @@ import 'package:common/core/state/one_shot.dart';
 // Project imports:
 import 'package:pos/domain/model/supplier/supplier.dart';
 import 'package:pos/domain/model/supplier/param.dart';
-import 'package:pos/domain/usecase/supplier/create_supplier_use_case.dart';
 import 'package:pos/presentation/supplier/add/supplier_add_state.dart';
 
+import 'package:pos/domain/repositories/supplier_repository.dart';
+
 class SupplierAddViewModel {
-  final CreateSupplierUseCase createSupplierUseCase;
+  final SupplierRepository supplierRepo;
 
   SupplierAddViewModel({
-    required this.createSupplierUseCase,
+    required this.supplierRepo,
   });
 
   final _state = ValueNotifier<SupplierAddState>(const SupplierAddState());
@@ -35,7 +36,7 @@ class SupplierAddViewModel {
     if (_state.value.saving) return;
     _state.value = _state.value.copyWith(saving: true);
     try {
-      _created.emit(await createSupplierUseCase(param));
+      _created.emit(await supplierRepo.createSupplier(param));
     } on Exception catch (e) {
       _errors.emit(toFailure(e).getMessage());
     } finally {

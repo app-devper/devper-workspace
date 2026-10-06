@@ -4,6 +4,8 @@ import 'package:common/core/network/error_mapper.dart';
 // Project imports:
 import 'package:pos/data/datasource/network/pos_service.dart';
 import 'package:pos/data/repositories/order_mapper.dart';
+import 'package:pos/data/repositories/cached_list.dart';
+import 'package:pos/domain/model/product/product.dart';
 import 'package:pos/domain/model/order/order.dart';
 import 'package:pos/domain/model/order/order_detail.dart';
 import 'package:pos/domain/model/order/order_item_detail.dart';
@@ -13,16 +15,21 @@ import 'package:pos/domain/repositories/order_repository.dart';
 
 class OrderRepositoryImpl implements OrderRepository {
   final PosService posService;
+  final CachedList<Product> productCache;
 
   OrderRepositoryImpl({
     required this.posService,
+    required this.productCache,
   });
 
   @override
   Future<OrderResult> createOrder(CreateOrderParam param) async {
     final response = await posService.createOrder(param.toOrderRequest());
-    return (jsonOrThrow(response) as Map<String, dynamic>)
-        .toOrderResultDomain();
+    final json = jsonOrThrow(response) as Map<String, dynamic>;
+    // A confirmed Order changes the catalogue, including sold-first quantities
+    // that are absent from response.stocks. No refresh can undo its success.
+    productCache.invalidate();
+    return json.toOrderResultDomain();
   }
 
   @override

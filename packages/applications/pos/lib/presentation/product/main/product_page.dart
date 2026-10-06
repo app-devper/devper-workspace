@@ -35,6 +35,9 @@ class ProductsPage extends StatefulWidget {
 class _ProductsPageState extends State<ProductsPage> {
   PageState _pageState = MainPage();
 
+  /// Bumped when the list behind the panels is out of date, so it reloads.
+  int _listVersion = 0;
+
   late ProductViewModel _viewModel;
   late StreamSubscription<Product> _loaded;
   late StreamSubscription<CSVImportResult> _importResults;
@@ -100,6 +103,7 @@ class _ProductsPageState extends State<ProductsPage> {
         SizedBox(
           width: 320,
           child: ProductsWidget(
+            refreshToken: _listVersion,
             onMenu: () {
               _showProductMenuDialog();
             },
@@ -131,6 +135,7 @@ class _ProductsPageState extends State<ProductsPage> {
       final isMobile = Responsive.isMobile(context);
       if (isMobile) {
         return ProductsWidget(
+          refreshToken: _listVersion,
           onMenu: () {
             _showProductMenuDialog();
           },
@@ -187,7 +192,14 @@ class _ProductsPageState extends State<ProductsPage> {
           _viewModel.getProduct(product.id);
         },
         onRemove: () {
-          _viewModel.getProduct(product.id);
+          // The Product is gone, so there is nothing to reload. This used to
+          // call getProduct(id), which failed, reported "Product not found",
+          // and left the cashier on the edit form of what they had deleted —
+          // with it still listed alongside on a wide screen.
+          setState(() {
+            _pageState = MainPage();
+            _listVersion++;
+          });
         },
       );
     } else if (_pageState is AddPage) {

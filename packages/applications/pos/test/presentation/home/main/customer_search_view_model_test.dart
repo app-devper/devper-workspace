@@ -2,7 +2,6 @@ import 'package:common/core/error/exception.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pos/domain/model/customer/customer.dart';
 import 'package:pos/domain/repositories/customer_repository.dart';
-import 'package:pos/domain/usecase/customer/get_local_customers_use_case.dart';
 import 'package:pos/presentation/home/main/customer_search_view_model.dart';
 
 class FakeCustomerRepository implements CustomerRepository {
@@ -39,7 +38,7 @@ Customer buildCustomer(String id, String name, String phone) {
 
 CustomerSearchViewModel buildViewModel(CustomerRepository repo) {
   return CustomerSearchViewModel(
-    getLocalCustomersUseCase: GetLocalCustomersUseCase(customerRepo: repo),
+    customerRepo: repo,
   );
 }
 

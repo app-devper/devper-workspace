@@ -265,10 +265,13 @@ class _OrderPageState extends State<OrderPage> {
       children: List.generate(_choices.length, (index) {
         return ChoiceChip(
           label: Text(_choices[index]),
-          labelStyle: TextStyle(color: Colors.white),
+          labelStyle: TextStyle(
+              color: _defaultChoiceIndex == index
+                  ? Theme.of(context).colorScheme.onPrimary
+                  : AppColors.of(context).textPrimary),
           selected: _defaultChoiceIndex == index,
-          selectedColor: CustomColor.primary,
-          backgroundColor: AppColors.of(context).textSecondary,
+          selectedColor: Theme.of(context).colorScheme.primary,
+          backgroundColor: AppColors.of(context).surfaceSunken,
           onSelected: (value) {
             setState(() {
               _defaultChoiceIndex = value ? index : _defaultChoiceIndex;
@@ -313,11 +316,11 @@ class _OrderPageState extends State<OrderPage> {
             ),
           );
         } else {
-          return const Expanded(
+          return Expanded(
             child: Center(
               child: CircularProgressIndicator(
                 strokeWidth: 6,
-                color: CustomColor.primary,
+                color: Theme.of(context).colorScheme.primary,
                 strokeCap: StrokeCap.round,
               ),
             ),

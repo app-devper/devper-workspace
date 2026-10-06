@@ -3,8 +3,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:pos/domain/model/supplier/param.dart';
 import 'package:pos/domain/model/supplier/supplier.dart';
 import 'package:pos/domain/repositories/supplier_repository.dart';
-import 'package:pos/domain/usecase/supplier/remove_supplier_by_id_use_case.dart';
-import 'package:pos/domain/usecase/supplier/update_supplier_by_id_use_case.dart';
 import 'package:pos/presentation/supplier/edit/supplier_edit_view_model.dart';
 
 class FakeSupplierRepository implements SupplierRepository {
@@ -72,8 +70,7 @@ SupplierParam buildParam() {
 
 SupplierEditViewModel buildViewModel(SupplierRepository repo) {
   return SupplierEditViewModel(
-    updateSupplierByIdUseCase: UpdateSupplierByIdUseCase(supplierRepo: repo),
-    removeSupplierByIdUseCase: RemoveSupplierByIdUseCase(supplierRepo: repo),
+    supplierRepo: repo,
   );
 }
 

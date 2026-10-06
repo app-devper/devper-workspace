@@ -11,37 +11,21 @@ import 'package:pos/domain/model/receive/receive.dart';
 import 'package:pos/domain/model/receive/receive_item.dart';
 import 'package:pos/domain/usecase/product/get_local_product_by_id_use_case.dart';
 import 'package:pos/domain/usecase/product/get_products_use_case.dart';
-import 'package:pos/domain/usecase/receive/create_receive_use_case.dart';
-import 'package:pos/domain/usecase/receive/get_receive_by_id_use_case.dart';
-import 'package:pos/domain/usecase/receive/get_receive_items_by_id_use_case.dart';
-import 'package:pos/domain/usecase/receive/remove_receive_by_id_use_case.dart';
-import 'package:pos/domain/usecase/receive/import_receive_use_case.dart';
-import 'package:pos/domain/usecase/receive/update_receive_by_id_use_case.dart';
-import 'package:pos/domain/usecase/supplier/get_local_suppliers_use_case.dart';
-import 'package:pos/domain/usecase/supplier/get_suppliers_use_case.dart';
 import 'package:pos/presentation/receive/manage/receive_manage_state.dart';
 
+import 'package:pos/domain/repositories/supplier_repository.dart';
+
+import 'package:pos/domain/repositories/receive_repository.dart';
+
 class ReceiveManageViewModel {
-  final GetReceiveByIdUseCase getReceiveByIdUseCase;
-  final CreateReceiveUseCase createReceiveUseCase;
-  final UpdateReceiveByIdUseCase updateReceiveByIdUseCase;
-  final RemoveReceiveByIdUseCase removeReceiveByIdUseCase;
-  final GetReceiveItemsByIdUseCase getReceiveItemsByIdUseCase;
-  final ImportReceiveUseCase importReceiveUseCase;
-  final GetLocalSuppliersUseCase getLocalSuppliersUseCase;
-  final GetSuppliersUseCase getSuppliersUseCase;
+  final ReceiveRepository receiveRepo;
+  final SupplierRepository supplierRepo;
   final GetLocalProductByIdUseCase getLocalProductByIdUseCase;
   final GetProductsUseCase getProductsUseCase;
 
   ReceiveManageViewModel({
-    required this.getReceiveByIdUseCase,
-    required this.createReceiveUseCase,
-    required this.updateReceiveByIdUseCase,
-    required this.removeReceiveByIdUseCase,
-    required this.getReceiveItemsByIdUseCase,
-    required this.importReceiveUseCase,
-    required this.getLocalSuppliersUseCase,
-    required this.getSuppliersUseCase,
+    required this.receiveRepo,
+    required this.supplierRepo,
     required this.getLocalProductByIdUseCase,
     required this.getProductsUseCase,
   });
@@ -77,10 +61,10 @@ class ReceiveManageViewModel {
   Future<void> getReceiveById(String? receiveId) async {
     _state.value = _state.value.copyWith(loading: true);
     try {
-      final suppliers = await getLocalSuppliersUseCase();
+      final suppliers = await supplierRepo.getLocalSuppliers();
       Receive? receive;
       if (receiveId != null) {
-        receive = await getReceiveByIdUseCase(receiveId);
+        receive = await receiveRepo.getReceiveById(receiveId);
       }
       _state.value = _state.value.copyWith(
         loading: false,
@@ -103,7 +87,7 @@ class ReceiveManageViewModel {
     if (_state.value.loading) return;
     _state.value = _state.value.copyWith(loading: true);
     try {
-      final created = await createReceiveUseCase(param);
+      final created = await receiveRepo.createReceive(param);
       _state.value = _state.value
           .copyWith(loading: false, receive: created, itemsReady: true);
       _created.emit(created);
@@ -121,9 +105,7 @@ class ReceiveManageViewModel {
     }
     _state.value = _state.value.copyWith(loading: true);
     try {
-      final updated = await updateReceiveByIdUseCase(
-        ReceiveUpdateParam(receiveId: receiveId, param: param),
-      );
+      final updated = await receiveRepo.updateReceiveById(receiveId, param);
       _state.value = _state.value.copyWith(loading: false, receive: updated);
       _updated.emit(updated);
       await getReceiveItemsById(receiveId);
@@ -140,7 +122,7 @@ class ReceiveManageViewModel {
     }
     _state.value = _state.value.copyWith(loading: true);
     try {
-      final removed = await removeReceiveByIdUseCase(receiveId);
+      final removed = await receiveRepo.removeReceiveById(receiveId);
       _state.value = _state.value.copyWith(loading: false);
       _removed.emit(removed);
     } on Exception catch (e) {
@@ -156,7 +138,7 @@ class ReceiveManageViewModel {
     }
     _state.value = _state.value.copyWith(loading: true);
     try {
-      final imported = await importReceiveUseCase(receiveId);
+      final imported = await receiveRepo.importReceiveById(receiveId);
       _state.value = _state.value.copyWith(loading: false, receive: imported);
       _updated.emit(imported);
       await getProductsUseCase();
@@ -169,7 +151,7 @@ class ReceiveManageViewModel {
   Future<void> getReceiveItemsById(String receiveId) async {
     _state.value = _state.value.copyWith(itemsReady: false);
     try {
-      final result = await getReceiveItemsByIdUseCase(receiveId);
+      final result = await receiveRepo.getReceiveItemsById(receiveId);
       for (var item in result) {
         item.product = await getLocalProductByIdUseCase(item.productId);
       }
@@ -185,7 +167,7 @@ class ReceiveManageViewModel {
 
   Future<void> getSuppliers() async {
     try {
-      final suppliers = await getSuppliersUseCase();
+      final suppliers = await supplierRepo.getSuppliers();
       _state.value = _state.value.copyWith(receiveSuppliers: suppliers);
     } on Exception catch (e) {
       _errors.emit(toFailure(e).getMessage());

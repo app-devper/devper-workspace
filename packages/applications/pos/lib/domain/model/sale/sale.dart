@@ -1,0 +1,207 @@
+import 'dart:math';
+
+// Project imports:
+import 'package:pos/domain/model/core/core.dart';
+import 'package:pos/domain/model/customer/customer.dart';
+import 'package:pos/domain/model/order/order_item.dart';
+import 'package:pos/domain/model/order/param.dart';
+import 'package:pos/domain/model/product/product.dart';
+import 'package:pos/domain/model/sale/line_edit.dart';
+
+/// One customer's purchase in progress at the till: its lines, its customer,
+/// the prescription details that go on the record, and what it comes to.
+///
+/// This is the module the sales screen used not to have. The total was summed
+/// in a 727-line widget, the order payload was assembled there too, and the
+/// cart itself was four public mutable fields any widget could write. Nothing
+/// about the money could be tested.
+///
+/// A Sale never reaches the network. The caller looks a barcode up and hands
+/// the product over; everything the shop's rules decide — which price a line
+/// charges, what a change of customer does to lines already scanned, whether
+/// the money offered covers the sale — is decided here, and can be tested
+/// without a single fake.
+class Sale {
+  String _id = _newId();
+
+  String get id => _id;
+
+  static String _newId() {
+    final random = Random.secure();
+    return List.generate(
+            16, (_) => random.nextInt(256).toRadixString(16).padLeft(2, '0'))
+        .join();
+  }
+
+  final List<OrderItem> _lines = [];
+
+  Customer? _customer;
+
+  String? patientId;
+  String? prescriberName;
+  String? pharmacistName;
+
+  /// The lines, for drawing — as copies.
+  ///
+  /// An unmodifiable list was not enough: the Lines inside it were the Sale's
+  /// own, so the line dialog edited them as the cashier typed, and backing out
+  /// undid nothing. A caller can do what it likes with these; the Sale only
+  /// changes through its own operations.
+  List<OrderItem> get lines =>
+      List.unmodifiable(_lines.map((line) => line.copy()));
+
+  bool get isEmpty => _lines.isEmpty;
+
+  Customer? get customer => _customer;
+
+  /// Which price list this sale charges at. Without a customer, a line sells
+  /// at its stock's own price.
+  String get priceList => _customer?.type ?? priceTypeStock;
+
+  /// What the customer owes: every line at its price, less its discount.
+  double get total {
+    double amount = 0;
+    for (final line in _lines) {
+      amount += line.amountPriceWithDiscount();
+    }
+    return amount;
+  }
+
+  /// Whether the money offered settles the sale. Half a satang of floating
+  /// point must not be the reason a cashier cannot close a till.
+  bool covers(double tendered) => tendered - total > -0.005;
+
+  /// Scanning a barcode already on the sale adds one more to that line.
+  /// Returns false when the sale has no line for it, so the caller knows to
+  /// look the product up.
+  bool increaseBarcode(String barcode) {
+    final line = _lines
+        .where((line) => line.product.unit.barcode == barcode)
+        .firstOrNull;
+    if (line == null) return false;
+    line.plusAmount();
+    return true;
+  }
+
+  /// Adds a product as a new line, priced for this sale's customer.
+  void addLine(ProductUnitItem product) {
+    _lines.add(OrderItem(
+      product: product,
+      quantity: 1,
+      customerType: priceList,
+    ));
+  }
+
+  void increase(int index) {
+    if (!_has(index)) return;
+    _lines[index].plusAmount();
+  }
+
+  /// Reducing the last one takes the line off the sale.
+  void decrease(int index) {
+    if (!_has(index)) return;
+    _lines[index].minusAmount();
+    if (_lines[index].quantity == 0) {
+      _lines.removeAt(index);
+    }
+  }
+
+  /// A quantity of none is a line the cashier is taking off.
+  void setQuantity(int index, int quantity) {
+    if (!_has(index)) return;
+    if (quantity > 0) {
+      _lines[index].quantity = quantity;
+    } else {
+      _lines.removeAt(index);
+    }
+  }
+
+  void removeAt(int index) {
+    if (!_has(index)) return;
+    _lines.removeAt(index);
+  }
+
+  void toggleOversell(int index) {
+    if (!_has(index)) return;
+    _lines[index].toggleAllowOversell();
+  }
+
+  /// Applies what the cashier confirmed in the line dialog.
+  ///
+  /// A quantity of none takes the line off — the same rule as [setQuantity].
+  /// A batch is applied before an override, so an overridden price is worked
+  /// out against the batch the line now draws from.
+  void applyEdit(int index, LineEdit edit) {
+    if (!_has(index)) return;
+    if (edit.quantity <= 0) {
+      _lines.removeAt(index);
+      return;
+    }
+    final line = _lines[index];
+    final stock = edit.stock;
+    if (stock != null) line.chooseStock(stock);
+    final priceList = edit.overridePriceList;
+    if (priceList != null) line.overridePriceType(priceList);
+    line.quantity = edit.quantity;
+    line.updateDiscount(edit.discount);
+  }
+
+  /// Changing who is buying reprices what is already scanned.
+  ///
+  /// A cashier who picked a price by hand meant it, so that line keeps it. A
+  /// discount is a separate negotiation and is never touched.
+  void setCustomer(Customer? customer) {
+    _customer = customer;
+    for (final line in _lines) {
+      line.repriceFor(priceList);
+    }
+  }
+
+  void setCompliance({
+    String? patientId,
+    String? prescriberName,
+    String? pharmacistName,
+  }) {
+    this.patientId = patientId;
+    this.prescriberName = prescriberName;
+    this.pharmacistName = pharmacistName;
+  }
+
+  /// Empties the sale back to a fresh one: no lines, no customer, and none of
+  /// the last customer's prescription details left on screen.
+  void clear() {
+    _id = _newId();
+    _lines.clear();
+    _customer = null;
+    patientId = null;
+    prescriberName = null;
+    pharmacistName = null;
+  }
+
+  /// The order to send.
+  ///
+  /// [tendered] is what the customer handed over, which is what the receipt
+  /// records; it is not the total, because a customer may overpay and take
+  /// change. Call [covers] before this.
+  CreateOrderParam toOrder({required double tendered, required String type}) {
+    return CreateOrderParam(
+      saleId: id,
+      customerCode: _customer?.code ?? "",
+      customerName: _customer?.name ?? "",
+      amount: tendered,
+      items: _lines.map((line) => line.copy()).toList(),
+      type: type,
+      payments: [OrderPayment(amount: tendered, type: type)],
+      patientId: _blankToNull(patientId),
+      prescriberName: _blankToNull(prescriberName),
+      pharmacistName: _blankToNull(pharmacistName),
+    );
+  }
+
+  /// A dialog outlives the line it was opened on, and the scanner can fire
+  /// while one is open.
+  bool _has(int index) => index >= 0 && index < _lines.length;
+
+  static String? _blankToNull(String? value) =>
+      (value?.isNotEmpty ?? false) ? value : null;
+}

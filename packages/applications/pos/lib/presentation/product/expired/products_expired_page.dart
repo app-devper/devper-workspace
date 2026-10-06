@@ -17,7 +17,6 @@ import 'package:pos/presentation/product/argument.dart';
 import 'package:pos/presentation/product/expired/products_expired_state.dart';
 import 'package:pos/presentation/product/expired/products_expired_view_model.dart';
 import 'package:design_system/theme/app_colors.dart';
-import 'package:design_system/theme/color.dart';
 import 'products_expire_ui_model.dart';
 
 class ProductsExpiredPage extends StatefulWidget {
@@ -154,11 +153,11 @@ class _ProductsExpiredPageState extends State<ProductsExpiredPage> {
       valueListenable: _viewModel.state,
       builder: (BuildContext context, ProductsExpiredState state, _) {
         if (state.loading && state.items.isEmpty) {
-          return const Expanded(
+          return Expanded(
             child: Center(
               child: CircularProgressIndicator(
                 strokeWidth: 6,
-                color: CustomColor.primary,
+                color: Theme.of(context).colorScheme.primary,
                 strokeCap: StrokeCap.round,
               ),
             ),

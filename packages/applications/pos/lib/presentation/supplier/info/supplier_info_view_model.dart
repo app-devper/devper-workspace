@@ -8,17 +8,15 @@ import 'package:common/core/state/one_shot.dart';
 // Project imports:
 import 'package:pos/domain/model/supplier/supplier.dart';
 import 'package:pos/domain/model/supplier/param.dart';
-import 'package:pos/domain/usecase/supplier/get_supplier_info_use_case.dart';
-import 'package:pos/domain/usecase/supplier/update_supplier_info_use_case.dart';
 import 'package:pos/presentation/supplier/info/supplier_info_state.dart';
 
+import 'package:pos/domain/repositories/supplier_repository.dart';
+
 class SupplierInfoViewModel {
-  final GetSupplierInfoUseCase getSupplierInfoUseCase;
-  final UpdateSupplierInfoUseCase updateSupplierInfoUseCase;
+  final SupplierRepository supplierRepo;
 
   SupplierInfoViewModel({
-    required this.getSupplierInfoUseCase,
-    required this.updateSupplierInfoUseCase,
+    required this.supplierRepo,
   });
 
   final _state = ValueNotifier<SupplierInfoState>(const SupplierInfoState());
@@ -37,7 +35,7 @@ class SupplierInfoViewModel {
   /// in state, where the form renders it.
   Future<void> getSupplierInfo() async {
     try {
-      final supplier = await getSupplierInfoUseCase();
+      final supplier = await supplierRepo.getSupplierInfo();
       _state.value = _state.value.copyWith(supplier: supplier);
     } on Exception catch (e) {
       _errors.emit(toFailure(e).getMessage());
@@ -47,7 +45,7 @@ class SupplierInfoViewModel {
   Future<void> updateSupplierInfo(SupplierParam param) async {
     _state.value = _state.value.copyWith(saving: true);
     try {
-      final updated = await updateSupplierInfoUseCase(param);
+      final updated = await supplierRepo.updateSupplierInfo(param);
       _updated.emit(updated);
     } on Exception catch (e) {
       _errors.emit(toFailure(e).getMessage());
@@ -55,8 +53,6 @@ class SupplierInfoViewModel {
       _state.value = _state.value.copyWith(saving: false);
     }
   }
-
-
 
   void dispose() {
     _state.dispose();

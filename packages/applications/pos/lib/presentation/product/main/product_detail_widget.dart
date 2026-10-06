@@ -19,7 +19,6 @@ import 'package:pos/presentation/product/stock/stock_adjustment_history_widget.d
 import 'package:pos/presentation/product/stock/stock_adjustment_widget.dart';
 import 'package:pos/presentation/product/unit/product_unit_widget.dart';
 import 'package:design_system/theme/app_colors.dart';
-import 'package:design_system/theme/color.dart';
 import 'package:design_system/theme/spacing.dart';
 
 class ProductDetailWidget extends StatefulWidget {
@@ -90,7 +89,8 @@ class _ProductDetailWidgetState extends State<ProductDetailWidget>
             const Divider(height: 1),
             TabBar.secondary(
               indicator: UnderlineTabIndicator(
-                borderSide: BorderSide(color: Colors.blue, width: 2.0),
+                borderSide: BorderSide(
+                    color: Theme.of(context).colorScheme.primary, width: 2.0),
               ),
               isScrollable: false,
               labelColor: AppColors.of(context).textPrimary,
@@ -370,10 +370,10 @@ class _ProductDetailWidgetState extends State<ProductDetailWidget>
                       onTap: () {
                         _showEditUnitDialog(context, unit: unit);
                       },
-                      child: const Text(
+                      child: Text(
                         'แก้ไข',
                         style: TextStyle(
-                          color: Colors.blue,
+                          color: Theme.of(context).colorScheme.primary,
                           fontSize: 24.0,
                           fontWeight: FontWeight.bold,
                         ),
@@ -490,10 +490,10 @@ class _ProductDetailWidgetState extends State<ProductDetailWidget>
                     onPressed: () {
                       _showAddPriceDialog(context, unit: unit, prices: prices);
                     },
-                    child: const Text(
+                    child: Text(
                       'เพิ่มราคาขาย',
                       style: TextStyle(
-                        color: CustomColor.primary,
+                        color: Theme.of(context).colorScheme.primary,
                         fontSize: 16.0,
                         fontWeight: FontWeight.bold,
                       ),
@@ -543,11 +543,12 @@ class _ProductDetailWidgetState extends State<ProductDetailWidget>
                                     prices: prices,
                                   );
                                 },
-                                child: const Text(
+                                child: Text(
                                   'แก้ไข',
                                   style: TextStyle(
                                     fontSize: 14.0,
-                                    color: Colors.blue,
+                                    color:
+                                        Theme.of(context).colorScheme.primary,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
@@ -624,10 +625,10 @@ class _ProductDetailWidgetState extends State<ProductDetailWidget>
                         _showEditStockSequenceDialog(context,
                             stocks: stock, unit: unit);
                       },
-                      child: const Text(
+                      child: Text(
                         'จัดเรียงสต็อก',
                         style: TextStyle(
-                          color: CustomColor.primary,
+                          color: Theme.of(context).colorScheme.primary,
                           fontSize: 16.0,
                           fontWeight: FontWeight.bold,
                         ),
@@ -637,10 +638,10 @@ class _ProductDetailWidgetState extends State<ProductDetailWidget>
                       onPressed: () {
                         _showAddStockDialog(context, unit: unit, price: price);
                       },
-                      child: const Text(
+                      child: Text(
                         'เพิ่มสต็อก',
                         style: TextStyle(
-                          color: CustomColor.primary,
+                          color: Theme.of(context).colorScheme.primary,
                           fontSize: 16.0,
                           fontWeight: FontWeight.bold,
                         ),
@@ -692,11 +693,12 @@ class _ProductDetailWidgetState extends State<ProductDetailWidget>
                                     stock: e,
                                   );
                                 },
-                                child: const Text(
+                                child: Text(
                                   'แก้ไข',
                                   style: TextStyle(
                                     fontSize: 14.0,
-                                    color: Colors.blue,
+                                    color:
+                                        Theme.of(context).colorScheme.primary,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),

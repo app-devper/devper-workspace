@@ -8,17 +8,15 @@ import 'package:common/core/state/one_shot.dart';
 // Project imports:
 import 'package:pos/domain/model/supplier/supplier.dart';
 import 'package:pos/domain/model/supplier/param.dart';
-import 'package:pos/domain/usecase/supplier/remove_supplier_by_id_use_case.dart';
-import 'package:pos/domain/usecase/supplier/update_supplier_by_id_use_case.dart';
 import 'package:pos/presentation/supplier/edit/supplier_edit_state.dart';
 
+import 'package:pos/domain/repositories/supplier_repository.dart';
+
 class SupplierEditViewModel {
-  final UpdateSupplierByIdUseCase updateSupplierByIdUseCase;
-  final RemoveSupplierByIdUseCase removeSupplierByIdUseCase;
+  final SupplierRepository supplierRepo;
 
   SupplierEditViewModel({
-    required this.updateSupplierByIdUseCase,
-    required this.removeSupplierByIdUseCase,
+    required this.supplierRepo,
   });
 
   final _state = ValueNotifier<SupplierEditState>(const SupplierEditState());
@@ -37,13 +35,12 @@ class SupplierEditViewModel {
 
   Stream<String> get errors => _errors.stream;
 
-  Future<void> updateSupplierById(String supplierId, SupplierParam param) async {
+  Future<void> updateSupplierById(
+      String supplierId, SupplierParam param) async {
     if (_state.value.busy) return;
     _state.value = _state.value.copyWith(busy: true);
     try {
-      _updated.emit(await updateSupplierByIdUseCase(
-        SupplierUpdateParam(supplierId: supplierId, param: param),
-      ));
+      _updated.emit(await supplierRepo.updateSupplierById(supplierId, param));
     } on Exception catch (e) {
       _errors.emit(toFailure(e).getMessage());
     } finally {
@@ -55,7 +52,7 @@ class SupplierEditViewModel {
     if (_state.value.busy) return;
     _state.value = _state.value.copyWith(busy: true);
     try {
-      _removed.emit(await removeSupplierByIdUseCase(supplierId));
+      _removed.emit(await supplierRepo.removeSupplierById(supplierId));
     } on Exception catch (e) {
       _errors.emit(toFailure(e).getMessage());
     } finally {

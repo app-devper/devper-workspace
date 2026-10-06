@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:pos/data/datasource/network/pos_service.dart';
 import 'package:pos/data/repositories/order_repository_impl.dart';
+import 'package:pos/data/repositories/cached_list.dart';
 import 'package:pos/domain/model/core/core.dart';
 import 'package:pos/domain/model/order/order_item.dart';
 import 'package:pos/domain/model/order/param.dart';
@@ -41,8 +42,8 @@ class _Recorder {
   }
 }
 
-OrderRepositoryImpl _repo(_Recorder recorder) =>
-    OrderRepositoryImpl(posService: recorder.service());
+OrderRepositoryImpl _repo(_Recorder recorder) => OrderRepositoryImpl(
+    posService: recorder.service(), productCache: CachedList<Product>());
 
 const _orderJson = {
   'id': 'o1',
@@ -312,12 +313,88 @@ void main() {
     });
   });
 
+  group('confirmed Order catalogue freshness', () {
+    CachedList<Product> loadedCache() => CachedList<Product>()
+      ..fill([
+        Product(
+            id: 'p1',
+            name: 'Product',
+            status: 'ACTIVE',
+            category: '',
+            createdDate: '',
+            units: [],
+            prices: [],
+            stocks: [])
+      ]);
+
+    test('a confirmed Order marks the catalogue stale without refreshing it',
+        () async {
+      final cache = loadedCache();
+      final recorder =
+          _Recorder(body: jsonEncode({'data': _orderJson, 'stocks': []}));
+      final repo = OrderRepositoryImpl(
+          posService: recorder.service(), productCache: cache);
+      expect(cache.needsRefresh, isFalse);
+      final result = await repo.createOrder(CreateOrderParam(
+          customerCode: '',
+          customerName: '',
+          amount: 20,
+          items: [_orderItem()],
+          type: 'Cash',
+          saleId: 'sale-1'));
+      expect(result.data.id, 'o1');
+      expect(cache.needsRefresh, isTrue);
+      expect(recorder.calls, hasLength(1),
+          reason:
+              'no refresh can turn this confirmed Order into a failed checkout');
+    });
+
+    test('a rejected Order leaves the catalogue fresh', () async {
+      final cache = loadedCache();
+      final recorder = _Recorder(
+          status: 409, body: '{"code":"POS-409","message":"conflict"}');
+      final repo = OrderRepositoryImpl(
+          posService: recorder.service(), productCache: cache);
+      await expectLater(
+          repo.createOrder(CreateOrderParam(
+              customerCode: '',
+              customerName: '',
+              amount: 20,
+              items: [_orderItem()],
+              type: 'Cash')),
+          throwsA(isA<ConflictException>()));
+      expect(cache.needsRefresh, isFalse);
+    });
+  });
+
   group('the checkout request body', () {
     Future<Map<String, dynamic>> bodyFor(CreateOrderParam param) async {
       final recorder = _Recorder(body: jsonEncode({'data': _orderJson}));
       await _repo(recorder).createOrder(param);
       return jsonDecode(recorder.bodies.single) as Map<String, dynamic>;
     }
+
+    test('a Sale sends its stable id and Line choices for server pricing',
+        () async {
+      final line = _orderItem(quantity: 2)..overridePriceType('Wholesaler');
+      line.chooseStock(_stock('chosen-lot', 10));
+      line.updateDiscount(1);
+      final body = await bodyFor(CreateOrderParam(
+          saleId: 'stable-sale',
+          customerCode: 'C1',
+          customerName: '',
+          amount: 100,
+          items: [line],
+          type: 'Cash'));
+      expect(body['saleId'], 'stable-sale');
+      expect(body['items'].single, containsPair('priceType', 'Wholesaler'));
+      expect(body['items'].single, containsPair('stockId', 'chosen-lot'));
+      expect(body['items'].single, containsPair('discount', 1));
+      for (final key in ['price', 'costPrice', 'stocks']) {
+        expect((body['items'].single as Map).containsKey(key), isFalse);
+      }
+      expect(body.containsKey('total'), isFalse);
+    });
 
     test('totals are derived from the items, not taken on trust', () async {
       final recorder = _Recorder(body: jsonEncode({'data': _orderJson}));

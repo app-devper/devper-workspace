@@ -16,7 +16,6 @@ import 'package:pos/presentation/stock_count/argument.dart';
 import 'package:pos/presentation/stock_count/main/stock_counts_state.dart';
 import 'package:pos/presentation/stock_count/main/stock_counts_view_model.dart';
 import 'package:design_system/theme/app_colors.dart';
-import 'package:design_system/theme/color.dart';
 
 class StockCountsPage extends StatefulWidget {
   const StockCountsPage({super.key});
@@ -80,10 +79,10 @@ class _StockCountsPageState extends State<StockCountsPage> {
       valueListenable: _viewModel.state,
       builder: (BuildContext context, StockCountsState state, _) {
         if (state.loading && state.items.isEmpty) {
-          return const Center(
+          return Center(
             child: CircularProgressIndicator(
               strokeWidth: 6,
-              color: CustomColor.primary,
+              color: Theme.of(context).colorScheme.primary,
               strokeCap: StrokeCap.round,
             ),
           );

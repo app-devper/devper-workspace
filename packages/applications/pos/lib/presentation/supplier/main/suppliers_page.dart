@@ -15,7 +15,6 @@ import 'package:pos/presentation/constants.dart';
 import 'package:pos/presentation/supplier/argument.dart';
 import 'package:pos/presentation/supplier/main/suppliers_state.dart';
 import 'package:pos/presentation/supplier/main/suppliers_view_model.dart';
-import 'package:design_system/theme/color.dart';
 
 class SuppliersPage extends StatefulWidget {
   const SuppliersPage({super.key});
@@ -96,11 +95,11 @@ class _SuppliersPageState extends State<SuppliersPage> {
       valueListenable: _viewModel.state,
       builder: (BuildContext context, SuppliersState state, _) {
         if (state.loading && state.items.isEmpty) {
-          return const Expanded(
+          return Expanded(
             child: Center(
               child: CircularProgressIndicator(
                 strokeWidth: 6,
-                color: CustomColor.primary,
+                color: Theme.of(context).colorScheme.primary,
                 strokeCap: StrokeCap.round,
               ),
             ),

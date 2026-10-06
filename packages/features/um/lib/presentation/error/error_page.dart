@@ -24,9 +24,9 @@ class ErrorPage extends HookWidget {
 
     return Scaffold(
       appBar: AppBar(
-        centerTitle: true,
-        backgroundColor: Colors.white,
-        elevation: 1,
+        centerTitle: false,
+        backgroundColor: AppColors.of(context).surface,
+        elevation: 0,
         automaticallyImplyLeading: false,
         title: Text(
           "เกิดข้อผิดพลาด",

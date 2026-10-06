@@ -30,6 +30,17 @@ class OrderItemDetail {
     this.returnedQty = 0,
   });
 
+  /// What the customer paid for the line: [price] is the whole line before
+  /// its discount, and [discount] is so much off each unit.
+  double paid() => price - discount * quantity;
+
+  /// What the customer paid for one unit. A return refunds no more.
+  double paidPerUnit() {
+    if (quantity <= 0) return 0;
+    final perUnit = paid() / quantity;
+    return perUnit > 0 ? perUnit : 0;
+  }
+
   String getCreatedDate() {
     final date = DateTime.parse(createdDate);
     final format = DateFormat("dd/MM/yyyy HH:mm");

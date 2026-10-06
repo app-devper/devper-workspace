@@ -9,6 +9,9 @@ Project override of the user-level `git-flow` skill (`~/.claude/skills/git-flow/
 — generic recipes live there; everything below is what's specific to
 `app-devper/devper-workspace` (Flutter monorepo, `melos` 8 + `fvm`, Flutter 3.38.7).
 
+The stage-by-stage flow (shape → build → review → release → deploy check)
+lives in `dev-flow`; this skill owns the branch rules.
+
 ## Branch map
 
 | Branch | Role | PR target | After merge |
@@ -27,16 +30,21 @@ PRs land via **squash**. The `check` workflow
 
 Unlike the other migrated repos, **`devper-workspace` has no deploy pipeline**.
 Merging `main` does NOT deploy or tag. Web deploys are **manual**, run from a
-clean `main` (or `develop`) checkout after the release lands:
+clean `main` checkout after the release lands:
 
 ```bash
-melos run build:web:pos        # flutter build web --release
-melos run deploy:web:pos       # firebase deploy --only hosting:pos
-melos run deploy:web:devper    # firebase deploy --only hosting:devper
+git checkout main && git pull --ff-only
+(cd packages/applications/pos && firebase deploy --only hosting:devper)  # https://devper.web.app
+(cd packages/applications/sm  && firebase deploy --only hosting:sm)      # https://devper-sm.web.app
 ```
 
+Each target's predeploy hook runs `tool/build_hosting.sh` (ENV=app,
+`build/hosting/<app>`); a failed build stops the deploy. The old `pos`
+target (`build/web`, site devper-pos) and the `melos run deploy:web:*`
+scripts are not the production path. Deploy only from `main` (README).
+
 Version lives in each app's own `pubspec.yaml` `version:` key
-(`packages/applications/pos` → 1.0.9, `packages/applications/sm` → 1.0.0+1) —
+(`packages/applications/pos`, `packages/applications/sm`) —
 there is no central version file. A `release/*` PR should bump the `version:`
 of whichever app(s) it ships; tagging (if any) is manual on the squash commit.
 

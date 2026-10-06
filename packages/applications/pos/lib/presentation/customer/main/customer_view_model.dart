@@ -7,14 +7,15 @@ import 'package:common/core/state/one_shot.dart';
 
 // Project imports:
 import 'package:pos/domain/model/customer/customer.dart';
-import 'package:pos/domain/usecase/customer/get_customer_by_id_use_case.dart';
 import 'package:pos/presentation/customer/main/customer_state.dart';
 
+import 'package:pos/domain/repositories/customer_repository.dart';
+
 class CustomerViewModel {
-  final GetCustomerByIdUseCase getCustomerByIdUseCase;
+  final CustomerRepository customerRepo;
 
   CustomerViewModel({
-    required this.getCustomerByIdUseCase,
+    required this.customerRepo,
   });
 
   final _state = ValueNotifier<CustomerState>(const CustomerState());
@@ -33,7 +34,7 @@ class CustomerViewModel {
     if (_state.value.loading) return;
     _state.value = _state.value.copyWith(loading: true);
     try {
-      _loaded.emit(await getCustomerByIdUseCase(id));
+      _loaded.emit(await customerRepo.getCustomerById(id));
     } on Exception catch (e) {
       _errors.emit(toFailure(e).getMessage());
     } finally {

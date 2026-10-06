@@ -7,7 +7,19 @@ import 'package:pos/domain/model/product/product.dart';
 
 class OrderItem {
   final ProductUnitItem product;
-  final String customerType;
+
+  /// Which price list this line was rung up at. It follows the sale's
+  /// customer, unless the cashier has priced the line by hand.
+  String customerType;
+
+  /// The cashier chose this line's price themselves. A change of customer
+  /// leaves it alone.
+  bool priceOverridden = false;
+
+  /// The batch the cashier rang this line up against, if they picked one.
+  /// Allocation starts here; anything it cannot cover follows the Product's
+  /// own sell-first order. Choosing one never changes that order.
+  ProductStock? chosenStock;
   int quantity = 1;
   ProductPriceType priceType = ProductPriceType(
     stock: null,
@@ -25,11 +37,52 @@ class OrderItem {
     required this.customerType,
   }) {
     unit = product.unit.unit;
-    priceType = product.getPrice(customerType);
+    priceType = _priceAt(customerType);
   }
 
-  void updatePriceType(String customerType) {
-    priceType = product.getPrice(customerType);
+  /// A separate Line with the same contents, for a caller to edit as a draft
+  /// without touching the Sale it came from.
+  OrderItem copy() {
+    return OrderItem(
+      product: product,
+      quantity: quantity,
+      customerType: customerType,
+    )
+      ..priceType = priceType
+      ..unit = unit
+      ..discount = discount
+      ..allowOversell = allowOversell
+      ..priceOverridden = priceOverridden
+      ..chosenStock = chosenStock;
+  }
+
+  ProductPriceType _priceAt(String customerType) {
+    final stock = chosenStock;
+    return stock != null
+        ? product.priceFrom(customerType, stock)
+        : product.getPrice(customerType);
+  }
+
+  /// The cashier picked a price for this line by hand. It survives a change
+  /// of customer.
+  void overridePriceType(String customerType) {
+    this.customerType = customerType;
+    priceType = _priceAt(customerType);
+    priceOverridden = true;
+  }
+
+  /// The sale's customer changed. A line priced by hand keeps that price; a
+  /// discount is a separate negotiation and is never touched here.
+  void repriceFor(String customerType) {
+    if (priceOverridden) return;
+    this.customerType = customerType;
+    priceType = _priceAt(customerType);
+  }
+
+  /// Rings this line up against a particular batch.
+  void chooseStock(ProductStock stock) {
+    chosenStock = stock;
+    priceType = _priceAt(customerType);
   }
 
   void updateDiscount(double discountPrice) {
@@ -38,11 +91,6 @@ class OrderItem {
 
   void updateDiscountByPercent(double percent) {
     discount = priceType.price * percent / 100;
-  }
-
-  void updateProductStockSequence(List<ProductStock> productStocks) {
-    product.updateProductStockSequence(productStocks);
-    priceType = product.getPrice(customerType);
   }
 
   void plusAmount() {
@@ -100,8 +148,13 @@ class OrderItem {
     return productStockOrder;
   }
 
-  List<ProductStockOrder> findProductStockOrder(List<ProductStockOrder> productStockOrder, int quantity) {
-    final productStock = product.stocks.where((stock) => stock.quantity > 0 && productStockOrder.every((element) => element.stockId != stock.id)).firstOrNull;
+  List<ProductStockOrder> findProductStockOrder(
+      List<ProductStockOrder> productStockOrder, int quantity) {
+    final productStock = product.stocks
+        .where((stock) =>
+            stock.quantity > 0 &&
+            productStockOrder.every((element) => element.stockId != stock.id))
+        .firstOrNull;
     if (productStock != null) {
       if (productStock.quantity >= quantity) {
         productStockOrder.add(
@@ -122,7 +175,9 @@ class OrderItem {
           findProductStockOrder(productStockOrder, remainQuantity);
         }
       }
-    } else if (allowOversell && productStockOrder.isNotEmpty && productStockOrder.last.stockId.isNotEmpty) {
+    } else if (allowOversell &&
+        productStockOrder.isNotEmpty &&
+        productStockOrder.last.stockId.isNotEmpty) {
       // No stock left anywhere, but this line already touched a real lot: fold the
       // shortfall onto that lot so the backend's oversell/reconciliation path (keyed
       // off a non-empty stockId) applies, instead of silently routing it to the
