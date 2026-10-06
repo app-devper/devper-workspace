@@ -33,7 +33,7 @@ only sequences them.
 ## 2. Design — decide the shape of the code
 
 - `codebase-design` for module/interface boundaries (deep modules, seams).
-- Stack references: `codebase-design` for package boundaries; follow the existing `get_it` + `http` setup — do not introduce BLoC/Riverpod/Dio.
+- Stack references: `dart-flutter-patterns` (this repo's layers, view models, data layer, errors and tests); follow the existing `get_it` + `http` setup — do not introduce BLoC/Riverpod/Dio.
 
 **Exit:** files/modules to touch are known; any new term is in `CONTEXT.md`.
 
@@ -64,7 +64,7 @@ just compiled.
 
 ## 6. Review
 
-`flutter-dart-code-review`, `coding-standards`, then `/code-review`. Fix findings before opening the PR.
+`flutter-dart-code-review` (only where it fits `dart-flutter-patterns`), `coding-standards`, then `/code-review`. Fix findings before opening the PR.
 
 ## 7. PR into develop
 
