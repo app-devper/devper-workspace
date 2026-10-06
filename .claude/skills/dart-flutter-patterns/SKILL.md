@@ -1,564 +1,324 @@
 ---
 name: dart-flutter-patterns
-description: Production-ready Dart and Flutter patterns covering null safety, immutable state with Freezed, async composition, widget architecture, state management (BLoC, Riverpod, Provider), GoRouter navigation with auth guards, Dio networking, error handling, and testing. Use when writing or reviewing Dart and Flutter code — state, widgets, navigation, networking, or architecture.
-metadata:
-  origin: ECC
+description: How Dart and Flutter code is written in devper-workspace — Clean Architecture + MVVM with ValueNotifier view models and OneShot events, get_it composition in container.dart, http via CustomClient/PosService and jsonOrThrow, sealed AppException → Failure, CachedList, Flutter Hooks only in UM, and tests with fake repositories and MockClient. Use when writing or reviewing Dart/Flutter code in this repo — a screen, view model, use case, repository, mapper or test.
 ---
 
-# Dart/Flutter Patterns
+# Dart / Flutter patterns — devper-workspace
 
-## When to Use
+The house style of this melos workspace, taken from the code. When this file
+and the code disagree, the code and [docs/architecture.md](../../../docs/architecture.md)
+win — fix this file. Domain words (Sale, Till, Line, Order…) are defined in
+[CONTEXT.md](../../../CONTEXT.md); use them in names and comments.
 
-Use this skill when:
-- Starting a new Flutter feature and need idiomatic patterns for state management, navigation, or data access
-- Reviewing or writing Dart code and need guidance on null safety, sealed types, or async composition
-- Setting up a new Flutter project and choosing between BLoC, Riverpod, or Provider
-- Implementing secure HTTP clients, WebView integration, or local storage
-- Writing tests for Flutter widgets, Cubits, or Riverpod providers
-- Wiring up GoRouter with authentication guards
+**Not used here — do not introduce:** BLoC, Riverpod, Provider, GetX, MobX,
+Freezed/json_serializable, Dio, GoRouter, mockito/mocktail. Adding any of them
+is an architecture decision (ADR), not a refactor.
 
-## How It Works
+| Need | Use |
+|---|---|
+| DI | `get_it` via `getIt()` — registrations in each app's `container.dart` |
+| Screen state | `ValueNotifier<XState>` exposed as `ValueListenable` |
+| One-off outcomes | `OneShot<T>` (`common/core/state/one_shot.dart`) |
+| HTTP | `package:http` through `CustomClient` + a `*Service` class |
+| Errors | `AppException` (sealed) → `toFailure(e)` → Thai message |
+| JSON | extension mappers on `Map<String, dynamic>` / `List`, `json_ext` readers |
+| Navigation | `Navigator.pushNamed` + route constants, `RouterApp.generateRoute` |
+| UM presentation | Flutter Hooks (`HookWidget`, `use*` hooks) — UM only |
+| Tests | `flutter_test`, hand-written `Fake*Repository`, `MockClient` from `package:http/testing.dart` |
 
-This skill provides copy-paste-ready Dart/Flutter code patterns organized by concern:
-1. **Null safety** — avoid `!`, prefer `?.`/`??`/pattern matching
-2. **Immutable state** — sealed classes, `freezed`, `copyWith`
-3. **Async composition** — concurrent `Future.wait`, safe `BuildContext` after `await`
-4. **Widget architecture** — extract to classes (not methods), `const` propagation, scoped rebuilds
-5. **State management** — BLoC/Cubit events, Riverpod notifiers and derived providers
-6. **Navigation** — GoRouter with reactive auth guards via `refreshListenable`
-7. **Networking** — Dio with interceptors, token refresh with one-time retry guard
-8. **Error handling** — global capture, `ErrorWidget.builder`, crashlytics wiring
-9. **Testing** — unit (BLoC test), widget (ProviderScope overrides), fakes over mocks
+## Packages and layers
 
-## Examples
+```
+packages/
+  applications/pos   POS app        Clean Architecture + MVVM
+  applications/sm    admin app      Clean Architecture + MVVM (consumes UM hooks in sections)
+  features/um        auth & users   Clean Architecture + Flutter Hooks
+  libraries/common   DI, network, errors, OneShot, json_ext, navigation
+  libraries/design_system  widgets/theme only — no repositories
+```
+
+Inside an app: `lib/domain` (models, repository contracts, use cases) →
+`lib/data` (`datasource/network/*_service.dart`, `repositories/*_impl.dart`,
+`*_mapper.dart`) → `lib/presentation/<feature>/<screen>/` (`*_page.dart`,
+`*_view_model.dart`, `*_state.dart`).
+
+Rules:
+- **Domain** is plain Dart: no Flutter, no `get_it`, no `http`, no JSON.
+- **Data** owns services, mappers, caches and token handling.
+- **Presentation**: View → ViewModel → UseCase (or repository contract for a
+  trivial read) → Repository. A use case never takes a `BuildContext`.
+- A workflow that sequences calls or is shared across screens/apps is a use
+  case (e.g. `CheckoutSaleUseCase`). Don't add pass-through use cases that only
+  forward one repository call — #88/#89 removed those.
+
+## Composition — container.dart
 
 ```dart
-// Sealed state — prevents impossible states
-sealed class AsyncState<T> {}
-final class Loading<T> extends AsyncState<T> {}
-final class Success<T> extends AsyncState<T> { final T data; const Success(this.data); }
-final class Failure<T> extends AsyncState<T> { final Object error; const Failure(this.error); }
+final sl = getIt();
 
-// GoRouter with reactive auth redirect
-final router = GoRouter(
-  refreshListenable: GoRouterRefreshStream(authCubit.stream),
-  redirect: (context, state) {
-    final authed = context.read<AuthCubit>().state is AuthAuthenticated;
-    if (!authed && !state.matchedLocation.startsWith('/login')) return '/login';
-    return null;
-  },
-  routes: [...],
-);
-
-// Riverpod derived provider with safe firstWhereOrNull
-@riverpod
-double cartTotal(Ref ref) {
-  final cart = ref.watch(cartNotifierProvider);
-  final products = ref.watch(productsProvider).valueOrNull ?? [];
-  return cart.fold(0.0, (total, item) {
-    final product = products.firstWhereOrNull((p) => p.id == item.productId);
-    return total + (product?.price ?? 0) * item.quantity;
-  });
+Future<void> initPos() async {
+  sl.registerFactory(() => CategoryEditViewModel(categoryRepo: sl()));
+  sl.registerSingleton(Till());
+  sl.registerFactory(() => CartViewModel(
+        till: sl(),
+        checkoutSaleUseCase: sl(),
+        getProductByBarcodeUseCase: sl(),
+      ));
+  // repositories / use cases / services registered below
 }
 ```
 
----
+- View models: `registerFactory` (one per screen instance; the page disposes it).
+- Shared state that outlives a screen (`Till`, use cases holding in-flight
+  state like `CheckoutSaleUseCase`): singletons.
+- Constructor injection with named `required` parameters. Only `container.dart`
+  and pages call `sl<…>()`.
 
-Practical, production-ready patterns for Dart and Flutter applications. Library-agnostic where possible, with explicit coverage of the most common ecosystem packages.
-
----
-
-## 1. Null Safety Fundamentals
-
-### Prefer Patterns Over Bang Operator
+## View model
 
 ```dart
-// BAD — crashes at runtime if null
-final name = user!.name;
+class CategoryEditViewModel {
+  final CategoryRepository categoryRepo;
+  CategoryEditViewModel({required this.categoryRepo});
 
-// GOOD — provide fallback
-final name = user?.name ?? 'Unknown';
+  final _state = ValueNotifier<CategoryEditState>(const CategoryEditState());
+  final _updated = OneShot<Category>();
+  final _errors = OneShot<String>();
 
-// GOOD — Dart 3 pattern matching (preferred for complex cases)
-final display = switch (user) {
-  User(:final name, :final email) => '$name <$email>',
-  null => 'Guest',
-};
+  ValueListenable<CategoryEditState> get state => _state;
+  Stream<Category> get updated => _updated.stream;
+  Stream<String> get errors => _errors.stream;
 
-// GOOD — guard early return
-String getUserName(User? user) {
-  if (user == null) return 'Unknown';
-  return user.name; // promoted to non-null after check
-}
-```
-
-### Avoid `late` Overuse
-
-```dart
-// BAD — defers null error to runtime
-late String userId;
-
-// GOOD — nullable with explicit initialization
-String? userId;
-
-// OK — use late only when initialization is guaranteed before first access
-// (e.g., in initState() before any widget interaction)
-late final AnimationController _controller;
-
-@override
-void initState() {
-  super.initState();
-  _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 300));
-}
-```
-
----
-
-## 2. Immutable State
-
-### Sealed Classes for State Hierarchies
-
-```dart
-sealed class UserState {}
-
-final class UserInitial extends UserState {}
-
-final class UserLoading extends UserState {}
-
-final class UserLoaded extends UserState {
-  const UserLoaded(this.user);
-  final User user;
-}
-
-final class UserError extends UserState {
-  const UserError(this.message);
-  final String message;
-}
-
-// Exhaustive switch — compiler enforces all branches
-Widget buildFrom(UserState state) => switch (state) {
-  UserInitial() => const SizedBox.shrink(),
-  UserLoading() => const CircularProgressIndicator(),
-  UserLoaded(:final user) => UserCard(user: user),
-  UserError(:final message) => ErrorText(message),
-};
-```
-
-### Freezed for Boilerplate-Free Immutability
-
-```dart
-import 'package:freezed_annotation/freezed_annotation.dart';
-
-part 'user.freezed.dart';
-part 'user.g.dart';
-
-@freezed
-class User with _$User {
-  const factory User({
-    required String id,
-    required String name,
-    required String email,
-    @Default(false) bool isAdmin,
-  }) = _User;
-
-  factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);
-}
-
-// Usage
-final user = User(id: '1', name: 'Alice', email: 'alice@example.com');
-final updated = user.copyWith(name: 'Alice Smith'); // immutable update
-final json = user.toJson();
-final fromJson = User.fromJson(json);
-```
-
----
-
-## 3. Async Composition
-
-### Structured Concurrency with Future.wait
-
-```dart
-Future<DashboardData> loadDashboard(UserRepository users, OrderRepository orders) async {
-  // Run concurrently — don't await sequentially
-  final (userList, orderList) = await (
-    users.getAll(),
-    orders.getRecent(),
-  ).wait; // Dart 3 record destructuring + Future.wait extension
-
-  return DashboardData(users: userList, orders: orderList);
-}
-```
-
-### Stream Patterns
-
-```dart
-// Repository exposes reactive streams for live data
-Stream<List<Item>> watchCartItems() => _db
-    .watchTable('cart_items')
-    .map((rows) => rows.map(Item.fromRow).toList());
-
-// In widget layer — declarative, no manual subscription
-StreamBuilder<List<Item>>(
-  stream: cartRepository.watchCartItems(),
-  builder: (context, snapshot) => switch (snapshot) {
-    AsyncSnapshot(connectionState: ConnectionState.waiting) =>
-        const CircularProgressIndicator(),
-    AsyncSnapshot(:final error?) => ErrorWidget(error.toString()),
-    AsyncSnapshot(:final data?) => CartList(items: data),
-    _ => const SizedBox.shrink(),
-  },
-)
-```
-
-### BuildContext After Await
-
-```dart
-// CRITICAL — always check mounted after any await in StatefulWidget
-Future<void> _handleSubmit() async {
-  setState(() => _isLoading = true);
-  try {
-    await authService.login(_email, _password);
-    if (!mounted) return; // ← guard before using context
-    context.go('/home');
-  } on AuthException catch (e) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));
-  } finally {
-    if (mounted) setState(() => _isLoading = false);
-  }
-}
-```
-
----
-
-## 4. Widget Architecture
-
-### Extract to Classes, Not Methods
-
-```dart
-// BAD — private method returning widget, prevents optimization
-Widget _buildHeader() {
-  return Container(
-    padding: const EdgeInsets.all(16),
-    child: Text(title, style: Theme.of(context).textTheme.headlineMedium),
-  );
-}
-
-// GOOD — separate widget class, enables const, element reuse
-class _PageHeader extends StatelessWidget {
-  const _PageHeader(this.title);
-  final String title;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      child: Text(title, style: Theme.of(context).textTheme.headlineMedium),
-    );
-  }
-}
-```
-
-### const Propagation
-
-```dart
-// BAD — new instances every rebuild
-child: Padding(
-  padding: EdgeInsets.all(16.0),       // not const
-  child: Icon(Icons.home, size: 24.0), // not const
-)
-
-// GOOD — const stops rebuild propagation
-child: const Padding(
-  padding: EdgeInsets.all(16.0),
-  child: Icon(Icons.home, size: 24.0),
-)
-```
-
-### Scoped Rebuilds
-
-```dart
-// BAD — entire page rebuilds on every counter change
-class CounterPage extends ConsumerWidget {
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final count = ref.watch(counterProvider); // rebuilds everything
-    return Scaffold(
-      body: Column(children: [
-        const ExpensiveHeader(), // unnecessarily rebuilt
-        Text('$count'),
-        const ExpensiveFooter(), // unnecessarily rebuilt
-      ]),
-    );
-  }
-}
-
-// GOOD — isolate the rebuilding part
-class CounterPage extends StatelessWidget {
-  const CounterPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Column(children: [
-        ExpensiveHeader(),        // never rebuilt (const)
-        _CounterDisplay(),        // only this rebuilds
-        ExpensiveFooter(),        // never rebuilt (const)
-      ]),
-    );
-  }
-}
-
-class _CounterDisplay extends ConsumerWidget {
-  const _CounterDisplay();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final count = ref.watch(counterProvider);
-    return Text('$count');
-  }
-}
-```
-
----
-
-## 5. State Management: BLoC/Cubit
-
-```dart
-// Cubit — synchronous or simple async state
-class AuthCubit extends Cubit<AuthState> {
-  AuthCubit(this._authService) : super(const AuthState.initial());
-  final AuthService _authService;
-
-  Future<void> login(String email, String password) async {
-    emit(const AuthState.loading());
+  Future<void> updateCategoryById(String id, CategoryParam param) async {
+    if (_state.value.busy) return;                 // reject double submit
+    _state.value = _state.value.copyWith(busy: true);
     try {
-      final user = await _authService.login(email, password);
-      emit(AuthState.authenticated(user));
-    } on AuthException catch (e) {
-      emit(AuthState.error(e.message));
+      _updated.emit(await categoryRepo.updateCategoryById(id, param));
+    } on Exception catch (e) {
+      _errors.emit(toFailure(e).getMessage());
+    } finally {
+      _state.value = _state.value.copyWith(busy: false);
     }
   }
 
-  void logout() {
-    _authService.logout();
-    emit(const AuthState.initial());
+  void dispose() {
+    _state.dispose();
+    _updated.dispose();
+    _errors.dispose();
   }
 }
-
-// In widget
-BlocBuilder<AuthCubit, AuthState>(
-  builder: (context, state) => switch (state) {
-    AuthInitial() => const LoginForm(),
-    AuthLoading() => const CircularProgressIndicator(),
-    AuthAuthenticated(:final user) => HomePage(user: user),
-    AuthError(:final message) => ErrorView(message: message),
-  },
-)
 ```
 
----
+- **State is what the screen draws** (data, `busy`/`loading`, permission
+  predicates like `isAdmin`). Immutable class with `const` constructor and
+  `copyWith`, annotated `@immutable`.
+- **Outcomes the screen reacts to once** (saved record → pop, error → snackbar,
+  reload signal) go through `OneShot`, never into state with a `consume*()`
+  call. Emitting with no listener drops the event — by design.
+- **No boolean flag soup.** One command → one `busy` flag or one sealed type
+  named for that screen's flow (`OrderTask`, `SupplierLookup`). Never
+  independent `loading`/`success`/`error` flags, never a shared generic
+  `CommandState`. A message the screen wrote itself is `Rejected(message)`, not
+  a `Failure` (that would append an error code).
+- Results of a use case with several outcomes are a sealed class owned by the
+  use case:
 
-## 6. State Management: Riverpod
+  ```dart
+  sealed class SaleCheckoutResult { const SaleCheckoutResult(); }
+  final class SaleCheckoutRecorded extends SaleCheckoutResult { final OrderResult order; … }
+  final class SaleCheckoutRejected extends SaleCheckoutResult { final String message; … }
+  final class SaleCheckoutPending  extends SaleCheckoutResult { … }
+  ```
+
+  Handle them with an exhaustive `switch`.
+- After `dispose()`, async completions must not publish (see `CartViewModel`).
+
+## View (page)
 
 ```dart
-// Auto-dispose async provider
-@riverpod
-Future<List<Product>> products(Ref ref) async {
-  final repo = ref.watch(productRepositoryProvider);
-  return repo.getAll();
-}
+class _CategoryEditPageState extends State<CategoryEditPage> {
+  late CategoryEditViewModel _viewModel;
+  late StreamSubscription<String> _errors;
+  late StreamSubscription<Category> _removed;
+  bool _loadingShown = false;
 
-// Notifier with complex mutations
-@riverpod
-class CartNotifier extends _$CartNotifier {
   @override
-  List<CartItem> build() => [];
-
-  void add(Product product) {
-    final existing = state.where((i) => i.productId == product.id).firstOrNull;
-    if (existing != null) {
-      state = [
-        for (final item in state)
-          if (item.productId == product.id) item.copyWith(quantity: item.quantity + 1)
-          else item,
-      ];
-    } else {
-      state = [...state, CartItem(productId: product.id, quantity: 1)];
-    }
+  void initState() {
+    super.initState();
+    _viewModel = sl<CategoryEditViewModel>();
+    _viewModel.state.addListener(_onStateChanged);
+    _errors = _viewModel.errors.listen(_showError);
+    _removed = _viewModel.removed.listen((c) => Navigator.pop(context, c));
+    WidgetsBinding.instance.addPostFrameCallback((_) => _viewModel.getCategoryById(widget.category.id));
   }
 
-  void remove(String productId) =>
-      state = state.where((i) => i.productId != productId).toList();
-
-  void clear() => state = [];
-}
-
-// Derived provider (selector pattern)
-@riverpod
-int cartCount(Ref ref) => ref.watch(cartNotifierProvider).length;
-
-@riverpod
-double cartTotal(Ref ref) {
-  final cart = ref.watch(cartNotifierProvider);
-  final products = ref.watch(productsProvider).valueOrNull ?? [];
-  return cart.fold(0.0, (total, item) {
-    // firstWhereOrNull (from collection package) avoids StateError when product is missing
-    final product = products.firstWhereOrNull((p) => p.id == item.productId);
-    return total + (product?.price ?? 0) * item.quantity;
-  });
-}
-```
-
----
-
-## 7. Navigation with GoRouter
-
-```dart
-final router = GoRouter(
-  initialLocation: '/',
-  // refreshListenable re-evaluates redirect whenever auth state changes
-  refreshListenable: GoRouterRefreshStream(authCubit.stream),
-  redirect: (context, state) {
-    final isLoggedIn = context.read<AuthCubit>().state is AuthAuthenticated;
-    final isGoingToLogin = state.matchedLocation == '/login';
-    if (!isLoggedIn && !isGoingToLogin) return '/login';
-    if (isLoggedIn && isGoingToLogin) return '/';
-    return null;
-  },
-  routes: [
-    GoRoute(path: '/login', builder: (_, __) => const LoginPage()),
-    ShellRoute(
-      builder: (context, state, child) => AppShell(child: child),
-      routes: [
-        GoRoute(path: '/', builder: (_, __) => const HomePage()),
-        GoRoute(
-          path: '/products/:id',
-          builder: (context, state) =>
-              ProductDetailPage(id: state.pathParameters['id']!),
-        ),
-      ],
-    ),
-  ],
-);
-```
-
----
-
-## 8. HTTP with Dio
-
-```dart
-final dio = Dio(BaseOptions(
-  baseUrl: const String.fromEnvironment('API_URL'),
-  connectTimeout: const Duration(seconds: 10),
-  receiveTimeout: const Duration(seconds: 30),
-  headers: {'Content-Type': 'application/json'},
-));
-
-// Add auth interceptor
-dio.interceptors.add(InterceptorsWrapper(
-  onRequest: (options, handler) async {
-    final token = await secureStorage.read(key: 'auth_token');
-    if (token != null) options.headers['Authorization'] = 'Bearer $token';
-    handler.next(options);
-  },
-  onError: (error, handler) async {
-    // Guard against infinite retry loops: only attempt refresh once per request
-    final isRetry = error.requestOptions.extra['_isRetry'] == true;
-    if (!isRetry && error.response?.statusCode == 401) {
-      final refreshed = await attemptTokenRefresh();
-      if (refreshed) {
-        error.requestOptions.extra['_isRetry'] = true;
-        return handler.resolve(await dio.fetch(error.requestOptions));
-      }
-    }
-    handler.next(error);
-  },
-));
-
-// Repository using Dio
-class UserApiDataSource {
-  const UserApiDataSource(this._dio);
-  final Dio _dio;
-
-  Future<User> getById(String id) async {
-    final response = await _dio.get<Map<String, dynamic>>('/users/$id');
-    return User.fromJson(response.data!);
+  void _onStateChanged() {
+    final s = _viewModel.state.value;
+    if (s.loading && !_loadingShown) { _loadingShown = true; showLoadingDialog(context); }
+    else if (!s.loading && _loadingShown) { _loadingShown = false; hideLoadingDialog(context); }
   }
-}
-```
 
----
-
-## 9. Error Handling Architecture
-
-```dart
-// Global error capture — set up in main()
-void main() {
-  FlutterError.onError = (details) {
-    FlutterError.presentError(details);
-    crashlytics.recordFlutterFatalError(details);
-  };
-
-  PlatformDispatcher.instance.onError = (error, stack) {
-    crashlytics.recordError(error, stack, fatal: true);
-    return true;
-  };
-
-  runApp(const App());
-}
-
-// Custom ErrorWidget for production
-class App extends StatelessWidget {
   @override
-  Widget build(BuildContext context) {
-    ErrorWidget.builder = (details) => ProductionErrorWidget(details);
-    return MaterialApp.router(routerConfig: router);
+  void dispose() {
+    _viewModel.state.removeListener(_onStateChanged);
+    _errors.cancel();
+    _removed.cancel();
+    _viewModel.dispose();
+    super.dispose();
   }
 }
 ```
 
----
+- Views own rendering, `TextEditingController`/`FocusNode`, navigation, dialogs
+  and snackbars (`CustomSnackBar`, `showLoadingDialog` from `common`). Build
+  with `ValueListenableBuilder` on `viewModel.state`.
+- Every `listen` has a `cancel` and every controller/node a `dispose`.
+- Widgets come from `design_system` (`AppShell`, buttons, inputs, dialogs,
+  `TitleBar`); don't restyle locally — add to `design_system` if it is reusable.
+- Navigation: `Navigator.pushNamed(context, someRoute, arguments: …)` with the
+  route constants and `RouterApp.generateRoute`; `resetToRoute` /
+  `appNavigatorKey` for whole-stack resets (e.g. logout).
 
-## 10. Testing Quick Reference
+## UM (Hooks)
+
+UM screens are `HookWidget`s that call presentation hooks in
+`features/um/lib/hooks/` (`use_login.dart`, `use_users.dart`…). Hooks resolve
+UM use cases; they do not replace them.
+
+- Reads: memoize the `Future` with its input/reload keys.
+- Mutations: `useMutationAction(context, action, onSuccess: …)` — one shared
+  `LoadingDialog`, rejects duplicates while pending, owns its own loading route,
+  ignores completions after unmount, maps request failures to an error dialog.
+- Local form state: `useTextEditingController`, `useFocusNode`, `useState`.
+- Don't move network/business calls into `useEffect` to avoid a use case, and
+  don't memoize callbacks with empty keys when they capture changing props.
+- POS does not adopt Hooks; SM only uses UM's hooks inside its home sections.
+
+## Data layer
 
 ```dart
-// Unit test — use case
-test('GetUserUseCase returns null for missing user', () async {
-  final repo = FakeUserRepository();
-  final useCase = GetUserUseCase(repo);
-  expect(await useCase('missing-id'), isNull);
-});
+// service: one method per endpoint, returns http.Response
+Future<http.Response> getCategories() {
+  final url = Uri.parse('${networkConfig.getHostApp()}/api/pos/v1/categories');
+  return client.get(url, headers: networkConfig.getHeaders(url));
+}
 
-// BLoC test
-blocTest<AuthCubit, AuthState>(
-  'emits loading then error on failed login',
-  build: () => AuthCubit(FakeAuthService(throwsOn: 'login')),
-  act: (cubit) => cubit.login('user@test.com', 'wrong'),
-  expect: () => [const AuthState.loading(), isA<AuthError>()],
-);
+// repository: service → jsonOrThrow → mapper → domain
+@override
+Future<Category> updateCategoryById(String id, CategoryParam param) async {
+  final response = await posService.updateCategoryById(id, param.toCategoryRequest());
+  final result = (jsonOrThrow(response) as Map<String, dynamic>).toCategoryDomain();
+  _categories.invalidate();          // any write that changes a cached read
+  return result;
+}
+```
 
-// Widget test
-testWidgets('CartBadge shows item count', (tester) async {
-  await tester.pumpWidget(
-    ProviderScope(
-      overrides: [cartNotifierProvider.overrideWith(() => FakeCartNotifier(count: 3))],
-      child: const MaterialApp(home: CartBadge()),
-    ),
+- `CustomClient` wraps `http.Client` with interceptors (logging, 401 →
+  unauthorized handling). Services take `NetworkConfig` + `CustomClient`.
+- `jsonOrThrow` decodes 2xx and throws a typed `AppException` otherwise
+  (401 Auth, 403 Forbidden, 404 NotFound, 409 Conflict with `payload`, 5xx Server).
+- Mappers are extensions in `*_mapper.dart`: `extension CategoryJson on
+  Map<String, dynamic> { Category toCategoryDomain() … }`, list versions on
+  `List`, request bodies as `param.toXRequest()` returning a JSON string. Read
+  numbers with `json_ext` (`readDouble`, `readInt`, `readString`) — the API
+  sends ints and doubles interchangeably.
+- In-memory caches are `CachedList<T>` inside the repository: `fill` on a
+  fresh read, `invalidate()` on every write that could change it (including a
+  write in another repository — `OrderRepositoryImpl` invalidates the product
+  catalogue after recording a Sale).
+
+## Errors
+
+```dart
+sealed class AppException implements Exception { final String message; final String code; … }
+final class ConflictException extends AppException { final Map<String, dynamic>? payload; … }
+
+Failure toFailure(Object e) => switch (e) {
+  AuthException() => Failure(errorCode: e.code, error: "เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่"),
+  ValidationException() => Failure(errorCode: e.code, error: e.message),
+  ConflictException() => Failure(errorCode: e.code, error: e.message),
+  http.ClientException() => const Failure(errorCode: "NETWORK_ERROR", error: _networkErrorMessage),
+  // …
+};
+```
+
+- Data throws `AppException`; view models catch `on Exception`, convert with
+  `toFailure(e)` and emit `failure.getMessage()` (`"<message> [<code>]"`).
+- User-facing text is Thai. Map by exception type, never by parsing message
+  text. Add a new subtype only when callers handle it differently.
+
+## Domain models
+
+- Entities are plain classes; behaviour that defines a business rule lives on
+  the model and is unit-tested without fakes (`Sale` prices Lines, checks
+  `covers(tendered)`, builds `toOrder()`; `OrderItemDetail.paid()`).
+- Money: a Line's `price` is the whole quantity before discount, `discount` is
+  per unit (see CONTEXT.md). The server decides what an Order charges.
+- Use `final`, `const` constructors and null-safety (`?`, `??`, `late` only
+  when initialised in `initState`). Avoid `!` except right after a check.
+
+## Tests
+
+```dart
+class FakeOrderRepository implements OrderRepository {
+  final OrderDetail? orderDetail;
+  final Object? getByIdThrows;
+  final List<String> loadedOrderIds = [];
+  FakeOrderRepository({this.orderDetail, this.getByIdThrows});
+
+  @override
+  Future<OrderDetail> getOrderById(String orderId) async {
+    final error = getByIdThrows;
+    if (error != null) {
+      throw error;
+    }
+    loadedOrderIds.add(orderId);
+    return orderDetail!;
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation i) => throw UnimplementedError();
+}
+
+// real use cases over fakes, built by one helper per test file
+OrderDetailViewModel _vm({OrderRepository? orderRepo, LoginRepository? loginRepo}) {
+  return OrderDetailViewModel(
+    getRoleUseCase: GetRoleUseCase(loginRepo ?? FakeLoginRepository()),
+    getOrderByIdUseCase: GetOrderByIdUseCase(orderRepo: orderRepo ?? FakeOrderRepository()),
+    // …
   );
-  expect(find.text('3'), findsOneWidget);
+}
+
+test('a failure is reported and stops the spinner', () async {
+  final vm = _vm(orderRepo: FakeOrderRepository(getByIdThrows: Exception('offline')));
+  final errors = <String>[];
+  vm.errors.listen(errors.add);
+  await vm.getOrderById('order-1');
+  await _pump();                       // Future<void>.delayed(Duration.zero)
+  expect(vm.state.value.loading, isFalse);
+  expect(errors, hasLength(1));
 });
 ```
 
----
+- View models are tested with **real use cases over fake repository
+  contracts** — hand-written fakes with `noSuchMethod` for unused members, no
+  mocking library.
+- Repositories are tested end to end through `CustomClient(inner:
+  MockClient(...))` with a `FakeNetworkConfig`, asserting the request path/body
+  and the mapped domain result.
+- Domain rules (Sale, Line, money) get plain unit tests.
+- Hook tests cover duplicate execution, latest callback, disposal and error
+  handling.
+- Test names read as behaviour ("a failed reload keeps the document already on
+  screen"). Tests live under `test/` mirroring `lib/`.
 
-## References
+## Before you finish
 
-- [Effective Dart: Design](https://dart.dev/effective-dart/design)
-- [Flutter Performance Best Practices](https://docs.flutter.dev/perf/best-practices)
-- [Riverpod Documentation](https://riverpod.dev/)
-- [BLoC Library](https://bloclibrary.dev/)
-- [GoRouter](https://pub.dev/packages/go_router)
-- [Freezed](https://pub.dev/packages/freezed)
-- Skill: `flutter-dart-code-review` — comprehensive review checklist
-- Rules: `rules/dart/` — coding style, patterns, security, testing, hooks
+```bash
+melos run analyze                                        # flutter analyze --fatal-infos
+melos exec -c 1 --dir-exists=test -- flutter test
+melos run import_sorter                                  # keeps the // Flutter/Package/Project imports: headers
+```
+
+Flutter is pinned by `.fvmrc` (3.38.7). Review with `flutter-dart-code-review`
+and apply only the parts that fit the patterns above.
