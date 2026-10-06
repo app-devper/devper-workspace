@@ -19,6 +19,7 @@ import 'package:pos/presentation/order/detail/order_detail_page.dart';
 import 'package:pos/presentation/order/history/order_history_page.dart';
 import 'package:pos/presentation/order/main/order_page.dart';
 import 'package:pos/presentation/product/argument.dart';
+import 'package:pos/presentation/product/edit/product_edit_page.dart';
 import 'package:pos/presentation/product/expired/products_expired_page.dart';
 import 'package:pos/presentation/product/lot_edit/product_lot_edit_page.dart';
 import 'package:pos/presentation/product/main/product_page.dart';
@@ -46,6 +47,24 @@ class RouterApp {
           final args = settings.arguments as ProductsArgument?;
           return MaterialPageRoute(
               builder: (_) => ProductsPage(mode: args?.mode));
+        case productEditRoute:
+          // Pushed from an Order's lines (an Admin taps one) and from the
+          // scanner. There was no case for it, so both fell through to
+          // "Page Not Found". A non-null result tells the caller something
+          // changed and it should reload.
+          final args = settings.arguments as ProductArgument;
+          return MaterialPageRoute<bool>(
+            builder: (context) => Scaffold(
+              body: SafeArea(
+                child: ProductEditPage(
+                  product: args.product,
+                  onBack: () => Navigator.pop(context),
+                  onEdit: () => Navigator.pop(context, true),
+                  onRemove: () => Navigator.pop(context, true),
+                ),
+              ),
+            ),
+          );
         case productExpiredRoute:
           return MaterialPageRoute(builder: (_) => const ProductsExpiredPage());
         case productLotEditRoute:
@@ -91,7 +110,8 @@ class RouterApp {
         case stockCountManageRoute:
           final args = settings.arguments as StockCountManageArgument?;
           return MaterialPageRoute(
-              builder: (_) => StockCountManagePage(stockCountId: args?.stockCountId));
+              builder: (_) =>
+                  StockCountManagePage(stockCountId: args?.stockCountId));
         case scanRoute:
           if (kIsWeb) {
             return MaterialPageRoute(
@@ -105,7 +125,8 @@ class RouterApp {
               ),
             );
           }
-          return MaterialPageRoute(builder: (_) => const ScannerPage(mode: "SCAN"));
+          return MaterialPageRoute(
+              builder: (_) => const ScannerPage(mode: "SCAN"));
         case rootRoute:
           return RouterUm.generateRoute(
               RouteSettings(name: routeSplash, arguments: settings.arguments));
