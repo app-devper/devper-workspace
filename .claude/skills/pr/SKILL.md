@@ -54,8 +54,9 @@ This repo follows **git flow** (see the `git-flow` skill): feature PRs target
    git merge main && git push origin develop
    ```
    No deploy fires automatically — if this release ships web, remind the user
-   to run the manual deploy from a clean checkout
-   (`melos run build:web:pos` → `melos run deploy:web:pos`).
+   to run the manual deploy from a clean `main` checkout
+   (`firebase deploy --only hosting:devper` in `packages/applications/pos`,
+   `firebase deploy --only hosting:sm` in `packages/applications/sm`).
 
 7. **Report**: merged PR number + URL, the squash commit SHA on the base
    branch (`git log --oneline -1`), branch deleted local + remote, and for
