@@ -87,7 +87,7 @@ directly.
 4. **PR:** `gh pr create --base main --title "release: vX.Y.Z" --body "<changelog: PR list since last tag>"`.
    CI `Analyze + Test (Flutter/melos)` must be green.
 5. **Land:** `pr` skill (squash into `main`).
-6. **Deploy:** **No pipeline** — merging `main` deploys nothing. Deploy by hand from a clean `main` checkout after the release lands.
+6. **Deploy:** **No pipeline** — merging `main` deploys nothing. Deploy by hand from a clean `main` checkout after the release lands (step 9).
 7. **Tag:** Tag by hand — nothing tags automatically.
    ```bash
    git checkout main && git pull --ff-only
@@ -96,15 +96,17 @@ directly.
    ```
 8. **Back-merge** `main` → `develop` (`git-flow`; the `pr` skill does it
    after a PR into `main`).
-9. **Check the deploy:**
+9. **Deploy and check:**
    ```bash
    git checkout main && git pull --ff-only
-   # pos shipped
-   melos run build:web:pos && melos run deploy:web:pos
-   melos run deploy:web:devper   # devper hosting also serves the pos build
-   # sm shipped
-   melos run build:web:sm && melos run deploy:web:sm   # https://devper-sm.web.app
+   (cd packages/applications/pos && firebase deploy --only hosting:devper)  # https://devper.web.app
+   (cd packages/applications/sm  && firebase deploy --only hosting:sm)      # https://devper-sm.web.app
+   (cd packages/applications/pos && firebase hosting:channel:list --site devper --project devperpos)  # live release time
    ```
+   Each target's predeploy hook runs `tool/build_hosting.sh` (ENV=app); a
+   failed build stops the deploy. The old `pos` target (`build/web`, site
+   devper-pos) and `melos run deploy:web:*` are not the production path.
+   Deploy only the apps whose `version:` this release bumped.
 
 **Exit:** tag `vX.Y.Z` on `main`, app deployed by hand from `main`, `develop` contains `main`.
 
