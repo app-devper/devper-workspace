@@ -53,6 +53,9 @@ This repo follows **git flow** (see the `git-flow` skill): feature PRs target
    git checkout develop && git pull --ff-only origin develop
    git merge main && git push origin develop
    ```
+   Pushed directly on purpose (admin only; GitHub reports
+   "Bypassed rule violations" — expected). Then check
+   `gh run list --branch develop -L 1` is green.
    No deploy fires automatically — if this release ships web, remind the user
    to run the manual deploy from a clean `main` checkout
    (`firebase deploy --only hosting:devper` in `packages/applications/pos`,
