@@ -8,12 +8,17 @@ import 'package:pos/data/datasource/network/pos_service.dart';
 import 'package:pos/data/repositories/cached_list.dart';
 import 'package:pos/data/repositories/category_repository_impl.dart';
 import 'package:pos/data/repositories/customer_repository_impl.dart';
+import 'package:pos/data/repositories/order_repository_impl.dart';
+import 'package:pos/data/repositories/product_repository_impl.dart';
 import 'package:pos/data/repositories/product_return_repository_impl.dart';
+import 'package:pos/data/repositories/receive_repository_impl.dart';
 import 'package:pos/data/repositories/stock_adjustment_repository_impl.dart';
 import 'package:pos/data/repositories/stock_count_repository_impl.dart';
 import 'package:pos/data/repositories/supplier_repository_impl.dart';
 import 'package:pos/domain/model/category/param.dart';
 import 'package:pos/domain/model/customer/param.dart';
+import 'package:pos/domain/model/order/param.dart';
+import 'package:pos/domain/model/product/param.dart';
 import 'package:pos/domain/model/product/product.dart';
 import 'package:pos/domain/model/product_return/param.dart';
 import 'package:pos/domain/model/stock_adjustment/param.dart';
@@ -230,6 +235,72 @@ void main() {
 
       expect(cache.needsRefresh, isTrue);
     });
+  });
+
+  group(
+      'every Stock ledger write marks the catalogue stale, even one that fails',
+      () {
+    // A refused or timed-out write is not proof the server moved nothing, and
+    // a needless refetch costs far less than a till selling from stale stock.
+    final service = PosService(
+      networkConfig: FakeNetworkConfig(),
+      client: CustomClient(
+          inner: MockClient((_) async => http.Response('{}', 500))),
+    );
+
+    final writes = <String, Future<Object?> Function(CachedList<Product>)>{
+      'cancelling an Order': (cache) =>
+          OrderRepositoryImpl(posService: service, productCache: cache)
+              .removeOrderById('o1'),
+      'cancelling a Line': (cache) =>
+          OrderRepositoryImpl(posService: service, productCache: cache)
+              .removeOrderItemById('i1'),
+      'cancelling a product off an Order': (cache) =>
+          OrderRepositoryImpl(posService: service, productCache: cache)
+              .removeProductOrder(
+                  RemoveProductOrderParam(orderId: 'o1', productId: 'p1')),
+      'importing a Receive': (cache) =>
+          ReceiveRepositoryImpl(posService: service, productCache: cache)
+              .importReceiveById('r1'),
+      'creating a Stock': (cache) =>
+          ProductRepositoryImpl(posService: service, cache: cache)
+              .addProductStock(ProductStockParam(
+                  productId: 'p1',
+                  unitId: 'u1',
+                  quantity: 1,
+                  costPrice: 1,
+                  price: 2,
+                  lotNumber: '',
+                  expireDate: '',
+                  importDate: '')),
+      'deleting a Stock': (cache) =>
+          ProductRepositoryImpl(posService: service, cache: cache)
+              .removeProductStockById('s1'),
+      'setting a Stock quantity': (cache) =>
+          ProductRepositoryImpl(posService: service, cache: cache)
+              .updateProductStockQuantityById(
+                  's1', UpdateProductStockQuantityParam(quantity: 3)),
+      'setting a quantity from an expiry notice': (cache) =>
+          ProductRepositoryImpl(posService: service, cache: cache)
+              .updateProductLotQuantityByLotId(
+                  's1', UpdateProductLotQuantityParam(quantity: 3)),
+      'clearing Sold first': (cache) =>
+          ProductRepositoryImpl(posService: service, cache: cache)
+              .clearQuantitySoldFirstById('p1'),
+      'importing products from CSV': (cache) =>
+          ProductRepositoryImpl(posService: service, cache: cache)
+              .importProductCSV(bytes: const [1], filename: 'p.csv'),
+    };
+
+    for (final entry in writes.entries) {
+      test(entry.key, () async {
+        final cache = CachedList<Product>()..fill([_product()]);
+
+        await expectLater(entry.value(cache), throwsA(anything));
+
+        expect(cache.needsRefresh, isTrue);
+      });
+    }
   });
 }
 

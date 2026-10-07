@@ -23,13 +23,14 @@ class OrderRepositoryImpl implements OrderRepository {
   });
 
   @override
-  Future<OrderResult> createOrder(CreateOrderParam param) async {
-    final response = await posService.createOrder(param.toOrderRequest());
-    final json = jsonOrThrow(response) as Map<String, dynamic>;
-    // A confirmed Order changes the catalogue, including sold-first quantities
-    // that are absent from response.stocks. No refresh can undo its success.
-    productCache.invalidate();
-    return json.toOrderResultDomain();
+  Future<OrderResult> createOrder(CreateOrderParam param) {
+    // A Sale moves Stock and Sold first, and response.stocks does not carry
+    // all of it.
+    return productCache.staleAfter(() async {
+      final response = await posService.createOrder(param.toOrderRequest());
+      return (jsonOrThrow(response) as Map<String, dynamic>)
+          .toOrderResultDomain();
+    });
   }
 
   @override
@@ -47,10 +48,12 @@ class OrderRepositoryImpl implements OrderRepository {
   }
 
   @override
-  Future<OrderDetail> removeOrderById(String orderId) async {
-    final response = await posService.removeOrderById(orderId);
-    return (jsonOrThrow(response) as Map<String, dynamic>)
-        .toOrderDetailDomain();
+  Future<OrderDetail> removeOrderById(String orderId) {
+    return productCache.staleAfter(() async {
+      final response = await posService.removeOrderById(orderId);
+      return (jsonOrThrow(response) as Map<String, dynamic>)
+          .toOrderDetailDomain();
+    });
   }
 
   @override
@@ -61,18 +64,21 @@ class OrderRepositoryImpl implements OrderRepository {
   }
 
   @override
-  Future<OrderItemDetail> removeProductOrder(
-      RemoveProductOrderParam param) async {
-    final response = await posService.removeProductByOrderProductId(
-        param.orderId, param.productId);
-    return (jsonOrThrow(response) as Map<String, dynamic>)
-        .toOrderItemDetailDomain();
+  Future<OrderItemDetail> removeProductOrder(RemoveProductOrderParam param) {
+    return productCache.staleAfter(() async {
+      final response = await posService.removeProductByOrderProductId(
+          param.orderId, param.productId);
+      return (jsonOrThrow(response) as Map<String, dynamic>)
+          .toOrderItemDetailDomain();
+    });
   }
 
   @override
-  Future<OrderItemDetail> removeOrderItemById(String itemId) async {
-    final response = await posService.removeOrderItemById(itemId);
-    return (jsonOrThrow(response) as Map<String, dynamic>)
-        .toOrderItemDetailDomain();
+  Future<OrderItemDetail> removeOrderItemById(String itemId) {
+    return productCache.staleAfter(() async {
+      final response = await posService.removeOrderItemById(itemId);
+      return (jsonOrThrow(response) as Map<String, dynamic>)
+          .toOrderItemDetailDomain();
+    });
   }
 }
