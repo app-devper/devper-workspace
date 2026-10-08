@@ -179,14 +179,22 @@ void main() {
   });
 
   group('checkLogin', () {
-    test('only ADMIN counts as logged for this screen', () async {
+    test('ADMIN and above count as admin for this screen', () async {
       final admin = buildViewModel(login: FakeLoginRepository(role: 'ADMIN'));
+      final superuser =
+          buildViewModel(login: FakeLoginRepository(role: 'SUPER'));
+      final manager =
+          buildViewModel(login: FakeLoginRepository(role: 'MANAGER'));
       final cashier = buildViewModel(login: FakeLoginRepository(role: 'USER'));
 
       await admin.checkLogin();
+      await superuser.checkLogin();
+      await manager.checkLogin();
       await cashier.checkLogin();
 
       expect(admin.state.value.isAdmin, isTrue);
+      expect(superuser.state.value.isAdmin, isTrue);
+      expect(manager.state.value.isAdmin, isFalse);
       expect(cashier.state.value.isAdmin, isFalse);
     });
 

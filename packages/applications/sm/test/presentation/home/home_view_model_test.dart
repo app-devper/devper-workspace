@@ -208,6 +208,16 @@ void main() {
     expect(viewModel.state.value.canManageUsers, isTrue);
   });
 
+  test('MANAGER can manage users but not systems', () async {
+    final viewModel = buildViewModel(
+        FakeSystemRepository(), FakeLoginRepository(role: 'MANAGER'));
+
+    await viewModel.loadRole();
+
+    expect(viewModel.state.value.canManageSystems, isFalse);
+    expect(viewModel.state.value.canManageUsers, isTrue);
+  });
+
   test('USER can manage neither', () async {
     final viewModel = buildViewModel(
         FakeSystemRepository(), FakeLoginRepository(role: 'USER'));

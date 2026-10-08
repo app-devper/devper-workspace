@@ -1,5 +1,6 @@
 import 'package:um/domain/repositories/login_repository.dart';
 import 'package:um/domain/entities/auth/param.dart';
+import 'package:um/domain/entities/auth/role.dart';
 import 'package:um/domain/entities/auth/system.dart';
 import 'package:um/domain/entities/auth/user_session.dart';
 
@@ -28,7 +29,8 @@ class LogoutUseCase {
 class GetRoleUseCase {
   final LoginRepository repository;
   const GetRoleUseCase(this.repository);
-  Future<String> call() => repository.getRole();
+  /// The signed-in user's role, or null when the token names none.
+  Future<Role?> call() async => Role.parse(await repository.getRole());
 }
 
 class GetSessionsUseCase {
