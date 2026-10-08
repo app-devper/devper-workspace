@@ -541,6 +541,7 @@ Future<void> initPos() async {
   sl.registerLazySingleton<ReceiveRepository>(
     () => ReceiveRepositoryImpl(
       posService: sl(),
+      productCache: sl(),
     ),
   );
   sl.registerLazySingleton<StockAdjustmentRepository>(

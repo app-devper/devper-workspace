@@ -1,3 +1,6 @@
+// Package imports:
+import 'package:common/core/error/exception.dart';
+
 /// An in-memory list the repositories keep between reads.
 ///
 /// Four repositories were each doing this by hand with their own policy, and
@@ -31,4 +34,32 @@ class CachedList<T> {
   /// write, including a write on another repository that changes what this one
   /// would return.
   void invalidate() => _dirty = true;
+
+  /// Runs [write] and marks the list stale unless the server refused it.
+  ///
+  /// pos-api applies a Stock ledger write in one transaction, so a 4xx means
+  /// nothing moved. A 5xx, a timeout or a dropped connection proves nothing
+  /// either way, and a needless refetch is cheaper than serving what the
+  /// server no longer holds.
+  Future<R> staleAfter<R>(Future<R> Function() write) async {
+    try {
+      final result = await write();
+      invalidate();
+      return result;
+    } catch (e) {
+      if (!_refused(e)) invalidate();
+      rethrow;
+    }
+  }
+
+  static bool _refused(Object e) => switch (e) {
+        ValidationException() ||
+        ConflictException() ||
+        NotFoundException() ||
+        ForbiddenException() ||
+        AuthException() =>
+          true,
+        UnknownHttpException(:final statusCode) => statusCode < 500,
+        _ => false,
+      };
 }
