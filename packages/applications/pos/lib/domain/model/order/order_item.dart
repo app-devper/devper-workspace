@@ -4,6 +4,7 @@ import 'package:common/core/ext/date_ext.dart';
 // Project imports:
 import 'package:pos/domain/model/core/core.dart';
 import 'package:pos/domain/model/product/product.dart';
+import 'package:pos/domain/model/sale/money.dart';
 
 class OrderItem {
   final ProductUnitItem product;
@@ -108,13 +109,12 @@ class OrderItem {
     allowOversell = !allowOversell;
   }
 
-  double amountPriceWithDiscount() {
-    return quantity * priceType.price - (discount * quantity);
-  }
+  /// What pos-api will charge for this line; see [Charge].
+  Charge get charge => Charge.of(priceType.price, quantity, discount);
 
-  double amountPrice() {
-    return quantity * priceType.price;
-  }
+  double amountPriceWithDiscount() => charge.paid;
+
+  double amountPrice() => charge.amount;
 
   double amountCostPrice() {
     return quantity * priceType.costPrice;

@@ -7,6 +7,7 @@ import 'package:design_system/widgets/input_number.dart';
 
 // Project imports:
 import 'package:design_system/theme/app_colors.dart';
+import 'package:pos/domain/model/sale/money.dart';
 
 class PaymentScreen extends StatefulWidget {
   final double amount;
@@ -157,7 +158,12 @@ class _PaymentScreenState extends State<PaymentScreen> {
       if (value.isEmpty || value == "." || value == "0") {
         _change = 0 - widget.amount;
       } else {
-        _change = (double.parse(value) - widget.amount);
+        // pos-api's rule, so the till never offers a tender it would refuse.
+        final tendered = double.parse(value);
+        final tender = Tender.of(tendered, widget.amount);
+        _change = tender.covers
+            ? tender.change
+            : roundMoney(tendered - widget.amount);
       }
     });
   }
