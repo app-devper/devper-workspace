@@ -48,7 +48,9 @@ class HomeViewModel {
     try {
       _state.value = _state.value.copyWith(role: await getRoleUseCase());
     } on Exception catch (_) {
-      _state.value = _state.value.copyWith(role: '');
+      // An unreadable token grants nothing, whatever was read before.
+      final current = _state.value;
+      _state.value = HomeState(items: current.items, loading: current.loading);
     }
   }
 

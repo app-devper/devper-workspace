@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 // Package imports:
 import 'package:common/core/error/failure.dart';
 import 'package:common/core/state/one_shot.dart';
+import 'package:um/domain/entities/auth/role.dart';
 import 'package:um/domain/usecase/auth_use_cases.dart';
 
 // Project imports:
@@ -55,7 +56,7 @@ class OrderViewModel {
   Future<void> checkLogin() async {
     try {
       final role = await getRoleUseCase();
-      _state.value = _state.value.copyWith(isAdmin: role == "ADMIN");
+      _state.value = _state.value.copyWith(isAdmin: role?.atLeast(Role.admin) ?? false);
     } on Exception catch (e) {
       _errors.emit(toFailure(e).getMessage());
     }

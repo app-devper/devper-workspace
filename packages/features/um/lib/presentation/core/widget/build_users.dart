@@ -12,21 +12,16 @@ import 'package:design_system/widgets/page_container.dart';
 import 'package:design_system/widgets/status_badge.dart';
 
 // Project imports:
+import 'package:um/domain/entities/auth/role.dart';
 import 'package:um/domain/entities/user/user.dart';
 
 /// Role drives the badge colour so privileged accounts stand out in the list.
-Color? _roleColor(String role) {
-  switch (role.toUpperCase()) {
-    case 'SUPER':
-      return CustomColor.font6;
-    case 'ADMIN':
-      return CustomColor.info;
-    case 'MANAGER':
-      return CustomColor.warning;
-    default:
-      return null;
-  }
-}
+Color? _roleColor(String role) => switch (Role.parse(role.toUpperCase())) {
+      Role.superuser => CustomColor.font6,
+      Role.admin => CustomColor.info,
+      Role.manager => CustomColor.warning,
+      Role.user || null => null,
+    };
 
 FutureBuilder<List<User>> buildUsers(
   Future<List<User>> users,

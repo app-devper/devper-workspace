@@ -220,7 +220,15 @@ void main() {
       expect(vm.state.value.isAdmin, isTrue);
     });
 
-    test('any other role does not', () async {
+    test('SUPER gets them too, as pos-api allows', () async {
+      final vm = _buildViewModel(loginRepo: FakeLoginRepository(role: 'SUPER'));
+
+      await vm.checkLogin();
+
+      expect(vm.state.value.isAdmin, isTrue);
+    });
+
+    test('any role below ADMIN does not', () async {
       final vm = _buildViewModel(loginRepo: FakeLoginRepository(role: 'USER'));
 
       await vm.checkLogin();
