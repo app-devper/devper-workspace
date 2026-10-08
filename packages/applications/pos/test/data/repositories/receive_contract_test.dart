@@ -52,7 +52,7 @@ void main() {
       'receiving reads embedded items and preserves lot metadata on save/delete',
       () async {
     final requests = <http.Request>[];
-    final repo = ReceiveRepositoryImpl(posService: service((r) {
+    final repo = ReceiveRepositoryImpl(productCache: CachedList<Product>(), posService: service((r) {
       requests.add(r);
       return http.Response(jsonEncode(receive), 200);
     }));
@@ -77,7 +77,7 @@ void main() {
 
   test('saving an explicitly empty item list can remove the final row',
       () async {
-    final repo = ReceiveRepositoryImpl(posService: service((r) {
+    final repo = ReceiveRepositoryImpl(productCache: CachedList<Product>(), posService: service((r) {
       expect(jsonDecode(r.body)['items'], isEmpty);
       return http.Response(
           jsonEncode({...receive, 'items': [], 'totalCost': 0}), 200);
@@ -90,7 +90,7 @@ void main() {
   });
 
   test('import uses PATCH and retains the imported status', () async {
-    final repo = ReceiveRepositoryImpl(posService: service((r) {
+    final repo = ReceiveRepositoryImpl(productCache: CachedList<Product>(), posService: service((r) {
       expect(r.method, 'PATCH');
       expect(r.url.path, '/api/pos/v1/receives/r1/import');
       return http.Response(jsonEncode({...receive, 'status': 'IMPORTED'}), 200);
@@ -100,7 +100,7 @@ void main() {
 
   test('failed receiving reads propagate instead of becoming empty items',
       () async {
-    final repo = ReceiveRepositoryImpl(
+    final repo = ReceiveRepositoryImpl(productCache: CachedList<Product>(),
         posService:
             service((r) => http.Response('{"error":"session invalid"}', 401)));
     await expectLater(
