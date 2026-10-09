@@ -19,6 +19,7 @@ import 'package:pos/domain/model/order/order_detail.dart';
 import 'package:pos/domain/model/order/order_item_detail.dart';
 import 'package:pos/domain/model/product/product.dart';
 import 'package:pos/domain/model/receipt/receipt.dart';
+import 'package:pos/domain/model/sale/money.dart';
 import 'package:pos/domain/model/supplier/supplier.dart';
 import 'package:pos/localizations/language/languages.dart';
 import 'package:pos/presentation/constants.dart';
@@ -382,21 +383,10 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
     }
   }
 
-  double getTotalPrice() {
-    double price = 0;
-    for (var x in orderItem) {
-      price += x.paid();
-    }
-    return price;
-  }
+  double getTotalPrice() => saleTotal(orderItem.map((x) => x.paid()));
 
-  double getTotalCostPrice() {
-    double price = 0;
-    for (var x in orderItem) {
-      price += x.costPrice;
-    }
-    return price;
-  }
+  double getTotalCostPrice() =>
+      roundMoney(orderItem.fold(0.0, (sum, x) => sum + x.costPrice));
 
   void _showRemoveOrderConfirm(BuildContext context) {
     showConfirmDialog(context, "ต้องการลบรายการใช่หรือไม่?", () {

@@ -13,6 +13,7 @@ import 'package:design_system/widgets/title_bar.dart';
 import 'package:pos/container.dart';
 import 'package:pos/domain/model/product_return/product_return.dart';
 import 'package:pos/domain/model/product_return/param.dart';
+import 'package:pos/domain/model/sale/money.dart';
 import 'package:pos/presentation/core/core_widget.dart';
 import 'package:pos/presentation/order/return/product_return_view_model.dart';
 
@@ -57,14 +58,15 @@ class _ProductReturnWidgetState extends State<ProductReturnWidget> {
     _errors = _viewModel.errors.listen(_showError);
     _created = _viewModel.created.listen(_onCreated);
     _quantityController.text = widget.maxReturnable.toString();
-    _refundController.text = (widget.price * widget.maxReturnable).toStringAsFixed(2);
+    _refundController.text =
+        roundMoney(widget.price * widget.maxReturnable).toStringAsFixed(2);
     _quantityController.addListener(_onQuantityChanged);
     super.initState();
   }
 
   void _onQuantityChanged() {
     final quantity = int.tryParse(_quantityController.text) ?? 0;
-    _refundController.text = (widget.price * quantity).toStringAsFixed(2);
+    _refundController.text = roundMoney(widget.price * quantity).toStringAsFixed(2);
   }
 
   void _showError(String message) {
