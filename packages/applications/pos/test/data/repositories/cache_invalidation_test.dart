@@ -302,6 +302,33 @@ void main() {
       });
     }
   });
+
+  group('the catalogue says when it changed', () {
+    test('a write that marks it stale, and an edit patched in place', () async {
+      final cache = CachedList<Product>()..fill([_product()]);
+      var heard = 0;
+      final sub = cache.changes.listen((_) => heard++);
+
+      cache.invalidate();
+      cache.touch();
+      await pumpEventQueue();
+
+      expect(heard, 2);
+      await sub.cancel();
+    });
+
+    test('filling it from the server is not a change', () async {
+      final cache = CachedList<Product>();
+      var heard = 0;
+      final sub = cache.changes.listen((_) => heard++);
+
+      cache.fill([_product()]);
+      await pumpEventQueue();
+
+      expect(heard, 0, reason: 'a list re-reading on a change must not loop');
+      await sub.cancel();
+    });
+  });
 }
 
 Product _product() => Product(

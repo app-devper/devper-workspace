@@ -5,6 +5,10 @@ import 'package:pos/domain/model/product/product_history.dart';
 import 'package:pos/domain/model/product/product_lot.dart';
 
 abstract class ProductRepository {
+  /// Fires whenever the catalogue changed: a Stock moved, or a Product, Unit,
+  /// Price or Stock was edited. Screens listing the catalogue re-read on it.
+  Stream<void> get catalogueChanges;
+
   Future<String> generateSerialNumber();
 
   Future<Product?> getProductByBarcode(String barcode);
@@ -77,7 +81,6 @@ abstract class ProductRepository {
   Future<List<ProductStock>> updateProductStockSequence(
       UpdateProductStockSequenceParam param);
 
-  Future<void> updateProductStock(ProductStock element);
 
   // Product History
   Future<List<ProductHistory>> getProductHistoriesByProductId(String productId);

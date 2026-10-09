@@ -30,6 +30,9 @@ class ProductRepositoryImpl implements ProductRepository {
   });
 
   @override
+  Stream<void> get catalogueChanges => cache.changes;
+
+  @override
   Future<Product?> getProductByBarcode(String barcode) async {
     // An empty cache is not an answer. Returning null here made a failed
     // inventory load read as "no such product" at the till, so fill it first
@@ -68,7 +71,9 @@ class ProductRepositoryImpl implements ProductRepository {
     final response = await posService.createProduct(request);
     final product =
         (jsonOrThrow(response) as Map<String, dynamic>).toProductDomain();
-    cache.items.add(product);
+    // pos-api creates its Unit and Price beside it, and the response carries
+    // neither, so the catalogue reads it fresh rather than holding half of it.
+    cache.invalidate();
     return product;
   }
 
@@ -99,6 +104,7 @@ class ProductRepositoryImpl implements ProductRepository {
         break;
       }
     }
+    cache.touch();
     return product;
   }
 
@@ -108,6 +114,7 @@ class ProductRepositoryImpl implements ProductRepository {
     final product =
         (jsonOrThrow(response) as Map<String, dynamic>).toProductDomain();
     cache.items.removeWhere((element) => element.id == product.id);
+    cache.touch();
     return product;
   }
 
@@ -178,6 +185,7 @@ class ProductRepositoryImpl implements ProductRepository {
         break;
       }
     }
+    cache.touch();
     return price;
   }
 
@@ -200,6 +208,7 @@ class ProductRepositoryImpl implements ProductRepository {
         break;
       }
     }
+    cache.touch();
     return price;
   }
 
@@ -214,6 +223,7 @@ class ProductRepositoryImpl implements ProductRepository {
         break;
       }
     }
+    cache.touch();
     return price;
   }
 
@@ -243,6 +253,7 @@ class ProductRepositoryImpl implements ProductRepository {
         break;
       }
     }
+    cache.touch();
     return unit;
   }
 
@@ -269,6 +280,7 @@ class ProductRepositoryImpl implements ProductRepository {
         break;
       }
     }
+    cache.touch();
     return unit;
   }
 
@@ -283,6 +295,7 @@ class ProductRepositoryImpl implements ProductRepository {
         break;
       }
     }
+    cache.touch();
     return unit;
   }
 
@@ -333,6 +346,7 @@ class ProductRepositoryImpl implements ProductRepository {
         break;
       }
     }
+    cache.touch();
     return stock;
   }
 
@@ -382,28 +396,8 @@ class ProductRepositoryImpl implements ProductRepository {
         break;
       }
     }
+    cache.touch();
     return stocks;
-  }
-
-  @override
-  Future<void> updateProductStock(ProductStock stock) async {
-    for (var product in cache.items) {
-      if (product.id == stock.productId) {
-        for (var stockElement in product.stocks) {
-          if (stockElement.id == stock.id) {
-            stockElement.quantity = stock.quantity;
-            stockElement.costPrice = stock.costPrice;
-            stockElement.price = stock.price;
-            stockElement.expireDate = stock.expireDate;
-            stockElement.importDate = stock.importDate;
-            stockElement.lotNumber = stock.lotNumber;
-            stockElement.sequence = stock.sequence;
-            break;
-          }
-        }
-        break;
-      }
-    }
   }
 
   @override

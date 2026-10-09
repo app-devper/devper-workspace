@@ -138,7 +138,6 @@ class ReceiveManageViewModel {
       final imported = await receiveRepo.importReceiveById(receiveId);
       _state.value = _state.value.copyWith(loading: false, receive: imported);
       _updated.emit(imported);
-      await productRepo.getProducts();
       await getReceiveItemsById(receiveId);
     } on Exception catch (e) {
       _fail(e);
