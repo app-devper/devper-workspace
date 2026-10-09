@@ -36,11 +36,6 @@ class FakeProductRepository implements ProductRepository {
   }
 
   @override
-  Future<void> updateProductStock(ProductStock element) async {
-    updatedStocks.add(element);
-  }
-
-  @override
   dynamic noSuchMethod(Invocation invocation) => throw UnimplementedError();
 }
 

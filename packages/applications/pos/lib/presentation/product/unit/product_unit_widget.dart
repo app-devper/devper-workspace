@@ -19,11 +19,15 @@ import 'package:pos/presentation/product/unit/product_unit_view_model.dart';
 import 'package:pos/presentation/product/unit/product_volume_unit_widget.dart';
 
 class ProductUnitWidget extends StatefulWidget {
+  /// The Product the Unit belongs to. Adding a Unit has no [unit] to read it
+  /// from: it used to read `unit!.productId` and crash.
+  final String productId;
   final ProductUnit? unit;
   final Function(ProductUnit) onComplete;
 
   const ProductUnitWidget({
     super.key,
+    required this.productId,
     this.unit,
     required this.onComplete,
   });
@@ -145,7 +149,7 @@ class _ProductUnitWidgetState extends State<ProductUnitWidget> {
                         ? 0
                         : double.parse(_volumeController.text),
                     barcode: _barcodeController.text,
-                    productId: widget.unit!.productId,
+                    productId: widget.productId,
                     volumeUnit: _volumeUnit,
                   ),
                 );
@@ -159,7 +163,7 @@ class _ProductUnitWidgetState extends State<ProductUnitWidget> {
                         ? 0
                         : double.parse(_volumeController.text),
                     barcode: _barcodeController.text,
-                    productId: widget.unit!.productId,
+                    productId: widget.productId,
                     volumeUnit: _volumeUnit,
                   ),
                 );

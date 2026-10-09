@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:common/localizations/localizations_delegate.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -14,12 +16,16 @@ import 'package:pos/presentation/product/main/product_view_model.dart';
 import 'package:pos/presentation/product/main/products_view_model.dart';
 import 'package:pos/presentation/router.dart';
 
-/// The shop's catalogue, in memory. Removing a Product takes it out, the way
-/// the real repository takes it out of its cache.
+/// The shop's catalogue, in memory. Removing a Product takes it out and says
+/// the catalogue changed, the way the real repository does with its cache.
 class Catalogue implements ProductRepository {
   final List<Product> products;
+  final _changes = StreamController<void>.broadcast();
 
   Catalogue(this.products);
+
+  @override
+  Stream<void> get catalogueChanges => _changes.stream;
 
   @override
   Future<List<Product>> getLocalProducts() async => List.of(products);
@@ -32,6 +38,7 @@ class Catalogue implements ProductRepository {
   Future<Product> removeProductById(String productId) async {
     final product = products.firstWhere((p) => p.id == productId);
     products.remove(product);
+    _changes.add(null);
     return product;
   }
 

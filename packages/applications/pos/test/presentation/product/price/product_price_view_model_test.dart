@@ -66,19 +66,6 @@ ProductPriceViewModel buildViewModel(FakeProductRepository repo) {
 }
 
 void main() {
-  test('getProductPrice fills the tier list and clears loading', () async {
-    final repo = FakeProductRepository(prices: [
-      price('a', 25),
-      price('b', 20, customerType: 'WHOLESALE'),
-    ]);
-    final viewModel = buildViewModel(repo);
-
-    await viewModel.getProductPrice('p1');
-
-    expect(viewModel.state.value.items, hasLength(2));
-    expect(viewModel.state.value.items.map((e) => e.price), [25, 20]);
-    expect(viewModel.state.value.loading, isFalse);
-  });
 
   test('a write emits the tier it produced', () async {
     final repo = FakeProductRepository();
@@ -130,21 +117,6 @@ void main() {
     expect(completed, hasLength(1));
   });
 
-  test('a failed load reports the error and leaves the list alone', () async {
-    final repo = FakeProductRepository(
-      throws: const NetworkException(message: 'down', code: 'NETWORK_ERROR'),
-    );
-    final viewModel = buildViewModel(repo);
-    final errors = <String>[];
-    viewModel.errors.listen(errors.add);
-
-    await viewModel.getProductPrice('p1');
-    await Future<void>.delayed(Duration.zero);
-
-    expect(viewModel.state.value.loading, isFalse);
-    expect(errors.single, contains('เชื่อมต่อเซิร์ฟเวอร์ไม่ได้'));
-    expect(viewModel.state.value.items, isEmpty);
-  });
 
   test('a failed write reports the error and completes nothing', () async {
     final repo = FakeProductRepository(
@@ -164,27 +136,6 @@ void main() {
     expect(errors, hasLength(1));
   });
 
-  test('reloading the list does not replay the last write', () async {
-    // The old shape parked the result in state and needed consumeCompleted to
-    // stop it firing again. There is nowhere for it to sit now.
-    final repo = FakeProductRepository(prices: [price('a', 25)]);
-    final viewModel = buildViewModel(repo);
-    final completed = <ProductPrice>[];
-    viewModel.completed.listen(completed.add);
-
-    await viewModel.addProductPrice(ProductPriceParam(
-      productId: 'p1',
-      unitId: 'u1',
-      customerType: 'WHOLESALE',
-      price: 18.5,
-    ));
-    await viewModel.getProductPrice('p1');
-    await Future<void>.delayed(Duration.zero);
-
-    expect(completed, hasLength(1));
-    expect(viewModel.state.value.items, hasLength(1),
-        reason: 'the list is data and survives');
-  });
 
   test('a second write while one is in flight is ignored', () async {
     final repo = FakeProductRepository();

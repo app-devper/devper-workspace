@@ -210,7 +210,8 @@ void main() {
       expect(errors, hasLength(1));
     });
 
-    test('addProduct loads generated units and prices', () async {
+    test('addProduct hands back the new Product without reading it again',
+        () async {
       final repository = FakeProductRepository(product: buildProduct());
       final vm = buildAddViewModel(repository, FakeCategoryRepository());
 
@@ -222,8 +223,10 @@ void main() {
 
       expect(vm.state.value.saving, isFalse);
       expect(created.single.id, 'p1');
-      expect(repository.unitLoadCalls, 1);
-      expect(repository.priceLoadCalls, 1);
+      expect(repository.unitLoadCalls, 0,
+          reason: 'a follow-up read failed after the Product was created, and '
+              'a retry made a second one; the catalogue reads it itself');
+      expect(repository.priceLoadCalls, 0);
     });
   });
 

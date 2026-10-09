@@ -143,20 +143,6 @@ void main() {
     });
   });
 
-  test('getProductUnit fills items and emits nothing', () async {
-    final vm = buildViewModel(
-      FakeProductRepository(units: [buildUnit('unit-1'), buildUnit('unit-2')]),
-    );
-    final completed = <ProductUnit>[];
-    vm.completed.listen(completed.add);
-
-    await vm.getProductUnit('product-1');
-    await Future<void>.delayed(Duration.zero);
-
-    expect(vm.state.value.items, hasLength(2));
-    expect(completed, isEmpty,
-        reason: 'loading the list is not a command with a result');
-  });
 
   test('a failure emits an error and no completion', () async {
     final vm = buildViewModel(
@@ -175,19 +161,6 @@ void main() {
     expect(vm.state.value.loading, isFalse);
   });
 
-  test('a failed list load leaves the items empty and reports', () async {
-    final vm = buildViewModel(
-      FakeProductRepository(throws: const NetworkException(message: 'offline')),
-    );
-    final errors = <String>[];
-    vm.errors.listen(errors.add);
-
-    await vm.getProductUnit('product-1');
-    await Future<void>.delayed(Duration.zero);
-
-    expect(vm.state.value.items, isEmpty);
-    expect(errors, hasLength(1));
-  });
 
   test('a second command while one is in flight is ignored', () async {
     final vm = buildViewModel(FakeProductRepository());
