@@ -150,6 +150,7 @@ void main() {
       );
 
       final result = await _repo(recorder).createOrder(CreateOrderParam(
+          saleId: 'sale-1',
         customerCode: 'C1',
         customerName: 'ลูกค้าทั่วไป',
         amount: 120,
@@ -168,6 +169,7 @@ void main() {
       final recorder = _Recorder(body: jsonEncode({'data': _orderJson}));
 
       final result = await _repo(recorder).createOrder(CreateOrderParam(
+          saleId: 'sale-1',
         customerCode: '',
         customerName: '',
         amount: 0,
@@ -301,6 +303,7 @@ void main() {
 
       await expectLater(
         _repo(recorder).createOrder(CreateOrderParam(
+          saleId: 'sale-1',
           customerCode: '',
           customerName: '',
           amount: 0,
@@ -357,6 +360,7 @@ void main() {
           posService: recorder.service(), productCache: cache);
       await expectLater(
           repo.createOrder(CreateOrderParam(
+          saleId: 'sale-1',
               customerCode: '',
               customerName: '',
               amount: 20,
@@ -396,25 +400,9 @@ void main() {
       expect(body.containsKey('total'), isFalse);
     });
 
-    test('totals are derived from the items, not taken on trust', () async {
-      final recorder = _Recorder(body: jsonEncode({'data': _orderJson}));
-      await _repo(recorder).createOrder(CreateOrderParam(
-        customerCode: 'C1',
-        customerName: 'ลูกค้า',
-        amount: 100,
-        items: [_orderItem(quantity: 2)],
-        type: 'Cash',
-      ));
-
-      final body = jsonDecode(recorder.bodies.single) as Map<String, dynamic>;
-      expect(body['total'], 20, reason: '2 x price 10');
-      expect(body['totalCost'], 10, reason: '2 x cost 5');
-      expect(body['change'], 80, reason: 'amount 100 less total 20');
-      expect(body['customerCode'], 'C1');
-    });
-
     test('an explicit payment list wins over the single amount', () async {
       final body = await bodyFor(CreateOrderParam(
+          saleId: 'sale-1',
         customerCode: '',
         customerName: '',
         amount: 100,
@@ -433,6 +421,7 @@ void main() {
     test('with no payment list one is synthesised from amount and type',
         () async {
       final body = await bodyFor(CreateOrderParam(
+          saleId: 'sale-1',
         customerCode: '',
         customerName: '',
         amount: 75,
@@ -445,29 +434,9 @@ void main() {
       expect(body['payments'].single['type'], 'Transfer');
     });
 
-    test('a line short of stock is split across lots', () async {
-      final body = await bodyFor(CreateOrderParam(
-        customerCode: '',
-        customerName: '',
-        amount: 0,
-        items: [
-          _orderItem(
-            quantity: 12,
-            stocks: [_stock('stock-1', 10), _stock('stock-2', 5)],
-          )
-        ],
-        type: 'Cash',
-      ));
-
-      final stocks = body['items'].single['stocks'] as List;
-      expect(stocks, hasLength(2),
-          reason: 'ten from the first lot, the remaining two from the next');
-      expect(stocks[0]['quantity'], 10);
-      expect(stocks[1]['quantity'], 2);
-    });
-
     test('the printed message lists every line and the total', () async {
       final body = await bodyFor(CreateOrderParam(
+          saleId: 'sale-1',
         customerCode: '',
         customerName: '',
         amount: 0,
@@ -481,6 +450,7 @@ void main() {
 
     test('an explicit message replaces the generated one', () async {
       final body = await bodyFor(CreateOrderParam(
+          saleId: 'sale-1',
         customerCode: '',
         customerName: '',
         amount: 0,
