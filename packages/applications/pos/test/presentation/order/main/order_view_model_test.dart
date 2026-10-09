@@ -196,7 +196,7 @@ void main() {
       expect(cashier.state.value.isAdmin, isFalse);
     });
 
-    test('an unreadable role surfaces as an error and stays a cashier',
+    test('an unreadable role stays a cashier, as every screen treats it',
         () async {
       final viewModel = buildViewModel(
         login: FakeLoginRepository(
@@ -209,7 +209,8 @@ void main() {
       await viewModel.checkLogin();
       await Future<void>.delayed(Duration.zero);
 
-      expect(errors, hasLength(1));
+      expect(errors, isEmpty,
+          reason: 'the home menu never reported it; one rule for all screens');
       expect(viewModel.state.value.isAdmin, isFalse,
           reason: 'an unknown role must not unlock the admin actions');
     });
