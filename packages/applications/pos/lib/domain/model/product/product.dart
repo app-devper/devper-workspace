@@ -174,13 +174,17 @@ class ProductUnitItem {
     }
   }
 
+  /// The Stock that sells first: the lowest sequence that holds any, and on a
+  /// tie the one listed first, as pos-api picks it. The Product's own list is
+  /// left in its order.
   ProductStock? getFirstSequenceStock() {
-    stocks.sort((a, b) => a.sequence.compareTo(b.sequence));
-
-    for (var element in stocks) {
-      if (element.quantity > 0) {
-        return element;
-      }
+    final ordered = List.of(stocks.indexed)
+      ..sort((a, b) {
+        final bySequence = a.$2.sequence.compareTo(b.$2.sequence);
+        return bySequence != 0 ? bySequence : a.$1.compareTo(b.$1);
+      });
+    for (final (_, stock) in ordered) {
+      if (stock.quantity > 0) return stock;
     }
     return null;
   }
