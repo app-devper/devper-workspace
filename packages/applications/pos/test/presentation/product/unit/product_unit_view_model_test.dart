@@ -3,10 +3,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:pos/domain/model/product/param.dart';
 import 'package:pos/domain/model/product/product.dart';
 import 'package:pos/domain/repositories/product_repository.dart';
-import 'package:pos/domain/usecase/product/add_product_unit_use_case.dart';
-import 'package:pos/domain/usecase/product/get_product_units_by_product_id_use_case.dart';
-import 'package:pos/domain/usecase/product/remove_product_unit_by_id_use_case.dart';
-import 'package:pos/domain/usecase/product/update_product_unit_by_id_use_case.dart';
 import 'package:pos/presentation/product/unit/product_unit_view_model.dart';
 
 class FakeProductRepository implements ProductRepository {
@@ -86,13 +82,7 @@ ProductUnitParam buildParam() {
 
 ProductUnitViewModel buildViewModel(ProductRepository repo) {
   return ProductUnitViewModel(
-    addProductUnitUseCase: AddProductUnitUseCase(productRepo: repo),
-    updateProductUnitByIdUseCase:
-        UpdateProductUnitByIdUseCase(productRepo: repo),
-    removeProductUnitByIdUseCase:
-        RemoveProductUnitByIdUseCase(productRepo: repo),
-    getProductUnitsByProductIdUseCase:
-        GetProductUnitsByProductIdUseCase(productRepo: repo),
+    productRepo: repo,
   );
 }
 

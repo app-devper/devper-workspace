@@ -8,9 +8,6 @@ import 'package:pos/domain/model/supplier/supplier.dart';
 import 'package:pos/domain/repositories/customer_repository.dart';
 import 'package:pos/domain/repositories/order_repository.dart';
 import 'package:pos/domain/repositories/supplier_repository.dart';
-import 'package:pos/domain/usecase/order/get_order_by_id_use_case.dart';
-import 'package:pos/domain/usecase/order/remove_order_by_id_use_case.dart';
-import 'package:pos/domain/usecase/order/remove_order_item_by_id_use_case.dart';
 import 'package:pos/presentation/order/detail/order_detail_state.dart';
 import 'package:pos/presentation/order/detail/order_detail_view_model.dart';
 import 'package:um/domain/repositories/login_repository.dart';
@@ -199,12 +196,7 @@ OrderDetailViewModel _buildViewModel({
 }) {
   return OrderDetailViewModel(
     getRoleUseCase: GetRoleUseCase(loginRepo ?? FakeLoginRepository()),
-    getOrderByIdUseCase:
-        GetOrderByIdUseCase(orderRepo: orderRepo ?? FakeOrderRepository()),
-    removeOrderByIdUseCase:
-        RemoveOrderByIdUseCase(orderRepo: orderRepo ?? FakeOrderRepository()),
-    removeOrderItemByIdUseCase: RemoveOrderItemByIdUseCase(
-        orderRepo: orderRepo ?? FakeOrderRepository()),
+    orderRepo: orderRepo ?? FakeOrderRepository(),
     supplierRepo: supplierRepo ?? FakeSupplierRepository(),
     customerRepo: customerRepo ?? FakeCustomerRepository(),
   );

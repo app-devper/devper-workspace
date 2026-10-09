@@ -8,14 +8,14 @@ import 'package:common/core/state/one_shot.dart';
 // Project imports:
 import 'package:pos/domain/model/product/product.dart';
 import 'package:pos/domain/model/product/param.dart';
-import 'package:pos/domain/usecase/product/update_product_stock_sequence_use_case.dart';
 import 'package:pos/presentation/product/stock/product_stock_sequence_state.dart';
+import 'package:pos/domain/repositories/product_repository.dart';
 
 class ProductStockSequenceViewModel {
-  final UpdateProductStockSequenceUseCase updateProductStockSequenceUseCase;
+  final ProductRepository productRepo;
 
   ProductStockSequenceViewModel({
-    required this.updateProductStockSequenceUseCase,
+    required this.productRepo,
   });
 
   final _state = ValueNotifier<ProductStockSequenceState>(
@@ -35,7 +35,7 @@ class ProductStockSequenceViewModel {
       UpdateProductStockSequenceParam param) async {
     _state.value = _state.value.copyWith(loading: true);
     try {
-      final updated = await updateProductStockSequenceUseCase(param);
+      final updated = await productRepo.updateProductStockSequence(param);
       _updated.emit(updated);
     } on Exception catch (e) {
       _errors.emit(toFailure(e).getMessage());
@@ -43,8 +43,6 @@ class ProductStockSequenceViewModel {
       _state.value = _state.value.copyWith(loading: false);
     }
   }
-
-
 
   void dispose() {
     _state.dispose();

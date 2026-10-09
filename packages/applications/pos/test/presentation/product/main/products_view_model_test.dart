@@ -2,7 +2,6 @@ import 'package:common/core/error/exception.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pos/domain/model/product/product.dart';
 import 'package:pos/domain/repositories/product_repository.dart';
-import 'package:pos/domain/usecase/product/get_local_products_use_case.dart';
 import 'package:pos/presentation/product/main/products_view_model.dart';
 
 class FakeProductRepository implements ProductRepository {
@@ -58,7 +57,7 @@ Product buildProduct(String id, String name,
 
 ProductsViewModel buildViewModel(ProductRepository repo) {
   return ProductsViewModel(
-    getLocalProductsUseCase: GetLocalProductsUseCase(productRepo: repo),
+    productRepo: repo,
   );
 }
 

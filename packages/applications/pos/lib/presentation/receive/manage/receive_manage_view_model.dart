@@ -9,25 +9,22 @@ import 'package:common/core/state/one_shot.dart';
 import 'package:pos/domain/model/receive/param.dart';
 import 'package:pos/domain/model/receive/receive.dart';
 import 'package:pos/domain/model/receive/receive_item.dart';
-import 'package:pos/domain/usecase/product/get_local_product_by_id_use_case.dart';
-import 'package:pos/domain/usecase/product/get_products_use_case.dart';
 import 'package:pos/presentation/receive/manage/receive_manage_state.dart';
 
 import 'package:pos/domain/repositories/supplier_repository.dart';
 
 import 'package:pos/domain/repositories/receive_repository.dart';
+import 'package:pos/domain/repositories/product_repository.dart';
 
 class ReceiveManageViewModel {
+  final ProductRepository productRepo;
   final ReceiveRepository receiveRepo;
   final SupplierRepository supplierRepo;
-  final GetLocalProductByIdUseCase getLocalProductByIdUseCase;
-  final GetProductsUseCase getProductsUseCase;
 
   ReceiveManageViewModel({
+    required this.productRepo,
     required this.receiveRepo,
     required this.supplierRepo,
-    required this.getLocalProductByIdUseCase,
-    required this.getProductsUseCase,
   });
 
   final _state = ValueNotifier<ReceiveManageState>(const ReceiveManageState());
@@ -141,7 +138,7 @@ class ReceiveManageViewModel {
       final imported = await receiveRepo.importReceiveById(receiveId);
       _state.value = _state.value.copyWith(loading: false, receive: imported);
       _updated.emit(imported);
-      await getProductsUseCase();
+      await productRepo.getProducts();
       await getReceiveItemsById(receiveId);
     } on Exception catch (e) {
       _fail(e);
@@ -153,7 +150,7 @@ class ReceiveManageViewModel {
     try {
       final result = await receiveRepo.getReceiveItemsById(receiveId);
       for (var item in result) {
-        item.product = await getLocalProductByIdUseCase(item.productId);
+        item.product = await productRepo.getLocalProductById(item.productId);
       }
       _state.value = _state.value.copyWith(
         itemsReady: true,

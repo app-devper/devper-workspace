@@ -6,16 +6,6 @@ import 'package:pos/domain/model/product/product.dart';
 import 'package:pos/domain/model/product/product_history.dart';
 import 'package:pos/domain/repositories/category_repository.dart';
 import 'package:pos/domain/repositories/product_repository.dart';
-import 'package:pos/domain/usecase/product/add_product_use_case.dart';
-import 'package:pos/domain/usecase/product/clear_quantity_sold_first_by_id_use_case.dart';
-import 'package:pos/domain/usecase/product/generate_serial_number_use_case.dart';
-import 'package:pos/domain/usecase/product/get_local_product_by_id_use_case.dart';
-import 'package:pos/domain/usecase/product/get_local_products_use_case.dart';
-import 'package:pos/domain/usecase/product/get_product_prices_by_product_id_use_case.dart';
-import 'package:pos/domain/usecase/product/get_product_units_by_product_id_use_case.dart';
-import 'package:pos/domain/usecase/product/import_product_csv_use_case.dart';
-import 'package:pos/domain/usecase/product/remove_product_by_id_use_case.dart';
-import 'package:pos/domain/usecase/product/update_product_by_id_use_case.dart';
 import 'package:pos/presentation/product/add/product_add_view_model.dart';
 import 'package:pos/presentation/product/edit/product_edit_view_model.dart';
 import 'package:pos/presentation/product/main/product_view_model.dart';
@@ -167,16 +157,7 @@ ProductAddViewModel buildAddViewModel(
 ) {
   return ProductAddViewModel(
     categoryRepo: categoryRepository,
-    generateSerialNumberUseCase: GenerateSerialNumberUseCase(
-      productRepo: productRepository,
-    ),
-    addProductUseCase: AddProductUseCase(productRepo: productRepository),
-    getProductUnitsByProductIdUseCase: GetProductUnitsByProductIdUseCase(
-      productRepo: productRepository,
-    ),
-    getProductPricesByProductIdUseCase: GetProductPricesByProductIdUseCase(
-      productRepo: productRepository,
-    ),
+    productRepo: productRepository,
   );
 }
 
@@ -199,28 +180,13 @@ ProductParam buildProductParam() {
 
 ProductEditViewModel buildEditViewModel(ProductRepository productRepository) {
   return ProductEditViewModel(
-    getLocalProductByIdUseCase: GetLocalProductByIdUseCase(
-      productRepo: productRepository,
-    ),
-    updateProductByIdUseCase: UpdateProductByIdUseCase(
-      productRepo: productRepository,
-    ),
-    removeProductByIdUseCase: RemoveProductByIdUseCase(
-      productRepo: productRepository,
-    ),
+    productRepo: productRepository,
   );
 }
 
 ProductViewModel buildProductViewModel(ProductRepository repository) {
   return ProductViewModel(
-    getLocalProductByIdUseCase: GetLocalProductByIdUseCase(
-      productRepo: repository,
-    ),
-    getLocalProductsUseCase: GetLocalProductsUseCase(productRepo: repository),
-    importProductCSVUseCase: ImportProductCSVUseCase(productRepo: repository),
-    clearQuantitySoldFirstByIdUseCase: ClearQuantitySoldFirstByIdUseCase(
-      productRepo: repository,
-    ),
+    productRepo: repository,
   );
 }
 

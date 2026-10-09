@@ -3,10 +3,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:pos/domain/model/product/param.dart';
 import 'package:pos/domain/model/product/product.dart';
 import 'package:pos/domain/repositories/product_repository.dart';
-import 'package:pos/domain/usecase/product/add_product_price_use_case.dart';
-import 'package:pos/domain/usecase/product/get_product_prices_by_product_id_use_case.dart';
-import 'package:pos/domain/usecase/product/remove_product_price_by_id_use_case.dart';
-import 'package:pos/domain/usecase/product/update_product_price_by_id_use_case.dart';
 import 'package:pos/presentation/product/price/product_price_view_model.dart';
 
 ProductPrice price(String id, double amount,
@@ -65,13 +61,7 @@ class FakeProductRepository implements ProductRepository {
 
 ProductPriceViewModel buildViewModel(FakeProductRepository repo) {
   return ProductPriceViewModel(
-    addProductPriceUseCase: AddProductPriceUseCase(productRepo: repo),
-    updateProductPriceByIdUseCase:
-        UpdateProductPriceByIdUseCase(productRepo: repo),
-    removeProductPriceByIdUseCase:
-        RemoveProductPriceByIdUseCase(productRepo: repo),
-    getProductPricesByProductIdUseCase:
-        GetProductPricesByProductIdUseCase(productRepo: repo),
+    productRepo: repo,
   );
 }
 

@@ -3,11 +3,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:pos/domain/model/product/param.dart';
 import 'package:pos/domain/model/product/product.dart';
 import 'package:pos/domain/repositories/product_repository.dart';
-import 'package:pos/domain/usecase/product/add_product_stock_use_case.dart';
-import 'package:pos/domain/usecase/product/get_product_stocks_by_product_id_use_case.dart';
-import 'package:pos/domain/usecase/product/remove_product_stock_by_id_use_case.dart';
-import 'package:pos/domain/usecase/product/update_product_stock_by_id_use_case.dart';
-import 'package:pos/domain/usecase/product/update_product_stock_quantity_by_id_use_case.dart';
 import 'package:pos/presentation/product/stock/product_stock_quantity_view_model.dart';
 import 'package:pos/presentation/product/stock/product_stock_view_model.dart';
 
@@ -80,13 +75,7 @@ class FakeProductRepository implements ProductRepository {
 
 ProductStockViewModel buildStockViewModel(FakeProductRepository repo) {
   return ProductStockViewModel(
-    addProductStockUseCase: AddProductStockUseCase(productRepo: repo),
-    updateProductStockByIdUseCase:
-        UpdateProductStockByIdUseCase(productRepo: repo),
-    removeProductStockByIdUseCase:
-        RemoveProductStockByIdUseCase(productRepo: repo),
-    getProductStocksByProductIdUseCase:
-        GetProductStocksByProductIdUseCase(productRepo: repo),
+    productRepo: repo,
   );
 }
 
@@ -170,8 +159,7 @@ void main() {
   group('ProductStockQuantityViewModel', () {
     ProductStockQuantityViewModel build(FakeProductRepository repo) {
       return ProductStockQuantityViewModel(
-        updateProductStockQuantityByIdUseCase:
-            UpdateProductStockQuantityByIdUseCase(productRepo: repo),
+        productRepo: repo,
       );
     }
 

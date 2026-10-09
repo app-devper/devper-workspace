@@ -8,23 +8,14 @@ import 'package:common/core/state/one_shot.dart';
 // Project imports:
 import 'package:pos/domain/model/product/param.dart';
 import 'package:pos/domain/model/product/product.dart';
-import 'package:pos/domain/usecase/product/add_product_stock_use_case.dart';
-import 'package:pos/domain/usecase/product/get_product_stocks_by_product_id_use_case.dart';
-import 'package:pos/domain/usecase/product/remove_product_stock_by_id_use_case.dart';
-import 'package:pos/domain/usecase/product/update_product_stock_by_id_use_case.dart';
 import 'package:pos/presentation/product/stock/product_stock_state.dart';
+import 'package:pos/domain/repositories/product_repository.dart';
 
 class ProductStockViewModel {
-  final AddProductStockUseCase addProductStockUseCase;
-  final UpdateProductStockByIdUseCase updateProductStockByIdUseCase;
-  final RemoveProductStockByIdUseCase removeProductStockByIdUseCase;
-  final GetProductStocksByProductIdUseCase getProductStocksByProductIdUseCase;
+  final ProductRepository productRepo;
 
   ProductStockViewModel({
-    required this.addProductStockUseCase,
-    required this.updateProductStockByIdUseCase,
-    required this.removeProductStockByIdUseCase,
-    required this.getProductStocksByProductIdUseCase,
+    required this.productRepo,
   });
 
   final _state = ValueNotifier<ProductStockState>(const ProductStockState());
@@ -40,23 +31,22 @@ class ProductStockViewModel {
   Stream<String> get errors => _errors.stream;
 
   Future<void> addProductStock(ProductStockParam param) async {
-    await _run(() => addProductStockUseCase(param));
+    await _run(() => productRepo.addProductStock(param));
   }
 
   Future<void> updateProductStockById(
       String id, ProductStockParam param) async {
-    await _run(() => updateProductStockByIdUseCase(
-        ProductStockUpdateParam(stockId: id, param: param)));
+    await _run(() => productRepo.updateProductStockById(id, param));
   }
 
   Future<void> removeProductStockById(String id) async {
-    await _run(() => removeProductStockByIdUseCase(id));
+    await _run(() => productRepo.removeProductStockById(id));
   }
 
   Future<void> getProductStocks(String productId) async {
     _state.value = _state.value.copyWith(loading: true);
     try {
-      final items = await getProductStocksByProductIdUseCase(productId);
+      final items = await productRepo.getProductStocksByProductId(productId);
       _state.value = _state.value.copyWith(loading: false, items: items);
     } on Exception catch (e) {
       _state.value = _state.value.copyWith(loading: false);

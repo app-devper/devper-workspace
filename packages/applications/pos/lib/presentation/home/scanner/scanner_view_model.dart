@@ -7,14 +7,14 @@ import 'package:common/core/state/one_shot.dart';
 
 // Project imports:
 import 'package:pos/domain/model/product/product.dart';
-import 'package:pos/domain/usecase/product/get_product_by_barcode_use_case.dart';
+import 'package:pos/domain/repositories/product_repository.dart';
 import 'scanner_state.dart';
 
 class ScannerViewModel {
-  final GetProductByBarcodeUseCase getProductByBarcodeUseCase;
+  final ProductRepository productRepo;
 
   ScannerViewModel({
-    required this.getProductByBarcodeUseCase,
+    required this.productRepo,
   });
 
   final _state = ValueNotifier<ScannerState>(const ScannerState());
@@ -34,7 +34,7 @@ class ScannerViewModel {
     if (_state.value.loading) return;
     _state.value = _state.value.copyWith(loading: true);
     try {
-      final result = await getProductByBarcodeUseCase(serialNumber);
+      final result = await productRepo.getProductByBarcode(serialNumber);
       if (result == null) {
         _errors.emit("ไม่พบสินค้า");
         return;

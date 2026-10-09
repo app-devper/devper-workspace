@@ -52,10 +52,12 @@ void main() {
       'receiving reads embedded items and preserves lot metadata on save/delete',
       () async {
     final requests = <http.Request>[];
-    final repo = ReceiveRepositoryImpl(productCache: CachedList<Product>(), posService: service((r) {
-      requests.add(r);
-      return http.Response(jsonEncode(receive), 200);
-    }));
+    final repo = ReceiveRepositoryImpl(
+        productCache: CachedList<Product>(),
+        posService: service((r) {
+          requests.add(r);
+          return http.Response(jsonEncode(receive), 200);
+        }));
     final items = await repo.getReceiveItemsById('r1');
     expect(requests.single.url.path, '/api/pos/v1/receives/r1');
     expect(items, hasLength(2));
@@ -77,11 +79,13 @@ void main() {
 
   test('saving an explicitly empty item list can remove the final row',
       () async {
-    final repo = ReceiveRepositoryImpl(productCache: CachedList<Product>(), posService: service((r) {
-      expect(jsonDecode(r.body)['items'], isEmpty);
-      return http.Response(
-          jsonEncode({...receive, 'items': [], 'totalCost': 0}), 200);
-    }));
+    final repo = ReceiveRepositoryImpl(
+        productCache: CachedList<Product>(),
+        posService: service((r) {
+          expect(jsonDecode(r.body)['items'], isEmpty);
+          return http.Response(
+              jsonEncode({...receive, 'items': [], 'totalCost': 0}), 200);
+        }));
     final saved = await repo.updateReceiveById(
         'r1',
         UpdateReceiveParam(
@@ -90,17 +94,21 @@ void main() {
   });
 
   test('import uses PATCH and retains the imported status', () async {
-    final repo = ReceiveRepositoryImpl(productCache: CachedList<Product>(), posService: service((r) {
-      expect(r.method, 'PATCH');
-      expect(r.url.path, '/api/pos/v1/receives/r1/import');
-      return http.Response(jsonEncode({...receive, 'status': 'IMPORTED'}), 200);
-    }));
+    final repo = ReceiveRepositoryImpl(
+        productCache: CachedList<Product>(),
+        posService: service((r) {
+          expect(r.method, 'PATCH');
+          expect(r.url.path, '/api/pos/v1/receives/r1/import');
+          return http.Response(
+              jsonEncode({...receive, 'status': 'IMPORTED'}), 200);
+        }));
     expect((await repo.importReceiveById('r1')).isImported, isTrue);
   });
 
   test('failed receiving reads propagate instead of becoming empty items',
       () async {
-    final repo = ReceiveRepositoryImpl(productCache: CachedList<Product>(),
+    final repo = ReceiveRepositoryImpl(
+        productCache: CachedList<Product>(),
         posService:
             service((r) => http.Response('{"error":"session invalid"}', 401)));
     await expectLater(
@@ -113,20 +121,20 @@ void main() {
     final repo = ProductRepositoryImpl(
         cache: CachedList<Product>(),
         posService: service((r) {
-      expect(r.method, 'PATCH');
-      expect(r.url.path, '/api/pos/v1/products/stocks/stock1/quantity');
-      expect(jsonDecode(r.body), {'quantity': 0});
-      return http.Response(
-          jsonEncode({
-            'id': 'stock1',
-            'productId': 'p1',
-            'quantity': 0,
-            'costPrice': 20,
-            'lotNumber': 'L1',
-            'expireDate': '2027-01-01T00:00:00Z',
-          }),
-          200);
-    }));
+          expect(r.method, 'PATCH');
+          expect(r.url.path, '/api/pos/v1/products/stocks/stock1/quantity');
+          expect(jsonDecode(r.body), {'quantity': 0});
+          return http.Response(
+              jsonEncode({
+                'id': 'stock1',
+                'productId': 'p1',
+                'quantity': 0,
+                'costPrice': 20,
+                'lotNumber': 'L1',
+                'expireDate': '2027-01-01T00:00:00Z',
+              }),
+              200);
+        }));
     final result = await repo.updateProductLotQuantityByLotId(
         'stock1', UpdateProductLotQuantityParam(quantity: 0));
     expect(result.quantity, 0);

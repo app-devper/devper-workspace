@@ -8,18 +8,15 @@ import 'package:common/core/state/one_shot.dart';
 // Project imports:
 import 'package:pos/domain/model/product/param.dart';
 import 'package:pos/domain/model/product/product_lot.dart';
-import 'package:pos/domain/usecase/product/get_local_product_by_id_use_case.dart';
-import 'package:pos/domain/usecase/product/get_product_lots_use_case.dart';
 import 'package:pos/presentation/product/expired/products_expire_ui_model.dart';
 import 'package:pos/presentation/product/expired/products_expired_state.dart';
+import 'package:pos/domain/repositories/product_repository.dart';
 
 class ProductsExpiredViewModel {
-  final GetProductLotsUseCase getProductLotsUseCase;
-  final GetLocalProductByIdUseCase getLocalProductByIdUseCase;
+  final ProductRepository productRepo;
 
   ProductsExpiredViewModel({
-    required this.getProductLotsUseCase,
-    required this.getLocalProductByIdUseCase,
+    required this.productRepo,
   });
 
   final _state =
@@ -116,9 +113,9 @@ class ProductsExpiredViewModel {
         startDate: _startDate.toUtc().toIso8601String(),
         endDate: _endDate.toUtc().toIso8601String(),
       );
-      final items = await getProductLotsUseCase(param);
+      final items = await productRepo.getProductLots(param);
       for (var item in items) {
-        item.product = await getLocalProductByIdUseCase(item.productId);
+        item.product = await productRepo.getLocalProductById(item.productId);
       }
       _state.value = _state.value.copyWith(
         loading: false,
