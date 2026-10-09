@@ -14,7 +14,8 @@ import 'package:pos/domain/model/core/core.dart';
 import 'package:pos/domain/model/product/param.dart';
 import 'package:pos/domain/model/product/product.dart';
 import 'package:pos/presentation/core/core_widget.dart';
-import 'package:pos/presentation/product/price/product_price_view_model.dart';
+import 'package:pos/presentation/product/core/catalogue_edit.dart';
+import 'package:pos/domain/repositories/product_repository.dart';
 
 class ProductPriceWidget extends StatefulWidget {
   final ProductUnit unit;
@@ -41,7 +42,9 @@ class _ProductPriceWidgetState extends State<ProductPriceWidget> {
 
   ItemType? customerType;
 
-  late ProductPriceViewModel _viewModel;
+  late CatalogueEdit<ProductPrice> _viewModel;
+
+  final _productRepo = sl<ProductRepository>();
   late StreamSubscription<String> _errors;
   late StreamSubscription<ProductPrice> _completed;
 
@@ -69,7 +72,7 @@ class _ProductPriceWidgetState extends State<ProductPriceWidget> {
 
   @override
   void initState() {
-    _viewModel = sl<ProductPriceViewModel>();
+    _viewModel = CatalogueEdit<ProductPrice>();
     _viewModel.state.addListener(_onStateChanged);
     _errors = _viewModel.errors.listen(_showError);
     _completed = _viewModel.completed.listen(_onCompleted);
@@ -124,7 +127,7 @@ class _ProductPriceWidgetState extends State<ProductPriceWidget> {
           onAction: () {
             if (_formKey.currentState!.validate()) {
               if (widget.price != null) {
-                _viewModel.updateProductPriceById(
+                _viewModel.run(() => _productRepo.updateProductPriceById(
                   widget.price!.id,
                   ProductPriceParam(
                     productId: unit.productId,
@@ -132,14 +135,14 @@ class _ProductPriceWidgetState extends State<ProductPriceWidget> {
                     price: double.parse(_priceController.text),
                     customerType: customerType!.type,
                   ),
-                );
+                ));
               } else {
-                _viewModel.addProductPrice(ProductPriceParam(
+                _viewModel.run(() => _productRepo.addProductPrice(ProductPriceParam(
                   productId: unit.productId,
                   unitId: unit.id,
                   price: double.parse(_priceController.text),
                   customerType: customerType!.type,
-                ));
+                )));
               }
             }
           },
@@ -243,7 +246,7 @@ class _ProductPriceWidgetState extends State<ProductPriceWidget> {
                             context,
                             'ยืนยันการลบราคาขาย ${widget.price!.getCustomerTypeDisplay()}',
                             () {
-                              _viewModel.removeProductPriceById(widget.price!.id);
+                              _viewModel.run(() => _productRepo.removeProductPriceById(widget.price!.id));
                             },
                           );
                         },

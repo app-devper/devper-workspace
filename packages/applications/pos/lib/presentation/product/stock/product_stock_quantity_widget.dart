@@ -12,7 +12,8 @@ import 'package:design_system/widgets/title_bar.dart';
 import 'package:pos/container.dart';
 import 'package:pos/domain/model/product/param.dart';
 import 'package:pos/domain/model/product/product.dart';
-import 'package:pos/presentation/product/stock/product_stock_quantity_view_model.dart';
+import 'package:pos/presentation/product/core/catalogue_edit.dart';
+import 'package:pos/domain/repositories/product_repository.dart';
 
 class ProductStockQuantityWidget extends StatefulWidget {
   final ProductStock stock;
@@ -31,7 +32,9 @@ class ProductStockQuantityWidget extends StatefulWidget {
 class _ProductStockQuantityWidgetState extends State<ProductStockQuantityWidget> {
   String number = "";
 
-  late ProductStockQuantityViewModel _viewModel;
+  late CatalogueEdit<ProductStock> _viewModel;
+
+  final _productRepo = sl<ProductRepository>();
   late StreamSubscription<String> _errors;
   late StreamSubscription<ProductStock> _updated;
 
@@ -59,10 +62,10 @@ class _ProductStockQuantityWidgetState extends State<ProductStockQuantityWidget>
 
   @override
   void initState() {
-    _viewModel = sl<ProductStockQuantityViewModel>();
+    _viewModel = CatalogueEdit<ProductStock>();
     _viewModel.state.addListener(_onStateChanged);
     _errors = _viewModel.errors.listen(_showError);
-    _updated = _viewModel.updated.listen(_onUpdated);
+    _updated = _viewModel.completed.listen(_onUpdated);
     super.initState();
   }
 
@@ -109,11 +112,11 @@ class _ProductStockQuantityWidgetState extends State<ProductStockQuantityWidget>
   }
 
   void _updateProductStockQuantity() {
-    _viewModel.updateProductStockQuantityById(
+    _viewModel.run(() => _productRepo.updateProductStockQuantityById(
       widget.stock.id,
       UpdateProductStockQuantityParam(
         quantity: number.isNotEmpty ? int.parse(number) : 0,
       ),
-    );
+    ));
   }
 }

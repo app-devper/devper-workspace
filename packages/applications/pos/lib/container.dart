@@ -49,13 +49,7 @@ import 'package:pos/presentation/product/history/product_history_view_model.dart
 import 'package:pos/presentation/product/lot_edit/product_lot_edit_view_model.dart';
 import 'package:pos/presentation/product/main/product_view_model.dart';
 import 'package:pos/presentation/product/main/products_view_model.dart';
-import 'package:pos/presentation/product/price/product_price_view_model.dart';
-import 'package:pos/presentation/product/stock/product_stock_quantity_view_model.dart';
-import 'package:pos/presentation/product/stock/product_stock_sequence_view_model.dart';
-import 'package:pos/presentation/product/stock/product_stock_view_model.dart';
 import 'package:pos/presentation/product/stock/stock_adjustment_history_view_model.dart';
-import 'package:pos/presentation/product/stock/stock_adjustment_view_model.dart';
-import 'package:pos/presentation/product/unit/product_unit_view_model.dart';
 import 'package:pos/presentation/receive/main/receives_view_model.dart';
 import 'package:pos/presentation/receive/manage/receive_manage_view_model.dart';
 import 'package:pos/presentation/stock_count/main/stock_counts_view_model.dart';
@@ -114,31 +108,6 @@ Future<void> initPos() async {
   );
   sl.registerFactory(
     () => ProductsViewModel(
-      productRepo: sl(),
-    ),
-  );
-  sl.registerFactory(
-    () => ProductUnitViewModel(
-      productRepo: sl(),
-    ),
-  );
-  sl.registerFactory(
-    () => ProductPriceViewModel(
-      productRepo: sl(),
-    ),
-  );
-  sl.registerFactory(
-    () => ProductStockViewModel(
-      productRepo: sl(),
-    ),
-  );
-  sl.registerFactory(
-    () => ProductStockQuantityViewModel(
-      productRepo: sl(),
-    ),
-  );
-  sl.registerFactory(
-    () => ProductStockSequenceViewModel(
       productRepo: sl(),
     ),
   );
@@ -253,11 +222,6 @@ Future<void> initPos() async {
       receiveRepo: sl(),
       supplierRepo: sl(),
       productRepo: sl(),
-    ),
-  );
-  sl.registerFactory(
-    () => StockAdjustmentViewModel(
-      stockAdjustmentRepo: sl(),
     ),
   );
   sl.registerFactory(

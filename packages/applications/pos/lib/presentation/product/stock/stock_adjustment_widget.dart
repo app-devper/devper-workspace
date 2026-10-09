@@ -16,7 +16,8 @@ import 'package:pos/domain/model/core/core.dart';
 import 'package:pos/domain/model/product/product.dart';
 import 'package:pos/domain/model/stock_adjustment/param.dart';
 import 'package:pos/presentation/core/core_widget.dart';
-import 'package:pos/presentation/product/stock/stock_adjustment_view_model.dart';
+import 'package:pos/presentation/product/core/catalogue_edit.dart';
+import 'package:pos/domain/repositories/stock_adjustment_repository.dart';
 
 class StockAdjustmentWidget extends StatefulWidget {
   final ProductStock stock;
@@ -44,7 +45,9 @@ class _StockAdjustmentWidgetState extends State<StockAdjustmentWidget> {
   String? _reason;
   bool _isIncrease = true;
 
-  late StockAdjustmentViewModel _viewModel;
+  late CatalogueEdit<StockAdjustment> _viewModel;
+
+  final _adjustments = sl<StockAdjustmentRepository>();
   late StreamSubscription<String> _errors;
   late StreamSubscription<StockAdjustment> _created;
 
@@ -70,10 +73,10 @@ class _StockAdjustmentWidgetState extends State<StockAdjustmentWidget> {
 
   @override
   void initState() {
-    _viewModel = sl<StockAdjustmentViewModel>();
+    _viewModel = CatalogueEdit<StockAdjustment>();
     _viewModel.state.addListener(_onStateChanged);
     _errors = _viewModel.errors.listen(_showError);
-    _created = _viewModel.created.listen(_onCreated);
+    _created = _viewModel.completed.listen(_onCreated);
     super.initState();
   }
 
@@ -205,7 +208,7 @@ class _StockAdjustmentWidgetState extends State<StockAdjustmentWidget> {
     }
     final magnitude = int.tryParse(_deltaController.text) ?? 0;
     final delta = _isIncrease ? magnitude : -magnitude;
-    _viewModel.createStockAdjustment(
+    _viewModel.run(() => _adjustments.createStockAdjustment(
       CreateStockAdjustmentParam(
         productId: widget.stock.productId,
         stockId: widget.stock.id,
@@ -213,6 +216,6 @@ class _StockAdjustmentWidgetState extends State<StockAdjustmentWidget> {
         note: _noteController.text,
         delta: delta,
       ),
-    );
+    ));
   }
 }
