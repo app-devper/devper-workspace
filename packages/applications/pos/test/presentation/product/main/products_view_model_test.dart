@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:common/core/error/exception.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pos/domain/model/product/product.dart';
@@ -5,13 +7,19 @@ import 'package:pos/domain/repositories/product_repository.dart';
 import 'package:pos/presentation/product/main/products_view_model.dart';
 
 class FakeProductRepository implements ProductRepository {
-  final List<Product> products;
+  List<Product> products;
   final Object? throws;
+  final changes = StreamController<void>.broadcast();
+  int reads = 0;
 
   FakeProductRepository({this.products = const [], this.throws});
 
   @override
+  Stream<void> get catalogueChanges => changes.stream;
+
+  @override
   Future<List<Product>> getLocalProducts() async {
+    reads++;
     final error = throws;
     if (error != null) {
       throw error;
@@ -99,5 +107,23 @@ void main() {
 
     expect(vm.state.value.error, isNotNull);
     expect(vm.state.value.items, isEmpty);
+  });
+
+  test('the list searches again when the catalogue changes, keeping the query',
+      () async {
+    final repo = FakeProductRepository(products: [buildProduct('1', 'Paracetamol')]);
+    final vm = buildViewModel(repo);
+    await vm.searchProduct('para', false);
+    expect(vm.state.value.items.map((p) => p.id), ['1']);
+
+    // Another screen added a Product: the list used to keep its old copy
+    // until the search changed.
+    repo.products = [buildProduct('1', 'Paracetamol'), buildProduct('2', 'Paramol')];
+    repo.changes.add(null);
+    await pumpEventQueue();
+
+    expect(vm.state.value.items.map((p) => p.id), ['1', '2']);
+    expect(repo.reads, 2);
+    vm.dispose();
   });
 }

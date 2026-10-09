@@ -63,10 +63,10 @@ class ProductAddViewModel {
     if (_state.value.saving) return;
     _state.value = _state.value.copyWith(saving: true);
     try {
-      final created = await productRepo.addProduct(param);
-      await productRepo.getProductUnitsByProductId(created.id);
-      await productRepo.getProductPricesByProductId(created.id);
-      _created.emit(created);
+      // The catalogue reads the new Product with its Unit and Price itself. A
+      // follow-up read here used to fail after the Product was created, and
+      // a retry made a second one.
+      _created.emit(await productRepo.addProduct(param));
     } on Exception catch (e) {
       _errors.emit(toFailure(e).getMessage());
     } finally {

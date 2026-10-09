@@ -1,3 +1,6 @@
+// Dart imports:
+import 'dart:async';
+
 // Flutter imports:
 import 'package:flutter/foundation.dart';
 
@@ -17,10 +20,19 @@ class ProductsViewModel {
   });
 
   final _state = ValueNotifier<ProductsState>(const ProductsState());
+  StreamSubscription<void>? _changes;
+  String _query = '';
+  bool _sortBalance = false;
 
   ValueListenable<ProductsState> get state => _state;
 
+  /// Lists the catalogue matching [text], and keeps the list current: a
+  /// change anywhere in the catalogue runs the same search again.
   Future<void> searchProduct(String text, bool sortBalance) async {
+    _query = text;
+    _sortBalance = sortBalance;
+    _changes ??= productRepo.catalogueChanges
+        .listen((_) => searchProduct(_query, _sortBalance));
     try {
       final data = await productRepo.getLocalProducts();
       final result = _searchProduct(text, List<Product>.of(data));
@@ -48,6 +60,7 @@ class ProductsViewModel {
   }
 
   void dispose() {
+    _changes?.cancel();
     _state.dispose();
   }
 }

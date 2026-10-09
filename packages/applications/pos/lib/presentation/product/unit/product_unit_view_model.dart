@@ -42,17 +42,6 @@ class ProductUnitViewModel {
     await _run(() => productRepo.removeProductUnitById(id));
   }
 
-  Future<void> getProductUnit(String productId) async {
-    _state.value = _state.value.copyWith(loading: true);
-    try {
-      final items = await productRepo.getProductUnitsByProductId(productId);
-      _state.value = _state.value.copyWith(loading: false, items: items);
-    } on Exception catch (e) {
-      _state.value = _state.value.copyWith(loading: false);
-      _errors.emit(toFailure(e).getMessage());
-    }
-  }
-
   Future<void> _run(Future<ProductUnit> Function() action) async {
     if (_state.value.loading) return;
     _state.value = _state.value.copyWith(loading: true);

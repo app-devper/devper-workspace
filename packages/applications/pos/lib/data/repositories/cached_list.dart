@@ -1,3 +1,6 @@
+// Dart imports:
+import 'dart:async';
+
 // Package imports:
 import 'package:common/core/error/exception.dart';
 
@@ -12,6 +15,12 @@ import 'package:common/core/error/exception.dart';
 class CachedList<T> {
   List<T> _items = [];
   bool _dirty = false;
+  final _changes = StreamController<void>.broadcast();
+
+  /// Fires when what this list holds changed: a write marked it stale, or an
+  /// edit was patched into it. Filling it from the server does not fire, so a
+  /// screen that re-reads on a change does not loop.
+  Stream<void> get changes => _changes.stream;
 
   /// True before the first load, and after any write that could have changed
   /// what the server would return.
@@ -33,7 +42,13 @@ class CachedList<T> {
   /// Marks the cache for a refetch on the next local read. Call this from any
   /// write, including a write on another repository that changes what this one
   /// would return.
-  void invalidate() => _dirty = true;
+  void invalidate() {
+    _dirty = true;
+    _changes.add(null);
+  }
+
+  /// Says an edit was patched into [items] in place.
+  void touch() => _changes.add(null);
 
   /// Runs [write] and marks the list stale unless the server refused it.
   ///

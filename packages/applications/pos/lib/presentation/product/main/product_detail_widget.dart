@@ -913,6 +913,7 @@ class _ProductDetailWidgetState extends State<ProductDetailWidget>
     showCenterDialog(
       context: context,
       builder: (context) => ProductUnitWidget(
+        productId: unit.productId,
         unit: unit,
         onComplete: (unit) {
           widget.onEdit();
