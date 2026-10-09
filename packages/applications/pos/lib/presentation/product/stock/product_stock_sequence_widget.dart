@@ -17,7 +17,8 @@ import 'package:design_system/widgets/title_bar.dart';
 import 'package:pos/container.dart';
 import 'package:pos/domain/model/product/param.dart';
 import 'package:pos/domain/model/product/product.dart';
-import 'package:pos/presentation/product/stock/product_stock_sequence_view_model.dart';
+import 'package:pos/presentation/product/core/catalogue_edit.dart';
+import 'package:pos/domain/repositories/product_repository.dart';
 
 class ProductStockSequenceWidget extends StatefulWidget {
   final String unit;
@@ -39,7 +40,8 @@ class ProductStockSequenceWidget extends StatefulWidget {
 class _ProductStockSequenceWidgetState
     extends State<ProductStockSequenceWidget> {
   List<ProductStock> _items = [];
-  late ProductStockSequenceViewModel _viewModel;
+  late CatalogueEdit<List<ProductStock>> _viewModel;
+  final _productRepo = sl<ProductRepository>();
   late StreamSubscription<String> _errors;
   late StreamSubscription<List<ProductStock>> _updated;
 
@@ -67,10 +69,10 @@ class _ProductStockSequenceWidgetState
 
   @override
   void initState() {
-    _viewModel = sl<ProductStockSequenceViewModel>();
+    _viewModel = CatalogueEdit<List<ProductStock>>();
     _viewModel.state.addListener(_onStateChanged);
     _errors = _viewModel.errors.listen(_showError);
-    _updated = _viewModel.updated.listen(_onUpdated);
+    _updated = _viewModel.completed.listen(_onUpdated);
     _items = widget.stocks;
     _items.sort((a, b) => a.sequence.compareTo(b.sequence));
     super.initState();
@@ -122,8 +124,8 @@ class _ProductStockSequenceWidgetState
           action: "ยืนยัน",
           onAction: () {
             if (_items.isNotEmpty) {
-              _viewModel.updateProductStockSequenceById(
-                  _getUpdateProductStockSequenceParam());
+              _viewModel.run(() => _productRepo.updateProductStockSequence(
+                  _getUpdateProductStockSequenceParam()));
             } else {
               Navigator.pop(context);
             }

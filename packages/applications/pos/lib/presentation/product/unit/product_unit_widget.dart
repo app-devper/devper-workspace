@@ -15,8 +15,9 @@ import 'package:pos/domain/model/product/param.dart';
 import 'package:pos/domain/model/product/product.dart';
 import 'package:pos/presentation/core/core_widget.dart';
 import 'package:design_system/widgets/dialogs.dart';
-import 'package:pos/presentation/product/unit/product_unit_view_model.dart';
 import 'package:pos/presentation/product/unit/product_volume_unit_widget.dart';
+import 'package:pos/presentation/product/core/catalogue_edit.dart';
+import 'package:pos/domain/repositories/product_repository.dart';
 
 class ProductUnitWidget extends StatefulWidget {
   /// The Product the Unit belongs to. Adding a Unit has no [unit] to read it
@@ -52,7 +53,9 @@ class _ProductUnitWidgetState extends State<ProductUnitWidget> {
 
   String _volumeUnit = 'ml';
 
-  late ProductUnitViewModel _viewModel;
+  late CatalogueEdit<ProductUnit> _viewModel;
+
+  final _productRepo = sl<ProductRepository>();
   late StreamSubscription<String> _errors;
   late StreamSubscription<ProductUnit> _completed;
 
@@ -80,7 +83,7 @@ class _ProductUnitWidgetState extends State<ProductUnitWidget> {
 
   @override
   void initState() {
-    _viewModel = sl<ProductUnitViewModel>();
+    _viewModel = CatalogueEdit<ProductUnit>();
     _viewModel.state.addListener(_onStateChanged);
     _errors = _viewModel.errors.listen(_showError);
     _completed = _viewModel.completed.listen(_onCompleted);
@@ -141,7 +144,7 @@ class _ProductUnitWidgetState extends State<ProductUnitWidget> {
           onAction: () {
             if (_formKey.currentState!.validate()) {
               if (widget.unit != null) {
-                _viewModel.updateProductUnitById(
+                _viewModel.run(() => _productRepo.updateProductUnitById(
                   widget.unit!.id,
                   ProductUnitParam(
                     unit: _unitController.text,
@@ -154,9 +157,9 @@ class _ProductUnitWidgetState extends State<ProductUnitWidget> {
                     productId: widget.productId,
                     volumeUnit: _volumeUnit,
                   ),
-                );
+                ));
               } else {
-                _viewModel.addProductUnit(
+                _viewModel.run(() => _productRepo.addProductUnit(
                   ProductUnitParam(
                     unit: _unitController.text,
                     size: int.parse(_sizeController.text),
@@ -168,7 +171,7 @@ class _ProductUnitWidgetState extends State<ProductUnitWidget> {
                     productId: widget.productId,
                     volumeUnit: _volumeUnit,
                   ),
-                );
+                ));
               }
             }
           },
@@ -387,7 +390,7 @@ class _ProductUnitWidgetState extends State<ProductUnitWidget> {
                         onPressed: () {
                           showConfirmDialog(context,
                               'ยืนยันการลบหน่วยนับ ${widget.unit!.unit}', () {
-                            _viewModel.removeProductUnitById(widget.unit!.id);
+                            _viewModel.run(() => _productRepo.removeProductUnitById(widget.unit!.id));
                           });
                         },
                         child: Text(

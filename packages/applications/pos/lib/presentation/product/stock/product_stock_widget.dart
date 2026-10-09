@@ -17,7 +17,8 @@ import 'package:pos/container.dart';
 import 'package:pos/domain/model/product/param.dart';
 import 'package:pos/domain/model/product/product.dart';
 import 'package:pos/presentation/core/core_widget.dart';
-import 'package:pos/presentation/product/stock/product_stock_view_model.dart';
+import 'package:pos/presentation/product/core/catalogue_edit.dart';
+import 'package:pos/domain/repositories/product_repository.dart';
 
 class ProductStockWidget extends StatefulWidget {
   final ProductUnit unit;
@@ -52,7 +53,9 @@ class _ProductStockWidgetState extends State<ProductStockWidget> {
   final _expireDateController = TextEditingController();
   final _expireDateFocus = FocusNode();
 
-  late ProductStockViewModel _viewModel;
+  late CatalogueEdit<ProductStock> _viewModel;
+
+  final _productRepo = sl<ProductRepository>();
   late StreamSubscription<String> _errors;
   late StreamSubscription<ProductStock> _completed;
 
@@ -80,7 +83,7 @@ class _ProductStockWidgetState extends State<ProductStockWidget> {
 
   @override
   void initState() {
-    _viewModel = sl<ProductStockViewModel>();
+    _viewModel = CatalogueEdit<ProductStock>();
     _viewModel.state.addListener(_onStateChanged);
     _errors = _viewModel.errors.listen(_showError);
     _completed = _viewModel.completed.listen(_onCompleted);
@@ -155,7 +158,7 @@ class _ProductStockWidgetState extends State<ProductStockWidget> {
           onAction: () {
             if (_formKey.currentState!.validate()) {
               if (widget.stock != null) {
-                _viewModel.updateProductStockById(
+                _viewModel.run(() => _productRepo.updateProductStockById(
                   widget.stock!.id,
                   ProductStockParam(
                     quantity: int.tryParse(_importController.text) ?? 0,
@@ -167,9 +170,9 @@ class _ProductStockWidgetState extends State<ProductStockWidget> {
                     productId: widget.unit.productId,
                     unitId: widget.unit.id,
                   ),
-                );
+                ));
               } else {
-                _viewModel.addProductStock(
+                _viewModel.run(() => _productRepo.addProductStock(
                   ProductStockParam(
                     quantity: int.tryParse(_importController.text) ?? 0,
                     importDate: _importDateController.text.toServerDate(),
@@ -180,7 +183,7 @@ class _ProductStockWidgetState extends State<ProductStockWidget> {
                     productId: widget.unit.productId,
                     unitId: widget.unit.id,
                   ),
-                );
+                ));
               }
             }
           },
@@ -435,8 +438,8 @@ class _ProductStockWidgetState extends State<ProductStockWidget> {
                             context,
                             'ยืนยันการลบสต็อกสินค้า ${widget.stock!.importDate.formatDate()}',
                             () {
-                              _viewModel
-                                  .removeProductStockById(widget.stock!.id);
+                              _viewModel.run(() => _productRepo
+                                  .removeProductStockById(widget.stock!.id));
                             },
                           );
                         },

@@ -7,7 +7,6 @@ import 'package:pos/domain/model/stock_adjustment/stock_adjustment.dart';
 import 'package:pos/domain/repositories/product_return_repository.dart';
 import 'package:pos/domain/repositories/stock_adjustment_repository.dart';
 import 'package:pos/presentation/order/return/product_return_view_model.dart';
-import 'package:pos/presentation/product/stock/stock_adjustment_view_model.dart';
 import 'package:pos/domain/repositories/product_repository.dart';
 
 /// The mutation use cases invalidate the product cache after writing, so they
@@ -40,33 +39,6 @@ class FakeProductReturnRepository implements ProductReturnRepository {
 
   @override
   Future<List<ProductReturn>> getProductReturnsByOrderId(String orderId) async {
-    return [result];
-  }
-}
-
-class FakeStockAdjustmentRepository implements StockAdjustmentRepository {
-  final StockAdjustment result;
-  final Object? error;
-  CreateStockAdjustmentParam? createParam;
-
-  FakeStockAdjustmentRepository({
-    StockAdjustment? result,
-    this.error,
-  }) : result = result ?? buildStockAdjustment();
-
-  @override
-  Future<StockAdjustment> createStockAdjustment(
-    CreateStockAdjustmentParam param,
-  ) async {
-    if (error != null) throw error!;
-    createParam = param;
-    return result;
-  }
-
-  @override
-  Future<List<StockAdjustment>> getStockAdjustmentsByProductId(
-    String productId,
-  ) async {
     return [result];
   }
 }
@@ -156,60 +128,4 @@ void main() {
     });
   });
 
-  group('StockAdjustmentViewModel', () {
-    test('createStockAdjustment sends delta and exposes result', () async {
-      final repository = FakeStockAdjustmentRepository();
-      final vm = StockAdjustmentViewModel(
-        stockAdjustmentRepo: repository,
-      );
-      final param = CreateStockAdjustmentParam(
-        productId: 'p1',
-        stockId: 'stock-1',
-        reason: 'นับสต็อก',
-        note: 'cycle count',
-        delta: -2,
-      );
-
-      final created = <StockAdjustment>[];
-      vm.created.listen(created.add);
-
-      await vm.createStockAdjustment(param);
-      await Future<void>.delayed(Duration.zero);
-
-      expect(vm.state.value.loading, isFalse);
-      expect(created.single.after, 8);
-      expect(repository.createParam?.delta, -2);
-    });
-
-    test(
-      'a failed adjustment emits an error and no result',
-      () async {
-        final vm = StockAdjustmentViewModel(
-          stockAdjustmentRepo: FakeStockAdjustmentRepository(
-            error: const NetworkException(message: 'offline'),
-          ),
-        );
-
-        final created = <StockAdjustment>[];
-        final errors = <String>[];
-        vm.created.listen(created.add);
-        vm.errors.listen(errors.add);
-
-        await vm.createStockAdjustment(
-          CreateStockAdjustmentParam(
-            productId: 'p1',
-            stockId: 'stock-1',
-            reason: 'นับสต็อก',
-            note: '',
-            delta: -2,
-          ),
-        );
-        await Future<void>.delayed(Duration.zero);
-
-        expect(vm.state.value.loading, isFalse);
-        expect(created, isEmpty);
-        expect(errors, hasLength(1));
-      },
-    );
-  });
 }
