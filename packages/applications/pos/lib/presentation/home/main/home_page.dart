@@ -149,6 +149,7 @@ class _HomePageState extends State<HomePage> {
       icon: icon,
       collapsed: collapsed,
       onTap: onTap,
+      color: color,
     );
   }
 
