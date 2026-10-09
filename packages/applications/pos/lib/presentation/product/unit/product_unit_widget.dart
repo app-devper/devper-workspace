@@ -115,6 +115,8 @@ class _ProductUnitWidgetState extends State<ProductUnitWidget> {
     _costPriceFocus.dispose();
     _barcodeController.dispose();
     _barcodeFocus.dispose();
+    _volumeController.dispose();
+    _volumeFocus.dispose();
 
     super.dispose();
   }

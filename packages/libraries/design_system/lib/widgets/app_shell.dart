@@ -360,6 +360,10 @@ class AppSidebarAction extends StatelessWidget {
   final bool selected;
   final VoidCallback onTap;
 
+  /// Draws the icon and label in this colour instead of the sidebar's own,
+  /// for an action that stands apart, such as logging out.
+  final Color? color;
+
   const AppSidebarAction({
     super.key,
     required this.label,
@@ -367,11 +371,13 @@ class AppSidebarAction extends StatelessWidget {
     required this.collapsed,
     required this.onTap,
     this.selected = false,
+    this.color,
   });
 
   @override
   Widget build(BuildContext context) {
     final colors = AppColors.of(context);
+    final foreground = color ?? colors.sidebarForeground;
     return Padding(
       padding: const EdgeInsets.only(bottom: 4),
       child: Tooltip(
@@ -394,7 +400,7 @@ class AppSidebarAction extends StatelessWidget {
                   child: LayoutBuilder(
                     builder: (context, constraints) => Row(
                       children: [
-                        Icon(icon, size: 20, color: colors.sidebarForeground),
+                        Icon(icon, size: 20, color: foreground),
                         if (!collapsed && constraints.maxWidth > 80) ...[
                           const SizedBox(width: 12),
                           Expanded(
@@ -404,7 +410,7 @@ class AppSidebarAction extends StatelessWidget {
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
-                                  color: colors.sidebarForeground,
+                                  color: foreground,
                                   fontSize: 14,
                                   fontWeight: selected
                                       ? FontWeight.w500
