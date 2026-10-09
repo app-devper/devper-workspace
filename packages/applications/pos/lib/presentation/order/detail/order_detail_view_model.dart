@@ -54,13 +54,8 @@ class OrderDetailViewModel {
   Stream<void> get supplierSetups => _supplierSetups.stream;
 
   Future<void> checkLogin() async {
-    try {
-      final role = await getRoleUseCase();
-      _state.value =
-          _state.value.copyWith(isAdmin: role?.atLeast(Role.admin) ?? false);
-    } on Exception catch (e) {
-      _errors.emit(toFailure(e).getMessage());
-    }
+    _state.value = _state.value
+        .copyWith(isAdmin: await getRoleUseCase.atLeast(Role.admin));
   }
 
   Future<void> getOrderById(String orderId) async {
