@@ -13,18 +13,18 @@ import 'package:pos/domain/model/sale/line_edit.dart';
 import 'package:pos/domain/model/sale/sale.dart';
 import 'package:pos/domain/model/sale/till.dart';
 import 'package:pos/domain/usecase/order/checkout_sale_use_case.dart';
-import 'package:pos/domain/usecase/product/get_product_by_barcode_use_case.dart';
+import 'package:pos/domain/repositories/product_repository.dart';
 import 'cart_state.dart';
 
 class CartViewModel {
+  final ProductRepository productRepo;
   final CheckoutSaleUseCase checkoutSaleUseCase;
-  final GetProductByBarcodeUseCase getProductByBarcodeUseCase;
   final Till till;
 
   CartViewModel({
+    required this.productRepo,
     required this.till,
     required this.checkoutSaleUseCase,
-    required this.getProductByBarcodeUseCase,
   });
 
   final _state = ValueNotifier<CartState>(const CartState());
@@ -80,7 +80,7 @@ class CartViewModel {
     _state.value = _state.value.copyWith(loading: true);
     try {
       if (!scannedSale.increaseBarcode(serialNumber)) {
-        final result = await getProductByBarcodeUseCase(serialNumber);
+        final result = await productRepo.getProductByBarcode(serialNumber);
         if (_disposed ||
             scannedSale.id != scannedSaleId ||
             checkoutSaleUseCase.isSubmitting(scannedSale)) {

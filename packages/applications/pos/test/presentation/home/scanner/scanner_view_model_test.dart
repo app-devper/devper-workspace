@@ -3,7 +3,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:pos/domain/model/core/core.dart';
 import 'package:pos/domain/model/product/product.dart';
 import 'package:pos/domain/repositories/product_repository.dart';
-import 'package:pos/domain/usecase/product/get_product_by_barcode_use_case.dart';
 import 'package:pos/presentation/home/scanner/scanner_view_model.dart';
 
 class FakeProductRepository implements ProductRepository {
@@ -53,7 +52,7 @@ Product buildProduct(String barcode) {
 
 ScannerViewModel buildViewModel(ProductRepository repo) {
   return ScannerViewModel(
-    getProductByBarcodeUseCase: GetProductByBarcodeUseCase(productRepo: repo),
+    productRepo: repo,
   );
 }
 

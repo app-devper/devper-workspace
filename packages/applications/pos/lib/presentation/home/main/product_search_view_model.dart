@@ -7,13 +7,13 @@ import 'package:common/core/error/failure.dart';
 // Project imports:
 import 'package:pos/domain/model/core/core.dart';
 import 'package:pos/domain/model/product/product.dart';
-import 'package:pos/domain/usecase/product/get_local_products_use_case.dart';
+import 'package:pos/domain/repositories/product_repository.dart';
 
 class ProductSearchViewModel {
-  final GetLocalProductsUseCase getLocalProductsUseCase;
+  final ProductRepository productRepo;
 
   ProductSearchViewModel({
-    required this.getLocalProductsUseCase,
+    required this.productRepo,
   });
 
   final _items = ValueNotifier<List<ProductUnitItem>?>(null);
@@ -38,7 +38,7 @@ class ProductSearchViewModel {
     _items.value = null;
     try {
       _products.clear();
-      final products = await getLocalProductsUseCase();
+      final products = await productRepo.getLocalProducts();
       for (var item in products) {
         if (item.status == productStatusActive) {
           _products.addAll(item.toProductItems());

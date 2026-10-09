@@ -6,14 +6,14 @@ import 'package:common/core/error/failure.dart';
 
 // Project imports:
 import 'package:pos/domain/model/product/product.dart';
-import 'package:pos/domain/usecase/product/get_local_products_use_case.dart';
 import 'package:pos/presentation/product/main/products_state.dart';
+import 'package:pos/domain/repositories/product_repository.dart';
 
 class ProductsViewModel {
-  final GetLocalProductsUseCase getLocalProductsUseCase;
+  final ProductRepository productRepo;
 
   ProductsViewModel({
-    required this.getLocalProductsUseCase,
+    required this.productRepo,
   });
 
   final _state = ValueNotifier<ProductsState>(const ProductsState());
@@ -22,7 +22,7 @@ class ProductsViewModel {
 
   Future<void> searchProduct(String text, bool sortBalance) async {
     try {
-      final data = await getLocalProductsUseCase();
+      final data = await productRepo.getLocalProducts();
       final result = _searchProduct(text, List<Product>.of(data));
       if (sortBalance) {
         result.sort((a, b) => a.getQuantity().compareTo(b.getQuantity()));

@@ -10,7 +10,6 @@ import 'package:pos/domain/model/product/product.dart';
 import 'package:pos/domain/repositories/order_repository.dart';
 import 'package:pos/domain/repositories/product_repository.dart';
 import 'package:pos/domain/usecase/order/checkout_sale_use_case.dart';
-import 'package:pos/domain/usecase/product/get_product_by_barcode_use_case.dart';
 import 'package:pos/domain/model/sale/line_edit.dart';
 import 'package:pos/domain/model/sale/till.dart';
 import 'package:pos/presentation/home/main/cart_view_model.dart';
@@ -123,8 +122,7 @@ CartViewModel _buildViewModel({
   return CartViewModel(
     till: till ?? Till(),
     checkoutSaleUseCase: CheckoutSaleUseCase(orderRepo: orderRepo),
-    getProductByBarcodeUseCase:
-        GetProductByBarcodeUseCase(productRepo: productRepo),
+    productRepo: productRepo,
   );
 }
 

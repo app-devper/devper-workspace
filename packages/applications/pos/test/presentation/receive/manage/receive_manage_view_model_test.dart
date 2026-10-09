@@ -2,14 +2,12 @@ import 'package:common/core/error/exception.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pos/domain/model/receive/param.dart';
 import 'package:pos/domain/model/product/product.dart';
-import 'package:pos/domain/usecase/product/get_products_use_case.dart';
 import 'package:pos/domain/model/receive/receive.dart';
 import 'package:pos/domain/model/receive/receive_item.dart';
 import 'package:pos/domain/model/supplier/supplier.dart';
 import 'package:pos/domain/repositories/product_repository.dart';
 import 'package:pos/domain/repositories/receive_repository.dart';
 import 'package:pos/domain/repositories/supplier_repository.dart';
-import 'package:pos/domain/usecase/product/get_local_product_by_id_use_case.dart';
 import 'package:pos/presentation/receive/manage/receive_manage_view_model.dart';
 
 class FakeReceiveRepository implements ReceiveRepository {
@@ -138,9 +136,7 @@ ReceiveManageViewModel buildViewModel({
   return ReceiveManageViewModel(
     receiveRepo: receiveRepo,
     supplierRepo: supplierRepo,
-    getLocalProductByIdUseCase:
-        GetLocalProductByIdUseCase(productRepo: productRepo),
-    getProductsUseCase: GetProductsUseCase(productRepo: productRepo),
+    productRepo: productRepo,
   );
 }
 

@@ -4,7 +4,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:pos/domain/model/order/order_summary.dart';
 import 'package:pos/domain/model/order/param.dart';
 import 'package:pos/domain/repositories/order_repository.dart';
-import 'package:pos/domain/usecase/order/get_order_range_use_case.dart';
 import 'package:pos/presentation/order/main/order_ui_model.dart';
 import 'package:pos/presentation/order/main/order_state.dart';
 import 'package:pos/presentation/order/main/order_view_model.dart';
@@ -91,8 +90,7 @@ OrderViewModel buildViewModel({
   FakeLoginRepository? login,
 }) {
   return OrderViewModel(
-    getOrderRangeUseCase:
-        GetOrderRangeUseCase(orderRepo: orders ?? FakeOrderRepository()),
+    orderRepo: orders ?? FakeOrderRepository(),
     getRoleUseCase: GetRoleUseCase(login ?? FakeLoginRepository()),
   );
 }

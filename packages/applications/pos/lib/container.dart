@@ -24,38 +24,6 @@ import 'package:pos/domain/repositories/stock_adjustment_repository.dart';
 import 'package:pos/domain/repositories/stock_count_repository.dart';
 import 'package:pos/domain/repositories/supplier_repository.dart';
 import 'package:pos/domain/usecase/order/checkout_sale_use_case.dart';
-import 'package:pos/domain/usecase/order/get_order_by_id_use_case.dart';
-import 'package:pos/domain/usecase/order/get_order_item_by_product_id_use_case.dart';
-import 'package:pos/domain/usecase/order/get_order_range_use_case.dart';
-import 'package:pos/domain/usecase/order/remove_order_by_id_use_case.dart';
-import 'package:pos/domain/usecase/order/remove_order_item_by_id_use_case.dart';
-import 'package:pos/domain/usecase/product/add_product_price_use_case.dart';
-import 'package:pos/domain/usecase/product/add_product_stock_use_case.dart';
-import 'package:pos/domain/usecase/product/add_product_unit_use_case.dart';
-import 'package:pos/domain/usecase/product/add_product_use_case.dart';
-import 'package:pos/domain/usecase/product/clear_quantity_sold_first_by_id_use_case.dart';
-import 'package:pos/domain/usecase/product/generate_serial_number_use_case.dart';
-import 'package:pos/domain/usecase/product/get_local_product_by_id_use_case.dart';
-import 'package:pos/domain/usecase/product/get_local_products_use_case.dart';
-import 'package:pos/domain/usecase/product/get_products_use_case.dart';
-import 'package:pos/domain/usecase/product/get_product_by_barcode_use_case.dart';
-import 'package:pos/domain/usecase/product/get_product_histories_by_product_id_use_case.dart';
-import 'package:pos/domain/usecase/product/get_product_lots_use_case.dart';
-import 'package:pos/domain/usecase/product/get_product_prices_by_product_id_use_case.dart';
-import 'package:pos/domain/usecase/product/get_product_stocks_by_product_id_use_case.dart';
-import 'package:pos/domain/usecase/product/get_product_units_by_product_id_use_case.dart';
-import 'package:pos/domain/usecase/product/import_product_csv_use_case.dart';
-import 'package:pos/domain/usecase/product/remove_product_by_id_use_case.dart';
-import 'package:pos/domain/usecase/product/remove_product_price_by_id_use_case.dart';
-import 'package:pos/domain/usecase/product/remove_product_stock_by_id_use_case.dart';
-import 'package:pos/domain/usecase/product/remove_product_unit_by_id_use_case.dart';
-import 'package:pos/domain/usecase/product/update_product_by_id_use_case.dart';
-import 'package:pos/domain/usecase/product/update_product_lot_quantity_by_lot_id_use_case.dart';
-import 'package:pos/domain/usecase/product/update_product_price_by_id_use_case.dart';
-import 'package:pos/domain/usecase/product/update_product_stock_by_id_use_case.dart';
-import 'package:pos/domain/usecase/product/update_product_stock_quantity_by_id_use_case.dart';
-import 'package:pos/domain/usecase/product/update_product_stock_sequence_use_case.dart';
-import 'package:pos/domain/usecase/product/update_product_unit_by_id_use_case.dart';
 import 'package:pos/presentation/category/add/category_add_view_model.dart';
 import 'package:pos/presentation/category/edit/category_edit_view_model.dart';
 import 'package:pos/presentation/category/main/category_view_model.dart';
@@ -117,7 +85,7 @@ Future<void> initPos() async {
     () => CartViewModel(
       till: sl(),
       checkoutSaleUseCase: sl(),
-      getProductByBarcodeUseCase: sl(),
+      productRepo: sl(),
     ),
   );
 
@@ -135,110 +103,89 @@ Future<void> initPos() async {
 
   sl.registerFactory(
     () => ProductSearchViewModel(
-      getLocalProductsUseCase: sl(),
+      productRepo: sl(),
     ),
   );
 
   sl.registerFactory(
     () => ProductViewModel(
-      getLocalProductByIdUseCase: sl(),
-      getLocalProductsUseCase: sl(),
-      importProductCSVUseCase: sl(),
-      clearQuantitySoldFirstByIdUseCase: sl(),
+      productRepo: sl(),
     ),
   );
   sl.registerFactory(
     () => ProductsViewModel(
-      getLocalProductsUseCase: sl(),
+      productRepo: sl(),
     ),
   );
   sl.registerFactory(
     () => ProductUnitViewModel(
-      addProductUnitUseCase: sl(),
-      updateProductUnitByIdUseCase: sl(),
-      removeProductUnitByIdUseCase: sl(),
-      getProductUnitsByProductIdUseCase: sl(),
+      productRepo: sl(),
     ),
   );
   sl.registerFactory(
     () => ProductPriceViewModel(
-      addProductPriceUseCase: sl(),
-      updateProductPriceByIdUseCase: sl(),
-      removeProductPriceByIdUseCase: sl(),
-      getProductPricesByProductIdUseCase: sl(),
+      productRepo: sl(),
     ),
   );
   sl.registerFactory(
     () => ProductStockViewModel(
-      addProductStockUseCase: sl(),
-      updateProductStockByIdUseCase: sl(),
-      removeProductStockByIdUseCase: sl(),
-      getProductStocksByProductIdUseCase: sl(),
+      productRepo: sl(),
     ),
   );
   sl.registerFactory(
     () => ProductStockQuantityViewModel(
-      updateProductStockQuantityByIdUseCase: sl(),
+      productRepo: sl(),
     ),
   );
   sl.registerFactory(
     () => ProductStockSequenceViewModel(
-      updateProductStockSequenceUseCase: sl(),
+      productRepo: sl(),
     ),
   );
   sl.registerFactory(
     () => ProductAddViewModel(
       categoryRepo: sl(),
-      generateSerialNumberUseCase: sl(),
-      addProductUseCase: sl(),
-      getProductUnitsByProductIdUseCase: sl(),
-      getProductPricesByProductIdUseCase: sl(),
+      productRepo: sl(),
     ),
   );
   sl.registerFactory(
     () => ProductEditViewModel(
-      getLocalProductByIdUseCase: sl(),
-      updateProductByIdUseCase: sl(),
-      removeProductByIdUseCase: sl(),
+      productRepo: sl(),
     ),
   );
   sl.registerFactory(
     () => ProductsExpiredViewModel(
-      getProductLotsUseCase: sl(),
-      getLocalProductByIdUseCase: sl(),
+      productRepo: sl(),
     ),
   );
   sl.registerFactory(
     () => ProductLotEditViewModel(
-      updateProductLotQuantityByLotIdUseCase: sl(),
-      getLocalProductByIdUseCase: sl(),
+      productRepo: sl(),
     ),
   );
   sl.registerFactory(
     () => ProductHistoryViewModel(
-      getProductHistoriesByProductIdUseCase: sl(),
+      productRepo: sl(),
     ),
   );
 
   sl.registerFactory(
     () => OrderViewModel(
       getRoleUseCase: sl(),
-      getOrderRangeUseCase: sl(),
+      orderRepo: sl(),
     ),
   );
   sl.registerFactory(
     () => OrderDetailViewModel(
       getRoleUseCase: sl(),
-      getOrderByIdUseCase: sl(),
-      removeOrderByIdUseCase: sl(),
-      removeOrderItemByIdUseCase: sl(),
+      orderRepo: sl(),
       supplierRepo: sl(),
       customerRepo: sl(),
     ),
   );
   sl.registerFactory(
     () => OrderHistoryViewModel(
-      getOrderItemByProductIdUseCase: sl(),
+      orderRepo: sl(),
     ),
   );
   sl.registerFactory(
@@ -258,7 +205,7 @@ Future<void> initPos() async {
   );
   sl.registerFactory(
     () => ScannerViewModel(
-      getProductByBarcodeUseCase: sl(),
+      productRepo: sl(),
     ),
   );
   sl.registerFactory(
@@ -305,8 +252,7 @@ Future<void> initPos() async {
     () => ReceiveManageViewModel(
       receiveRepo: sl(),
       supplierRepo: sl(),
-      getLocalProductByIdUseCase: sl(),
-      getProductsUseCase: sl(),
+      productRepo: sl(),
     ),
   );
   sl.registerFactory(
@@ -348,163 +294,6 @@ Future<void> initPos() async {
   sl.registerLazySingleton(
     () => CheckoutSaleUseCase(
       orderRepo: sl(),
-    ),
-  );
-  sl.registerFactory(
-    () => GetOrderRangeUseCase(
-      orderRepo: sl(),
-    ),
-  );
-  sl.registerFactory(
-    () => GetOrderByIdUseCase(
-      orderRepo: sl(),
-    ),
-  );
-  sl.registerFactory(
-    () => GetOrderItemByProductIdUseCase(
-      orderRepo: sl(),
-    ),
-  );
-  sl.registerFactory(
-    () => RemoveOrderByIdUseCase(
-      orderRepo: sl(),
-    ),
-  );
-  sl.registerFactory(
-    () => RemoveOrderItemByIdUseCase(
-      orderRepo: sl(),
-    ),
-  );
-
-  sl.registerFactory(
-    () => GetLocalProductByIdUseCase(
-      productRepo: sl(),
-    ),
-  );
-  sl.registerFactory(() => GetProductsUseCase(productRepo: sl()));
-  sl.registerFactory(
-    () => GetLocalProductsUseCase(
-      productRepo: sl(),
-    ),
-  );
-  sl.registerFactory(
-    () => GetProductByBarcodeUseCase(
-      productRepo: sl(),
-    ),
-  );
-  sl.registerFactory(
-    () => ImportProductCSVUseCase(
-      productRepo: sl(),
-    ),
-  );
-  sl.registerFactory(
-    () => ClearQuantitySoldFirstByIdUseCase(
-      productRepo: sl(),
-    ),
-  );
-  sl.registerFactory(
-    () => GenerateSerialNumberUseCase(
-      productRepo: sl(),
-    ),
-  );
-  sl.registerFactory(
-    () => AddProductUseCase(
-      productRepo: sl(),
-    ),
-  );
-  sl.registerFactory(
-    () => UpdateProductByIdUseCase(
-      productRepo: sl(),
-    ),
-  );
-  sl.registerFactory(
-    () => RemoveProductByIdUseCase(
-      productRepo: sl(),
-    ),
-  );
-  sl.registerFactory(
-    () => AddProductUnitUseCase(
-      productRepo: sl(),
-    ),
-  );
-  sl.registerFactory(
-    () => UpdateProductUnitByIdUseCase(
-      productRepo: sl(),
-    ),
-  );
-  sl.registerFactory(
-    () => RemoveProductUnitByIdUseCase(
-      productRepo: sl(),
-    ),
-  );
-  sl.registerFactory(
-    () => GetProductUnitsByProductIdUseCase(
-      productRepo: sl(),
-    ),
-  );
-  sl.registerFactory(
-    () => AddProductPriceUseCase(
-      productRepo: sl(),
-    ),
-  );
-  sl.registerFactory(
-    () => UpdateProductPriceByIdUseCase(
-      productRepo: sl(),
-    ),
-  );
-  sl.registerFactory(
-    () => RemoveProductPriceByIdUseCase(
-      productRepo: sl(),
-    ),
-  );
-  sl.registerFactory(
-    () => GetProductPricesByProductIdUseCase(
-      productRepo: sl(),
-    ),
-  );
-  sl.registerFactory(
-    () => AddProductStockUseCase(
-      productRepo: sl(),
-    ),
-  );
-  sl.registerFactory(
-    () => UpdateProductStockByIdUseCase(
-      productRepo: sl(),
-    ),
-  );
-  sl.registerFactory(
-    () => RemoveProductStockByIdUseCase(
-      productRepo: sl(),
-    ),
-  );
-  sl.registerFactory(
-    () => GetProductStocksByProductIdUseCase(
-      productRepo: sl(),
-    ),
-  );
-  sl.registerFactory(
-    () => UpdateProductStockQuantityByIdUseCase(
-      productRepo: sl(),
-    ),
-  );
-  sl.registerFactory(
-    () => UpdateProductStockSequenceUseCase(
-      productRepo: sl(),
-    ),
-  );
-  sl.registerFactory(
-    () => UpdateProductLotQuantityByLotIdUseCase(
-      productRepo: sl(),
-    ),
-  );
-  sl.registerFactory(
-    () => GetProductLotsUseCase(
-      productRepo: sl(),
-    ),
-  );
-  sl.registerFactory(
-    () => GetProductHistoriesByProductIdUseCase(
-      productRepo: sl(),
     ),
   );
 

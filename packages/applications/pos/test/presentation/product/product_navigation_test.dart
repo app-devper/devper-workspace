@@ -5,12 +5,6 @@ import 'package:pos/container.dart';
 import 'package:pos/domain/model/core/core.dart';
 import 'package:pos/domain/model/product/product.dart';
 import 'package:pos/domain/repositories/product_repository.dart';
-import 'package:pos/domain/usecase/product/clear_quantity_sold_first_by_id_use_case.dart';
-import 'package:pos/domain/usecase/product/get_local_product_by_id_use_case.dart';
-import 'package:pos/domain/usecase/product/get_local_products_use_case.dart';
-import 'package:pos/domain/usecase/product/import_product_csv_use_case.dart';
-import 'package:pos/domain/usecase/product/remove_product_by_id_use_case.dart';
-import 'package:pos/domain/usecase/product/update_product_by_id_use_case.dart';
 import 'package:pos/presentation/constants.dart';
 import 'package:pos/presentation/product/argument.dart';
 import 'package:pos/presentation/product/edit/product_edit_page.dart';
@@ -83,26 +77,13 @@ void main() {
   setUp(() {
     catalogue = Catalogue([_paracetamol()]);
     sl.registerFactory<ProductViewModel>(() => ProductViewModel(
-          getLocalProductByIdUseCase:
-              GetLocalProductByIdUseCase(productRepo: catalogue),
-          getLocalProductsUseCase:
-              GetLocalProductsUseCase(productRepo: catalogue),
-          importProductCSVUseCase:
-              ImportProductCSVUseCase(productRepo: catalogue),
-          clearQuantitySoldFirstByIdUseCase:
-              ClearQuantitySoldFirstByIdUseCase(productRepo: catalogue),
+          productRepo: catalogue,
         ));
     sl.registerFactory<ProductsViewModel>(() => ProductsViewModel(
-          getLocalProductsUseCase:
-              GetLocalProductsUseCase(productRepo: catalogue),
+          productRepo: catalogue,
         ));
     sl.registerFactory<ProductEditViewModel>(() => ProductEditViewModel(
-          getLocalProductByIdUseCase:
-              GetLocalProductByIdUseCase(productRepo: catalogue),
-          updateProductByIdUseCase:
-              UpdateProductByIdUseCase(productRepo: catalogue),
-          removeProductByIdUseCase:
-              RemoveProductByIdUseCase(productRepo: catalogue),
+          productRepo: catalogue,
         ));
   });
 
