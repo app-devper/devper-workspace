@@ -31,6 +31,16 @@ class GetRoleUseCase {
   const GetRoleUseCase(this.repository);
   /// The signed-in user's role, or null when the token names none.
   Future<Role?> call() async => Role.parse(await repository.getRole());
+
+  /// Whether the signed-in user is at least [min]. A role that cannot be read
+  /// grants nothing: every screen that asks gets the same answer.
+  Future<bool> atLeast(Role min) async {
+    try {
+      return (await call())?.atLeast(min) ?? false;
+    } on Exception {
+      return false;
+    }
+  }
 }
 
 class GetSessionsUseCase {

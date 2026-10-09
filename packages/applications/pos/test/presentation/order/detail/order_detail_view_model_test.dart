@@ -241,7 +241,7 @@ void main() {
 
       expect(vm.state.value.isAdmin, isFalse,
           reason: 'an unreadable role must not unlock deleting orders');
-      expect(errors, hasLength(1));
+      expect(errors, isEmpty);
     });
   });
 
