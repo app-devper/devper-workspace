@@ -10,7 +10,8 @@ import 'package:um/container.dart';
 import 'package:um/domain/entities/user/user.dart';
 import 'package:um/domain/usecase/user_use_cases.dart';
 
-Future<User> useUserInfo() {
+/// The signed-in user. A change in [keys] loads it again.
+Future<User> useUserInfo([List<Object?> keys = const []]) {
   Future<User> getUserInfo() async {
     final action = sl<GetUserInfoUseCase>();
     try {
@@ -21,6 +22,6 @@ Future<User> useUserInfo() {
     }
   }
 
-  final data = useMemoized(getUserInfo, []);
+  final data = useMemoized(getUserInfo, keys);
   return data;
 }
