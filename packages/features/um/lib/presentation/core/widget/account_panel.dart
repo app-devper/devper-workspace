@@ -2,11 +2,13 @@
 import 'package:flutter/material.dart';
 
 // Package imports:
+import 'package:common/core/ext/widget_ext.dart';
 import 'package:design_system/theme/spacing.dart';
 import 'package:design_system/widgets/page_container.dart';
 import 'package:design_system/widgets/snack_bar.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:um/domain/entities/auth/user_session.dart';
+
+// Project imports:
 import 'package:um/domain/entities/user/user.dart';
 import 'package:um/hooks/use_revoke_other_sessions.dart';
 import 'package:um/hooks/use_revoke_session.dart';
@@ -17,9 +19,11 @@ import 'package:um/presentation/core/widget/build_change_password.dart';
 import 'package:um/presentation/core/widget/build_sessions.dart';
 import 'package:um/presentation/core/widget/build_user.dart';
 
-/// Profile and active sessions, hosted by the shell rather than pushed.
-class ProfileSection extends HookWidget {
-  const ProfileSection({super.key});
+/// The signed-in user's own account: profile, password and active sessions.
+/// UM's "my account" page and SM's profile section both host this one panel.
+/// A part that fails to load says so and offers a retry.
+class AccountPanel extends HookWidget {
+  const AccountPanel({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -27,13 +31,14 @@ class ProfileSection extends HookWidget {
         CustomSnackBar(key: const Key("snackbar"), context: context);
     final textTheme = Theme.of(context).textTheme;
 
-    final userInfo = useUserInfo();
+    // Bumping a key re-runs its load: after a retry, or a revoke.
+    final userKey = useState(0);
+    final userInfo = useUserInfo([userKey.value]);
     final update = useUpdateUserInfo(context, onSuccess: (User user) {
       snackBar.hideAll();
       snackBar.showSnackBar(text: "บันทึก ${user.username} สำเร็จ");
     });
 
-    // Bumping the key re-runs useSessions so the list reflects a revoke.
     final sessionsKey = useState(0);
     final sessions = useSessions([sessionsKey.value]);
     void reloadSessions() => sessionsKey.value++;
@@ -58,21 +63,10 @@ class ProfileSection extends HookWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text("ข้อมูลส่วนตัว", style: textTheme.titleMedium),
-            FutureBuilder(
-              future: userInfo,
-              builder: (context, AsyncSnapshot<User> snapshot) {
-                if (snapshot.hasError) return const SizedBox.shrink();
-                if (!snapshot.hasData) {
-                  return const Padding(
-                    padding: EdgeInsets.all(AppSpacing.lg),
-                    child: Center(child: CircularProgressIndicator()),
-                  );
-                }
-                return buildUser(
-                  snapshot.requireData,
-                  (param) => update(param.userParam),
-                );
-              },
+            userInfo.toWidgetLoading(
+              widgetBuilder: (user) =>
+                  buildUser(user, (param) => update(param.userParam)),
+              onRetry: () => userKey.value++,
             ),
             const SizedBox(height: AppSpacing.xl),
             const Divider(),
@@ -85,19 +79,13 @@ class ProfileSection extends HookWidget {
             const SizedBox(height: AppSpacing.xl),
             const Divider(),
             const SizedBox(height: AppSpacing.lg),
-            FutureBuilder(
-              future: sessions,
-              builder: (context, AsyncSnapshot<List<UserSession>> snapshot) {
-                if (snapshot.hasError) return const SizedBox.shrink();
-                if (!snapshot.hasData) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                return buildSessions(
-                  snapshot.requireData,
-                  onRevoke: revokeSession,
-                  onRevokeOthers: revokeOthers,
-                );
-              },
+            sessions.toWidgetLoading(
+              widgetBuilder: (list) => buildSessions(
+                list,
+                onRevoke: revokeSession,
+                onRevokeOthers: revokeOthers,
+              ),
+              onRetry: reloadSessions,
             ),
           ],
         ),
