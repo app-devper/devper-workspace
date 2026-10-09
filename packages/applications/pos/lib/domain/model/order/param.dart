@@ -1,4 +1,5 @@
 // Project imports:
+import 'package:pos/domain/model/sale/money.dart';
 import 'order_item.dart';
 
 class GetOrderRangeParam {
@@ -11,14 +12,16 @@ class GetOrderRangeParam {
   });
 }
 
+/// A Sale sent to pos-api, which prices it and draws its Stock (ADR-0001).
+/// The till sends what was chosen, never what it costs.
 class CreateOrderParam {
-  final String? saleId;
+  /// Identifies the Sale across retries; pos-api records it once.
+  final String saleId;
   final String customerCode;
   final String customerName;
   final List<OrderItem> items;
   final double amount;
   final String type;
-  final double discount;
   final List<OrderPayment> payments;
   final String? patientId;
   final String? pharmacistName;
@@ -29,13 +32,12 @@ class CreateOrderParam {
   final String? message;
 
   CreateOrderParam({
-    this.saleId,
+    required this.saleId,
     required this.customerCode,
     required this.customerName,
     required this.amount,
     required this.items,
     required this.type,
-    this.discount = 0,
     this.payments = const [],
     this.patientId,
     this.pharmacistName,
@@ -46,33 +48,8 @@ class CreateOrderParam {
     this.message,
   });
 
-  double getSubTotal() {
-    double total = 0;
-    for (var x in items) {
-      total += x.amountPrice();
-    }
-    return total;
-  }
-
-  double getTotal() {
-    return getSubTotal() - getDiscount();
-  }
-
-  double getTotalCost() {
-    double total = 0;
-    for (var x in items) {
-      total += x.amountCostPrice();
-    }
-    return total;
-  }
-
-  double getDiscount() {
-    double totalDiscount = discount;
-    for (var x in items) {
-      totalDiscount += (x.discount * x.quantity);
-    }
-    return totalDiscount;
-  }
+  /// The total pos-api will record; see [saleTotal].
+  double getTotal() => saleTotal(items.map((item) => item.charge.paid));
 
   String getMessage() {
     if (message != null && message!.trim().isNotEmpty) {
