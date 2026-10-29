@@ -20,6 +20,13 @@ class RestoreSessionUseCase {
   }
 }
 
+class ContinueFromUmUseCase {
+  final LoginRepository repository;
+  const ContinueFromUmUseCase(this.repository);
+  Future<System> call(String ticket, String system) async =>
+      (await repository.exchangeTicket(ticket, system)).system;
+}
+
 class LogoutUseCase {
   final LoginRepository repository;
   const LogoutUseCase(this.repository);

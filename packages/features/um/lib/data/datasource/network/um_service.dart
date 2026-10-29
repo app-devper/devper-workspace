@@ -27,6 +27,12 @@ class UmService {
         headers: _networkConfig.getHeaders(url), body: jsonBody);
   }
 
+  Future<http.Response> exchangeTicket(String jsonBody) {
+    var url = Uri.parse('${_networkConfig.getHostUm()}/api/um/v1/auth/exchange');
+    return _client.post(url,
+        headers: _networkConfig.getHeaders(url), body: jsonBody);
+  }
+
   Future<http.Response> logoutUser() {
     var url = Uri.parse('${_networkConfig.getHostUm()}/api/um/v1/auth/logout');
     return _client.post(url, headers: _networkConfig.getHeaders(url));

@@ -45,13 +45,34 @@ class LoginRepositoryImpl implements LoginRepository {
     final mapper = LoginMapper();
     final response = await _service.loginUser(mapper.toLoginRequest(param));
     final login = mapper.toLoginDomain(jsonOrThrow(response));
-    await _tokenStorage.save(login.accessToken);
-    _appSession.setAccessToken(login.accessToken);
+    return _start(login.accessToken);
+  }
+
+  @override
+  Future<Session> exchangeTicket(String ticket, String system) async {
+    // The ticket decides who is signed in, so an older session here ends first.
+    _keepAliveScheduler.stop();
+    await _tokenStorage.clear();
+    _appSession.clear();
+    final mapper = LoginMapper();
+    final response = await _service.exchangeTicket(jsonEncode({'ticket': ticket}));
+    final login = mapper.toLoginDomain(jsonOrThrow(response));
+    return _start(login.accessToken, expectedSystem: system);
+  }
+
+  /// Keeps the token, loads the user and System, and starts keep-alive; leaves
+  /// no token behind if any step fails or the System is not [expectedSystem].
+  Future<Session> _start(String accessToken, {String? expectedSystem}) async {
+    await _tokenStorage.save(accessToken);
+    _appSession.setAccessToken(accessToken);
     try {
       final user = UserMapper().toUserDomain(jsonOrThrow(await _service.getUserInfo()));
       final system = await getSystem();
+      if (expectedSystem != null && system.systemCode != expectedSystem) {
+        throw const AuthException(message: "บัญชีนี้เปิดระบบนี้จาก UM ไม่ได้ กรุณาเข้าสู่ระบบ");
+      }
       _keepAliveScheduler.start();
-      return Session(accessToken: login.accessToken, user: user, system: system);
+      return Session(accessToken: accessToken, user: user, system: system);
     } catch (e) {
       await _tokenStorage.clear();
       _appSession.clear();
