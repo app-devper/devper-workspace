@@ -66,6 +66,9 @@ class FakeSystemRepository implements SystemRepository {
 }
 
 class FakeLoginRepository implements LoginRepository {
+  @override
+  Future<Session> exchangeTicket(String ticket, String system) => throw UnimplementedError();
+
   FakeLoginRepository({this.logoutFails = false, this.role = 'SUPER'});
 
   final bool logoutFails;

@@ -7,8 +7,10 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 // Project imports:
 import 'package:um/domain/entities/auth/system.dart';
 import 'package:um/hooks/use_app_config.dart';
+import 'package:um/hooks/use_continue_from_um.dart';
 import 'package:um/hooks/use_keep_alive.dart';
 import 'package:um/presentation/constants.dart';
+import 'package:um/presentation/splash/launch_ticket.dart';
 
 class SplashPage extends HookWidget {
   const SplashPage({super.key});
@@ -41,15 +43,19 @@ class SplashPage extends HookWidget {
     }
 
     final keepAlive = useKeepAlive();
+    final continueFromUm = useContinueFromUm();
+    final ticket = useMemoized(takeLaunchTicket);
     useEffect(() {
       var active = true;
-      keepAlive().then((system) {
+      // Opened from UM: the ticket starts the session instead of a stored one.
+      final start = ticket != null ? continueFromUm(ticket, config.system) : keepAlive();
+      start.then((system) {
         if (active && context.mounted) nextHome(system);
       }, onError: (Object error, StackTrace stack) {
         if (active && context.mounted) nextLogin();
       });
       return () => active = false;
-    }, [keepAlive]);
+    }, [keepAlive, continueFromUm, ticket]);
 
     return GestureDetector(
       onTap: () => FocusScope.of(context).requestFocus(viewNode),

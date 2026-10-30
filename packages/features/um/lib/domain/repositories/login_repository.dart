@@ -7,6 +7,10 @@ import 'package:um/domain/entities/auth/user_session.dart';
 abstract class LoginRepository {
   Future<Session> loginUser(LoginParam param);
 
+  /// Starts a session from the one-time ticket UM put in the address when the
+  /// user opened this app from UM (um-api ADR-0011); refuses another [system].
+  Future<Session> exchangeTicket(String ticket, String system);
+
   Future<Login> keepAlive();
 
   Future<bool> logoutUser();

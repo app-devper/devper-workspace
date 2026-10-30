@@ -184,6 +184,68 @@ void main() {
     });
   });
 
+  group('exchangeTicket', () {
+    http.Response Function(http.Request) umWith(String systemBody) => (request) {
+          if (request.url.path == '/api/um/v1/auth/exchange') {
+            expect(jsonDecode(request.body), {'ticket': 't-1'});
+            return http.Response('{"accessToken":"tok.sso"}', 200);
+          }
+          if (request.url.path == '/api/um/v1/user/info') {
+            return http.Response(validUserBody, 200);
+          }
+          if (request.url.path == '/api/um/v1/auth/system') {
+            return http.Response(systemBody, 200);
+          }
+          return http.Response('', 404);
+        };
+
+    test('starts the session from the ticket UM handed over, replacing an older one', () async {
+      tokenStorage.token = 'tok.someone-else';
+      final repo = buildRepo(
+        tokenStorage: tokenStorage,
+        appSession: appSession,
+        scheduler: scheduler,
+        handler: umWith(validSystemBody),
+      );
+
+      final session = await repo.exchangeTicket('t-1', 'POS');
+
+      expect(session.system.systemCode, 'POS');
+      expect(tokenStorage.token, 'tok.sso');
+      expect(appSession.getAccessToken(), 'tok.sso');
+      expect(scheduler.isStarted, isTrue);
+    });
+
+    test('refuses a ticket for another system and keeps no token', () async {
+      tokenStorage.token = 'tok.someone-else';
+      final repo = buildRepo(
+        tokenStorage: tokenStorage,
+        appSession: appSession,
+        scheduler: scheduler,
+        handler: umWith(validSystemBody.replaceAll('"systemCode":"POS"', '"systemCode":"GOLD"')),
+      );
+
+      await expectLater(repo.exchangeTicket('t-1', 'POS'), throwsA(isA<AuthException>()));
+      expect(tokenStorage.token, isEmpty);
+      expect(appSession.getAccessToken(), isEmpty);
+      expect(scheduler.isStarted, isFalse);
+    });
+
+    test('an expired ticket is an AuthException and ends the older session', () async {
+      tokenStorage.token = 'tok.someone-else';
+      final repo = buildRepo(
+        tokenStorage: tokenStorage,
+        appSession: appSession,
+        scheduler: scheduler,
+        handler: (request) =>
+            http.Response('{"code":"UM-401-002","message":"ticket invalid or expired"}', 401),
+      );
+
+      await expectLater(repo.exchangeTicket('old', 'POS'), throwsA(isA<AuthException>()));
+      expect(tokenStorage.token, isEmpty);
+    });
+  });
+
   group('keepAlive', () {
     test('throws AuthException when no token is stored', () async {
       final repo = buildRepo(

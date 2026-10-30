@@ -47,6 +47,9 @@ class FakeOrderRepository implements OrderRepository {
 }
 
 class FakeLoginRepository implements LoginRepository {
+  @override
+  Future<Session> exchangeTicket(String ticket, String system) => throw UnimplementedError();
+
   FakeLoginRepository({this.role = 'USER', this.throws});
 
   final String role;

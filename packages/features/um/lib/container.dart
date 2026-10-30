@@ -65,6 +65,7 @@ Future<void> initUm() async {
   sl.registerFactory(() => GetClientIdUseCase(sl()));
   sl.registerFactory(() => LoginUseCase(sl()));
   sl.registerFactory(() => RestoreSessionUseCase(sl()));
+  sl.registerFactory(() => ContinueFromUmUseCase(sl()));
   sl.registerFactory(() => LogoutUseCase(sl()));
   sl.registerFactory(() => GetRoleUseCase(sl()));
   sl.registerFactory(() => GetSessionsUseCase(sl()));
