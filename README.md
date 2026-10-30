@@ -174,4 +174,4 @@ The generic Claude Code / Codex skills (`coding-standards`, `tdd-workflow`,
 `grilling`, …) and the `ecc` rules are not in this repo. Every app-devper
 repo shares them from [app-devper/agent-skills](https://github.com/app-devper/agent-skills):
 clone it and run its `install.sh` once per machine. Only the skills about this
-repo live in `.claude/skills/`: `dart-flutter-patterns`, `dev-flow`, `flutter-dart-code-review`, `git-flow`, `pr`.
+repo live in `.agents/skills/`: `dart-flutter-patterns`, `dev-flow`, `flutter-dart-code-review`, `git-flow`, `pr`.
