@@ -10,9 +10,23 @@ import 'package:pos/domain/repositories/order_repository.dart';
 import 'package:pos/domain/repositories/supplier_repository.dart';
 import 'package:pos/presentation/order/detail/order_detail_state.dart';
 import 'package:pos/presentation/order/detail/order_detail_view_model.dart';
+import 'package:um/domain/entities/auth/passkey.dart';
+import 'package:um/domain/entities/auth/session.dart';
 import 'package:um/domain/repositories/login_repository.dart';
 
 class FakeLoginRepository implements LoginRepository {
+  @override
+  Future<PasskeyChallenge> passkeyLoginOptions(String system) => throw UnimplementedError();
+
+  @override
+  Future<Session> loginWithPasskey({
+    required String ceremonyId,
+    required String credentialJson,
+    required String system,
+    String typedUsername = '',
+  }) =>
+      throw UnimplementedError();
+
   final String role;
   final Object? getRoleThrows;
 

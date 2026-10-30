@@ -63,6 +63,20 @@ final class NetworkException extends AppException {
   });
 }
 
+/// A passkey login that did not sign in: the prompt was dismissed, the
+/// platform cannot run it, or UM refused the passkey (its code and a Thai
+/// message the login page shows as-is).
+final class PasskeyException extends AppException {
+  static const cancelled = "PASSKEY_CANCELLED";
+  static const unsupported = "PASSKEY_UNSUPPORTED";
+  static const failed = "PASSKEY_FAILED";
+
+  const PasskeyException({
+    required super.message,
+    required super.code,
+  });
+}
+
 final class UnknownHttpException extends AppException {
   final int statusCode;
 
