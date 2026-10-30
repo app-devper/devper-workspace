@@ -19,10 +19,12 @@ import 'package:um/app_network_config.dart';
 import 'package:um/data/datasource/local/shared_prefs_token_storage.dart';
 import 'package:um/data/datasource/local/token_storage.dart';
 import 'package:um/data/datasource/network/um_service.dart';
+import 'package:um/data/datasource/passkey/browser_passkey_authenticator.dart';
 import 'package:um/data/datasource/session/app_session.dart';
 import 'package:um/data/datasource/session/keep_alive_scheduler.dart';
 import 'package:um/data/repositories/login_repository_impl.dart';
 import 'package:um/data/repositories/user_repository_impl.dart';
+import 'package:um/domain/platform/passkey_authenticator.dart';
 import 'package:um/domain/repositories/login_repository.dart';
 import 'package:um/domain/repositories/user_repository.dart';
 import 'package:um/presentation/constants.dart';
@@ -64,6 +66,8 @@ Future<void> initCore(AppConfig config) async {
 Future<void> initUm() async {
   sl.registerFactory(() => GetClientIdUseCase(sl()));
   sl.registerFactory(() => LoginUseCase(sl()));
+  sl.registerFactory(() => LoginWithPasskeyUseCase(sl(), sl()));
+  sl.registerLazySingleton<PasskeyAuthenticator>(createPasskeyAuthenticator);
   sl.registerFactory(() => RestoreSessionUseCase(sl()));
   sl.registerFactory(() => ContinueFromUmUseCase(sl()));
   sl.registerFactory(() => LogoutUseCase(sl()));

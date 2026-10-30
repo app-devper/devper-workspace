@@ -6,6 +6,7 @@ import 'package:common/core/error/exception.dart';
 import 'package:common/core/ext/string_ext.dart';
 import 'package:common/core/network/error_mapper.dart';
 import 'package:common/core/network/exception.dart';
+import 'package:http/http.dart' as http;
 
 // Project imports:
 import 'package:um/data/datasource/local/token_storage.dart';
@@ -16,6 +17,7 @@ import 'package:um/data/repositories/login_mapper.dart';
 import 'package:um/data/repositories/user_mapper.dart';
 import 'package:um/domain/entities/auth/login.dart';
 import 'package:um/domain/entities/auth/param.dart';
+import 'package:um/domain/entities/auth/passkey.dart';
 import 'package:um/domain/entities/auth/session.dart';
 import 'package:um/domain/entities/auth/system.dart';
 import 'package:um/domain/entities/auth/user_session.dart';
@@ -58,6 +60,52 @@ class LoginRepositoryImpl implements LoginRepository {
     final response = await _service.exchangeTicket(jsonEncode({'ticket': ticket}));
     final login = mapper.toLoginDomain(jsonOrThrow(response));
     return _start(login.accessToken, expectedSystem: system);
+  }
+
+  @override
+  Future<PasskeyChallenge> passkeyLoginOptions(String system) async {
+    final response = await _service.passkeyLoginOptions(jsonEncode({'system': system}));
+    final json = _passkeyJsonOrThrow(response);
+    return PasskeyChallenge(
+      ceremonyId: json['ceremonyId'] as String,
+      optionsJson: jsonEncode(json['options']),
+    );
+  }
+
+  @override
+  Future<Session> loginWithPasskey({
+    required String ceremonyId,
+    required String credentialJson,
+    required String system,
+    String typedUsername = '',
+  }) async {
+    final username = typedUsername.trim();
+    final response = await _service.passkeyLogin(jsonEncode({
+      'ceremonyId': ceremonyId,
+      'credential': jsonDecode(credentialJson),
+      if (username.isNotEmpty) 'username': username,
+    }));
+    final login = LoginMapper().toLoginDomain(_passkeyJsonOrThrow(response));
+    return _start(login.accessToken, expectedSystem: system);
+  }
+
+  /// UM's passkey refusals, in the user's words; anything else keeps its kind.
+  static const _passkeyRefusals = {
+    'UM-401-006':
+        'passkey ที่เลือกเป็นของบัญชีอื่น ไม่ตรงกับชื่อผู้ใช้ที่กรอก เลือก passkey ของบัญชีนี้หรือล้างช่องชื่อผู้ใช้',
+    'UM-401-005': 'passkey นี้ใช้กับระบบนี้ไม่ได้ ลองเลือก passkey อื่นหรือเข้าสู่ระบบด้วยรหัสผ่าน',
+    'UM-400-006': 'คำขอ passkey หมดเวลา ลองใหม่อีกครั้ง',
+    'UM-404-002': 'ระบบยังไม่เปิดใช้ passkey',
+  };
+
+  static dynamic _passkeyJsonOrThrow(http.Response response) {
+    if (response.isSuccessful) return jsonOrThrow(response);
+    final exception = toAppException(response);
+    final message = _passkeyRefusals[exception.code];
+    if (message != null) {
+      throw PasskeyException(code: exception.code, message: message);
+    }
+    throw exception;
   }
 
   /// Keeps the token, loads the user and System, and starts keep-alive; leaves

@@ -9,9 +9,11 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 
 // Project imports:
 import 'package:um/domain/entities/auth/param.dart';
+import 'package:um/domain/entities/auth/passkey.dart';
 import 'package:um/domain/entities/auth/system.dart';
 import 'package:um/hooks/use_app_config.dart';
 import 'package:um/hooks/use_login.dart';
+import 'package:um/hooks/use_login_with_passkey.dart';
 
 /// Single-column sign-in: a small brand mark, a heading, two fields and one
 /// primary action, centred in a narrow column so the form reads the same on a
@@ -27,6 +29,8 @@ HookBuilder buildLogin(Function(System) onSuccess) {
     final obscure = useState(true);
     final config = useAppConfig();
     final login = useLogin(context, onSuccess: onSuccess);
+    final passkeysSupported = usePasskeysSupported();
+    final loginWithPasskey = useLoginWithPasskey(context, onSuccess: onSuccess);
 
     final textTheme = Theme.of(context).textTheme;
 
@@ -36,6 +40,15 @@ HookBuilder buildLogin(Function(System) onSuccess) {
         username: usernameController.text.trim(),
         password: passwordController.text,
         system: config.system,
+      ));
+    }
+
+    // The username typed, if any, must own the passkey (um-api ADR-0010).
+    void submitPasskey() {
+      FocusScope.of(context).unfocus();
+      loginWithPasskey(PasskeyLoginParam(
+        system: config.system,
+        typedUsername: usernameController.text,
       ));
     }
 
@@ -114,6 +127,35 @@ HookBuilder buildLogin(Function(System) onSuccess) {
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
           ),
         ),
+        if (passkeysSupported) ...[
+          const SizedBox(height: AppSpacing.lg),
+          Row(children: [
+            const Expanded(child: Divider()),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+              child: Text('หรือ',
+                  style: textTheme.bodySmall
+                      ?.copyWith(color: AppColors.of(context).textSecondary)),
+            ),
+            const Expanded(child: Divider()),
+          ]),
+          const SizedBox(height: AppSpacing.lg),
+          OutlinedButton.icon(
+            key: const Key("login-passkey"),
+            style: OutlinedButton.styleFrom(
+              minimumSize: const Size.fromHeight(52),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(AppRadius.button),
+              ),
+            ),
+            onPressed: submitPasskey,
+            icon: const Icon(Icons.key, size: 20),
+            label: const Text(
+              'เข้าสู่ระบบด้วย passkey',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+            ),
+          ),
+        ],
         const SizedBox(height: AppSpacing.xl),
         Text(
           'หากเข้าใช้งานไม่ได้ กรุณาติดต่อผู้ดูแลระบบ',

@@ -33,6 +33,20 @@ class UmService {
         headers: _networkConfig.getHeaders(url), body: jsonBody);
   }
 
+  Future<http.Response> passkeyLoginOptions(String jsonBody) {
+    var url = Uri.parse(
+        '${_networkConfig.getHostUm()}/api/um/v1/auth/passkey/login/options');
+    return _client.post(url,
+        headers: _networkConfig.getHeaders(url), body: jsonBody);
+  }
+
+  Future<http.Response> passkeyLogin(String jsonBody) {
+    var url =
+        Uri.parse('${_networkConfig.getHostUm()}/api/um/v1/auth/passkey/login');
+    return _client.post(url,
+        headers: _networkConfig.getHeaders(url), body: jsonBody);
+  }
+
   Future<http.Response> logoutUser() {
     var url = Uri.parse('${_networkConfig.getHostUm()}/api/um/v1/auth/logout');
     return _client.post(url, headers: _networkConfig.getHeaders(url));

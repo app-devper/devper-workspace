@@ -1,5 +1,7 @@
 import 'package:um/domain/repositories/login_repository.dart';
 import 'package:um/domain/entities/auth/param.dart';
+import 'package:um/domain/entities/auth/passkey.dart';
+import 'package:um/domain/platform/passkey_authenticator.dart';
 import 'package:um/domain/entities/auth/role.dart';
 import 'package:um/domain/entities/auth/system.dart';
 import 'package:um/domain/entities/auth/user_session.dart';
@@ -9,6 +11,25 @@ class LoginUseCase {
   const LoginUseCase(this.repository);
   Future<System> call(LoginParam param) async =>
       (await repository.loginUser(param)).system;
+}
+
+/// Signs in with a passkey: UM issues the options, the device answers, UM
+/// checks the answer against the typed username and starts the session.
+class LoginWithPasskeyUseCase {
+  final LoginRepository repository;
+  final PasskeyAuthenticator authenticator;
+  const LoginWithPasskeyUseCase(this.repository, this.authenticator);
+  Future<System> call(PasskeyLoginParam param) async {
+    final challenge = await repository.passkeyLoginOptions(param.system);
+    final credential = await authenticator.get(challenge.optionsJson);
+    final session = await repository.loginWithPasskey(
+      ceremonyId: challenge.ceremonyId,
+      credentialJson: credential,
+      system: param.system,
+      typedUsername: param.typedUsername,
+    );
+    return session.system;
+  }
 }
 
 class RestoreSessionUseCase {

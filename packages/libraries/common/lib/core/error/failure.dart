@@ -31,6 +31,7 @@ Failure toFailure(Object e) {
     ValidationException() => Failure(errorCode: e.code, error: e.message),
     ConflictException() => Failure(errorCode: e.code, error: e.message),
     UnknownHttpException() => Failure(errorCode: e.code, error: e.message),
+    PasskeyException() => Failure(errorCode: e.code, error: e.message),
     http.ClientException() => const Failure(errorCode: "NETWORK_ERROR", error: _networkErrorMessage),
     TimeoutException() => const Failure(errorCode: "NETWORK_ERROR", error: _networkErrorMessage),
     _ => Failure(errorCode: "UNKNOWN", error: e.toString()),

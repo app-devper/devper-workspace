@@ -86,6 +86,19 @@ melos exec -c 1 --dir-exists=test -- flutter test
 melos run prepare
 ```
 
+## Sign-in
+
+Both apps sign in through UM. Besides the password form, a browser that supports
+WebAuthn shows "เข้าสู่ระบบด้วย passkey" (um-api ADR-0010): the `um` package asks UM
+for the request options, runs `navigator.credentials.get` and sends the answer
+together with whatever username is typed, so a passkey that belongs to a
+different account is refused (`UM-401-006`). The passkey prompt lives behind
+`PasskeyAuthenticator`; the browser implementation is picked by conditional
+import, and other platforms report passkeys as unsupported, which hides the
+button. UM's `WEBAUTHN_RP_ORIGINS` must list the app's origin
+(`https://pos.devper.app`, `https://sm.devper.app`; `http://localhost:<port>` in
+development).
+
 ## API gateway
 
 The POS and SM applications use `https://api.devper.app` in `config/app.json`. Both `apiUrl` (UM) and `hostApp` (business API) point to this gateway. Pinning `hostApp` prevents the system host returned by UM from bypassing the gateway, including after logout.
