@@ -1,9 +1,9 @@
 ---
 name: dart-flutter-patterns
-description: How Dart and Flutter code is written in devper-workspace — Clean Architecture + MVVM with ValueNotifier view models and OneShot events, get_it composition in container.dart, http via CustomClient/PosService and jsonOrThrow, sealed AppException → Failure, CachedList, Flutter Hooks only in UM, and tests with fake repositories and MockClient. Use when writing or reviewing Dart/Flutter code in this repo — a screen, view model, use case, repository, mapper or test.
+description: How Dart and Flutter code is written in pos-app — Clean Architecture + MVVM with ValueNotifier view models and OneShot events, get_it composition in container.dart, http via CustomClient/PosService and jsonOrThrow, sealed AppException → Failure, CachedList, Flutter Hooks only in UM, and tests with fake repositories and MockClient. Use when writing or reviewing Dart/Flutter code in this repo — a screen, view model, use case, repository, mapper or test.
 ---
 
-# Dart / Flutter patterns — devper-workspace
+# Dart / Flutter patterns — pos-app
 
 The house style of this melos workspace, taken from the code. When this file
 and the code disagree, the code and [docs/architecture.md](../../../docs/architecture.md)

@@ -1,9 +1,9 @@
 ---
 name: dev-flow
-description: End-to-end delivery flow for app-devper/devper-workspace — from an idea or bug through shaping, design, test-first build, verify, review, PR into develop, release PR into main, tag, deploy check and back-merge. Says which skill to use at each stage. Use when starting any change, when unsure what comes next, or when asked to ship, release or hotfix.
+description: End-to-end delivery flow for app-devper/pos-app — from an idea or bug through shaping, design, test-first build, verify, review, PR into develop, release PR into main, tag, deploy check and back-merge. Says which skill to use at each stage. Use when starting any change, when unsure what comes next, or when asked to ship, release or hotfix.
 ---
 
-# dev-flow — idea → release for devper-workspace
+# dev-flow — idea → release for pos-app
 
 One flow, nine stages. Each stage names the skill that does the work and the
 exit check that must hold before moving on. Skip a stage only where it says
