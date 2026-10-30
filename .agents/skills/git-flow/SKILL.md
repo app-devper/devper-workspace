@@ -1,13 +1,13 @@
 ---
 name: git-flow
-description: Git flow branching for app-devper/devper-workspace — main (production line), develop (default, integration), feature/*, release/*, hotfix/*. Flutter monorepo (melos 8 + fvm); no auto-deploy on merge (deploy is manual per app). Use when starting new work, opening a PR, cutting a release, hotfixing, or deciding which base branch a change targets.
+description: Git flow branching for app-devper/pos-app — main (production line), develop (default, integration), feature/*, release/*, hotfix/*. Flutter monorepo (melos 8 + fvm); no auto-deploy on merge (deploy is manual per app). Use when starting new work, opening a PR, cutting a release, hotfixing, or deciding which base branch a change targets.
 ---
 
 # git-flow — branching + release model for this repo
 
 Project override of the user-level `git-flow` skill (`~/.Codex/skills/git-flow/`)
 — generic recipes live there; everything below is what's specific to
-`app-devper/devper-workspace` (Flutter monorepo, `melos` 8 + `fvm`, Flutter 3.38.7).
+`app-devper/pos-app` (Flutter monorepo, `melos` 8 + `fvm`, Flutter 3.38.7).
 
 ## Branch map
 
@@ -25,7 +25,7 @@ PRs land via **squash**. The `check` workflow
 
 ## What merging `main` does — nothing automatic
 
-Unlike the other migrated repos, **`devper-workspace` has no deploy pipeline**.
+Unlike the other migrated repos, **`pos-app` has no deploy pipeline**.
 Merging `main` does NOT deploy or tag. Web deploys are **manual**, run from a
 clean `main` checkout after the release lands:
 

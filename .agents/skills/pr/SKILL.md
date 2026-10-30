@@ -1,6 +1,6 @@
 ---
 name: pr
-description: Land the current branch's open pull request in app-devper/devper-workspace — squash-merge (auto-merge if the check is still running), delete the branch, sync the base branch, and back-merge main into develop when the PR targeted main. Use when the user says "pr land", "merge it", "/pr", or otherwise asks to land the current PR.
+description: Land the current branch's open pull request in app-devper/pos-app — squash-merge (auto-merge if the check is still running), delete the branch, sync the base branch, and back-merge main into develop when the PR targeted main. Use when the user says "pr land", "merge it", "/pr", or otherwise asks to land the current PR.
 ---
 
 # pr — land the current branch's PR
