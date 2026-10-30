@@ -184,6 +184,87 @@ void main() {
     });
   });
 
+  group('passkey login', () {
+    http.Response Function(http.Request) umWith(http.Response Function(http.Request) onLogin) => (request) {
+          if (request.url.path == '/api/um/v1/auth/passkey/login/options') {
+            expect(jsonDecode(request.body), {'system': 'POS'});
+            return http.Response('{"ceremonyId":"c1","options":{"publicKey":{"challenge":"x"}}}', 200);
+          }
+          if (request.url.path == '/api/um/v1/auth/passkey/login') return onLogin(request);
+          if (request.url.path == '/api/um/v1/user/info') return http.Response(validUserBody, 200);
+          if (request.url.path == '/api/um/v1/auth/system') return http.Response(validSystemBody, 200);
+          return http.Response('', 404);
+        };
+
+    test('asks UM for options on the system and hands the request options over as JSON', () async {
+      final repo = buildRepo(
+          tokenStorage: tokenStorage, appSession: appSession, scheduler: scheduler,
+          handler: umWith((_) => fail('not yet')));
+
+      final challenge = await repo.passkeyLoginOptions('POS');
+
+      expect(challenge.ceremonyId, 'c1');
+      expect(jsonDecode(challenge.optionsJson), {'publicKey': {'challenge': 'x'}});
+    });
+
+    test('sends the answer with the typed username, trimmed, and starts the session', () async {
+      Map<String, dynamic>? sent;
+      final repo = buildRepo(
+          tokenStorage: tokenStorage, appSession: appSession, scheduler: scheduler,
+          handler: umWith((request) {
+            sent = jsonDecode(request.body);
+            return http.Response('{"accessToken":"tok.pk"}', 200);
+          }));
+
+      final session = await repo.loginWithPasskey(
+          ceremonyId: 'c1', credentialJson: '{"id":"cred"}', system: 'POS', typedUsername: ' admin ');
+
+      expect(sent, {'ceremonyId': 'c1', 'credential': {'id': 'cred'}, 'username': 'admin'});
+      expect(session.accessToken, 'tok.pk');
+      expect(tokenStorage.token, 'tok.pk');
+      expect(scheduler.isStarted, isTrue);
+    });
+
+    test('leaves the username out when none was typed', () async {
+      Map<String, dynamic>? sent;
+      final repo = buildRepo(
+          tokenStorage: tokenStorage, appSession: appSession, scheduler: scheduler,
+          handler: umWith((request) {
+            sent = jsonDecode(request.body);
+            return http.Response('{"accessToken":"tok.pk"}', 200);
+          }));
+
+      await repo.loginWithPasskey(ceremonyId: 'c1', credentialJson: '{"id":"cred"}', system: 'POS');
+
+      expect(sent, {'ceremonyId': 'c1', 'credential': {'id': 'cred'}});
+    });
+
+    test("a passkey of another account is refused in the user's words, without a token", () async {
+      final repo = buildRepo(
+          tokenStorage: tokenStorage, appSession: appSession, scheduler: scheduler,
+          handler: umWith((_) => http.Response(
+              '{"code":"UM-401-006","message":"this passkey belongs to a different account"}', 401)));
+
+      await expectLater(
+        repo.loginWithPasskey(ceremonyId: 'c1', credentialJson: '{}', system: 'POS', typedUsername: 'bob'),
+        throwsA(isA<PasskeyException>()
+            .having((e) => e.code, 'code', 'UM-401-006')
+            .having((e) => e.message, 'message', contains('บัญชีอื่น'))),
+      );
+      expect(tokenStorage.token, isEmpty);
+      expect(scheduler.isStarted, isFalse);
+    });
+
+    test('passkeys switched off at UM read as such', () async {
+      final repo = buildRepo(
+          tokenStorage: tokenStorage, appSession: appSession, scheduler: scheduler,
+          handler: (request) => http.Response('{"code":"UM-404-002","message":"passkeys are not enabled"}', 404));
+
+      await expectLater(repo.passkeyLoginOptions('POS'),
+          throwsA(isA<PasskeyException>().having((e) => e.message, 'message', 'ระบบยังไม่เปิดใช้ passkey')));
+    });
+  });
+
   group('exchangeTicket', () {
     http.Response Function(http.Request) umWith(String systemBody) => (request) {
           if (request.url.path == '/api/um/v1/auth/exchange') {

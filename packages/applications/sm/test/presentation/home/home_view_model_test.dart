@@ -13,6 +13,7 @@ import 'package:um/domain/entities/auth/param.dart';
 import 'package:um/domain/entities/auth/session.dart';
 import 'package:um/domain/entities/auth/system.dart' as um;
 import 'package:um/domain/entities/auth/user_session.dart';
+import 'package:um/domain/entities/auth/passkey.dart';
 import 'package:um/domain/repositories/login_repository.dart';
 
 System _system(String id, String code) => System(
@@ -66,6 +67,18 @@ class FakeSystemRepository implements SystemRepository {
 }
 
 class FakeLoginRepository implements LoginRepository {
+  @override
+  Future<PasskeyChallenge> passkeyLoginOptions(String system) => throw UnimplementedError();
+
+  @override
+  Future<Session> loginWithPasskey({
+    required String ceremonyId,
+    required String credentialJson,
+    required String system,
+    String typedUsername = '',
+  }) =>
+      throw UnimplementedError();
+
   @override
   Future<Session> exchangeTicket(String ticket, String system) => throw UnimplementedError();
 
