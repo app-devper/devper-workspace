@@ -73,4 +73,4 @@ This repo follows **git flow** (see the `git-flow` skill): feature PRs target
   per app. Confirm a release PR bumped the app's `version:` before landing.
 - Branch protection is not enforced (free-plan private repo); still treat a
   red `check` as blocking and never merge over a failed check.
-- Run from inside `/Users/admin/ProjectPos/Devper/devper-workspace`.
+- Run from inside `/Users/admin/ProjectPos/Devper/pos-app`.
