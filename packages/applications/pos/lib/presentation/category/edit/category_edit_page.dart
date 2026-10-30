@@ -203,7 +203,8 @@ class _CategoryEditPageState extends State<CategoryEditPage> {
               _requireCustomerOrder = newValue;
             });
           },
-          controlAffinity: ListTileControlAffinity.leading, //  <-- leading Checkbox
+          controlAffinity:
+              ListTileControlAffinity.leading, //  <-- leading Checkbox
         )
       ],
     );
@@ -265,7 +266,8 @@ class _CategoryEditPageState extends State<CategoryEditPage> {
       child: ButtonWidget(
         key: const Key("update"),
         onClicked: () {
-          _viewModel.updateCategoryById(widget.category.id, _getCategoryParam());
+          _viewModel.updateCategoryById(
+              widget.category.id, _getCategoryParam());
         },
         text: "Update",
       ),

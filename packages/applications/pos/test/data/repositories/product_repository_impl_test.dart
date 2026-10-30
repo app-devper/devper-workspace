@@ -252,17 +252,16 @@ void main() {
       expect(built.cache.items, isEmpty);
     });
 
-    test('clearQuantitySoldFirstById updates only soldFirst', () async {
+    test('clearing Sold first marks the catalogue stale', () async {
       final cached = await _cachedProduct();
       final recorder =
-          _Recorder(body: jsonEncode(_productJson(soldFirst: 4, name: 'อื่น')));
+          _Recorder(body: jsonEncode(_productJson(soldFirst: 0)));
       final built = _build(recorder, cached: [cached]);
 
       await built.repo.clearQuantitySoldFirstById('p1');
 
-      expect(built.cache.items.single.soldFirst, 4);
-      expect(built.cache.items.single.name, 'ยาแก้ปวด',
-          reason: 'this write touches one field, not the whole product');
+      expect(built.cache.needsRefresh, isTrue,
+          reason: 'it is a Stock ledger write, so the server is the source');
     });
 
     test('prices are added, edited and removed in the cache', () async {
@@ -331,7 +330,7 @@ void main() {
       expect(cached.units.map((u) => u.id), ['u1']);
     });
 
-    test('stock quantity edits land on the cached lot', () async {
+    test('setting a Stock quantity marks the catalogue stale', () async {
       final cached = await _cachedProduct();
       final built = _build(_Recorder(body: jsonEncode(_stockJson(quantity: 3))),
           cached: [cached]);
@@ -339,8 +338,9 @@ void main() {
       await built.repo.updateProductStockQuantityById(
           's1', UpdateProductStockQuantityParam(quantity: 3));
 
-      expect(cached.stocks.single.quantity, 3,
-          reason: 'the sales screen reads the quantity straight off the cache');
+      expect(built.cache.needsRefresh, isTrue,
+          reason: 'raising a quantity can settle Oversell on other Lines, '
+              'which this response does not carry');
     });
 
     test('getProductStocksByProductId replaces the cached lots', () async {
@@ -365,32 +365,6 @@ void main() {
           UpdateProductStockSequenceParam(productId: 'p1', stocks: const []));
 
       expect(cached.stocks.single.id, 's9');
-    });
-
-    test('updateProductStock edits the cache without a request', () async {
-      final cached = await _cachedProduct();
-      final recorder = _Recorder();
-      final built = _build(recorder, cached: [cached]);
-
-      final edited = cached.stocks.single;
-      await built.repo.updateProductStock(ProductStock(
-        id: edited.id,
-        unitId: edited.unitId,
-        productId: 'p1',
-        receiveCode: edited.receiveCode,
-        sequence: 2,
-        lotNumber: 'LOT-NEW',
-        costPrice: 6,
-        price: 12,
-        import: edited.import,
-        quantity: 1,
-        expireDate: '2028-01-01',
-        importDate: edited.importDate,
-      ));
-
-      expect(recorder.calls, isEmpty, reason: 'this one is cache-only');
-      expect(cached.stocks.single.quantity, 1);
-      expect(cached.stocks.single.lotNumber, 'LOT-NEW');
     });
 
     test('a write for a product nobody cached is a no-op, not a crash',

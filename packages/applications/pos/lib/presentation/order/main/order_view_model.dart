@@ -4,22 +4,24 @@ import 'package:flutter/foundation.dart';
 // Package imports:
 import 'package:common/core/error/failure.dart';
 import 'package:common/core/state/one_shot.dart';
+import 'package:um/domain/entities/auth/role.dart';
 import 'package:um/domain/usecase/auth_use_cases.dart';
 
 // Project imports:
 import 'package:pos/domain/model/order/order_summary.dart';
 import 'package:pos/domain/model/order/param.dart';
-import 'package:pos/domain/usecase/order/get_order_range_use_case.dart';
+import 'package:pos/domain/model/sale/money.dart';
+import 'package:pos/domain/repositories/order_repository.dart';
 import 'order_state.dart';
 import 'order_ui_model.dart';
 
 class OrderViewModel {
-  final GetOrderRangeUseCase getOrderRangeUseCase;
+  final OrderRepository orderRepo;
   final GetRoleUseCase getRoleUseCase;
 
   OrderViewModel({
+    required this.orderRepo,
     required this.getRoleUseCase,
-    required this.getOrderRangeUseCase,
   });
 
   final _state = ValueNotifier<OrderState>(const OrderState());
@@ -37,7 +39,7 @@ class OrderViewModel {
 
   Future<void> getOrderItem(String type, GetOrderRangeParam param) async {
     try {
-      final result = await getOrderRangeUseCase(param);
+      final result = await orderRepo.getOrderRange(param);
       final orders = _filterOrders(type, result);
       double total = 0;
       double totalCost = 0;
@@ -45,20 +47,18 @@ class OrderViewModel {
         total += x.total;
         totalCost += x.totalCost;
       }
-      _state.value = _state.value
-          .copyWith(orders: orders, total: total, totalCost: totalCost);
+      _state.value = _state.value.copyWith(
+          orders: orders,
+          total: roundMoney(total),
+          totalCost: roundMoney(totalCost));
     } on Exception catch (e) {
       _errors.emit(toFailure(e).getMessage());
     }
   }
 
   Future<void> checkLogin() async {
-    try {
-      final role = await getRoleUseCase();
-      _state.value = _state.value.copyWith(isAdmin: role == "ADMIN");
-    } on Exception catch (e) {
-      _errors.emit(toFailure(e).getMessage());
-    }
+    _state.value = _state.value
+        .copyWith(isAdmin: await getRoleUseCase.atLeast(Role.admin));
   }
 
   void initData() {

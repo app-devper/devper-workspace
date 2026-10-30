@@ -20,7 +20,7 @@ import 'package:pos/domain/model/receive/receive_item.dart';
 import 'package:pos/domain/model/supplier/supplier.dart';
 import 'package:pos/localizations/language/languages.dart';
 import 'package:pos/presentation/constants.dart';
-import 'package:pos/domain/usecase/product/get_products_use_case.dart';
+import 'package:pos/domain/repositories/product_repository.dart';
 import 'receive_item_dialog.dart';
 import 'receive_manage_state.dart';
 import 'receive_manage_view_model.dart';
@@ -393,7 +393,7 @@ class _ReceiveManagePageState extends State<ReceiveManagePage> {
       return;
     }
     try {
-      final products = await sl<GetProductsUseCase>()();
+      final products = await sl<ProductRepository>().getProducts();
       if (!mounted) return;
       final item = await showDialog<ReceiveItem>(
         context: context,

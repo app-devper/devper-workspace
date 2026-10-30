@@ -8,27 +8,18 @@ import 'package:common/core/state/one_shot.dart';
 // Project imports:
 import 'package:pos/domain/model/product/product.dart';
 import 'package:pos/domain/model/product/param.dart';
-import 'package:pos/domain/usecase/product/add_product_use_case.dart';
-import 'package:pos/domain/usecase/product/generate_serial_number_use_case.dart';
-import 'package:pos/domain/usecase/product/get_product_prices_by_product_id_use_case.dart';
-import 'package:pos/domain/usecase/product/get_product_units_by_product_id_use_case.dart';
 import 'package:pos/presentation/product/add/product_add_state.dart';
 
 import 'package:pos/domain/repositories/category_repository.dart';
+import 'package:pos/domain/repositories/product_repository.dart';
 
 class ProductAddViewModel {
+  final ProductRepository productRepo;
   final CategoryRepository categoryRepo;
-  final GenerateSerialNumberUseCase generateSerialNumberUseCase;
-  final AddProductUseCase addProductUseCase;
-  final GetProductUnitsByProductIdUseCase getProductUnitsByProductIdUseCase;
-  final GetProductPricesByProductIdUseCase getProductPricesByProductIdUseCase;
 
   ProductAddViewModel({
+    required this.productRepo,
     required this.categoryRepo,
-    required this.generateSerialNumberUseCase,
-    required this.addProductUseCase,
-    required this.getProductUnitsByProductIdUseCase,
-    required this.getProductPricesByProductIdUseCase,
   });
 
   final _state = ValueNotifier<ProductAddState>(const ProductAddState());
@@ -60,7 +51,7 @@ class ProductAddViewModel {
     if (_state.value.saving) return;
     _state.value = _state.value.copyWith(saving: true);
     try {
-      _serialNumbers.emit(await generateSerialNumberUseCase());
+      _serialNumbers.emit(await productRepo.generateSerialNumber());
     } on Exception catch (e) {
       _errors.emit(toFailure(e).getMessage());
     } finally {
@@ -72,10 +63,10 @@ class ProductAddViewModel {
     if (_state.value.saving) return;
     _state.value = _state.value.copyWith(saving: true);
     try {
-      final created = await addProductUseCase(param);
-      await getProductUnitsByProductIdUseCase(created.id);
-      await getProductPricesByProductIdUseCase(created.id);
-      _created.emit(created);
+      // The catalogue reads the new Product with its Unit and Price itself. A
+      // follow-up read here used to fail after the Product was created, and
+      // a retry made a second one.
+      _created.emit(await productRepo.addProduct(param));
     } on Exception catch (e) {
       _errors.emit(toFailure(e).getMessage());
     } finally {

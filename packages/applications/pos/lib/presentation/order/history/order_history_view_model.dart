@@ -1,3 +1,4 @@
+import 'package:pos/domain/repositories/order_repository.dart';
 // Flutter imports:
 import 'package:flutter/foundation.dart';
 
@@ -6,14 +7,13 @@ import 'package:common/core/error/failure.dart';
 import 'package:common/core/state/one_shot.dart';
 
 // Project imports:
-import 'package:pos/domain/usecase/order/get_order_item_by_product_id_use_case.dart';
 import 'order_history_state.dart';
 
 class OrderHistoryViewModel {
-  final GetOrderItemByProductIdUseCase getOrderItemByProductIdUseCase;
+  final OrderRepository orderRepo;
 
   OrderHistoryViewModel({
-    required this.getOrderItemByProductIdUseCase,
+    required this.orderRepo,
   });
 
   final _state = ValueNotifier<OrderHistoryState>(const OrderHistoryState());
@@ -29,7 +29,7 @@ class OrderHistoryViewModel {
   Future<void> getOrderItemByProductId(String productId) async {
     _state.value = _state.value.copyWith(loading: true);
     try {
-      final items = await getOrderItemByProductIdUseCase(productId);
+      final items = await orderRepo.getOrderItemByProductId(productId);
       _state.value = _state.value.copyWith(loading: false, items: items);
     } on Exception catch (e) {
       _state.value = _state.value.copyWith(loading: false);

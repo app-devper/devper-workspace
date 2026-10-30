@@ -22,6 +22,7 @@ const _networkErrorMessage = "เชื่อมต่อเซิร์ฟเ�
 
 Failure toFailure(Object e) {
   return switch (e) {
+    Failure() => e,
     AuthException() => Failure(errorCode: e.code, error: "เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่"),
     ForbiddenException() => Failure(errorCode: e.code, error: "ไม่มีสิทธิ์ใช้งานส่วนนี้"),
     NotFoundException() => Failure(errorCode: e.code, error: "ไม่พบข้อมูลที่ต้องการ"),

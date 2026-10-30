@@ -22,13 +22,13 @@ class StockCountRepositoryImpl implements StockCountRepository {
   });
 
   @override
-  Future<StockCount> createStockCount(CreateStockCountParam param) async {
-    final response =
-        await posService.createStockCount(param.toStockCountRequest());
-    final result =
-        (jsonOrThrow(response) as Map<String, dynamic>).toStockCountDomain();
-    productCache.invalidate();
-    return result;
+  Future<StockCount> createStockCount(CreateStockCountParam param) {
+    return productCache.staleAfter(() async {
+      final response =
+          await posService.createStockCount(param.toStockCountRequest());
+      return (jsonOrThrow(response) as Map<String, dynamic>)
+          .toStockCountDomain();
+    });
   }
 
   @override

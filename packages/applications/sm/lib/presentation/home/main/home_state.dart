@@ -1,6 +1,9 @@
 // Flutter imports:
 import 'package:flutter/foundation.dart';
 
+// Package imports:
+import 'package:um/domain/entities/auth/role.dart';
+
 // Project imports:
 import 'package:sm/domain/model/system/system.dart';
 
@@ -13,23 +16,24 @@ import 'package:sm/domain/model/system/system.dart';
 class HomeState {
   final List<System> items;
   final bool loading;
-  final String role;
+  /// Null until the token is read, and when it names no role.
+  final Role? role;
 
   const HomeState({
     this.items = const [],
     this.loading = false,
-    this.role = '',
+    this.role,
   });
 
   /// Mirrors um-web's sidebar gating.
-  bool get canManageUsers => const ['SUPER', 'ADMIN', 'MANAGER'].contains(role);
+  bool get canManageUsers => role?.atLeast(Role.manager) ?? false;
 
-  bool get canManageSystems => role == 'SUPER';
+  bool get canManageSystems => role?.atLeast(Role.superuser) ?? false;
 
   HomeState copyWith({
     List<System>? items,
     bool? loading,
-    String? role,
+    Role? role,
   }) {
     return HomeState(
       items: items ?? this.items,

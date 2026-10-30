@@ -3,8 +3,6 @@ import 'package:pos/domain/model/product/param.dart';
 import 'package:pos/domain/model/product/product.dart';
 import 'package:pos/domain/model/product/product_lot.dart';
 import 'package:pos/domain/repositories/product_repository.dart';
-import 'package:pos/domain/usecase/product/get_local_product_by_id_use_case.dart';
-import 'package:pos/domain/usecase/product/get_product_lots_use_case.dart';
 import 'package:pos/presentation/product/expired/products_expire_ui_model.dart';
 import 'package:pos/presentation/product/expired/products_expired_view_model.dart';
 
@@ -41,8 +39,7 @@ class FakeProductRepository implements ProductRepository {
 
 ProductsExpiredViewModel buildViewModel(FakeProductRepository repo) {
   return ProductsExpiredViewModel(
-    getProductLotsUseCase: GetProductLotsUseCase(productRepo: repo),
-    getLocalProductByIdUseCase: GetLocalProductByIdUseCase(productRepo: repo),
+    productRepo: repo,
   );
 }
 

@@ -122,7 +122,8 @@ class _CustomerEditPageState extends State<CustomerEditPage> {
           action: "ยืนยัน",
           onAction: () {
             if (_formKey.currentState!.validate()) {
-              _viewModel.updateCustomerById(widget.customer.id, _getCustomerParam());
+              _viewModel.updateCustomerById(
+                  widget.customer.id, _getCustomerParam());
             }
           },
         ),
@@ -170,7 +171,9 @@ class _CustomerEditPageState extends State<CustomerEditPage> {
                       'โปรดระบุข้อมูลลูกค้า',
                       style: TextStyle(
                         fontSize: 16,
-                        color: AppColors.of(context).textPrimary.withValues(alpha: 0.6),
+                        color: AppColors.of(context)
+                            .textPrimary
+                            .withValues(alpha: 0.6),
                       ),
                     ),
                     const SizedBox(height: 32),

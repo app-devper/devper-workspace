@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 // Project imports:
 import 'package:pos/domain/model/order/order.dart';
 import 'package:pos/domain/model/product/product.dart';
+import 'package:pos/domain/model/sale/money.dart';
 
 class OrderItemDetail {
   String id;
@@ -31,8 +32,9 @@ class OrderItemDetail {
   });
 
   /// What the customer paid for the line: [price] is the whole line before
-  /// its discount, and [discount] is so much off each unit.
-  double paid() => price - discount * quantity;
+  /// its discount, and [discount] is so much off each unit. Rounded to the
+  /// satang as pos-api recorded it.
+  double paid() => roundMoney(price - discount * quantity);
 
   /// What the customer paid for one unit. A return refunds no more.
   double paidPerUnit() {

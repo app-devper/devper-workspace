@@ -9,6 +9,9 @@ import 'package:um/domain/entities/auth/user_session.dart';
 import 'package:um/domain/repositories/login_repository.dart';
 
 class FakeLoginRepository implements LoginRepository {
+  @override
+  Future<Session> exchangeTicket(String ticket, String system) => throw UnimplementedError();
+
   final String role;
   final bool logoutThrows;
   var logoutCalls = 0;
@@ -61,6 +64,20 @@ void main() {
     await vm.getRole();
 
     expect(vm.state.value.isAdmin, isTrue);
+  });
+
+  test('getRole sets isAdmin true for SUPER, which ranks above ADMIN',
+      () async {
+    final repo = FakeLoginRepository(role: 'SUPER');
+    final vm = HomeViewModel(
+      getRoleUseCase: GetRoleUseCase(repo),
+      logoutUseCase: LogoutUseCase(repo),
+    );
+
+    await vm.getRole();
+
+    expect(vm.state.value.isAdmin, isTrue,
+        reason: 'SUPER used to land on the cashier menu');
   });
 
   test('getRole sets isAdmin false for USER', () async {

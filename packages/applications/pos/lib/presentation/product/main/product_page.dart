@@ -36,7 +36,6 @@ class _ProductsPageState extends State<ProductsPage> {
   PageState _pageState = MainPage();
 
   /// Bumped when the list behind the panels is out of date, so it reloads.
-  int _listVersion = 0;
 
   late ProductViewModel _viewModel;
   late StreamSubscription<Product> _loaded;
@@ -103,7 +102,6 @@ class _ProductsPageState extends State<ProductsPage> {
         SizedBox(
           width: 320,
           child: ProductsWidget(
-            refreshToken: _listVersion,
             onMenu: () {
               _showProductMenuDialog();
             },
@@ -135,7 +133,6 @@ class _ProductsPageState extends State<ProductsPage> {
       final isMobile = Responsive.isMobile(context);
       if (isMobile) {
         return ProductsWidget(
-          refreshToken: _listVersion,
           onMenu: () {
             _showProductMenuDialog();
           },
@@ -198,7 +195,6 @@ class _ProductsPageState extends State<ProductsPage> {
           // with it still listed alongside on a wide screen.
           setState(() {
             _pageState = MainPage();
-            _listVersion++;
           });
         },
       );

@@ -8,25 +8,15 @@ import 'package:common/core/state/one_shot.dart';
 // Project imports:
 import 'package:pos/domain/model/product/product.dart';
 import 'package:pos/domain/model/product/product_history.dart';
-import 'package:pos/domain/model/product/param.dart';
-import 'package:pos/domain/usecase/product/clear_quantity_sold_first_by_id_use_case.dart';
-import 'package:pos/domain/usecase/product/get_local_product_by_id_use_case.dart';
-import 'package:pos/domain/usecase/product/get_local_products_use_case.dart';
-import 'package:pos/domain/usecase/product/import_product_csv_use_case.dart';
 import 'package:pos/presentation/order/core/export_csv.dart';
 import 'package:pos/presentation/product/main/product_state.dart';
+import 'package:pos/domain/repositories/product_repository.dart';
 
 class ProductViewModel {
-  final GetLocalProductByIdUseCase getLocalProductByIdUseCase;
-  final GetLocalProductsUseCase getLocalProductsUseCase;
-  final ImportProductCSVUseCase importProductCSVUseCase;
-  final ClearQuantitySoldFirstByIdUseCase clearQuantitySoldFirstByIdUseCase;
+  final ProductRepository productRepo;
 
   ProductViewModel({
-    required this.getLocalProductByIdUseCase,
-    required this.getLocalProductsUseCase,
-    required this.importProductCSVUseCase,
-    required this.clearQuantitySoldFirstByIdUseCase,
+    required this.productRepo,
   });
 
   final _state = ValueNotifier<ProductState>(const ProductState());
@@ -47,7 +37,7 @@ class ProductViewModel {
 
   Future<void> getProduct(String productId) async {
     try {
-      final data = await getLocalProductByIdUseCase(productId);
+      final data = await productRepo.getLocalProductById(productId);
       if (data == null) {
         _errors.emit('Product not found');
         return;
@@ -60,7 +50,7 @@ class ProductViewModel {
 
   Future<void> exportProducts() async {
     try {
-      final result = await getLocalProductsUseCase();
+      final result = await productRepo.getLocalProducts();
       ExportCsv.downloadProducts(result);
     } on Exception catch (e) {
       _errors.emit(toFailure(e).getMessage());
@@ -72,9 +62,8 @@ class ProductViewModel {
     if (_state.value.loading) return;
     _state.value = _state.value.copyWith(loading: true);
     try {
-      _importResults.emit(await importProductCSVUseCase(
-        ImportProductCSVParam(bytes: bytes, filename: filename),
-      ));
+      _importResults.emit(
+          await productRepo.importProductCSV(bytes: bytes, filename: filename));
     } on Exception catch (e) {
       _errors.emit(toFailure(e).getMessage());
     } finally {
@@ -86,7 +75,7 @@ class ProductViewModel {
     if (_state.value.loading) return;
     _state.value = _state.value.copyWith(loading: true);
     try {
-      _loaded.emit(await clearQuantitySoldFirstByIdUseCase(productId));
+      _loaded.emit(await productRepo.clearQuantitySoldFirstById(productId));
     } on Exception catch (e) {
       _errors.emit(toFailure(e).getMessage());
     } finally {

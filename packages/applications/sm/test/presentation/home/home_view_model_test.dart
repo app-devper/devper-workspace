@@ -66,6 +66,9 @@ class FakeSystemRepository implements SystemRepository {
 }
 
 class FakeLoginRepository implements LoginRepository {
+  @override
+  Future<Session> exchangeTicket(String ticket, String system) => throw UnimplementedError();
+
   FakeLoginRepository({this.logoutFails = false, this.role = 'SUPER'});
 
   final bool logoutFails;
@@ -201,6 +204,16 @@ void main() {
   test('ADMIN can manage users but not systems', () async {
     final viewModel = buildViewModel(
         FakeSystemRepository(), FakeLoginRepository(role: 'ADMIN'));
+
+    await viewModel.loadRole();
+
+    expect(viewModel.state.value.canManageSystems, isFalse);
+    expect(viewModel.state.value.canManageUsers, isTrue);
+  });
+
+  test('MANAGER can manage users but not systems', () async {
+    final viewModel = buildViewModel(
+        FakeSystemRepository(), FakeLoginRepository(role: 'MANAGER'));
 
     await viewModel.loadRole();
 

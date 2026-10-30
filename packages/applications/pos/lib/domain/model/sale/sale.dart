@@ -7,6 +7,7 @@ import 'package:pos/domain/model/order/order_item.dart';
 import 'package:pos/domain/model/order/param.dart';
 import 'package:pos/domain/model/product/product.dart';
 import 'package:pos/domain/model/sale/line_edit.dart';
+import 'package:pos/domain/model/sale/money.dart';
 
 /// One customer's purchase in progress at the till: its lines, its customer,
 /// the prescription details that go on the record, and what it comes to.
@@ -58,18 +59,12 @@ class Sale {
   /// at its stock's own price.
   String get priceList => _customer?.type ?? priceTypeStock;
 
-  /// What the customer owes: every line at its price, less its discount.
-  double get total {
-    double amount = 0;
-    for (final line in _lines) {
-      amount += line.amountPriceWithDiscount();
-    }
-    return amount;
-  }
+  /// What the customer owes, figured the way pos-api will record it: each
+  /// line rounded to the satang, then the sum.
+  double get total => saleTotal(_lines.map((line) => line.charge.paid));
 
-  /// Whether the money offered settles the sale. Half a satang of floating
-  /// point must not be the reason a cashier cannot close a till.
-  bool covers(double tendered) => tendered - total > -0.005;
+  /// Whether the money offered settles the sale, by pos-api's rule.
+  bool covers(double tendered) => Tender.of(tendered, total).covers;
 
   /// Scanning a barcode already on the sale adds one more to that line.
   /// Returns false when the sale has no line for it, so the caller knows to

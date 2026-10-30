@@ -23,13 +23,13 @@ class StockAdjustmentRepositoryImpl implements StockAdjustmentRepository {
 
   @override
   Future<StockAdjustment> createStockAdjustment(
-      CreateStockAdjustmentParam param) async {
-    final response = await posService
-        .createStockAdjustment(param.toStockAdjustmentRequest());
-    final result = (jsonOrThrow(response) as Map<String, dynamic>)
-        .toStockAdjustmentDomain();
-    productCache.invalidate();
-    return result;
+      CreateStockAdjustmentParam param) {
+    return productCache.staleAfter(() async {
+      final response = await posService
+          .createStockAdjustment(param.toStockAdjustmentRequest());
+      return (jsonOrThrow(response) as Map<String, dynamic>)
+          .toStockAdjustmentDomain();
+    });
   }
 
   @override

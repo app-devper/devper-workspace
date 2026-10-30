@@ -9,12 +9,13 @@ import 'package:design_system/widgets/app_shell.dart';
 import 'package:design_system/widgets/snack_bar.dart';
 import 'package:um/presentation/constants.dart';
 
+import 'package:um/presentation/core/widget/account_panel.dart';
+
 // Project imports:
 import 'package:sm/container.dart';
 import 'package:sm/presentation/home/main/home_state.dart';
 import 'package:sm/presentation/home/main/home_view_model.dart';
 import 'package:sm/presentation/home/main/system_form_dialog.dart';
-import 'package:sm/presentation/home/sections/profile_section.dart';
 import 'package:sm/presentation/home/sections/systems_section.dart';
 import 'package:sm/presentation/home/sections/users_section.dart';
 
@@ -107,7 +108,7 @@ class _HomePageState extends State<HomePage> {
       case _usersId:
         return const UsersSection();
       case _profileId:
-        return const ProfileSection();
+        return const AccountPanel();
       default:
         return SystemsSection(viewModel: _viewModel);
     }

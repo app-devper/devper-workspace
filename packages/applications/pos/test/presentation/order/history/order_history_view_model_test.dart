@@ -2,7 +2,6 @@ import 'package:common/core/error/exception.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pos/domain/model/order/order_item_detail.dart';
 import 'package:pos/domain/repositories/order_repository.dart';
-import 'package:pos/domain/usecase/order/get_order_item_by_product_id_use_case.dart';
 import 'package:pos/presentation/order/history/order_history_view_model.dart';
 
 class FakeOrderRepository implements OrderRepository {
@@ -42,8 +41,7 @@ OrderItemDetail buildItem(String id) {
 
 OrderHistoryViewModel buildViewModel(OrderRepository repo) {
   return OrderHistoryViewModel(
-    getOrderItemByProductIdUseCase:
-        GetOrderItemByProductIdUseCase(orderRepo: repo),
+    orderRepo: repo,
   );
 }
 

@@ -21,6 +21,9 @@ AppException toAppException(http.Response response) {
   final message = _extractMessage(body, response);
   final code = _extractCode(body, response);
   final statusCode = response.statusCode;
+  if (statusCode == 400 || statusCode == 422) {
+    return ValidationException(message: message, code: code);
+  }
   if (statusCode == 401) {
     return AuthException(message: message, code: code);
   }
@@ -75,8 +78,10 @@ String _extractMessage(Map<String, dynamic>? body, http.Response response) {
   return response.reasonPhrase ?? "HTTP ${response.statusCode}";
 }
 
+/// pos-api sends `{errcode, error}` and um-api sends `{code, message}`; the
+/// same client talks to both.
 String _extractCode(Map<String, dynamic>? body, http.Response response) {
-  final code = body?["code"];
+  final code = body?["errcode"] ?? body?["code"];
   if (code != null && code.toString().isNotEmpty) {
     return code.toString();
   }

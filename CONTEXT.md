@@ -3,8 +3,10 @@
 The till, stock and purchasing language of a Thai pharmacy. One shop runs the
 POS app over a counter; `sm` administers the systems behind it.
 
-This file is a glossary. Decisions live in `docs/adr/`; how the code is arranged
-lives in `docs/architecture.md`.
+This file is a glossary. Decisions about how Stock moves live in pos-api's
+[`docs/adr/`](https://github.com/app-devper/pos-api/tree/develop/docs/adr), the
+server that enforces them; how this workspace's code is arranged lives in
+`docs/architecture.md`.
 
 ## Selling
 
@@ -64,13 +66,20 @@ A Stock followed for expiry, so the shop can be warned before it runs out of
 shelf life.
 
 **Sold first**:
-Quantity sold that no Stock accounted for. It is the shop's unreconciled
-bucket, not a batch.
+Quantity sold that no Stock accounted for, on a Line not marked for Oversell.
+It is the shop's unreconciled bucket, not a batch: incoming Stock never
+settles it, and it is cleared by hand.
 
 **Oversell**:
-Selling more of a Unit than any Stock holds. Permitted per Line, deliberately,
-and the shortfall stays attached to the last real batch it touched rather than
-falling into sold first.
+Selling more of a Unit than any Stock holds, deliberately, on one Line. The
+shortfall is owed to that customer and stays on the Line until it is settled.
+_Avoid_: negative stock, backorder
+
+**Settle**:
+Paying an Oversell back out of Stock as it arrives: whenever Stock of a Unit
+rises, the oldest Lines still owed that Unit in that branch are served from it
+first. Only the same Unit settles; what is settled leaves the incoming Stock.
+_Avoid_: reconcile
 
 **Receive**:
 A delivery being entered — its supplier, its reference, and its lines — before

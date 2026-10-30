@@ -5,32 +5,27 @@ import 'package:flutter/foundation.dart';
 import 'package:common/core/error/exception.dart';
 import 'package:common/core/error/failure.dart';
 import 'package:common/core/state/one_shot.dart';
+import 'package:um/domain/entities/auth/role.dart';
 import 'package:um/domain/usecase/auth_use_cases.dart';
 
 // Project imports:
 import 'package:pos/domain/model/customer/customer.dart';
 import 'package:pos/domain/model/order/order_detail.dart';
-import 'package:pos/domain/usecase/order/get_order_by_id_use_case.dart';
-import 'package:pos/domain/usecase/order/remove_order_by_id_use_case.dart';
-import 'package:pos/domain/usecase/order/remove_order_item_by_id_use_case.dart';
 import 'order_detail_state.dart';
 
 import 'package:pos/domain/repositories/customer_repository.dart';
 
 import 'package:pos/domain/repositories/supplier_repository.dart';
+import 'package:pos/domain/repositories/order_repository.dart';
 
 class OrderDetailViewModel {
+  final OrderRepository orderRepo;
   final SupplierRepository supplierRepo;
   final CustomerRepository customerRepo;
-  final GetOrderByIdUseCase getOrderByIdUseCase;
-  final RemoveOrderByIdUseCase removeOrderByIdUseCase;
-  final RemoveOrderItemByIdUseCase removeOrderItemByIdUseCase;
   final GetRoleUseCase getRoleUseCase;
 
   OrderDetailViewModel({
-    required this.getOrderByIdUseCase,
-    required this.removeOrderByIdUseCase,
-    required this.removeOrderItemByIdUseCase,
+    required this.orderRepo,
     required this.getRoleUseCase,
     required this.supplierRepo,
     required this.customerRepo,
@@ -59,12 +54,8 @@ class OrderDetailViewModel {
   Stream<void> get supplierSetups => _supplierSetups.stream;
 
   Future<void> checkLogin() async {
-    try {
-      final role = await getRoleUseCase();
-      _state.value = _state.value.copyWith(isAdmin: role == "ADMIN");
-    } on Exception catch (e) {
-      _errors.emit(toFailure(e).getMessage());
-    }
+    _state.value = _state.value
+        .copyWith(isAdmin: await getRoleUseCase.atLeast(Role.admin));
   }
 
   Future<void> getOrderById(String orderId) async {
@@ -77,7 +68,7 @@ class OrderDetailViewModel {
     if (_state.value.loading) return;
     _state.value = _state.value.copyWith(loading: true);
     try {
-      final removed = await removeOrderByIdUseCase(orderId);
+      final removed = await orderRepo.removeOrderById(orderId);
       _state.value = _state.value.copyWith(loading: false);
       _removals.emit(removed);
     } on Exception catch (e) {
@@ -92,7 +83,7 @@ class OrderDetailViewModel {
     if (_state.value.loading) return;
     _state.value = _state.value.copyWith(loading: true);
     try {
-      await removeOrderItemByIdUseCase(itemId);
+      await orderRepo.removeOrderItemById(itemId);
     } on Exception catch (e) {
       _fail(e);
       return;
@@ -129,7 +120,7 @@ class OrderDetailViewModel {
   /// holding the screen can finish by refreshing what it changed.
   Future<void> _load(String orderId) async {
     try {
-      final order = await getOrderByIdUseCase(orderId);
+      final order = await orderRepo.getOrderById(orderId);
       _state.value = _state.value.copyWith(order: order, loading: false);
     } on Exception catch (e) {
       _fail(e);

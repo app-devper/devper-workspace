@@ -2,7 +2,6 @@ import 'package:common/core/error/exception.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pos/domain/model/product/product_history.dart';
 import 'package:pos/domain/repositories/product_repository.dart';
-import 'package:pos/domain/usecase/product/get_product_histories_by_product_id_use_case.dart';
 import 'package:pos/presentation/product/history/product_history_view_model.dart';
 
 class FakeProductRepository implements ProductRepository {
@@ -45,8 +44,7 @@ ProductHistory buildHistory(String id, {int balance = 10}) {
 
 ProductHistoryViewModel buildViewModel(ProductRepository repo) {
   return ProductHistoryViewModel(
-    getProductHistoriesByProductIdUseCase:
-        GetProductHistoriesByProductIdUseCase(productRepo: repo),
+    productRepo: repo,
   );
 }
 

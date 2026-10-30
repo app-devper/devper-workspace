@@ -4,6 +4,7 @@ import 'package:common/core/ext/date_ext.dart';
 // Project imports:
 import 'package:pos/domain/model/core/core.dart';
 import 'package:pos/domain/model/product/product.dart';
+import 'package:pos/domain/model/sale/money.dart';
 
 class OrderItem {
   final ProductUnitItem product;
@@ -108,97 +109,12 @@ class OrderItem {
     allowOversell = !allowOversell;
   }
 
-  double amountPriceWithDiscount() {
-    return quantity * priceType.price - (discount * quantity);
-  }
+  /// What pos-api will charge for this line; see [Charge].
+  Charge get charge => Charge.of(priceType.price, quantity, discount);
 
-  double amountPrice() {
-    return quantity * priceType.price;
-  }
+  double amountPriceWithDiscount() => charge.paid;
 
-  double amountCostPrice() {
-    return quantity * priceType.costPrice;
-  }
-
-  List<ProductStockOrder> getProductStockOrder() {
-    List<ProductStockOrder> productStockOrder = [];
-    final productStock = product.getProductStockById(priceType.stock?.id);
-    if (productStock != null) {
-      if (productStock.quantity >= quantity) {
-        productStockOrder.add(ProductStockOrder(
-          stockId: productStock.id,
-          quantity: quantity,
-        ));
-      } else {
-        productStockOrder.add(ProductStockOrder(
-          stockId: productStock.id,
-          quantity: productStock.quantity,
-        ));
-        final remainQuantity = quantity - productStock.quantity;
-        findProductStockOrder(productStockOrder, remainQuantity);
-      }
-    } else {
-      productStockOrder.add(
-        ProductStockOrder(
-          stockId: "",
-          quantity: quantity,
-        ),
-      );
-    }
-    return productStockOrder;
-  }
-
-  List<ProductStockOrder> findProductStockOrder(
-      List<ProductStockOrder> productStockOrder, int quantity) {
-    final productStock = product.stocks
-        .where((stock) =>
-            stock.quantity > 0 &&
-            productStockOrder.every((element) => element.stockId != stock.id))
-        .firstOrNull;
-    if (productStock != null) {
-      if (productStock.quantity >= quantity) {
-        productStockOrder.add(
-          ProductStockOrder(
-            stockId: productStock.id,
-            quantity: quantity,
-          ),
-        );
-      } else {
-        productStockOrder.add(
-          ProductStockOrder(
-            stockId: productStock.id,
-            quantity: productStock.quantity,
-          ),
-        );
-        final remainQuantity = quantity - productStock.quantity;
-        if (remainQuantity > 0) {
-          findProductStockOrder(productStockOrder, remainQuantity);
-        }
-      }
-    } else if (allowOversell &&
-        productStockOrder.isNotEmpty &&
-        productStockOrder.last.stockId.isNotEmpty) {
-      // No stock left anywhere, but this line already touched a real lot: fold the
-      // shortfall onto that lot so the backend's oversell/reconciliation path (keyed
-      // off a non-empty stockId) applies, instead of silently routing it to the
-      // unguarded "sold first" bucket (stockId "").
-      final last = productStockOrder.removeLast();
-      productStockOrder.add(
-        ProductStockOrder(
-          stockId: last.stockId,
-          quantity: last.quantity + quantity,
-        ),
-      );
-    } else {
-      productStockOrder.add(
-        ProductStockOrder(
-          stockId: "",
-          quantity: quantity,
-        ),
-      );
-    }
-    return productStockOrder;
-  }
+  double amountPrice() => charge.amount;
 
   String getPriceDetail() {
     switch (priceType.type) {
@@ -222,14 +138,4 @@ class OrderItem {
   void updateQuantity(double value) {
     quantity = value.toInt();
   }
-}
-
-class ProductStockOrder {
-  final String stockId;
-  final int quantity;
-
-  ProductStockOrder({
-    required this.stockId,
-    required this.quantity,
-  });
 }

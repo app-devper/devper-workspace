@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:common/core/error/exception.dart';
 import 'package:common/core/network/error_mapper.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -38,6 +40,43 @@ void main() {
       expect(e, isA<UnknownHttpException>());
       expect((e as UnknownHttpException).statusCode, 418);
       expect(e.code, 'HTTP-418');
+    });
+
+    test('reads the pos-api envelope, errcode and error', () {
+      // gin sends JSON as UTF-8, and pos-api's messages are Thai.
+      final e = toAppException(http.Response.bytes(
+        utf8.encode('{"errcode":"PD-BAD-REQUEST-002","error":"สต็อกไม่พอ"}'),
+        400,
+        headers: {'content-type': 'application/json; charset=utf-8'},
+      ));
+
+      expect(e.code, 'PD-BAD-REQUEST-002');
+      expect(e.message, 'สต็อกไม่พอ');
+    });
+
+    test('prefers errcode when a body carries both keys', () {
+      final e = toAppException(http.Response('{"errcode":"A","code":"B"}', 409));
+
+      expect(e.code, 'A');
+    });
+
+    test('maps 400 to ValidationException with the server code and message', () {
+      final e = toAppException(http.Response('{"errcode":"OR-001","error":"bad sale"}', 400));
+
+      expect(e, isA<ValidationException>());
+      expect(e.code, 'OR-001');
+      expect(e.message, 'bad sale');
+    });
+
+    test('maps 422 to ValidationException', () {
+      final e = toAppException(http.Response('{"code":"UM-422","message":"weak password"}', 422));
+
+      expect(e, isA<ValidationException>());
+      expect(e.code, 'UM-422');
+    });
+
+    test('a 400 without a code still says which status it was', () {
+      expect(toAppException(http.Response('', 400)).code, 'HTTP-400');
     });
 
     test('falls back to legacy error key for message', () {

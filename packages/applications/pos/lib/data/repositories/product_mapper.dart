@@ -51,7 +51,8 @@ extension ProductJson on Map<String, dynamic> {
           (json['drugRegistrations'] as List?)?.cast<String>() ?? [],
       units: ((json['units'] ?? []) as List).toProductUnitsDomain(),
       prices: ((json['prices'] ?? []) as List).toProductPricesDomain(),
-      stocks: ((json['stocks'] ?? []) as List).toProductStocksDomain(),
+      stocks: _inSellingOrder(
+          ((json['stocks'] ?? []) as List).toProductStocksDomain()),
     );
   }
 
@@ -446,4 +447,16 @@ extension RequestDrugInfoRequest on RequestDrugInfo {
       'drugInteractions': param.drugInteractions,
     };
   }
+}
+
+/// A Product's Stocks in the order they sell: by sequence, keeping the
+/// server's order on a tie. The screens list them this way; working out a
+/// price no longer sorts them as a side effect.
+List<ProductStock> _inSellingOrder(List<ProductStock> stocks) {
+  final ordered = List.of(stocks.indexed)
+    ..sort((a, b) {
+      final bySequence = a.$2.sequence.compareTo(b.$2.sequence);
+      return bySequence != 0 ? bySequence : a.$1.compareTo(b.$1);
+    });
+  return [for (final (_, stock) in ordered) stock];
 }

@@ -4,8 +4,6 @@ import 'package:pos/domain/model/product/param.dart';
 import 'package:pos/domain/model/product/product.dart';
 import 'package:pos/domain/model/product/product_lot.dart';
 import 'package:pos/domain/repositories/product_repository.dart';
-import 'package:pos/domain/usecase/product/get_local_product_by_id_use_case.dart';
-import 'package:pos/domain/usecase/product/update_product_lot_quantity_by_lot_id_use_case.dart';
 import 'package:pos/presentation/product/lot_edit/product_lot_edit_view_model.dart';
 
 ProductLot lot(String id, {int quantity = 10}) {
@@ -61,9 +59,7 @@ class FakeProductRepository implements ProductRepository {
 
 ProductLotEditViewModel buildViewModel(FakeProductRepository repo) {
   return ProductLotEditViewModel(
-    updateProductLotQuantityByLotIdUseCase:
-        UpdateProductLotQuantityByLotIdUseCase(productRepo: repo),
-    getLocalProductByIdUseCase: GetLocalProductByIdUseCase(productRepo: repo),
+    productRepo: repo,
   );
 }
 

@@ -213,7 +213,8 @@ class _SupplierEditPageState extends State<SupplierEditPage> {
       child: ButtonWidget(
         key: const Key("update"),
         onClicked: () {
-          _viewModel.updateSupplierById(widget.supplier.id, _getSupplierParam());
+          _viewModel.updateSupplierById(
+              widget.supplier.id, _getSupplierParam());
         },
         text: "Update",
       ),

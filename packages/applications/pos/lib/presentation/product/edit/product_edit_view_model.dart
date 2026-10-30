@@ -8,20 +8,14 @@ import 'package:common/core/state/one_shot.dart';
 // Project imports:
 import 'package:pos/domain/model/product/param.dart';
 import 'package:pos/domain/model/product/product.dart';
-import 'package:pos/domain/usecase/product/get_local_product_by_id_use_case.dart';
-import 'package:pos/domain/usecase/product/remove_product_by_id_use_case.dart';
-import 'package:pos/domain/usecase/product/update_product_by_id_use_case.dart';
 import 'package:pos/presentation/product/edit/product_edit_state.dart';
+import 'package:pos/domain/repositories/product_repository.dart';
 
 class ProductEditViewModel {
-  final GetLocalProductByIdUseCase getLocalProductByIdUseCase;
-  final UpdateProductByIdUseCase updateProductByIdUseCase;
-  final RemoveProductByIdUseCase removeProductByIdUseCase;
+  final ProductRepository productRepo;
 
   ProductEditViewModel({
-    required this.getLocalProductByIdUseCase,
-    required this.updateProductByIdUseCase,
-    required this.removeProductByIdUseCase,
+    required this.productRepo,
   });
 
   final _state = ValueNotifier<ProductEditState>(const ProductEditState());
@@ -47,7 +41,7 @@ class ProductEditViewModel {
     if (_state.value.loading) return;
     _state.value = _state.value.copyWith(loading: true);
     try {
-      final loaded = await getLocalProductByIdUseCase(productId);
+      final loaded = await productRepo.getLocalProductById(productId);
       _state.value = _state.value.copyWith(loading: false);
       if (loaded == null) {
         _errors.emit('Product not found');
@@ -63,9 +57,7 @@ class ProductEditViewModel {
     if (_state.value.loading) return;
     _state.value = _state.value.copyWith(loading: true);
     try {
-      final updated = await updateProductByIdUseCase(
-        ProductUpdateParam(productId: productId, param: param),
-      );
+      final updated = await productRepo.updateProductById(productId, param);
       _state.value = _state.value.copyWith(loading: false);
       _updated.emit(updated);
     } on Exception catch (e) {
@@ -77,7 +69,7 @@ class ProductEditViewModel {
     if (_state.value.loading) return;
     _state.value = _state.value.copyWith(loading: true);
     try {
-      final removed = await removeProductByIdUseCase(productId);
+      final removed = await productRepo.removeProductById(productId);
       _state.value = _state.value.copyWith(loading: false);
       _removed.emit(removed);
     } on Exception catch (e) {

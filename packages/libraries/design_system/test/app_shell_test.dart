@@ -90,4 +90,26 @@ void main() {
     expect(light, isNot(dark));
   });
 
+
+  testWidgets('a sidebar action can stand apart in its own colour',
+      (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      theme: ThemeData(extensions: [AppColors.light]),
+      home: Scaffold(
+        body: SizedBox(
+          width: 240,
+          child: AppSidebarAction(
+            label: 'ออกจากระบบ',
+            icon: Icons.logout,
+            collapsed: false,
+            onTap: () {},
+            color: Colors.red,
+          ),
+        ),
+      ),
+    ));
+
+    // Logging out was meant to be red, and the colour never reached it.
+    expect(tester.widget<Icon>(find.byIcon(Icons.logout)).color, Colors.red);
+  });
 }

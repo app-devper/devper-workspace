@@ -118,7 +118,8 @@ steps 3 and 5–9 with a **patch** bump.
 
 ## Guard rails
 
-- No direct pushes to `main` or `develop`; every change goes through a PR
+- No direct pushes to `main` or `develop` except the stage-8 back-merge
+  (admin only, see `git-flow`); every other change goes through a PR
   with `Analyze + Test (Flutter/melos)` green.
 - A merge into `main` is a release —
   only `release/*` and `hotfix/*` PRs target `main`.

@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:common/core/state/one_shot.dart';
 
 // Package imports:
+import 'package:um/domain/entities/auth/role.dart';
 import 'package:um/domain/usecase/auth_use_cases.dart';
 
 // Project imports:
@@ -34,12 +35,8 @@ class HomeViewModel {
   }
 
   Future<void> getRole() async {
-    try {
-      final role = await getRoleUseCase();
-      _state.value = _state.value.copyWith(isAdmin: role == "ADMIN");
-    } on Exception catch (_) {
-      _state.value = _state.value.copyWith(isAdmin: false);
-    }
+    _state.value = _state.value
+        .copyWith(isAdmin: await getRoleUseCase.atLeast(Role.admin));
   }
 
   Future<void> logout() async {

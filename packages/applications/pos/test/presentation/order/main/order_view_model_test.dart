@@ -4,7 +4,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:pos/domain/model/order/order_summary.dart';
 import 'package:pos/domain/model/order/param.dart';
 import 'package:pos/domain/repositories/order_repository.dart';
-import 'package:pos/domain/usecase/order/get_order_range_use_case.dart';
 import 'package:pos/presentation/order/main/order_ui_model.dart';
 import 'package:pos/presentation/order/main/order_state.dart';
 import 'package:pos/presentation/order/main/order_view_model.dart';
@@ -48,6 +47,9 @@ class FakeOrderRepository implements OrderRepository {
 }
 
 class FakeLoginRepository implements LoginRepository {
+  @override
+  Future<Session> exchangeTicket(String ticket, String system) => throw UnimplementedError();
+
   FakeLoginRepository({this.role = 'USER', this.throws});
 
   final String role;
@@ -91,8 +93,7 @@ OrderViewModel buildViewModel({
   FakeLoginRepository? login,
 }) {
   return OrderViewModel(
-    getOrderRangeUseCase:
-        GetOrderRangeUseCase(orderRepo: orders ?? FakeOrderRepository()),
+    orderRepo: orders ?? FakeOrderRepository(),
     getRoleUseCase: GetRoleUseCase(login ?? FakeLoginRepository()),
   );
 }
@@ -179,18 +180,26 @@ void main() {
   });
 
   group('checkLogin', () {
-    test('only ADMIN counts as logged for this screen', () async {
+    test('ADMIN and above count as admin for this screen', () async {
       final admin = buildViewModel(login: FakeLoginRepository(role: 'ADMIN'));
+      final superuser =
+          buildViewModel(login: FakeLoginRepository(role: 'SUPER'));
+      final manager =
+          buildViewModel(login: FakeLoginRepository(role: 'MANAGER'));
       final cashier = buildViewModel(login: FakeLoginRepository(role: 'USER'));
 
       await admin.checkLogin();
+      await superuser.checkLogin();
+      await manager.checkLogin();
       await cashier.checkLogin();
 
       expect(admin.state.value.isAdmin, isTrue);
+      expect(superuser.state.value.isAdmin, isTrue);
+      expect(manager.state.value.isAdmin, isFalse);
       expect(cashier.state.value.isAdmin, isFalse);
     });
 
-    test('an unreadable role surfaces as an error and stays a cashier',
+    test('an unreadable role stays a cashier, as every screen treats it',
         () async {
       final viewModel = buildViewModel(
         login: FakeLoginRepository(
@@ -203,7 +212,8 @@ void main() {
       await viewModel.checkLogin();
       await Future<void>.delayed(Duration.zero);
 
-      expect(errors, hasLength(1));
+      expect(errors, isEmpty,
+          reason: 'the home menu never reported it; one rule for all screens');
       expect(viewModel.state.value.isAdmin, isFalse,
           reason: 'an unknown role must not unlock the admin actions');
     });

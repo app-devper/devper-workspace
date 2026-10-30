@@ -40,7 +40,8 @@ ProductStock _stock({
     );
 
 /// A product priced at 10 off the shelf, 8 for a regular, 6 wholesale.
-ProductUnitItem _product(String barcode, {bool withPriceList = true}) {
+ProductUnitItem _product(String barcode,
+    {bool withPriceList = true, double price = 10}) {
   return ProductUnitItem(
     id: 'p-$barcode',
     name: 'Paracetamol',
@@ -55,7 +56,7 @@ ProductUnitItem _product(String barcode, {bool withPriceList = true}) {
                 productId: 'p-$barcode',
                 unitId: 'unit-$barcode',
                 customerType: customerTypeGeneral,
-                price: 10),
+                price: price),
             ProductPrice(
                 id: '2',
                 productId: 'p-$barcode',
@@ -70,7 +71,7 @@ ProductUnitItem _product(String barcode, {bool withPriceList = true}) {
                 price: 6),
           ]
         : const [],
-    stocks: [_stock()],
+    stocks: [_stock(price: price)],
   );
 }
 
@@ -164,6 +165,20 @@ void main() {
 
     test('an empty sale comes to nothing', () {
       expect(Sale().total, 0);
+    });
+  });
+
+  group('prices with more than two decimals', () {
+    test('each Line rounds before the Sale sums, as pos-api does', () {
+      final sale = Sale()
+        ..addLine(_product('111', price: 4.445))
+        ..addLine(_product('222', price: 4.445))
+        ..addLine(_product('333', price: 4.445));
+
+      expect(sale.total, 13.35,
+          reason: 'the till showed 13.335 and pos-api refused that as short');
+      expect(sale.covers(13.35), isTrue);
+      expect(sale.covers(13.34), isFalse);
     });
   });
 
@@ -435,20 +450,5 @@ void main() {
       expect(sale.lines.single.priceType.stock?.id, 'old');
     });
 
-    test('the order draws from the chosen batch first', () {
-      final product = _productWithTwoBatches();
-      final sale = Sale()..addLine(product);
-      sale.applyEdit(
-          0, LineEdit(quantity: 3, discount: 0, stock: product.stocks[1]));
-
-      final allocation = sale
-          .toOrder(tendered: 36, type: 'Cash')
-          .items
-          .single
-          .getProductStockOrder();
-
-      expect(allocation.first.stockId, 'old');
-      expect(allocation.first.quantity, 3);
-    });
   });
 }

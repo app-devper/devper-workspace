@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:common/localizations/localizations_delegate.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -5,12 +7,6 @@ import 'package:pos/container.dart';
 import 'package:pos/domain/model/core/core.dart';
 import 'package:pos/domain/model/product/product.dart';
 import 'package:pos/domain/repositories/product_repository.dart';
-import 'package:pos/domain/usecase/product/clear_quantity_sold_first_by_id_use_case.dart';
-import 'package:pos/domain/usecase/product/get_local_product_by_id_use_case.dart';
-import 'package:pos/domain/usecase/product/get_local_products_use_case.dart';
-import 'package:pos/domain/usecase/product/import_product_csv_use_case.dart';
-import 'package:pos/domain/usecase/product/remove_product_by_id_use_case.dart';
-import 'package:pos/domain/usecase/product/update_product_by_id_use_case.dart';
 import 'package:pos/presentation/constants.dart';
 import 'package:pos/presentation/product/argument.dart';
 import 'package:pos/presentation/product/edit/product_edit_page.dart';
@@ -20,12 +16,16 @@ import 'package:pos/presentation/product/main/product_view_model.dart';
 import 'package:pos/presentation/product/main/products_view_model.dart';
 import 'package:pos/presentation/router.dart';
 
-/// The shop's catalogue, in memory. Removing a Product takes it out, the way
-/// the real repository takes it out of its cache.
+/// The shop's catalogue, in memory. Removing a Product takes it out and says
+/// the catalogue changed, the way the real repository does with its cache.
 class Catalogue implements ProductRepository {
   final List<Product> products;
+  final _changes = StreamController<void>.broadcast();
 
   Catalogue(this.products);
+
+  @override
+  Stream<void> get catalogueChanges => _changes.stream;
 
   @override
   Future<List<Product>> getLocalProducts() async => List.of(products);
@@ -38,6 +38,7 @@ class Catalogue implements ProductRepository {
   Future<Product> removeProductById(String productId) async {
     final product = products.firstWhere((p) => p.id == productId);
     products.remove(product);
+    _changes.add(null);
     return product;
   }
 
@@ -83,26 +84,13 @@ void main() {
   setUp(() {
     catalogue = Catalogue([_paracetamol()]);
     sl.registerFactory<ProductViewModel>(() => ProductViewModel(
-          getLocalProductByIdUseCase:
-              GetLocalProductByIdUseCase(productRepo: catalogue),
-          getLocalProductsUseCase:
-              GetLocalProductsUseCase(productRepo: catalogue),
-          importProductCSVUseCase:
-              ImportProductCSVUseCase(productRepo: catalogue),
-          clearQuantitySoldFirstByIdUseCase:
-              ClearQuantitySoldFirstByIdUseCase(productRepo: catalogue),
+          productRepo: catalogue,
         ));
     sl.registerFactory<ProductsViewModel>(() => ProductsViewModel(
-          getLocalProductsUseCase:
-              GetLocalProductsUseCase(productRepo: catalogue),
+          productRepo: catalogue,
         ));
     sl.registerFactory<ProductEditViewModel>(() => ProductEditViewModel(
-          getLocalProductByIdUseCase:
-              GetLocalProductByIdUseCase(productRepo: catalogue),
-          updateProductByIdUseCase:
-              UpdateProductByIdUseCase(productRepo: catalogue),
-          removeProductByIdUseCase:
-              RemoveProductByIdUseCase(productRepo: catalogue),
+          productRepo: catalogue,
         ));
   });
 

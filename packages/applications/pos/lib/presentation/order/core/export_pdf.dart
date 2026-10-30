@@ -10,6 +10,7 @@ import 'package:pdf/widgets.dart';
 // Project imports:
 import 'package:pos/domain/model/customer/customer.dart';
 import 'package:pos/domain/model/receipt/receipt.dart';
+import 'package:pos/domain/model/sale/money.dart';
 import 'package:pos/domain/model/supplier/supplier.dart';
 import 'pdf_api.dart';
 
@@ -179,7 +180,7 @@ class ExportPdf {
   }
 
   static Widget buildTotal(Receipt invoice, Font font) {
-    final total = invoice.items.fold<double>(0, (sum, item) => sum + item.paid());
+    final total = saleTotal(invoice.items.map((item) => item.paid()));
     final number = formatPrice(total);
     return Container(
       child: Row(

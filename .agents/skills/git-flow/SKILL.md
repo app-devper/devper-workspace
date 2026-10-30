@@ -77,6 +77,14 @@ gh pr create --base main --title "fix(...): ..." --body "..."
 
 ### Back-merge (required after every merge into main)
 
+The back-merge is the only direct push to `develop`, in every app-devper repo.
+It needs an account with admin rights: `develop` requires the CI status check
+and a pushed merge commit has none, so GitHub answers
+`Bypassed rule violations for refs/heads/develop` — expected here. The `check`
+workflow still runs on the push; confirm it is green:
+`gh run list --branch develop -L 1`. Never squash a back-merge (it would drop
+`main` from `develop`'s history), and don't open a PR for it.
+
 ```bash
 git checkout main && git pull --ff-only
 git checkout develop && git pull --ff-only
@@ -94,7 +102,9 @@ melos exec -c 1 --dir-exists=test -- fvm flutter test
 
 ## Guard rails
 
-- Never push directly to `main` or `develop` — always via PR.
+- Never push directly to `main` or `develop` — always via PR. The one
+  exception is the back-merge `main` → `develop`, which is pushed directly
+  (see Back-merge).
 - Never open a feature PR against `main`; only `release/*` and `hotfix/*`
   target `main`.
 - Back-merge `main` → `develop` immediately after every main landing;
