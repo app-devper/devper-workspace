@@ -5,9 +5,12 @@ description: Git flow branching for app-devper/pos-app — main (production line
 
 # git-flow — branching + release model for this repo
 
-Project override of the user-level `git-flow` skill (`~/.Codex/skills/git-flow/`)
+Project override of the user-level `git-flow` skill (`~/.claude/skills/git-flow/`)
 — generic recipes live there; everything below is what's specific to
 `app-devper/pos-app` (Flutter monorepo, `melos` 8 + `fvm`, Flutter 3.38.7).
+
+The stage-by-stage flow (shape → build → review → release → deploy check)
+lives in `dev-flow`; this skill owns the branch rules.
 
 ## Branch map
 
